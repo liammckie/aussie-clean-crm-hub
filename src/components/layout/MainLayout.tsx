@@ -11,10 +11,10 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   return (
     <SidebarProvider defaultOpen={true}>
-      <div className="min-h-screen flex w-full bg-background dark:bg-slate-950">
+      <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-900 to-slate-950 text-white">
         <MainSidebar />
         <CollapsedMenuDrawer />
-        <SidebarInset>
+        <SidebarInset className="bg-gradient-to-br from-slate-900 to-slate-950">
           <TopNavbar />
           <main className="px-4 py-6">
             {children}

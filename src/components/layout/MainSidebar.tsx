@@ -24,6 +24,7 @@ import {
   Truck, 
   Activity 
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 export function MainSidebar() {
   return (
@@ -36,69 +37,96 @@ export function MainSidebar() {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton isActive={true} tooltip="Dashboard" className="sidebar-item hover:bg-white/10">
-                  <Home />
-                  <span>Dashboard</span>
+                <SidebarMenuButton 
+                  isActive={window.location.pathname === '/dashboard'} 
+                  tooltip="Dashboard" 
+                  className="sidebar-item"
+                  asChild
+                >
+                  <Link to="/dashboard">
+                    <Home className="text-white" />
+                    <span className="text-white">Dashboard</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Clients" className="sidebar-item hover:bg-white/10">
-                  <Users />
-                  <span>Clients</span>
+                <SidebarMenuButton tooltip="Clients" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <Users className="text-white" />
+                    <span className="text-white">Clients</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Contracts" className="sidebar-item hover:bg-white/10">
-                  <FileCheck />
-                  <span>Contracts</span>
+                <SidebarMenuButton tooltip="Contracts" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <FileCheck className="text-white" />
+                    <span className="text-white">Contracts</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Sales" className="sidebar-item hover:bg-white/10">
-                  <TrendingUp />
-                  <span>Sales</span>
+                <SidebarMenuButton tooltip="Sales" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <TrendingUp className="text-white" />
+                    <span className="text-white">Sales</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Work Orders" className="sidebar-item hover:bg-white/10">
-                  <Briefcase />
-                  <span>Work Orders</span>
+                <SidebarMenuButton tooltip="Work Orders" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <Briefcase className="text-white" />
+                    <span className="text-white">Work Orders</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Activities" className="sidebar-item hover:bg-white/10">
-                  <Calendar />
-                  <span>Activities</span>
+                <SidebarMenuButton tooltip="Activities" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <Calendar className="text-white" />
+                    <span className="text-white">Activities</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Finance" className="sidebar-item hover:bg-white/10">
-                  <DollarSign />
-                  <span>Finance</span>
+                <SidebarMenuButton tooltip="Finance" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <DollarSign className="text-white" />
+                    <span className="text-white">Finance</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Settings" className="sidebar-item hover:bg-white/10">
-                  <Settings />
-                  <span>Settings</span>
+                <SidebarMenuButton tooltip="Settings" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <Settings className="text-white" />
+                    <span className="text-white">Settings</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Quick Forms" className="sidebar-item hover:bg-white/10">
-                  <FileText />
-                  <span>Quick Forms</span>
+                <SidebarMenuButton tooltip="Quick Forms" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <FileText className="text-white" />
+                    <span className="text-white">Quick Forms</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Suppliers" className="sidebar-item hover:bg-white/10">
-                  <Truck />
-                  <span>Suppliers</span>
+                <SidebarMenuButton tooltip="Suppliers" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <Truck className="text-white" />
+                    <span className="text-white">Suppliers</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton tooltip="Activity Log" className="sidebar-item hover:bg-white/10">
-                  <Activity />
-                  <span>Activity Log</span>
+                <SidebarMenuButton tooltip="Activity Log" className="sidebar-item" asChild>
+                  <Link to="#">
+                    <Activity className="text-white" />
+                    <span className="text-white">Activity Log</span>
+                  </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
@@ -106,7 +134,7 @@ export function MainSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4">
-        <SidebarTrigger className="w-full flex justify-center items-center gap-2 bg-black/20 backdrop-blur-sm hover:bg-black/30 transition-colors border border-white/10 rounded-md">
+        <SidebarTrigger className="w-full flex justify-center items-center gap-2 bg-black/20 backdrop-blur-sm hover:bg-black/30 transition-colors border border-white/10 rounded-md text-white">
           <span>Close Sidebar</span>
         </SidebarTrigger>
       </SidebarFooter>
