@@ -107,7 +107,7 @@ export default function Login() {
         {/* Left side: Brand and FAQs with enhanced lighting effects */}
         <div className="w-full md:w-1/2 bg-slate-950 flex flex-col items-center justify-center p-8 relative overflow-hidden">
           {/* Enhanced lighting effects */}
-          <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute top-0 -left-1/4 w-[500px] h-[500px] bg-purple-800/10 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '8s' }}></div>
             <div className="absolute -bottom-1/4 -right-1/4 w-[600px] h-[600px] bg-indigo-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s' }}></div>
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-900/5 rounded-full blur-[80px]"></div>
@@ -186,7 +186,7 @@ export default function Login() {
         {/* Right side: Enhanced glass form */}
         <div className="w-full md:w-1/2 bg-slate-950 flex items-center justify-center p-4 md:p-8 relative">
           {/* Background effects */}
-          <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div className="absolute -top-1/4 -right-1/4 w-[500px] h-[500px] bg-indigo-900/10 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '15s' }}></div>
             <div className="absolute -bottom-1/4 -left-1/4 w-[400px] h-[400px] bg-purple-700/10 rounded-full blur-[80px] animate-pulse" style={{ animationDuration: '12s' }}></div>
           </div>
@@ -286,3 +286,4 @@ export default function Login() {
     </AuthLayout>
   );
 }
+
