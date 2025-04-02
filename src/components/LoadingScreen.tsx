@@ -5,21 +5,27 @@ import { useNavigate } from "react-router-dom";
 interface LoadingScreenProps {
   videoUrl: string;
   duration?: number;
+  onLoadingComplete: () => void;
 }
 
-export function LoadingScreen({ videoUrl, duration = 5000 }: LoadingScreenProps) {
+export function LoadingScreen({ 
+  videoUrl, 
+  duration = 5000, 
+  onLoadingComplete 
+}: LoadingScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
       setIsLoading(false);
+      onLoadingComplete();
       // Navigate to login page after video finishes
       navigate("/login");
     }, duration);
 
     return () => clearTimeout(timer);
-  }, [duration, navigate]);
+  }, [duration, navigate, onLoadingComplete]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
