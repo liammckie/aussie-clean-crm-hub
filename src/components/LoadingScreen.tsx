@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -73,26 +74,29 @@ export function LoadingScreen({
       )}
       
       {loadingStage === 'video' && (
-        <div className={`max-w-2xl mx-auto relative transition-opacity duration-1000 
-          before:absolute before:inset-0 
-          before:bg-gradient-to-b 
-          before:from-transparent 
-          before:via-[rgba(2,8,23,0.4)] 
-          before:to-[rgb(2,8,23)] 
-          before:pointer-events-none 
-          after:absolute after:inset-0 
-          after:bg-gradient-to-t 
-          after:from-[rgba(2,8,23,0.5)] 
-          after:via-transparent 
-          after:to-transparent 
-          after:pointer-events-none 
-          ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`max-w-2xl mx-auto relative transition-opacity duration-1000 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+          <div className="absolute inset-0 rounded-lg bg-[rgb(2,8,23,0.2)] backdrop-blur-sm mix-blend-overlay pointer-events-none z-10"></div>
+          
+          <div className="absolute inset-0 
+            bg-gradient-radial from-transparent via-[rgb(2,8,23,0.3)] to-[rgb(2,8,23,0.7)]
+            rounded-lg pointer-events-none z-10"></div>
+          
+          <div className="absolute inset-0 
+            bg-gradient-to-b from-transparent via-transparent to-[rgb(2,8,23)]
+            rounded-lg pointer-events-none z-10"></div>
+            
+          <div className="absolute inset-0 
+            bg-gradient-to-t from-[rgb(2,8,23,0.4)] via-transparent to-transparent
+            rounded-lg pointer-events-none z-10"></div>
+            
+          <div className="absolute -inset-1 blur-md bg-[rgb(2,8,23,0.3)] rounded-lg pointer-events-none"></div>
+            
           <video 
             src={videoUrl}
             autoPlay
             muted
             playsInline
-            className="w-full h-auto rounded-lg shadow-lg"
+            className="w-full h-auto rounded-lg shadow-lg relative z-0 mix-blend-normal"
           >
             Your browser does not support the video tag.
           </video>
