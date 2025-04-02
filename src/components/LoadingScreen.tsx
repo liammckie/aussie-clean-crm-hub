@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -18,35 +17,29 @@ export function LoadingScreen({
   const [isFading, setIsFading] = useState(false);
   const navigate = useNavigate();
   
-  // Simulate assets loading
   useEffect(() => {
-    // First stage - loading basic assets
     console.log("Starting asset loading simulation");
     setTimeout(() => {
       setLoadingStage('assets');
       
-      // Second stage - display video after assets are loaded
       setTimeout(() => {
         console.log("Assets loaded, showing video");
         setLoadingStage('video');
         
-        // Start fading out video before completion
         setTimeout(() => {
           console.log("Starting fade out");
           setIsFading(true);
           
-          // Complete loading and navigate
           setTimeout(() => {
             console.log("Loading complete");
             setLoadingStage('complete');
             onLoadingComplete();
             navigate("/login");
-          }, 1000); // 1 second fade transition
-        }, duration - 1000); // Start fading 1 second before duration ends
-      }, 1500); // 1.5 seconds for asset loading
-    }, 500); // 0.5 seconds initial delay
+          }, 1000);
+        }, duration - 1000);
+      }, 1500);
+    }, 500);
     
-    // Cleanup function
     return () => {
       console.log("Cleaning up loading timers");
     };
@@ -55,7 +48,11 @@ export function LoadingScreen({
   if (loadingStage === 'complete') return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(2,8,23)] 
+      before:absolute before:inset-0 before:bg-gradient-to-b 
+      before:from-transparent before:via-transparent 
+      before:to-[rgb(2,8,23)] 
+      before:pointer-events-none">
       {loadingStage === 'initial' && (
         <div className="text-center">
           <Skeleton className="w-64 h-64 rounded-md mx-auto mb-4" />
@@ -75,7 +72,12 @@ export function LoadingScreen({
       )}
       
       {loadingStage === 'video' && (
-        <div className={`max-w-2xl mx-auto transition-opacity duration-1000 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
+        <div className={`max-w-2xl mx-auto relative transition-opacity duration-1000 
+          before:absolute before:inset-0 before:bg-gradient-to-b 
+          before:from-transparent before:via-transparent 
+          before:to-[rgb(2,8,23)/50] 
+          before:pointer-events-none 
+          ${isFading ? 'opacity-0' : 'opacity-100'}`}>
           <video 
             src={videoUrl}
             autoPlay
