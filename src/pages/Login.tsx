@@ -55,7 +55,7 @@ export default function Login() {
       
       // Navigate to dashboard after successful login
       setTimeout(() => {
-        navigate("/");
+        navigate("/dashboard");
       }, 1500);
     } catch (error) {
       // Show error message if login fails
@@ -71,7 +71,19 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center justify-center min-h-screen p-4">
+        <div className="w-full max-w-2xl mb-8">
+          <video 
+            src="/loading-intro.mp4"
+            autoPlay
+            muted
+            playsInline
+            loop
+            className="w-full h-auto rounded-lg shadow-lg bg-[rgb(2,8,23)] border border-gray-800"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Login</CardTitle>

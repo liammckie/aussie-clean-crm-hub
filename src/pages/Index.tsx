@@ -1,25 +1,21 @@
 
 import { MainLayout } from "@/components/layout/MainLayout";
-import { DashboardGrid } from "@/components/dashboard/DashboardGrid";
-import { TodaySalesCard } from "@/components/dashboard/TodaySalesCard";
-import { QualityAuditsCard } from "@/components/dashboard/QualityAuditsCard";
-import { TopClientsCard } from "@/components/dashboard/TopClientsCard";
-import { SalesTargetCard } from "@/components/dashboard/SalesTargetCard";
-import { NetProfitCard } from "@/components/dashboard/NetProfitCard";
-import { PipelineValueCard } from "@/components/dashboard/PipelineValueCard";
 
 const Index = () => {
   return (
     <MainLayout>
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <DashboardGrid>
-        <TodaySalesCard />
-        <QualityAuditsCard />
-        <TopClientsCard />
-        <SalesTargetCard />
-        <NetProfitCard />
-        <PipelineValueCard />
-      </DashboardGrid>
+      <div className="max-w-4xl mx-auto py-8">
+        <h1 className="text-3xl font-bold mb-6">Welcome to Aussie Clean CRM Hub</h1>
+        <p className="text-lg mb-4">
+          Your centralized platform for managing client relationships, tracking sales, and monitoring quality metrics.
+        </p>
+        <div className="bg-card/50 border-border/50 p-6 rounded-lg shadow-sm">
+          <h2 className="text-xl font-semibold mb-4">Getting Started</h2>
+          <p className="mb-4">
+            Navigate to the <a href="/dashboard" className="text-blue-500 hover:underline">Dashboard</a> to view your business metrics or use the sidebar to access specific modules.
+          </p>
+        </div>
+      </div>
     </MainLayout>
   );
 };
