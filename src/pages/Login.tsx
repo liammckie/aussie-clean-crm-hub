@@ -11,6 +11,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useAuth } from "@/App";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp, Info, Shield, Sparkles, Users } from "lucide-react";
 
 // Create a schema for login validation
 const loginSchema = z.object({
@@ -22,6 +24,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
+  const [expandedFAQ, setExpandedFAQ] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
   const { login } = useAuth();
@@ -69,95 +72,172 @@ export default function Login() {
     }
   };
 
+  const toggleFAQ = (id: string) => {
+    if (expandedFAQ === id) {
+      setExpandedFAQ(null);
+    } else {
+      setExpandedFAQ(id);
+    }
+  };
+
+  const faqs = [
+    {
+      id: 'faq1',
+      question: 'What is Aussie Clean ERP?',
+      answer: 'Aussie Clean ERP is a comprehensive enterprise resource planning system designed specifically for cleaning businesses to manage operations, scheduling, inventory, and client relationships.',
+      icon: <Info className="w-5 h-5" />
+    },
+    {
+      id: 'faq2',
+      question: 'How secure is my data?',
+      answer: 'We implement industry-leading security measures including end-to-end encryption, regular security audits, and multi-factor authentication to ensure your data remains protected.',
+      icon: <Shield className="w-5 h-5" />
+    },
+    {
+      id: 'faq3',
+      question: 'Can I manage my team through this platform?',
+      answer: 'Yes, our ERP system includes robust team management features including scheduling, performance tracking, and automated task assignment to optimize your workforce.',
+      icon: <Users className="w-5 h-5" />
+    }
+  ];
+
   return (
     <AuthLayout>
-      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-slate-950 to-slate-900">
-        <div className="w-full max-w-2xl mb-8 relative">
-          {/* Glass morphism container for video */}
-          <div className="absolute inset-0 bg-purple-500/5 backdrop-blur-sm rounded-xl border border-purple-400/10 z-0"></div>
-          
-          {/* Radial gradient overlay */}
-          <div className="absolute inset-0 bg-radial-gradient rounded-xl z-0 opacity-40"></div>
-          
-          {/* Video container */}
-          <div className="relative z-10 p-3 rounded-xl overflow-hidden shadow-[0_0_45px_rgba(139,92,246,0.15)]">
-            <video 
-              src="/loading-intro.mp4"
-              autoPlay
-              muted
-              playsInline
-              loop
-              className="w-full h-auto rounded-lg shadow-inner bg-[rgb(2,8,23)] border border-indigo-900/30"
-            >
-              Your browser does not support the video tag.
-            </video>
-            
-            {/* Tech decoration elements */}
-            <div className="absolute top-3 left-3 w-3 h-3 bg-indigo-500 rounded-full animate-pulse"></div>
-            <div className="absolute top-3 right-3 w-3 h-3 bg-purple-500 rounded-full animate-pulse delay-300"></div>
-            <div className="absolute bottom-3 left-3 w-3 h-3 bg-blue-500 rounded-full animate-pulse delay-150"></div>
-            <div className="absolute bottom-3 right-3 w-3 h-3 bg-violet-500 rounded-full animate-pulse delay-500"></div>
+      <div className="min-h-screen flex flex-col md:flex-row items-stretch">
+        {/* Left side: Animated visual */}
+        <div className="w-full md:w-1/2 bg-slate-950 flex flex-col items-center justify-center p-8 relative overflow-hidden">
+          {/* Background elements */}
+          <div className="absolute top-0 left-0 w-full h-full">
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/30 via-indigo-950 to-slate-950"></div>
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] rounded-full bg-purple-500/5 blur-3xl"></div>
+            <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] rounded-full bg-indigo-500/10 blur-3xl"></div>
           </div>
+          
+          {/* Central content */}
+          <div className="relative z-10 max-w-xl">
+            <div className="mb-12 text-center">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-br from-white via-purple-100 to-purple-300 bg-clip-text text-transparent drop-shadow-sm">
+                Aussie Clean ERP
+              </h1>
+              <p className="text-purple-300/80 text-lg md:text-xl font-light max-w-md mx-auto">
+                Streamlining operations for cleaning businesses across Australia
+              </p>
+            </div>
+            
+            <div className="grid gap-8 mt-12">
+              <div className="space-y-6">
+                {faqs.map((faq) => (
+                  <Collapsible 
+                    key={faq.id} 
+                    open={expandedFAQ === faq.id}
+                    className="border border-purple-800/30 rounded-lg bg-slate-900/50 backdrop-blur-sm overflow-hidden"
+                  >
+                    <CollapsibleTrigger 
+                      onClick={() => toggleFAQ(faq.id)}
+                      className="flex items-center justify-between w-full p-4 text-left hover:bg-purple-900/10 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 rounded-full bg-purple-900/30">
+                          {faq.icon}
+                        </div>
+                        <h3 className="text-white font-medium">{faq.question}</h3>
+                      </div>
+                      {expandedFAQ === faq.id ? 
+                        <ChevronUp className="h-5 w-5 text-purple-400" /> : 
+                        <ChevronDown className="h-5 w-5 text-purple-400" />
+                      }
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="px-4 pb-4 pt-1 text-purple-200/70 text-sm">
+                      {faq.answer}
+                    </CollapsibleContent>
+                  </Collapsible>
+                ))}
+              </div>
+              
+              <div className="flex items-center mt-8 justify-center">
+                <div className="relative flex h-7 items-center px-2">
+                  <div className="h-0.5 w-16 bg-purple-800/30"></div>
+                </div>
+                <span className="text-purple-300 text-xs font-medium px-4 flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5" />
+                  AI-Powered Workflow
+                </span>
+                <div className="relative flex h-7 items-center px-2">
+                  <div className="h-0.5 w-16 bg-purple-800/30"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Bottom decorative element */}
+          <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
         </div>
         
-        <Card className="w-full max-w-md border-purple-900/20 bg-slate-900/90 backdrop-blur-sm shadow-[0_10px_40px_rgba(91,33,182,0.1)]">
-          <CardHeader className="space-y-1">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">Aussie Clean CRM</CardTitle>
-            <CardDescription className="text-slate-400">
-              Enter your credentials to access the ERP system
-            </CardDescription>
-          </CardHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)}>
-              <CardContent className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-300">Email</FormLabel>
-                      <FormControl>
-                        <Input placeholder="you@example.com" {...field} className="bg-slate-800/50 border-slate-700 focus:border-purple-500 transition-colors" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-slate-300">Password</FormLabel>
-                      <FormControl>
-                        <Input type="password" {...field} className="bg-slate-800/50 border-slate-700 focus:border-purple-500 transition-colors" />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </CardContent>
-              <CardFooter>
-                <Button 
-                  type="submit" 
-                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(139,92,246,0.3)]" 
-                  disabled={isLoading}
-                >
-                  {isLoading ? "Logging in..." : "Login"}
-                </Button>
-              </CardFooter>
-            </form>
-          </Form>
-          <div className="px-6 pb-6 pt-2 text-center">
-            <p className="text-xs text-slate-500">
-              Secure Enterprise Resource Planning System
-            </p>
-          </div>
-        </Card>
-        
-        {/* Tech decoration lines */}
-        <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
-        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
+        {/* Right side: Form */}
+        <div className="w-full md:w-1/2 bg-slate-950 flex items-center justify-center p-4 md:p-8 relative">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-slate-900/50 via-slate-950 to-slate-950"></div>
+          
+          <Card className="w-full max-w-md border-purple-900/20 bg-slate-900/90 backdrop-blur-sm shadow-[0_10px_40px_rgba(91,33,182,0.1)] relative z-10">
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">Sign In</CardTitle>
+              <CardDescription className="text-slate-400">
+                Enter your credentials to access the ERP system
+              </CardDescription>
+            </CardHeader>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)}>
+                <CardContent className="space-y-4">
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-300">Email</FormLabel>
+                        <FormControl>
+                          <Input placeholder="you@example.com" {...field} className="bg-slate-800/50 border-slate-700 focus:border-purple-500 transition-colors" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="text-slate-300">Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} className="bg-slate-800/50 border-slate-700 focus:border-purple-500 transition-colors" />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex justify-end">
+                    <Button variant="link" className="p-0 h-auto text-xs text-purple-400 hover:text-purple-300">
+                      Forgot password?
+                    </Button>
+                  </div>
+                </CardContent>
+                <CardFooter className="flex flex-col space-y-4">
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(139,92,246,0.3)]" 
+                    disabled={isLoading}
+                  >
+                    {isLoading ? "Signing in..." : "Sign In"}
+                  </Button>
+                  
+                  <div className="text-xs text-center text-slate-500 mt-4">
+                    <p>
+                      Secure Enterprise Resource Planning System
+                    </p>
+                  </div>
+                </CardFooter>
+              </form>
+            </Form>
+          </Card>
+        </div>
       </div>
     </AuthLayout>
   );
