@@ -4,19 +4,27 @@ import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
+import Image from "next/image";
 
 export function TopNavbar() {
   const { state, toggleSidebar } = useSidebar();
   
   return (
     <div className="border-b border-border/40 py-3 px-4 flex items-center justify-between">
-      <div className="flex-1 flex items-center gap-2">
+      <div className="flex-1 flex items-center gap-4">
         {state === "collapsed" && (
           <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2">
             <Menu className="h-5 w-5" />
             <span className="sr-only">Toggle Sidebar</span>
           </Button>
         )}
+        <Image 
+          src="/lovable-uploads/6933e91a-9a74-4058-bce7-c29c11fba4f5.png" 
+          alt="ERP Logo" 
+          width={100} 
+          height={40} 
+          className="h-10 w-auto object-contain" 
+        />
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input 
