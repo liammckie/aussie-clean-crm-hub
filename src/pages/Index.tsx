@@ -1,13 +1,26 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import { MainLayout } from "@/components/layout/MainLayout";
+import { DashboardGrid } from "@/components/dashboard/DashboardGrid";
+import { TodaySalesCard } from "@/components/dashboard/TodaySalesCard";
+import { QualityAuditsCard } from "@/components/dashboard/QualityAuditsCard";
+import { TopClientsCard } from "@/components/dashboard/TopClientsCard";
+import { SalesTargetCard } from "@/components/dashboard/SalesTargetCard";
+import { NetProfitCard } from "@/components/dashboard/NetProfitCard";
+import { PipelineValueCard } from "@/components/dashboard/PipelineValueCard";
 
 const Index = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <MainLayout>
+      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <DashboardGrid>
+        <TodaySalesCard />
+        <QualityAuditsCard />
+        <TopClientsCard />
+        <SalesTargetCard />
+        <NetProfitCard />
+        <PipelineValueCard />
+      </DashboardGrid>
+    </MainLayout>
   );
 };
 
