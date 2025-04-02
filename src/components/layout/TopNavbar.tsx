@@ -1,10 +1,8 @@
-
 import { Search, Bell, User, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { useSidebar } from "@/components/ui/sidebar";
-import Image from "next/image";
 
 export function TopNavbar() {
   const { state, toggleSidebar } = useSidebar();
@@ -18,11 +16,9 @@ export function TopNavbar() {
             <span className="sr-only">Toggle Sidebar</span>
           </Button>
         )}
-        <Image 
+        <img 
           src="/lovable-uploads/6933e91a-9a74-4058-bce7-c29c11fba4f5.png" 
           alt="ERP Logo" 
-          width={100} 
-          height={40} 
           className="h-10 w-auto object-contain" 
         />
         <div className="relative w-full max-w-sm">
