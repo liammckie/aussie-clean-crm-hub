@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -97,5 +98,23 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .sidebar-glass {
+    @apply bg-black/40 backdrop-blur-xl border-r border-white/10;
+  }
+  
+  .sidebar-item {
+    @apply backdrop-blur-sm transition-all duration-200;
+  }
+  
+  .sidebar-item:hover {
+    @apply bg-white/10 backdrop-blur-xl shadow-sm;
+  }
+  
+  [data-sidebar="sidebar"] {
+    @apply bg-gradient-to-b from-slate-900/90 to-slate-950/90 backdrop-blur-xl;
   }
 }

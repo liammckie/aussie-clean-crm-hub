@@ -39,7 +39,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
   
-  return <>{children}</>;
+  return <MainLayout>{children}</MainLayout>;
 };
 
 const App = () => {
@@ -67,9 +67,7 @@ const App = () => {
                   path="/" 
                   element={
                     <ProtectedRoute>
-                      <MainLayout>
-                        <Index />
-                      </MainLayout>
+                      <Index />
                     </ProtectedRoute>
                   } 
                 />
@@ -77,9 +75,7 @@ const App = () => {
                   path="/dashboard" 
                   element={
                     <ProtectedRoute>
-                      <MainLayout>
-                        <Dashboard />
-                      </MainLayout>
+                      <Dashboard />
                     </ProtectedRoute>
                   } 
                 />
