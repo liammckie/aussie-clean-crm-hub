@@ -4,6 +4,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Link } from "react-router-dom";
 
 export default function Login() {
   return (
@@ -26,8 +27,13 @@ export default function Login() {
               <Input id="password" type="password" />
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="flex flex-col gap-4">
             <Button className="w-full">Login</Button>
+            <Link to="/" className="w-full">
+              <Button variant="outline" className="w-full">
+                Go to Dashboard
+              </Button>
+            </Link>
           </CardFooter>
         </Card>
       </div>
