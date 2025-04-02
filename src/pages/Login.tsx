@@ -71,24 +71,40 @@ export default function Login() {
 
   return (
     <AuthLayout>
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="w-full max-w-2xl mb-8">
-          <video 
-            src="/loading-intro.mp4"
-            autoPlay
-            muted
-            playsInline
-            loop
-            className="w-full h-auto rounded-lg shadow-lg bg-[rgb(2,8,23)] border border-gray-800"
-          >
-            Your browser does not support the video tag.
-          </video>
+      <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-b from-slate-950 to-slate-900">
+        <div className="w-full max-w-2xl mb-8 relative">
+          {/* Glass morphism container for video */}
+          <div className="absolute inset-0 bg-purple-500/5 backdrop-blur-sm rounded-xl border border-purple-400/10 z-0"></div>
+          
+          {/* Radial gradient overlay */}
+          <div className="absolute inset-0 bg-radial-gradient rounded-xl z-0 opacity-40"></div>
+          
+          {/* Video container */}
+          <div className="relative z-10 p-3 rounded-xl overflow-hidden shadow-[0_0_45px_rgba(139,92,246,0.15)]">
+            <video 
+              src="/loading-intro.mp4"
+              autoPlay
+              muted
+              playsInline
+              loop
+              className="w-full h-auto rounded-lg shadow-inner bg-[rgb(2,8,23)] border border-indigo-900/30"
+            >
+              Your browser does not support the video tag.
+            </video>
+            
+            {/* Tech decoration elements */}
+            <div className="absolute top-3 left-3 w-3 h-3 bg-indigo-500 rounded-full animate-pulse"></div>
+            <div className="absolute top-3 right-3 w-3 h-3 bg-purple-500 rounded-full animate-pulse delay-300"></div>
+            <div className="absolute bottom-3 left-3 w-3 h-3 bg-blue-500 rounded-full animate-pulse delay-150"></div>
+            <div className="absolute bottom-3 right-3 w-3 h-3 bg-violet-500 rounded-full animate-pulse delay-500"></div>
+          </div>
         </div>
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle>Login</CardTitle>
-            <CardDescription>
-              Enter your credentials to access your account
+        
+        <Card className="w-full max-w-md border-purple-900/20 bg-slate-900/90 backdrop-blur-sm shadow-[0_10px_40px_rgba(91,33,182,0.1)]">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-indigo-400 to-purple-500 bg-clip-text text-transparent">Aussie Clean CRM</CardTitle>
+            <CardDescription className="text-slate-400">
+              Enter your credentials to access the ERP system
             </CardDescription>
           </CardHeader>
           <Form {...form}>
@@ -99,9 +115,9 @@ export default function Login() {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel className="text-slate-300">Email</FormLabel>
                       <FormControl>
-                        <Input placeholder="you@example.com" {...field} />
+                        <Input placeholder="you@example.com" {...field} className="bg-slate-800/50 border-slate-700 focus:border-purple-500 transition-colors" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -112,9 +128,9 @@ export default function Login() {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Password</FormLabel>
+                      <FormLabel className="text-slate-300">Password</FormLabel>
                       <FormControl>
-                        <Input type="password" {...field} />
+                        <Input type="password" {...field} className="bg-slate-800/50 border-slate-700 focus:border-purple-500 transition-colors" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -122,13 +138,26 @@ export default function Login() {
                 />
               </CardContent>
               <CardFooter>
-                <Button type="submit" className="w-full" disabled={isLoading}>
+                <Button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 transition-all duration-300 shadow-[0_0_15px_rgba(139,92,246,0.3)]" 
+                  disabled={isLoading}
+                >
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
               </CardFooter>
             </form>
           </Form>
+          <div className="px-6 pb-6 pt-2 text-center">
+            <p className="text-xs text-slate-500">
+              Secure Enterprise Resource Planning System
+            </p>
+          </div>
         </Card>
+        
+        {/* Tech decoration lines */}
+        <div className="absolute bottom-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent"></div>
+        <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-indigo-500/20 to-transparent"></div>
       </div>
     </AuthLayout>
   );
