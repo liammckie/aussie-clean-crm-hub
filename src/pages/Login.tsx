@@ -1,16 +1,16 @@
 
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { MainLayout } from "@/components/layout/MainLayout";
+import { AuthLayout } from "@/components/layout/AuthLayout";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useAuth } from "@/App";
 
 // Create a schema for login validation
 const loginSchema = z.object({
@@ -24,6 +24,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { login } = useAuth();
   
   // Initialize react-hook-form with zod validation
   const form = useForm<LoginFormValues>({
@@ -49,6 +50,9 @@ export default function Login() {
         description: "Redirecting to dashboard...",
       });
       
+      // Call the login function from auth context
+      login();
+      
       // Navigate to dashboard after successful login
       setTimeout(() => {
         navigate("/");
@@ -66,8 +70,8 @@ export default function Login() {
   };
 
   return (
-    <MainLayout>
-      <div className="flex items-center justify-center min-h-[calc(100vh-8rem)]">
+    <AuthLayout>
+      <div className="flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Login</CardTitle>
@@ -114,6 +118,6 @@ export default function Login() {
           </Form>
         </Card>
       </div>
-    </MainLayout>
+    </AuthLayout>
   );
 }

@@ -9,6 +9,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { LoadingScreen } from "./components/LoadingScreen";
+import { MainLayout } from "./components/layout/MainLayout";
 
 const queryClient = new QueryClient();
 
@@ -37,7 +38,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return <Navigate to="/login" replace />;
   }
   
-  return <>{children}</>;
+  return <MainLayout>{children}</MainLayout>;
 };
 
 const App = () => {
@@ -56,7 +57,7 @@ const App = () => {
           <BrowserRouter>
             {showLoading ? (
               <LoadingScreen 
-                videoUrl="/loading-video.mp4" 
+                videoUrl="/loading-intro.mp4" 
                 onLoadingComplete={() => setShowLoading(false)} 
               />
             ) : (

@@ -10,26 +10,38 @@ interface LoadingScreenProps {
 
 export function LoadingScreen({ 
   videoUrl, 
-  duration = 5000, 
+  duration = 8000, // Changed to 8 seconds 
   onLoadingComplete 
 }: LoadingScreenProps) {
   const [isLoading, setIsLoading] = useState(true);
+  const [isFading, setIsFading] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    // Start fading out 1 second before the end
+    const fadeTimer = setTimeout(() => {
+      setIsFading(true);
+    }, duration - 1000);
+
+    // End the loading screen after the full duration
+    const loadingTimer = setTimeout(() => {
       setIsLoading(false);
       onLoadingComplete();
       // Navigate to login page after video finishes
       navigate("/login");
     }, duration);
 
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(loadingTimer);
+      clearTimeout(fadeTimer);
+    };
   }, [duration, navigate, onLoadingComplete]);
+
+  if (!isLoading) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black">
-      {isLoading ? (
+      <div className={`w-full h-full transition-opacity duration-1000 ${isFading ? 'opacity-0' : 'opacity-100'}`}>
         <video 
           src={videoUrl}
           autoPlay
@@ -39,7 +51,7 @@ export function LoadingScreen({
         >
           Your browser does not support the video tag.
         </video>
-      ) : null}
+      </div>
     </div>
   );
 }
