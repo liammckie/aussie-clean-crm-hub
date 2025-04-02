@@ -14,7 +14,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="min-h-screen flex w-full bg-gradient-to-br from-slate-900 to-slate-950 text-white">
         <MainSidebar />
         <CollapsedMenuDrawer />
-        <SidebarInset className="bg-gradient-to-br from-slate-900 to-slate-950">
+        <SidebarInset className="relative flex-grow bg-gradient-to-br from-slate-900 to-slate-950">
           <TopNavbar />
           <main className="px-4 py-6">
             {children}

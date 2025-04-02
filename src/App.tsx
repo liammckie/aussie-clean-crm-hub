@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState, createContext, useContext } from "react";
+import { useState, createContext, useContext, useEffect } from "react";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -46,8 +46,17 @@ const App = () => {
   const [showLoading, setShowLoading] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   
-  const login = () => setIsAuthenticated(true);
+  const login = () => {
+    console.log("Login successful, setting authenticated state");
+    setIsAuthenticated(true);
+  };
+  
   const logout = () => setIsAuthenticated(false);
+
+  // Add effect to enable debugging
+  useEffect(() => {
+    console.log("Auth state:", isAuthenticated ? "Authenticated" : "Not authenticated");
+  }, [isAuthenticated]);
 
   return (
     <QueryClientProvider client={queryClient}>
