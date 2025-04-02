@@ -7,6 +7,9 @@ export {
   SidebarContext,
   SidebarProvider,
   useSidebar,
+  SIDEBAR_WIDTH,
+  SIDEBAR_WIDTH_MOBILE,
+  SIDEBAR_WIDTH_ICON,
 } from "./context"
 
 // Export main components
