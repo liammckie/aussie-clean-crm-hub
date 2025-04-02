@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, createContext, useContext } from "react";
 import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
@@ -12,30 +12,71 @@ import { LoadingScreen } from "./components/LoadingScreen";
 
 const queryClient = new QueryClient();
 
+// Create auth context to manage authentication state
+type AuthContextType = {
+  isAuthenticated: boolean;
+  login: () => void;
+  logout: () => void;
+};
+
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
+};
+
+// ProtectedRoute component to protect routes that require authentication
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated } = useAuth();
+  
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  
+  return <>{children}</>;
+};
+
 const App = () => {
   const [showLoading, setShowLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  
+  const login = () => setIsAuthenticated(true);
+  const logout = () => setIsAuthenticated(false);
 
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          {showLoading ? (
-            <LoadingScreen 
-              videoUrl="/loading-video.mp4" 
-              onLoadingComplete={() => setShowLoading(false)} 
-            />
-          ) : (
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/" element={<Index />} />
-              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          )}
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            {showLoading ? (
+              <LoadingScreen 
+                videoUrl="/loading-video.mp4" 
+                onLoadingComplete={() => setShowLoading(false)} 
+              />
+            ) : (
+              <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route 
+                  path="/" 
+                  element={
+                    <ProtectedRoute>
+                      <Index />
+                    </ProtectedRoute>
+                  } 
+                />
+                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            )}
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthContext.Provider>
     </QueryClientProvider>
   );
 };
