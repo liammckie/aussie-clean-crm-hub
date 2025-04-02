@@ -50,8 +50,7 @@ export function LoadingScreen({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-[rgb(2,8,23)] 
       before:absolute before:inset-0 before:bg-gradient-to-b 
-      before:from-transparent 
-      before:via-[rgba(2,8,23,0.3)] 
+      before:from-transparent before:via-transparent 
       before:to-[rgb(2,8,23)] 
       before:pointer-events-none">
       {loadingStage === 'initial' && (
@@ -74,18 +73,10 @@ export function LoadingScreen({
       
       {loadingStage === 'video' && (
         <div className={`max-w-2xl mx-auto relative transition-opacity duration-1000 
-          before:absolute before:inset-0 
-          before:bg-gradient-to-b 
-          before:from-transparent 
-          before:via-[rgba(2,8,23,0.4)] 
-          before:to-[rgb(2,8,23)] 
+          before:absolute before:inset-0 before:bg-gradient-to-b 
+          before:from-transparent before:via-transparent 
+          before:to-[rgb(2,8,23)/50] 
           before:pointer-events-none 
-          after:absolute after:inset-0 
-          after:bg-gradient-to-t 
-          after:from-[rgba(2,8,23,0.5)] 
-          after:via-transparent 
-          after:to-transparent 
-          after:pointer-events-none 
           ${isFading ? 'opacity-0' : 'opacity-100'}`}>
           <video 
             src={videoUrl}
