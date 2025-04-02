@@ -5,7 +5,6 @@ import {
   SidebarHeader,
   SidebarFooter,
   SidebarGroup,
-  SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
   SidebarMenuItem,
@@ -107,7 +106,9 @@ export function MainSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter className="p-4">
-        <SidebarTrigger className="w-full" />
+        <SidebarTrigger className="w-full flex justify-center items-center gap-2">
+          <span>Close Sidebar</span>
+        </SidebarTrigger>
       </SidebarFooter>
     </Sidebar>
   );

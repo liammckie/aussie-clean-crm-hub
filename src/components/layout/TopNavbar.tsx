@@ -1,12 +1,22 @@
 
-import { Search, Bell, User } from "lucide-react";
+import { Search, Bell, User, Menu } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { useSidebar } from "@/components/ui/sidebar";
 
 export function TopNavbar() {
+  const { state, toggleSidebar } = useSidebar();
+  
   return (
     <div className="border-b border-border/40 py-3 px-4 flex items-center justify-between">
-      <div className="flex-1 flex items-center">
+      <div className="flex-1 flex items-center gap-2">
+        {state === "collapsed" && (
+          <Button variant="ghost" size="icon" onClick={toggleSidebar} className="mr-2">
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Toggle Sidebar</span>
+          </Button>
+        )}
         <div className="relative w-full max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input 
