@@ -1,5 +1,4 @@
 
-import { MainLayout } from "@/components/layout/MainLayout";
 import { DashboardGrid } from "@/components/dashboard/DashboardGrid";
 import { TodaySalesCard } from "@/components/dashboard/TodaySalesCard";
 import { QualityAuditsCard } from "@/components/dashboard/QualityAuditsCard";
@@ -10,7 +9,7 @@ import { PipelineValueCard } from "@/components/dashboard/PipelineValueCard";
 
 const Dashboard = () => {
   return (
-    <MainLayout>
+    <>
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
       <DashboardGrid>
         <TodaySalesCard />
@@ -20,7 +19,7 @@ const Dashboard = () => {
         <NetProfitCard />
         <PipelineValueCard />
       </DashboardGrid>
-    </MainLayout>
+    </>
   );
 };
 
