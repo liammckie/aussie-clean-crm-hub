@@ -1,5 +1,4 @@
 
-import { SidebarToggle } from "./navbar/SidebarToggle";
 import { Logo } from "./navbar/Logo";
 import { SearchBar } from "./navbar/SearchBar";
 import { NotificationsButton } from "./navbar/NotificationsButton";
@@ -8,9 +7,8 @@ import { WebsiteLink } from "./navbar/WebsiteLink";
 
 export function TopNavbar() {
   return (
-    <div className="border-b border-border/40 py-3 px-4 flex items-center justify-between">
+    <div className="border-b border-border/40 py-3 px-4 flex items-center justify-between backdrop-blur-md bg-black/30">
       <div className="flex-1 flex items-center gap-4">
-        <SidebarToggle />
         <Logo />
         <SearchBar />
       </div>
