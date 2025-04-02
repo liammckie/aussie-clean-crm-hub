@@ -58,7 +58,6 @@ const App = () => {
           <BrowserRouter>
             {showLoading ? (
               <LoadingScreen 
-                videoUrl="/loading-intro.mp4" 
                 onLoadingComplete={() => setShowLoading(false)} 
               />
             ) : (
