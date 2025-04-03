@@ -37,10 +37,9 @@ Each domain module follows a standardized structure with a main overview documen
 - [Sales Management](./domains/SALES_MODULE.md) - Sales pipeline and opportunity tracking
 - [Quoting Module](./domains/QUOTING_MODULE.md) - Commercial cleaning quoting system
 - [Award Engine](./domains/AWARD_ENGINE.md) - Award compliance calculations
-- [Scheduling](./domains/SCHEDULING.md) - Service delivery scheduling
-- [Billing](./domains/BILLING.md) - Invoice generation and payment tracking
 - [Financial Reporting](./domains/FINANCIAL_REPORTING.md) - Financial analysis and reporting
 - [Supplier Management](./domains/SUPPLIER_MANAGEMENT.md) - Vendor relationship management
+- [Client Portal](./domains/CLIENT_PORTAL.md) - Client self-service interface
 
 ### Operational Procedures
 - [Deployment](./operations/DEPLOYMENT.md) - Deployment processes and environments
