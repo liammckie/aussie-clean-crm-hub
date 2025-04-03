@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/App";
+import { ErrorReporting } from "@/utils/errorReporting";
 
 // Create a schema for login validation
 const loginSchema = z.object({
@@ -53,6 +54,13 @@ export function LoginForm() {
     setIsLoading(true);
     
     try {
+      // Log the login attempt (filtered for privacy)
+      ErrorReporting.captureMessage(
+        "Login attempt", 
+        { email: data.email, hasPassword: !!data.password },
+        "info"
+      );
+      
       // This is a mock authentication - in a real application, this would call an API
       // For demo purposes, we'll simulate a successful login after a short delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -71,6 +79,12 @@ export function LoginForm() {
         navigate("/dashboard");
       }, 1500);
     } catch (error) {
+      // Report the error to Sentry (password filtered out for privacy)
+      ErrorReporting.captureException(
+        error as Error,
+        { email: data.email, formData: "filtered-for-privacy" }
+      );
+      
       // Show error message if login fails
       toast({
         title: "Login failed",
