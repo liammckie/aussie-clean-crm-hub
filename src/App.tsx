@@ -25,17 +25,21 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      onError: (error) => {
-        ErrorReporting.captureException(error as Error, { 
-          source: 'react-query',
-        });
+      onSettled: (data, error) => {
+        if (error) {
+          ErrorReporting.captureException(error as Error, { 
+            source: 'react-query',
+          });
+        }
       },
     },
     mutations: {
-      onError: (error) => {
-        ErrorReporting.captureException(error as Error, { 
-          source: 'react-query-mutation',
-        });
+      onSettled: (data, error) => {
+        if (error) {
+          ErrorReporting.captureException(error as Error, { 
+            source: 'react-query-mutation',
+          });
+        }
       },
     }
   }
