@@ -6,12 +6,14 @@ import { TopClientsCard } from "@/components/dashboard/TopClientsCard";
 import { SalesTargetCard } from "@/components/dashboard/SalesTargetCard";
 import { NetProfitCard } from "@/components/dashboard/NetProfitCard";
 import { PipelineValueCard } from "@/components/dashboard/PipelineValueCard";
+import { BusinessMetricsCard } from "@/components/dashboard/BusinessMetricsCard";
 
 const Dashboard = () => {
   return (
     <div className="container mx-auto px-0 max-w-full">
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
       <DashboardGrid>
+        <BusinessMetricsCard />
         <TodaySalesCard />
         <QualityAuditsCard />
         <TopClientsCard />
