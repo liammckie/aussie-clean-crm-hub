@@ -1,6 +1,7 @@
 
 import * as Sentry from "@sentry/react";
 import { BrowserTracing, Replay } from "@sentry/react";
+import React from 'react';
 import {
   useLocation,
   useNavigationType,
