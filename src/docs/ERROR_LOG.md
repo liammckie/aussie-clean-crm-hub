@@ -81,5 +81,6 @@ The project uses a centralized error reporting utility (`src/utils/errorReportin
 
 | Date | Error | Resolution |
 |------|-------|------------|
-| | | |
-
+| 2025-04-01 | `Cannot read property 'data' of undefined` in Dashboard component | Fixed by adding null check before accessing data property |
+| 2025-04-02 | Connection timeout during API call to fetch client metrics | Implemented retry logic with exponential backoff |
+| 2025-04-03 | React Router error: No routes matched location "/settings" | Added missing route definition for settings page |
