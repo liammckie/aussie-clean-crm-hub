@@ -15,11 +15,12 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' &&
     componentTagger(),
-    // Sentry Vite plugin with environment variable support
+    // Sentry Vite plugin with organization-based environment variables
     sentryVitePlugin({
-      org: "smart-cleaning-solutions",
+      org: process.env.SENTRY_ORGANIZATION_SLUG || "smart-cleaning-solutions",
       project: "aussie-clean-erp",
-      authToken: process.env.SENTRY_AUTH_TOKEN,
+      // Use organization auth token instead of simple auth token
+      authToken: process.env.ORGANIZATION_AUTH_TOKEN_SENTRY || process.env.SENTRY_AUTH_TOKEN,
       telemetry: false,
       sourcemaps: {
         assets: './dist/**',
@@ -35,3 +36,4 @@ export default defineConfig(({ mode }) => ({
     sourcemap: true, // Ensure source maps are generated
   },
 }));
+
