@@ -3,7 +3,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useRouteError } from "react-router-dom";
 import { useState, createContext, useContext, useEffect } from "react";
 import { ErrorReporting } from "@/utils/errorReporting";
 import * as Sentry from "@sentry/react";
@@ -13,13 +13,15 @@ import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { MainLayout } from "./components/layout/MainLayout";
-import { withSentryRouting } from "./components/error/SentryRouteError";
 
-// Create Sentry routing enhanced components
-const SentryIndex = withSentryRouting(Index);
-const SentryDashboard = withSentryRouting(Dashboard);
-const SentryLogin = withSentryRouting(Login);
-const SentryNotFound = withSentryRouting(NotFound);
+// Create Sentry Routes wrapper
+const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
+
+// Enhance components with Sentry profiling
+const SentryIndex = Sentry.withProfiler(Index, { name: "Index" });
+const SentryDashboard = Sentry.withProfiler(Dashboard, { name: "Dashboard" });
+const SentryLogin = Sentry.withProfiler(Login, { name: "Login" });
+const SentryNotFound = Sentry.withProfiler(NotFound, { name: "NotFound" });
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -60,6 +62,33 @@ export const useAuth = () => {
     throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
+};
+
+// Custom Error Boundary component for React Router
+const RouteErrorBoundary = () => {
+  const error = useRouteError() as Error;
+  
+  useEffect(() => {
+    // Report error to Sentry
+    Sentry.captureException(error);
+  }, [error]);
+  
+  return (
+    <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
+      <div className="max-w-md w-full p-6 bg-slate-900 rounded-lg shadow-lg">
+        <h1 className="text-xl font-bold text-red-500 mb-4">Something went wrong</h1>
+        <p className="text-slate-300 mb-4">
+          {error?.message || "An unexpected error occurred"}
+        </p>
+        <button 
+          onClick={() => window.location.href = '/'}
+          className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded"
+        >
+          Go Home
+        </button>
+      </div>
+    </div>
+  );
 };
 
 // ProtectedRoute component to protect routes that require authentication
@@ -110,15 +139,16 @@ const App = () => {
                 onLoadingComplete={() => setShowLoading(false)} 
               />
             ) : (
-              <Routes>
-                <Route path="/login" element={<SentryLogin />} />
+              <SentryRoutes>
+                <Route path="/login" element={<SentryLogin />} errorElement={<RouteErrorBoundary />} />
                 <Route 
                   path="/" 
                   element={
                     <ProtectedRoute>
                       <SentryIndex />
                     </ProtectedRoute>
-                  } 
+                  }
+                  errorElement={<RouteErrorBoundary />}
                 />
                 <Route 
                   path="/dashboard" 
@@ -126,11 +156,12 @@ const App = () => {
                     <ProtectedRoute>
                       <SentryDashboard />
                     </ProtectedRoute>
-                  } 
+                  }
+                  errorElement={<RouteErrorBoundary />}
                 />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<SentryNotFound />} />
-              </Routes>
+                <Route path="*" element={<SentryNotFound />} errorElement={<RouteErrorBoundary />} />
+              </SentryRoutes>
             )}
           </BrowserRouter>
         </TooltipProvider>

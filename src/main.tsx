@@ -1,17 +1,29 @@
 
 import { createRoot } from 'react-dom/client'
 import * as Sentry from "@sentry/react";
+import {
+  useLocation,
+  useNavigationType,
+  createRoutesFromChildren,
+  matchRoutes
+} from "react-router-dom";
 import App from './App.tsx'
 import './index.css'
 
-// Initialize Sentry
-// NOTE: Replace SENTRY_DSN with your actual DSN when in production
+// Initialize Sentry with React Router v6 integration
 Sentry.init({
-  dsn: "https://examplePublicKey@o0.ingest.sentry.io/0",
+  dsn: "https://be220d948a04a4afeeb7911a4638165d@o4509086518411264.ingest.us.sentry.io/4509086689394688",
   integrations: [
     new Sentry.BrowserTracing({
       // Set 'tracePropagationTargets' to control for which URLs distributed tracing should be enabled
       tracePropagationTargets: ["localhost", /^https:\/\/aussie-clean\.com/],
+    }),
+    Sentry.reactRouterV6BrowserTracingIntegration({
+      useEffect: React.useEffect,
+      useLocation,
+      useNavigationType,
+      createRoutesFromChildren,
+      matchRoutes,
     }),
     new Sentry.Replay({
       maskAllText: false,

@@ -23,6 +23,10 @@ export default defineConfig(({ mode }) => ({
       // Required only for uploading source maps
       authToken: process.env.SENTRY_AUTH_TOKEN,
       telemetry: false,
+      sourcemaps: {
+        // Specify the directory containing build artifacts
+        assets: './dist/**',
+      },
     }),
   ].filter(Boolean),
   resolve: {

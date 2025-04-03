@@ -17,11 +17,10 @@ export class ErrorReporting {
     context?: Record<string, any>, 
     level: Sentry.SeverityLevel = "error"
   ) {
-    // Don't report in development mode
+    // Log in development mode
     if (!import.meta.env.PROD) {
       console.error("Error:", error);
       if (context) console.error("Context:", context);
-      return;
     }
 
     // Create the error object if a string was passed
@@ -37,6 +36,7 @@ export class ErrorReporting {
         });
       }
       
+      // Always capture to Sentry, even in development
       Sentry.captureException(errorObj);
     });
   }
@@ -53,11 +53,10 @@ export class ErrorReporting {
     context?: Record<string, any>, 
     level: Sentry.SeverityLevel = "info"
   ) {
-    // Don't report in development mode
+    // Log in development mode
     if (!import.meta.env.PROD) {
       console.log("Message:", message);
       if (context) console.log("Context:", context);
-      return;
     }
 
     Sentry.withScope((scope) => {
@@ -69,6 +68,7 @@ export class ErrorReporting {
         });
       }
       
+      // Always capture to Sentry, even in development
       Sentry.captureMessage(message);
     });
   }
@@ -80,5 +80,26 @@ export class ErrorReporting {
    */
   static setUser(user: Sentry.User | null) {
     Sentry.setUser(user);
+  }
+
+  /**
+   * Add breadcrumb to the current Sentry scope
+   * 
+   * @param breadcrumb The breadcrumb to add
+   */
+  static addBreadcrumb(breadcrumb: Sentry.Breadcrumb) {
+    Sentry.addBreadcrumb(breadcrumb);
+  }
+
+  /**
+   * Start a new transaction for performance monitoring
+   * 
+   * @param name The name of the transaction
+   * @param op The operation type
+   * @param data Additional data for the transaction
+   * @returns The transaction instance
+   */
+  static startTransaction(name: string, op: string, data?: Record<string, any>) {
+    return Sentry.startTransaction({ name, op, data });
   }
 }

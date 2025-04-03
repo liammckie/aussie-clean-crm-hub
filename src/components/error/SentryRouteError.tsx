@@ -16,6 +16,11 @@ interface FallbackProps {
 export const ErrorFallback = ({ error, resetError }: FallbackProps) => {
   const navigate = useNavigate();
   
+  // Report error to Sentry when the fallback is displayed
+  React.useEffect(() => {
+    Sentry.captureException(error);
+  }, [error]);
+  
   const goHome = () => {
     resetError();
     navigate("/");
