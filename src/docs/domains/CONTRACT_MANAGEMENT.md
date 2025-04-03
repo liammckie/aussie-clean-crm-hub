@@ -2,7 +2,7 @@
 # Contract Management
 
 ## Overview
-The Contract Management module is the central component of the Aussie Clean ERP system that governs all service agreements between the company and its clients. It manages the entire contract lifecycle from creation and activation through renewals, modifications, and eventual termination or expiry.
+The Contract Management module is the central component of the Aussie Clean ERP system that governs all service agreements between the company and its clients. It manages the entire contract lifecycle from creation and activation through renewals, modifications, and eventual termination or expiry. The module integrates with quoting, billing, operations, and reporting to ensure seamless service delivery and financial management.
 
 ## Data Model
 
@@ -13,21 +13,27 @@ The primary entity representing a formal agreement between Aussie Clean and a cl
 
 ##### Basic Information
 - **Contract ID**: Unique identifier (UUID, Primary Key)
-- **Client ID**: Foreign key reference to clients table
 - **Contract Code**: Unique reference code (string)
-- **Status**: Current contract state (enum: draft, active, on_hold, expired, terminated, cancelled)
+- **Client ID**: Foreign key reference to clients table
+- **Status**: Current contract state (enum: draft, active, pending_approval, expired, terminated, cancelled)
 - **Contract Type**: Agreement structure (enum: fixed, flexible, month-to-month, trial)
 - **Service Type**: Primary service category (enum: cleaning, waste, hygiene, pest_control, etc.)
 - **Start Date**: Contract commencement date
 - **End Date**: Contract termination date
 - **Review Date**: Optional date for contract review
 - **Auto Renew**: Flag indicating automatic renewal (boolean)
-- **Renewal Frequency**: How often contract renews (enum: monthly, annually, etc.)
+- **Renewal Frequency**: How often contract renews (enum: monthly, annually, quarterly)
+- **Linked Quote ID**: Optional foreign key to approved quote
 
 ##### Financial Details
-- **Contract Value Weekly**: Base weekly service value (decimal)
-- **Billing Frequency**: Invoice generation schedule (enum: weekly, monthly, quarterly)
+- **Billing Frequency**: Invoice generation schedule (enum: monthly, quarterly, per_work_order, adhoc)
+- **Rate Type**: Pricing structure (enum: fixed, indexed, tiered, per_work_order)
+- **Rate Value**: Base service value (decimal)
 - **Payment Terms**: Payment timeframe (enum: net_7, net_14, net_30, custom string)
+- **Next Billing Date**: Scheduled date for next invoice generation
+- **Not To Exceed Amount**: Maximum billing cap (decimal, optional)
+- **Credit Cap**: Maximum credit allowed (decimal, optional)
+- **Billing Notes**: Special billing instructions or notes
 - **CPI Enabled**: Whether Consumer Price Index adjustments apply (boolean)
 - **CPI Rate**: Percentage rate for adjustments (decimal, optional)
 - **CPI Last Applied**: Date of last CPI adjustment
@@ -36,115 +42,178 @@ The primary entity representing a formal agreement between Aussie Clean and a cl
 - **Accrual Allocated Weekly**: Weekly accrual allocation (decimal)
 
 ##### Administrative Information
-- **Originating Salesperson ID**: Foreign key to employee who originated the contract
-- **Scope of Work**: Detailed service description (rich text or document link)
-- **Contract Notes**: General notes and comments
-- **Last Modified At**: Timestamp of last modification
-- **Signed Document ID**: Reference to signed contract document
-- **Sign Date**: Date contract was signed
+- **Scope of Services**: Detailed service description (rich text or document URL)
+- **Created By**: Employee who created the contract
+- **Approved By**: Employee who approved the contract
+- **Last Modified By**: Employee who last modified the contract
+- **Created At**: Timestamp of creation
+- **Updated At**: Timestamp of last modification
+- **Locked At**: Timestamp when contract was locked/finalized
 
 ### Relationships
 
-#### Supplier Assignments
-Many-to-many relationship between contracts and suppliers:
-- **Supplier ID**: Foreign key to suppliers table
-- **Assignment Type**: Role of supplier (enum: primary, secondary, periodical)
-- **Start Date**: Assignment commencement date
-- **End Date**: Assignment termination date
-- **Rate**: Agreed payment rate for supplier
-- **Contracted Hours Per Week**: Expected work duration
-- **Active**: Whether assignment is currently active
-- **Notes**: Assignment-specific notes
+#### Contract Sites
+Links contracts to physical service locations:
+- **Contract ID**: Foreign key to contracts table
+- **Site ID**: Foreign key to sites table
+- **Start Date**: Site service commencement date
+- **End Date**: Site service termination date
 
-#### Employee Assignments
-Many-to-many relationship between contracts and internal employees:
-- **Employee ID**: Foreign key to employees table
-- **Work Type**: Nature of work (e.g., regular, periodical)
-- **Hours Per Week**: Expected work duration
-- **Assignment Start**: Start date for employee assignment
-- **Assignment End**: End date for employee assignment
-
-#### Periodical Services
+#### Contract Periodical Inclusions
 Additional scheduled services beyond regular contract:
+- **Contract ID**: Foreign key to contracts table
 - **Service Name**: Description of periodical service
 - **Included**: Whether service is included in base contract price
-- **Charge Amount**: Additional charge if billed separately
+- **Client Charge**: Amount charged to client for service
+- **Contractor Payment**: Amount paid to contractor for service
+- **Last Completed On**: Date service was last performed
+- **Frequency**: How often service is performed (e.g., Bi-annually)
+- **Total SQM**: Area covered by periodical service
 - **Comments**: Service-specific notes
 
-#### Related Entities
-- **Contract Sites**: Links contract to physical service locations
-- **Work Orders**: Service delivery instructions generated from contract
-- **Invoices**: Billing records generated based on contract terms
-- **Contract Versions**: Historical record of contract changes
-- **Contract Periodicals**: Scheduled recurring services
+#### Contract Documents
+Files and documentation associated with the contract:
+- **Contract ID**: Foreign key to contracts table
+- **Document Type**: Category of document (original, signed_pdf, insurance_attachment, scope_doc, etc.)
+- **File URL**: Link to stored document
+- **Uploaded By**: Employee who uploaded the document
+- **Uploaded At**: Timestamp of document upload
+
+#### Contract Version History
+Historical record of contract changes:
+- **Version ID**: Unique identifier (UUID)
+- **Contract ID**: Foreign key to contracts table
+- **Version Number**: Incremental counter
+- **Change Summary**: Description of changes
+- **Change Type**: Category of change (enum: renewal, amendment, pricing_change, cpi_adjustment, termination)
+- **Changed By**: Employee who made the change
+- **Changed At**: Timestamp of change
+- **Snapshot JSON**: Complete contract state at version point
 
 ## Business Rules
+
+### Lifecycle Workflow
+1. **Creation Phase**:
+   - Contracts start in "draft" status
+   - Can be created from approved quote or from scratch
+   - Draft contracts can be freely modified
+
+2. **Approval Process**:
+   - Contracts require internal validation of scope, billing, sites, documents
+   - Submission changes status to "pending_approval"
+   - Approval workflow based on contract value and terms
+
+3. **Activation Requirements**:
+   - Final signature (can be linked via SignNow/Zapier)
+   - Complete scope of services
+   - Valid billing configuration
+   - Required documents attached
+   - Activation changes status to "active"
+
+4. **Maintenance and Modifications**:
+   - Amendments tracked via versioning system
+   - CPI adjustments applied automatically if enabled
+   - Each change creates new version history record
+   - Substantive changes may require re-approval
+
+5. **Renewal and Termination**:
+   - Contracts with auto_renew flag are flagged for review before expiry
+   - Manual renewal creates new version with updated dates
+   - Early termination requires notes and approval
+   - Status changes to "expired" after end date if not renewed
+   - "Cancelled" status applies to contracts abandoned before activation
 
 ### Validation Rules
 1. **Date Validation**:
    - End date must be after start date
-   - Assignment periods must be valid date ranges
+   - Review date must be before end date
+   - Next billing date must be valid based on frequency
 
 2. **Financial Requirements**:
-   - Contract value weekly required for all except trial contracts
+   - Rate value required for all except per_work_order contracts
    - If CPI enabled, rate and next application date are required
+   - Billing frequency must be specified
 
 3. **Document Requirements**:
-   - Scope of work must be provided as text or document
+   - Scope of services must be provided as text or document
    - Status changes to "active" require signed contract document
 
-4. **Assignment Logic**:
-   - Supplier and employee assignments must not overlap without explicit override
-   - Primary supplier must be assigned for active contracts
+### CPI Escalation Logic
+1. **Automatic Flagging**:
+   - CPI-enabled contracts flagged for review before anniversary
+   - CPI rate defined at contract level or global config fallback
 
-### Status Transition Rules
-1. **Creation to Activation**:
-   - Contracts start in "draft" status
-   - Transition to "active" requires signed document and approval
-   - Activation triggers finance synchronization and work order generation
+2. **Recalculation Process**:
+   - System triggers recalculation of rate value
+   - New annual and weekly values calculated
+   - Version created with type "cpi_adjustment"
+   - CPI event recorded in Activities Feed
 
-2. **Maintenance States**:
-   - Active contracts can be placed "on_hold" (temporary suspension)
-   - Contracts automatically transition to "expired" after end date
-   - "Terminated" applies when ended before scheduled end date
-   - "Cancelled" applies when voided before activation
-
-3. **Modification Controls**:
-   - Active contract changes require approval workflow
-   - Changes to value, terms, or scope trigger version tracking
-   - CPI adjustments follow automated schedule when enabled
-
-## Versioning System
-
-### Version Tracking
-Contract versioning is triggered by changes to:
-- Contract value
-- Term length or dates
-- Scope of work
-- Periodical service inclusions
-
-### Version Records
-Each version contains:
-- Change timestamp
-- Modified fields
-- Previous values
-- New values
-- Reason for change
-- User who made change
+3. **Application Rules**:
+   - CPI can be skipped with appropriate approval
+   - Custom CPI rates can override default
+   - CPI application updates last_applied and next_due dates
 
 ## Integration Points
 
 ### External Systems
-- **Accounting System**: Synchronizes contract values and billing schedules
-- **Document Management**: Stores and retrieves contract documents
-- **CRM**: Updates client relationship data based on contract status
+- **SignNow/DocuSign**: Digital signature collection and tracking
+- **Zapier**: Workflow automation for contract management
+- **Xero**: Invoice generation based on contract billing rules
+- **CRM**: Quote to contract conversion and client data synchronization
 
 ### Internal Modules
+- **Quote Management**: Conversion of approved quotes to contracts
 - **Site Management**: Sites where services are delivered
 - **Scheduling**: Service delivery planning based on contract terms
 - **Billing**: Invoice generation according to contract terms
 - **Reporting**: Financial and operational analysis
 - **Supplier Management**: Provider assignment and performance tracking
+
+## User Interface Components
+
+### Primary Views
+1. **Contract List View**:
+   - Searchable/filterable grid of all contracts
+   - Status indicators with visual badges (Draft, Active, Pending, Expiring, Cancelled)
+   - Quick actions for common operations
+   - Columns: Client, Type, Service, Start/End, CPI Due, Auto Renew
+
+2. **Contract Detail View**:
+   - Overview panel: client, term, signed status
+   - Tabbed interface:
+     - Details: scope, site links, billing model, accruals
+     - Periodicals: inclusion logic + rates
+     - Billing: config, rate, CPI, next invoice
+     - History: full version diff view
+     - Docs: attached files
+     - Logs: Activities Feed entries
+
+3. **New Contract Wizard**:
+   - Step 1: Client & Site selection
+   - Step 2: Scope & Periodicals
+   - Step 3: Billing configuration + Accruals
+   - Step 4: Signed document upload or SignNow initiation
+   - Step 5: Confirmation + Activate
+
+### Key Workflows
+1. **Contract Creation Process**:
+   - Creation from quote or scratch
+   - Internal approval workflow
+   - Client signature collection
+   - Activation and implementation
+
+2. **Amendment Handling**:
+   - Contract modification interface
+   - Version documentation
+   - Approval routing based on change type
+   - Implementation of changes
+
+3. **Renewal Process**:
+   - Advance notification of upcoming renewals
+   - Review of terms and performance
+   - Price adjustment application
+   - Extension documentation
 
 ## Permission Model
 
@@ -152,48 +221,8 @@ Each version contains:
 |------|--------|------|------|---------|-----------|--------|
 | Admin | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
 | Sales | ✅ | ✅ | ✅ (draft only) | ❌ | ❌ | ❌ |
-| Operations | ❌ | ✅ | ✅ (scope, value, assignments) | ✅ (renewals) | ❌ | ❌ |
+| Operations | ❌ | ✅ | ✅ (scope, sites) | ✅ (renewals) | ❌ | ❌ |
 | Finance | ❌ | ✅ | ✅ (billing only) | ✅ (pricing) | ✅ | ✅ |
-
-## User Interface Components
-
-### Primary Views
-1. **Contract List**:
-   - Filterable, sortable list of all contracts
-   - Status indicators and quick actions
-   - Grouping by client, status, or type
-
-2. **Contract Detail**:
-   - Tabbed interface for different aspects of contract
-   - Timeline showing contract history and versions
-   - Actions appropriate to contract status and user role
-
-3. **Creation Workflow**:
-   - Multi-step form with validation
-   - Template selection
-   - Client and site selection
-   - Financial terms definition
-   - Scheduling and resource allocation
-
-### Key Workflows
-1. **Contract Creation**:
-   - Draft creation by sales team
-   - Internal approval process
-   - Client signature collection
-   - Activation and implementation
-
-2. **Renewal Process**:
-   - Advance notification of upcoming renewals
-   - Review of terms and performance
-   - Price adjustment application
-   - Extension documentation
-
-3. **Modification Handling**:
-   - Change request submission
-   - Impact analysis
-   - Approval routing
-   - Version documentation
-   - Implementation of changes
 
 ## Reports and Analytics
 
@@ -208,23 +237,31 @@ Each version contains:
 - **CPI Impact Projection**: Future value forecasting based on CPI schedules
 - **Accrual Utilization**: Tracking of allocated vs. used accrual budget
 
-## Implementation Considerations
+## Activities Feed Logging
+The system logs the following contract-related events:
+- Draft created/edited
+- Scope updated
+- CPI applied
+- Rate changed
+- Version saved (renewal or amendment)
+- Terminated/cancelled (with reason)
+- Signed deal form triggered (Zapier or UI)
+- Accrual updated
+- Periodicals updated
 
-### Performance Optimization
-- Efficient querying of contract data with appropriate indexing
-- Caching of frequently accessed contract details
-- Background processing for version history and analytics
-
-### Extensibility
-- Plugin architecture for additional contract types
-- Customizable workflow triggers and actions
-- Configurable approval paths based on organizational structure
+## Error Handling & Validations
+- Prevention of activation without required elements:
+  - Billing type
+  - Signed contract
+  - Valid start/end dates
+- Blocking of duplicate contract codes
+- Confirmation modals for critical actions (cancel, renewal)
+- Informative error messages via UI hooks
+- Access denied errors for permission violations
 
 ## Future Enhancements
-- Contract profitability scoring (actual vs. forecast)
-- CPI override logic for client exemptions
-- Bulk renewal interface for multi-site contracts
-- Dynamic term templates by service category
-- Contract compliance checklist automation
-- Budget module integration for spend tracking
-- Automated supplier management rules
+- Bulk renewals + global CPI re-index tool
+- SLA threshold linkage for QA compliance monitoring
+- Contract health scoring dashboard (profitability + status + audit compliance)
+- Multi-year cap + accrual waterfall tracking
+- Auto-categorisation of contracts by risk/volume/complexity
