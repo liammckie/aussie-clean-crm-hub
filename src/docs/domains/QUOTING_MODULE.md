@@ -1,8 +1,7 @@
-
 # Commercial Cleaning Quoting Module
 
 ## Overview
-The Commercial Cleaning Quoting Module is an internal tool within the Aussie Clean ERP system designed to generate accurate labour cost estimates, pricing, and profitability metrics for multi-site cleaning proposals. It is specifically tailored for the Australian market using ISSA productivity benchmarks, adjusted for local conditions, and compliant with MA000022 (Cleaning Services Award).
+The Commercial Cleaning Quoting Module is a comprehensive tool within the Aussie Clean ERP system designed to generate accurate labour cost estimates, pricing, and profitability metrics for multi-site cleaning proposals. Specifically tailored for the Australian market, it leverages ISSA productivity benchmarks and is fully compliant with MA000022 (Cleaning Services Award).
 
 ## Data Model
 
