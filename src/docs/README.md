@@ -14,22 +14,33 @@ This documentation provides comprehensive information about the Aussie Clean ERP
 - [System Overview](./architecture/OVERVIEW.md) - High-level architecture and component relationships
 - [Data Flow](./architecture/DATA_FLOW.md) - How data moves through the system
 - [Security Model](./architecture/SECURITY.md) - Authentication, authorization, and data protection
+- [Workflow Engine](./architecture/WORKFLOW_ENGINE.md) - Business process automation
 
 ### Development Guidelines
 - [Coding Standards](./development/CODING_STANDARDS.md) - Style guides and best practices
 - [Type System](./development/TYPE_SYSTEM.md) - TypeScript type usage and conventions
 - [Component Library](./development/COMPONENT_LIBRARY.md) - UI component documentation
 - [State Management](./development/STATE_MANAGEMENT.md) - Application state patterns
+- [Error Handling](./development/ERROR_HANDLING.md) - Error handling strategies
+- [UI/UX Guidelines](./development/UI_UX_GUIDELINES.md) - Interface design principles
+- [Build Error Resolution](./development/BUILD_ERROR_RESOLUTION.md) - Common build issues and solutions
+- [Schema Changelog](./development/SCHEMA_CHANGELOG.md) - Database schema evolution
+- [Type Inconsistencies](./development/TYPE_INCONSISTENCIES.md) - Type system issues and solutions
 
 ### Domain Modules
-- [Client Management](./domains/CLIENT_MANAGEMENT.md) - Client data model and operations
-- [Site Management](./domains/SITE_MANAGEMENT.md) - Site data model and operations
-- [Contract Management](./domains/CONTRACT_MANAGEMENT.md) - Contract data model and operations
-- [Sales Management](./domains/SALES_MODULE.md) - Sales lifecycle management
+Each domain module follows a standardized structure with a main overview document and subdirectory containing detailed documentation:
+
+- [Client Management](./domains/CLIENT_MANAGEMENT.md) - Client relationship management
+- [Site Management](./domains/SITE_MANAGEMENT.md) - Physical location management
+- [HR Management](./domains/HR_MANAGEMENT.md) - Employee and contractor management
+- [Contract Management](./domains/CONTRACT_MANAGEMENT.md) - Service agreement lifecycle
+- [Sales Management](./domains/SALES_MODULE.md) - Sales pipeline and opportunity tracking
 - [Quoting Module](./domains/QUOTING_MODULE.md) - Commercial cleaning quoting system
 - [Award Engine](./domains/AWARD_ENGINE.md) - Award compliance calculations
-- [Scheduling](./domains/SCHEDULING.md) - Scheduling system documentation
-- [Billing](./domains/BILLING.md) - Billing system documentation
+- [Scheduling](./domains/SCHEDULING.md) - Service delivery scheduling
+- [Billing](./domains/BILLING.md) - Invoice generation and payment tracking
+- [Financial Reporting](./domains/FINANCIAL_REPORTING.md) - Financial analysis and reporting
+- [Supplier Management](./domains/SUPPLIER_MANAGEMENT.md) - Vendor relationship management
 
 ### Operational Procedures
 - [Deployment](./operations/DEPLOYMENT.md) - Deployment processes and environments
@@ -40,6 +51,9 @@ This documentation provides comprehensive information about the Aussie Clean ERP
 - [External APIs](./integrations/EXTERNAL_APIS.md) - Documentation of external API integrations
 - [Authentication Services](./integrations/AUTHENTICATION.md) - Authentication service integrations
 
+## Documentation Templates
+- [Domain Documentation Template](./templates/DOMAIN_TEMPLATE.md) - Standard template for domain documentation
+
 ## Maintaining Documentation
 
 ### Guidelines
@@ -47,6 +61,7 @@ This documentation provides comprehensive information about the Aussie Clean ERP
 2. Document all major system components and workflows
 3. Include troubleshooting guides for common issues
 4. Use consistent formatting and terminology
+5. Follow the standardized domain structure for all modules
 
 ### Documentation Process
 1. Update relevant documentation when implementing new features

@@ -1,128 +1,36 @@
 
-# Client Management
+# Client Management Module
 
 ## Overview
-The Client Management module handles all aspects of client information, including basic details, contact information, billing preferences, and relationship history.
+The Client Management module handles all aspects of client information, including basic details, contact information, billing preferences, and relationship history. It serves as the foundation for client relationship management within the Aussie Clean ERP system.
 
-## Data Model
+## Core Components
+- Client Profile Management
+- Contact Management
+- Billing Configuration
+- Document Management
+- Relationship Tracking
+- Client Communication
 
-### Client Entity
-The core Client entity contains the following information:
-
-#### Basic Information
-- **Client ID**: Unique identifier (UUID)
-- **Business Name**: Legal business name
-- **Trading Name**: Name the business operates under (if different)
-- **ABN**: Australian Business Number (validated format)
-- **ACN**: Australian Company Number (optional, validated format)
-- **Industry**: Industry category
-- **Status**: Client status (Active, Prospect, On Hold, Cancelled)
-- **Onboarding Date**: Date client relationship began
-- **Source**: How the client was acquired
-
-#### Contact Information
-- **Primary Contact**: Main contact person
-  - Name
-  - Position
-  - Email
-  - Phone
-  - Mobile
-- **Additional Contacts**: List of additional contacts
-  - Contact Type (Billing, Operations, Emergency)
-  - Name
-  - Position
-  - Email
-  - Phone
-
-#### Address Information
-- **Billing Address**:
-  - Street
-  - Suburb
-  - State
-  - Postcode
-- **Postal Address**: (if different from billing)
-  - Street
-  - Suburb
-  - State
-  - Postcode
-
-#### Billing Information
-- **Billing Cycle**: Weekly, Fortnightly, Monthly
-- **Payment Terms**: Net 7, Net 14, Net 30
-- **Payment Method**: Direct Debit, Credit Card, EFT
-- **Credit Limit**: Maximum credit amount
-- **Tax Status**: GST Registered, Not Registered
-
-#### Documentation
-- **Client Documents**: Contracts, agreements, certificates
-  - Document Type
-  - Upload Date
-  - Expiry Date (if applicable)
-  - Document File
-
-#### Relationship Data
-- **Account Manager**: Assigned account manager
-- **Notes History**: Chronological record of client interactions
-- **Relationship Rating**: Client relationship quality metric
-
-## Business Rules
-
-### ABN/ACN Validation
-- ABN must be a valid 11-digit number according to ATO algorithm
-- ACN must be a valid 9-digit number according to ASIC algorithm
-- System verifies ABN/ACN format but does not perform external validation
-
-### Status Transitions
-- New clients start as "Prospect"
-- Prospects can transition to "Active" when a contract is signed
-- Active clients can be put "On Hold" (temporary suspension)
-- Any status can transition to "Cancelled" (with reason required)
-
-### Document Management
-- Critical documents (contracts, insurance certificates) must have expiry date tracking
-- System alerts when documents are approaching expiration
-- Document version history is maintained
-
-## User Interface Components
-
-### Client List View
-- Sortable, filterable list of all clients
-- Quick status indicators
-- Search functionality
-
-### Client Detail View
-- Tabbed interface for different client information categories
-- Edit capabilities with permission controls
-- Activity timeline
-
-### Client Creation Workflow
-- Multi-step form with validation
-- ABN/ACN lookup integration
-- Duplicate detection
-
-## Integration Points
-
-### External Systems
-- Accounting system (Xero) for invoice and payment synchronization
-- Email system for communication history
-- Document management system for file storage
-
-### Internal Modules
-- Site Management: Sites associated with a client
-- Contract Management: Contracts associated with a client
-- Scheduling: Service schedules for client sites
-- Billing: Invoice generation based on client terms
-
-## Reports and Analytics
-- Client acquisition metrics
-- Client retention analytics
-- Revenue by client
-- Service frequency by client
+## Quick Links
+- [Client Data Model](./client/CLIENT_DATA_MODEL.md) - Core data entities and relationships
+- [Business Rules](./client/BUSINESS_RULES.md) - Core business logic and workflows
+- [UI Components](./client/UI_COMPONENTS.md) - Interface and interaction patterns
+- [Integration Points](./client/INTEGRATION_POINTS.md) - Connections to other modules and systems
+- [Reports & Analytics](./client/REPORTS_ANALYTICS.md) - Analysis and insights capabilities
 
 ## Permission Model
-- View Clients: All staff
-- Create Clients: Sales team, Managers
-- Edit Client Basic Info: Account Managers, Admin
-- Edit Billing Info: Finance team, Admin
-- Delete Clients: Admin only
 
+| Role | Create | View | Edit | Archive | Delete |
+|------|--------|------|------|---------|--------|
+| Admin | ✅ | ✅ | ✅ | ✅ | ✅ (if no contracts) |
+| Operations | ✅ | ✅ | ✅ | ✅ (region only) | ❌ |
+| Account Manager | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Field Staff | ❌ | ✅ (assigned only) | ❌ | ❌ | ❌ |
+
+## Future Enhancements
+- Self-service client portal
+- Automated sentiment analysis of client communications
+- Client health score algorithm
+- Integration with industry databases for compliance verification
+- Enhanced reporting on client lifetime value and profitability
