@@ -15,16 +15,13 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' &&
     componentTagger(),
-    // Add Sentry Vite plugin
+    // Sentry Vite plugin with environment variable support
     sentryVitePlugin({
-      org: "aussie-clean",
+      org: "smart-cleaning-solutions",
       project: "aussie-clean-erp",
-      // Auth tokens can be obtained from https://sentry.io/settings/account/api/auth-tokens/
-      // Required only for uploading source maps
       authToken: process.env.SENTRY_AUTH_TOKEN,
       telemetry: false,
       sourcemaps: {
-        // Specify the directory containing build artifacts
         assets: './dist/**',
       },
     }),
@@ -35,6 +32,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    sourcemap: true, // Source map generation must be turned on
+    sourcemap: true, // Ensure source maps are generated
   },
 }));
