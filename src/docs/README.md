@@ -40,6 +40,7 @@ Each domain module follows a standardized structure with a main overview documen
 - [Financial Reporting](./domains/FINANCIAL_REPORTING.md) - Financial analysis and reporting
 - [Supplier Management](./domains/SUPPLIER_MANAGEMENT.md) - Vendor relationship management
 - [Client Portal](./domains/CLIENT_PORTAL.md) - Client self-service interface
+- [Supplier Portal](./domains/SUPPLIER_PORTAL.md) - Supplier self-service interface
 
 ### Operational Procedures
 - [Deployment](./operations/DEPLOYMENT.md) - Deployment processes and environments
