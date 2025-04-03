@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route, Navigate, useRouteError } from "react-rou
 import { useState, createContext, useContext, useEffect } from "react";
 import { ErrorReporting } from "@/utils/errorReporting";
 import * as Sentry from "@sentry/react";
-import { withSentryMonitoring } from "@/utils/sentry";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
@@ -18,11 +17,11 @@ import { MainLayout } from "./components/layout/MainLayout";
 // Create Sentry Routes wrapper
 const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
 
-// Enhance components with Sentry monitoring
-const SentryIndex = withSentryMonitoring(Index, { name: "Index" });
-const SentryDashboard = withSentryMonitoring(Dashboard, { name: "Dashboard" });
-const SentryLogin = withSentryMonitoring(Login, { name: "Login" });
-const SentryNotFound = withSentryMonitoring(NotFound, { name: "NotFound" });
+// Enhance components with Sentry profiling
+const SentryIndex = Sentry.withProfiler(Index, { name: "Index" });
+const SentryDashboard = Sentry.withProfiler(Dashboard, { name: "Dashboard" });
+const SentryLogin = Sentry.withProfiler(Login, { name: "Login" });
+const SentryNotFound = Sentry.withProfiler(NotFound, { name: "NotFound" });
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -123,14 +122,8 @@ const App = () => {
     ErrorReporting.setUser(null);
   };
 
-  // Add breadcrumb for app initialization
+  // Add effect to enable debugging
   useEffect(() => {
-    Sentry.addBreadcrumb({
-      category: 'app',
-      message: 'App initialized',
-      level: 'info'
-    });
-    
     console.log("Auth state:", isAuthenticated ? "Authenticated" : "Not authenticated");
   }, [isAuthenticated]);
 
