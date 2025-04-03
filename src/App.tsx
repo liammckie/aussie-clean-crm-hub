@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -27,21 +26,17 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      onSettled: (data, error) => {
-        if (error) {
-          ErrorReporting.captureException(error as Error, { 
-            source: 'react-query',
-          });
-        }
+      onError: (error) => {
+        ErrorReporting.captureException(error as Error, { 
+          source: 'react-query',
+        });
       },
     },
     mutations: {
-      onSettled: (data, error) => {
-        if (error) {
-          ErrorReporting.captureException(error as Error, { 
-            source: 'react-query-mutation',
-          });
-        }
+      onError: (error) => {
+        ErrorReporting.captureException(error as Error, { 
+          source: 'react-query-mutation',
+        });
       },
     }
   }
