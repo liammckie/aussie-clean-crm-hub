@@ -11,8 +11,14 @@ import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
+import UsersManagement from "./pages/UsersManagement";
+import UserDetails from "./pages/UserDetails";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { MainLayout } from "./components/layout/MainLayout";
+import { UserProvider } from "./domains/users/context/UserContext";
+import { userService } from "./domains/users/api";
+import { PermissionType } from "./domains/users/types";
+import { withPermissionCheck } from "./hooks/use-permissions";
 
 // Create Sentry Routes wrapper
 const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
@@ -22,6 +28,14 @@ const SentryIndex = Sentry.withProfiler(Index, { name: "Index" });
 const SentryDashboard = Sentry.withProfiler(Dashboard, { name: "Dashboard" });
 const SentryLogin = Sentry.withProfiler(Login, { name: "Login" });
 const SentryNotFound = Sentry.withProfiler(NotFound, { name: "NotFound" });
+const SentryUsersManagement = Sentry.withProfiler(
+  withPermissionCheck(UsersManagement, [PermissionType.VIEW_USERS]), 
+  { name: "UsersManagement" }
+);
+const SentryUserDetails = Sentry.withProfiler(
+  withPermissionCheck(UserDetails, [PermissionType.VIEW_USERS]), 
+  { name: "UserDetails" }
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -114,6 +128,20 @@ const App = () => {
       id: 'user-session-id',
       email: 'logged-in@example.com', // In a real app, use actual user email
     });
+    
+    // For development, set a mock user as current 
+    if (import.meta.env.DEV) {
+      userService.getUserById('1').then(user => {
+        if (user) {
+          // Set breadcrumb for debugging
+          ErrorReporting.addBreadcrumb({
+            category: 'auth',
+            message: `Dev login as ${user.firstName} ${user.lastName}`,
+            level: 'info'
+          });
+        }
+      });
+    }
   };
   
   const logout = () => {
@@ -129,43 +157,64 @@ const App = () => {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            {showLoading ? (
-              <LoadingScreen 
-                onLoadingComplete={() => setShowLoading(false)} 
-              />
-            ) : (
-              <SentryRoutes>
-                <Route path="/login" element={<SentryLogin />} errorElement={<RouteErrorBoundary />} />
-                <Route 
-                  path="/" 
-                  element={
-                    <ProtectedRoute>
-                      <SentryIndex />
-                    </ProtectedRoute>
-                  }
-                  errorElement={<RouteErrorBoundary />}
+      <UserProvider>
+        <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              {showLoading ? (
+                <LoadingScreen 
+                  onLoadingComplete={() => setShowLoading(false)} 
                 />
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <SentryDashboard />
-                    </ProtectedRoute>
-                  }
-                  errorElement={<RouteErrorBoundary />}
-                />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<SentryNotFound />} errorElement={<RouteErrorBoundary />} />
-              </SentryRoutes>
-            )}
-          </BrowserRouter>
-        </TooltipProvider>
-      </AuthContext.Provider>
+              ) : (
+                <SentryRoutes>
+                  <Route path="/login" element={<SentryLogin />} errorElement={<RouteErrorBoundary />} />
+                  <Route 
+                    path="/" 
+                    element={
+                      <ProtectedRoute>
+                        <SentryIndex />
+                      </ProtectedRoute>
+                    }
+                    errorElement={<RouteErrorBoundary />}
+                  />
+                  <Route 
+                    path="/dashboard" 
+                    element={
+                      <ProtectedRoute>
+                        <SentryDashboard />
+                      </ProtectedRoute>
+                    }
+                    errorElement={<RouteErrorBoundary />}
+                  />
+                  {/* User Management Routes */}
+                  <Route 
+                    path="/users" 
+                    element={
+                      <ProtectedRoute>
+                        <SentryUsersManagement />
+                      </ProtectedRoute>
+                    }
+                    errorElement={<RouteErrorBoundary />}
+                  />
+                  <Route 
+                    path="/users/:id" 
+                    element={
+                      <ProtectedRoute>
+                        <SentryUserDetails />
+                      </ProtectedRoute>
+                    }
+                    errorElement={<RouteErrorBoundary />}
+                  />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<SentryNotFound />} errorElement={<RouteErrorBoundary />} />
+                </SentryRoutes>
+              )}
+            </BrowserRouter>
+          </TooltipProvider>
+        </AuthContext.Provider>
+      </UserProvider>
     </QueryClientProvider>
   );
 };

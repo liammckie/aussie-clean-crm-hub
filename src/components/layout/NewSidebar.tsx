@@ -13,25 +13,29 @@ import {
   FileText, 
   Truck, 
   Activity,
-  ChevronLeft
+  ChevronLeft,
+  UserCog
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { usePermissions } from "@/hooks/use-permissions";
+import { PermissionType } from "@/domains/users/types";
 
 // Define menu items in a single location for easy management
-const menuItems = [
+const getMenuItems = (canAccessModule: (moduleName: string) => boolean) => [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: Users, label: "Clients", path: "/clients" },
-  { icon: FileCheck, label: "Contracts", path: "/contracts" },
-  { icon: TrendingUp, label: "Sales", path: "/sales" },
-  { icon: Briefcase, label: "Work Orders", path: "/work-orders" },
-  { icon: Calendar, label: "Activities", path: "/activities" },
-  { icon: DollarSign, label: "Finance", path: "/finance" },
-  { icon: Settings, label: "Settings", path: "/settings" },
-  { icon: FileText, label: "Quick Forms", path: "/forms" },
-  { icon: Truck, label: "Suppliers", path: "/suppliers" },
-  { icon: Activity, label: "Activity Log", path: "/logs" },
-];
+  { icon: Users, label: "Clients", path: "/clients", module: "clients" },
+  { icon: FileCheck, label: "Contracts", path: "/contracts", module: "contracts" },
+  { icon: TrendingUp, label: "Sales", path: "/sales", module: "sales" },
+  { icon: Briefcase, label: "Work Orders", path: "/work-orders", module: "workOrders" },
+  { icon: Calendar, label: "Activities", path: "/activities", module: "activities" },
+  { icon: DollarSign, label: "Finance", path: "/finance", module: "finance" },
+  { icon: UserCog, label: "User Management", path: "/users", module: "users" },
+  { icon: Settings, label: "Settings", path: "/settings", module: "settings" },
+  { icon: FileText, label: "Quick Forms", path: "/forms", module: "forms" },
+  { icon: Truck, label: "Suppliers", path: "/suppliers", module: "suppliers" },
+  { icon: Activity, label: "Activity Log", path: "/logs", module: "logs" },
+].filter(item => !item.module || canAccessModule(item.module));
 
 interface SidebarProps {
   expanded: boolean;
@@ -40,6 +44,10 @@ interface SidebarProps {
 
 export function NewSidebar({ expanded, onToggle }: SidebarProps) {
   const location = useLocation();
+  const { canAccessModule } = usePermissions();
+  
+  // Filter menu items based on user permissions
+  const menuItems = getMenuItems(canAccessModule);
   
   return (
     <aside 
@@ -74,7 +82,8 @@ export function NewSidebar({ expanded, onToggle }: SidebarProps) {
       <nav className="flex-1 px-2 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
         <ul className="space-y-2">
           {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
+            const isActive = location.pathname === item.path || 
+                           (item.path !== '/' && location.pathname.startsWith(item.path));
             
             return (
               <li key={item.label}>
