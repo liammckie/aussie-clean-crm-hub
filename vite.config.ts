@@ -1,11 +1,11 @@
-
+import * as dotenv from "dotenv";
+dotenv.config({ path: ".env.sentry-build-plugin" });
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 
-// https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -13,18 +13,17 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === 'development' &&
-    componentTagger(),
-    // Sentry Vite plugin with organization-based environment variables
+    mode === "development" && componentTagger(),
     sentryVitePlugin({
-      org: process.env.SENTRY_ORGANIZATION_SLUG || "smart-cleaning-solutions",
-      project: "aussie-clean-erp",
-      // Use organization auth token instead of simple auth token
-      authToken: process.env.ORGANIZATION_AUTH_TOKEN_SENTRY || process.env.SENTRY_AUTH_TOKEN,
-      telemetry: false,
+      org: "smart-cleaning-solutions",
+      project: "scserp",
+      authToken:
+        process.env.SENTRY_AUTH_TOKEN ||
+        process.env.ORGANIZATION_AUTH_TOKEN_SENTRY,
       sourcemaps: {
-        assets: './dist/**',
+        assets: "./dist/**",
       },
+      telemetry: false,
     }),
   ].filter(Boolean),
   resolve: {
@@ -33,7 +32,6 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
-    sourcemap: true, // Ensure source maps are generated
+    sourcemap: true,
   },
 }));
-
