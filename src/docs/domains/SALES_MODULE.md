@@ -35,9 +35,29 @@ The Sales Management module is a critical component of the Aussie Clean ERP syst
 - Marketing Platforms
 - Contract Management
 - Reporting and Analytics
+- Quoting Module
+- Award Engine
+
+## User Interface Components
+
+### Lead Management Interface
+- Lead capture forms
+- Lead qualification tools
+- Lead assignment workflow
+
+### Opportunity Tracking
+- Pipeline visualization board
+- Stage progression tracking
+- Win/loss probability forecasting
+
+### Performance Dashboards
+- Individual and team performance metrics
+- Sales target tracking
+- Activity monitoring
 
 ## Future Enhancements
 - AI-powered lead scoring
 - Automated follow-up workflows
 - Advanced sales forecasting
-
+- Territory optimization algorithms
+- Competitive intelligence tracking

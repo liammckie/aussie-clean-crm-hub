@@ -25,6 +25,9 @@ This documentation provides comprehensive information about the Aussie Clean ERP
 - [Client Management](./domains/CLIENT_MANAGEMENT.md) - Client data model and operations
 - [Site Management](./domains/SITE_MANAGEMENT.md) - Site data model and operations
 - [Contract Management](./domains/CONTRACT_MANAGEMENT.md) - Contract data model and operations
+- [Sales Management](./domains/SALES_MODULE.md) - Sales lifecycle management
+- [Quoting Module](./domains/QUOTING_MODULE.md) - Commercial cleaning quoting system
+- [Award Engine](./domains/AWARD_ENGINE.md) - Award compliance calculations
 - [Scheduling](./domains/SCHEDULING.md) - Scheduling system documentation
 - [Billing](./domains/BILLING.md) - Billing system documentation
 
@@ -50,4 +53,3 @@ This documentation provides comprehensive information about the Aussie Clean ERP
 2. Review documentation during code reviews
 3. Test documentation procedures regularly
 4. Maintain a changelog of significant documentation updates
-
