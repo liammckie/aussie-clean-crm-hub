@@ -6,7 +6,7 @@ import { ChevronDown } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
 import { generateForecastData, formatCurrency, ForecastDataPoint } from "@/utils/forecastData";
 
-type MetricView = "clients" | "financial";
+type MetricView = "clients" | "financial" | "profit";
 
 export function BusinessMetricsCard() {
   const [metricView, setMetricView] = useState<MetricView>("clients");
@@ -61,11 +61,37 @@ export function BusinessMetricsCard() {
     </ResponsiveContainer>
   );
 
+  const renderProfitChart = () => (
+    <ResponsiveContainer width="100%" height={300}>
+      <ComposedChart data={forecastData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="month" />
+        <YAxis 
+          yAxisId="left" 
+          tickFormatter={(value) => formatCurrency(value)}
+        />
+        <Tooltip 
+          formatter={(value: number, name) => {
+            return [formatCurrency(value), 
+              name === "fixedBillingMonthly" ? "Monthly Revenue" :
+              name === "supplierCostMonthly" ? "Monthly Supplier Cost" :
+              name === "grossProfitMonthly" ? "Monthly Gross Profit" : name
+            ];
+          }}
+        />
+        <Legend />
+        <Bar yAxisId="left" dataKey="fixedBillingMonthly" fill="#82ca9d" name="Monthly Revenue" />
+        <Bar yAxisId="left" dataKey="supplierCostMonthly" fill="#ff8042" name="Monthly Supplier Cost" />
+        <Bar yAxisId="left" dataKey="grossProfitMonthly" fill="#8884d8" name="Monthly Gross Profit" />
+      </ComposedChart>
+    </ResponsiveContainer>
+  );
+
   return (
     <Card className="col-span-1 sm:col-span-2 lg:col-span-3 bg-gradient-to-br from-slate-800 to-slate-950 border-slate-700 shadow-xl">
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-xl font-bold text-white">Business Forecast</CardTitle>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
           <Button 
             variant={metricView === "clients" ? "default" : "outline"} 
             size="sm" 
@@ -78,7 +104,14 @@ export function BusinessMetricsCard() {
             size="sm" 
             onClick={() => setMetricView("financial")}
           >
-            Financial
+            Revenue & Costs
+          </Button>
+          <Button 
+            variant={metricView === "profit" ? "default" : "outline"} 
+            size="sm" 
+            onClick={() => setMetricView("profit")}
+          >
+            Gross Profit
           </Button>
         </div>
       </CardHeader>
@@ -87,7 +120,12 @@ export function BusinessMetricsCard() {
         <div className="text-sm text-slate-400 mb-4">
           Forecast based on {forecastData[0].activeContracts} active contracts, future signed deals, and projected cancellations
         </div>
-        {metricView === "clients" ? renderClientsChart() : renderFinancialChart()}
+        {metricView === "clients" 
+          ? renderClientsChart() 
+          : metricView === "financial" 
+            ? renderFinancialChart() 
+            : renderProfitChart()
+        }
         <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatBox 
             title="Active Clients" 
@@ -101,12 +139,13 @@ export function BusinessMetricsCard() {
             isPercentage={true}
           />
           <StatBox 
-            title="Active Sites" 
-            value={forecastData[0].activeSites.toString()} 
-            change={forecastData[2].activeSites - forecastData[0].activeSites}
+            title="Monthly Costs" 
+            value={formatCurrency(forecastData[0].supplierCostMonthly)} 
+            change={Math.round((forecastData[2].supplierCostMonthly - forecastData[0].supplierCostMonthly) / forecastData[0].supplierCostMonthly * 100)}
+            isPercentage={true}
           />
           <StatBox 
-            title="Profit Margin" 
+            title="Gross Profit" 
             value={`${Math.round((forecastData[0].fixedBillingMonthly - forecastData[0].supplierCostMonthly) / forecastData[0].fixedBillingMonthly * 100)}%`} 
             change={Math.round((
               (forecastData[2].fixedBillingMonthly - forecastData[2].supplierCostMonthly) / forecastData[2].fixedBillingMonthly * 100

@@ -13,6 +13,8 @@ export interface ForecastDataPoint {
   supplierCostAnnual: number;
   supplierCostMonthly: number;
   supplierCostWeekly: number;
+  grossProfitMonthly: number;
+  grossProfitAnnual: number;
 }
 
 export interface ContractForecast {
@@ -22,6 +24,7 @@ export interface ContractForecast {
   cancellationDate: Date | null;
   monthlyValue: number;
   siteCount: number;
+  monthlyCost: number; // Added supplier cost at contract level
 }
 
 // Generate dummy contracts with start and potential cancellation dates
@@ -45,12 +48,17 @@ export const generateDummyContracts = (count: number): ContractForecast[] => {
       cancellationDate.setDate(cancellationDate.getDate() + cancellationOffset);
     }
     
+    const monthlyValue = Math.floor(Math.random() * 15000) + 5000; // $5,000 to $20,000 per month
+    // Supplier costs vary between 30-50% of revenue
+    const costPercentage = Math.random() * 0.2 + 0.3; // 30-50%
+    
     contracts.push({
       id: `contract-${i + 1}`,
       clientName: clientNames[Math.floor(Math.random() * clientNames.length)],
       startDate,
       cancellationDate,
-      monthlyValue: Math.floor(Math.random() * 15000) + 5000, // $5,000 to $20,000 per month
+      monthlyValue,
+      monthlyCost: Math.round(monthlyValue * costPercentage),
       siteCount: Math.floor(Math.random() * 5) + 1 // 1 to 5 sites per contract
     });
   }
@@ -73,6 +81,7 @@ export const generateForecastData = (): ForecastDataPoint[] => {
     let activeContracts = 0;
     let activeSites = 0;
     let totalMonthlyValue = 0;
+    let totalMonthlyCost = 0;
     
     // Dictionary to track unique clients
     const uniqueClients = new Set<string>();
@@ -84,6 +93,7 @@ export const generateForecastData = (): ForecastDataPoint[] => {
         activeContracts++;
         activeSites += contract.siteCount;
         totalMonthlyValue += contract.monthlyValue;
+        totalMonthlyCost += contract.monthlyCost;
         uniqueClients.add(contract.clientName);
       }
     });
@@ -93,10 +103,14 @@ export const generateForecastData = (): ForecastDataPoint[] => {
     const annualValue = monthlyValue * 12;
     const weeklyValue = monthlyValue / 4.33; // Average weeks per month
     
-    // Supplier costs (roughly 40% of revenue for this dummy data)
-    const supplierCostMonthly = monthlyValue * 0.4;
+    // Supplier costs
+    const supplierCostMonthly = totalMonthlyCost;
     const supplierCostAnnual = supplierCostMonthly * 12;
     const supplierCostWeekly = supplierCostMonthly / 4.33;
+    
+    // Gross profit calculations
+    const grossProfitMonthly = monthlyValue - supplierCostMonthly;
+    const grossProfitAnnual = annualValue - supplierCostAnnual;
     
     forecastData.push({
       month: forecastDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
@@ -108,7 +122,9 @@ export const generateForecastData = (): ForecastDataPoint[] => {
       fixedBillingWeekly: weeklyValue,
       supplierCostAnnual: supplierCostAnnual,
       supplierCostMonthly: supplierCostMonthly,
-      supplierCostWeekly: supplierCostWeekly
+      supplierCostWeekly: supplierCostWeekly,
+      grossProfitMonthly,
+      grossProfitAnnual
     });
   }
   
