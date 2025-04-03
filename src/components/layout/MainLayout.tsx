@@ -38,10 +38,16 @@ export function MainLayout({ children }: MainLayoutProps) {
         onToggle={toggleSidebar}
       />
       
-      {/* Main Content */}
-      <main className={`transition-all duration-300 md:ml-${sidebarExpanded ? '64' : '20'}`}>
+      {/* Main Content - Fixed the transition and margin classes */}
+      <main 
+        className={`transition-all duration-300 ${
+          sidebarExpanded 
+            ? 'md:ml-64' // When sidebar is expanded
+            : 'md:ml-20' // When sidebar is collapsed
+        }`}
+      >
         <TopNavbar />
-        <div className="px-4 py-6">
+        <div className="px-4 py-6 md:px-6">
           {children}
         </div>
       </main>
