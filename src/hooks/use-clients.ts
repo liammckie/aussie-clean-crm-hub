@@ -1,25 +1,122 @@
 
 import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientService, Client, ClientInsert, ClientUpdate, ClientWithContacts } from '@/services/client.service';
+import { toast } from '@/components/ui/use-toast';
 
-type ClientsState = {
-  clients: Client[] | null;
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
-};
-
-type ClientState = {
-  client: ClientWithContacts | null;
-  loading: boolean;
-  error: string | null;
-  refetch: () => Promise<void>;
+// Query keys for React Query
+const QUERY_KEYS = {
+  clients: 'clients',
+  client: (id?: string) => ['client', id],
+  clientSites: (clientId: string) => ['client', clientId, 'sites'],
+  clientContracts: (clientId: string) => ['client', clientId, 'contracts'],
 };
 
 /**
- * Hook to fetch all clients
+ * Hook to fetch all clients using React Query
  */
-export function useClients(): ClientsState {
+export function useClients() {
+  return useQuery({
+    queryKey: [QUERY_KEYS.clients],
+    queryFn: clientService.getClients,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Hook to fetch a single client by ID using React Query
+ */
+export function useClient(id?: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.client(id),
+    queryFn: () => id ? clientService.getClientById(id) : null,
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Hook to fetch client sites using React Query
+ */
+export function useClientSites(clientId?: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.clientSites(clientId || ''),
+    queryFn: () => clientId ? clientService.getClientSites(clientId) : null,
+    enabled: !!clientId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Hook to fetch client contracts using React Query
+ */
+export function useClientContracts(clientId?: string) {
+  return useQuery({
+    queryKey: QUERY_KEYS.clientContracts(clientId || ''),
+    queryFn: () => clientId ? clientService.getClientContracts(clientId) : null,
+    enabled: !!clientId,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+}
+
+/**
+ * Hook for client operations (create, update, delete) with React Query
+ */
+export function useClientOperations() {
+  const queryClient = useQueryClient();
+
+  // Create client mutation
+  const createClient = useMutation({
+    mutationFn: clientService.createClient,
+    onSuccess: (data) => {
+      if (data) {
+        // Invalidate clients list to refresh data
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.clients] });
+      }
+    },
+  });
+
+  // Update client mutation
+  const updateClient = useMutation({
+    mutationFn: ({ id, updates }: { id: string; updates: ClientUpdate }) => 
+      clientService.updateClient(id, updates),
+    onSuccess: (data, variables) => {
+      if (data) {
+        // Invalidate specific client and clients list
+        queryClient.invalidateQueries({ queryKey: QUERY_KEYS.client(variables.id) });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.clients] });
+      }
+    },
+  });
+
+  // Delete client mutation
+  const deleteClient = useMutation({
+    mutationFn: clientService.deleteClient,
+    onSuccess: (success, id) => {
+      if (success) {
+        // Remove client from cache and invalidate clients list
+        queryClient.removeQueries({ queryKey: QUERY_KEYS.client(id) });
+        queryClient.invalidateQueries({ queryKey: [QUERY_KEYS.clients] });
+      }
+    },
+  });
+
+  return {
+    createClient: createClient.mutateAsync,
+    updateClient: (id: string, updates: ClientUpdate) => updateClient.mutateAsync({ id, updates }),
+    deleteClient: deleteClient.mutateAsync,
+    isLoading: createClient.isPending || updateClient.isPending || deleteClient.isPending,
+    isError: createClient.isError || updateClient.isError || deleteClient.isError,
+    error: createClient.error || updateClient.error || deleteClient.error,
+  };
+}
+
+// Legacy hooks for backward compatibility
+/**
+ * Legacy hook to fetch all clients
+ * @deprecated Use useClients from React Query instead
+ */
+export function useClientsLegacy() {
   const [clients, setClients] = useState<Client[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -51,9 +148,10 @@ export function useClients(): ClientsState {
 }
 
 /**
- * Hook to fetch a single client by ID
+ * Legacy hook to fetch a single client by ID
+ * @deprecated Use useClient from React Query instead
  */
-export function useClient(id?: string): ClientState {
+export function useClientLegacy(id?: string) {
   const [client, setClient] = useState<ClientWithContacts | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,9 +189,10 @@ export function useClient(id?: string): ClientState {
 }
 
 /**
- * Hook for client operations (create, update, delete)
+ * Legacy hook for client operations
+ * @deprecated Use useClientOperations from React Query instead
  */
-export function useClientOperations() {
+export function useClientOperationsLegacy() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 

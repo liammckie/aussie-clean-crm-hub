@@ -23,9 +23,8 @@ This document outlines the comprehensive error handling and validation approach 
 - **Validation Algorithms**: 
   - ABN validation using weighted sum method per ATO specifications
   - ACN validation using ASIC algorithm
-- **External Validation** (Optional):
-  - Integration with ABR lookup service
-  - Business name verification against official register
+- **Client-side Validation**: Immediate feedback during form entry
+- **Server-side Validation**: Double-check before database operations
 
 ### Required Fields & Custom Errors
 
@@ -77,27 +76,47 @@ This document outlines the comprehensive error handling and validation approach 
 - **Application Logic**: Business rules enforced at service layer
 - **API Validation**: Rules checked before database operations
 
-## Audit Logging
+## Error Handling Architecture
 
-### Audit Record Structure
-- **Timestamp**: When the change occurred
-- **User Identifier**: Who made the change
-- **Entity Type**: What type of record was changed
-- **Entity ID**: Which specific record was affected
-- **Action Type**: Create, Update, Delete, Archive, etc.
-- **Field Changes**: Old and new values for changed fields
-- **IP Address**: Source of the change request
-- **Application Context**: Web interface, API, etc.
+### Service Layer Error Handling
+Our service layer implements a structured error handling approach:
 
-### Implementation Details
-- **Storage**: Immutable audit table separate from operational data
-- **Retention**: 7+ years retention to comply with Australian regulations
-- **Query Interface**: Administrative tools to search and filter audit logs
+```typescript
+try {
+  // Operation code
+  
+  // Success tracking
+  logSuccess('operation', 'entity', { context });
+  return data;
+} catch (error) {
+  // Structured error handling
+  return handleSupabaseError(
+    error, 
+    'User-friendly message', 
+    { operation: 'operationName', entityId: id }
+  ).details as null;
+}
+```
 
-### Technical Approach
-- **Trigger-Based**: Database triggers for capturing all data changes
-- **Service Layer**: Application logic for recording complex operations
-- **Automatic Capture**: Changes tracked without requiring explicit logging code
+### Error Categories
+We categorize errors to provide appropriate responses:
+
+1. **Validation Errors**: User input problems
+2. **Authentication Errors**: Login/permissions issues
+3. **Permission Errors**: Authorization failures
+4. **Network Errors**: Connection problems
+5. **Database Errors**: Data storage issues
+6. **Server Errors**: Backend system failures
+7. **Unknown Errors**: Uncategorized issues
+
+### Error Monitoring
+We use Sentry for error monitoring with:
+
+- **Breadcrumbs**: Track user journey before errors
+- **Context**: Add business context to errors
+- **User Information**: Associate errors with sessions
+- **Performance Tracking**: Monitor operation timing
+- **Error Categorization**: Group similar issues
 
 ## User Feedback & Exception Handling
 
@@ -123,28 +142,12 @@ This document outlines the comprehensive error handling and validation approach 
   - Business rule violations at WARNING level
   - System errors at ERROR level with stack traces
 
-### User Communication
-- **Friendly Messages**: Technical details translated to user-friendly wording
-- **Actionable Guidance**: Clear instructions on how to resolve issues
-- **Recovery Options**: Suggested next steps when errors occur
-
-## Integration Error Handling
-
-### Xero Integration Errors
-- **Connection Issues**: "Unable to connect to Xero. Your data is saved locally and will sync when connection is restored."
-- **Validation Failures**: "Invoice couldn't be created in Xero due to missing required field: [Field Name]"
-- **Conflict Resolution**: "This invoice has been modified in Xero since last sync. Please review changes before proceeding."
-
-### Document Storage Integration Errors
-- **Upload Failures**: "Document upload to [Storage System] failed. The document is saved locally and will be uploaded when connection is restored."
-- **Permission Issues**: "You don't have permission to access this document in [Storage System]."
-- **Synchronization Errors**: "Document versions are out of sync. Please download the latest version before making changes."
-
-### Recovery Mechanisms
-- **Queued Operations**: Failed operations queued for retry
-- **Exponential Backoff**: Increasing delay between retry attempts
-- **Manual Override**: Options for administrators to force operations
-- **Synchronization Tools**: Utilities to reconcile data between systems
+### React Error Boundaries
+We implement React Error Boundaries to:
+- Prevent entire UI crashes from component errors
+- Provide graceful fallbacks for users
+- Capture error details for debugging
+- Enable recovery without full page refresh
 
 ## Technical Implementation Guide
 
@@ -164,3 +167,17 @@ This document outlines the comprehensive error handling and validation approach 
 - **Correlation IDs**: Request tracking across system components
 - **Error Aggregation**: Dashboard for monitoring error rates and patterns
 - **Alerting**: Notifications for critical error conditions
+
+## Testing Approach
+
+### Validation Testing
+- Unit tests for validation functions
+- Integration tests for form validation
+- Boundary testing for edge cases
+
+### Error Path Testing
+- Simulate network failures
+- Test database constraints
+- Verify error messages
+- Validate recovery paths
+
