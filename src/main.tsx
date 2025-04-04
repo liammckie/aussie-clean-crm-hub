@@ -3,7 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
-import { initializeSentry, SentryErrorBoundary } from './utils/sentry';
+import { initializeSentry, SentryErrorBoundary } from './utils/sentry.tsx';
 
 // Initialize Sentry with React Router v6 integration
 initializeSentry();
