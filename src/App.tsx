@@ -7,7 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate, useRouteError } from "react-rou
 import { useState, createContext, useContext, useEffect } from "react";
 import { ErrorReporting } from "@/utils/errorReporting";
 import * as Sentry from "@sentry/react";
-import { withSentryMonitoring } from "@/utils/sentry.tsx";
+import { withSentryMonitoring } from "@/utils/sentry";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import NotFound from "./pages/NotFound";
