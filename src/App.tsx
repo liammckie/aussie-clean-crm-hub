@@ -9,10 +9,17 @@ import { ErrorReporting } from "@/utils/errorReporting";
 import * as Sentry from "@sentry/react";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
+import Clients from "./pages/Clients";
+import ClientDetail from "./pages/ClientDetail";
+import NewClient from "./pages/NewClient";
 import NotFound from "./pages/NotFound";
 import Login from "./pages/Login";
 import { LoadingScreen } from "./components/LoadingScreen";
 import { MainLayout } from "./components/layout/MainLayout";
+import { initializeSentry, SentryErrorBoundary } from "@/utils/sentry";
+
+// Initialize Sentry
+initializeSentry();
 
 // Create Sentry Routes wrapper
 const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
@@ -20,6 +27,9 @@ const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
 // Enhance components with Sentry profiling
 const SentryIndex = Sentry.withProfiler(Index, { name: "Index" });
 const SentryDashboard = Sentry.withProfiler(Dashboard, { name: "Dashboard" });
+const SentryClients = Sentry.withProfiler(Clients, { name: "Clients" });
+const SentryClientDetail = Sentry.withProfiler(ClientDetail, { name: "ClientDetail" });
+const SentryNewClient = Sentry.withProfiler(NewClient, { name: "NewClient" });
 const SentryLogin = Sentry.withProfiler(Login, { name: "Login" });
 const SentryNotFound = Sentry.withProfiler(NotFound, { name: "NotFound" });
 
@@ -139,29 +149,59 @@ const App = () => {
                 onLoadingComplete={() => setShowLoading(false)} 
               />
             ) : (
-              <SentryRoutes>
-                <Route path="/login" element={<SentryLogin />} errorElement={<RouteErrorBoundary />} />
-                <Route 
-                  path="/" 
-                  element={
-                    <ProtectedRoute>
-                      <SentryIndex />
-                    </ProtectedRoute>
-                  }
-                  errorElement={<RouteErrorBoundary />}
-                />
-                <Route 
-                  path="/dashboard" 
-                  element={
-                    <ProtectedRoute>
-                      <SentryDashboard />
-                    </ProtectedRoute>
-                  }
-                  errorElement={<RouteErrorBoundary />}
-                />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<SentryNotFound />} errorElement={<RouteErrorBoundary />} />
-              </SentryRoutes>
+              <SentryErrorBoundary>
+                <SentryRoutes>
+                  <Route path="/login" element={<SentryLogin />} errorElement={<RouteErrorBoundary />} />
+                  <Route 
+                    path="/" 
+                    element={
+                      <ProtectedRoute>
+                        <SentryIndex />
+                      </ProtectedRoute>
+                    }
+                    errorElement={<RouteErrorBoundary />}
+                  />
+                  <Route 
+                    path="/dashboard" 
+                    element={
+                      <ProtectedRoute>
+                        <SentryDashboard />
+                      </ProtectedRoute>
+                    }
+                    errorElement={<RouteErrorBoundary />}
+                  />
+                  {/* Client Routes */}
+                  <Route 
+                    path="/clients" 
+                    element={
+                      <ProtectedRoute>
+                        <SentryClients />
+                      </ProtectedRoute>
+                    }
+                    errorElement={<RouteErrorBoundary />}
+                  />
+                  <Route 
+                    path="/clients/new" 
+                    element={
+                      <ProtectedRoute>
+                        <SentryNewClient />
+                      </ProtectedRoute>
+                    }
+                    errorElement={<RouteErrorBoundary />}
+                  />
+                  <Route 
+                    path="/clients/:id" 
+                    element={
+                      <ProtectedRoute>
+                        <SentryClientDetail />
+                      </ProtectedRoute>
+                    }
+                    errorElement={<RouteErrorBoundary />}
+                  />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<SentryNotFound />} errorElement={<RouteErrorBoundary />} />
+                </SentryRoutes>
+              </SentryErrorBoundary>
             )}
           </BrowserRouter>
         </TooltipProvider>
