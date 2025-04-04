@@ -15,6 +15,11 @@ This directory contains comprehensive documentation for the Commercial Cleaning 
 - [Integration Points](./INTEGRATION_POINTS.md) - Connections to other modules and systems
 - [Reports & Analytics](./REPORTS_ANALYTICS.md) - Analysis and insights capabilities
 
+### Specialized Documentation
+- [Calculation Engine](./calculation/README.md) - Detailed calculation logic and standards
+- [Workflows](./workflows/README.md) - End-to-end process documentation
+- [Future Enhancements](./future/README.md) - Planned improvements and features
+
 ## Integration Points
 The Quoting Module integrates with several other modules in the system:
 
@@ -23,3 +28,4 @@ The Quoting Module integrates with several other modules in the system:
 - **Contract Management**: For quote to contract conversion
 - **Award Engine**: For accurate labor cost calculations
 - **Financial Reporting**: For margin analysis and profitability projections
+
