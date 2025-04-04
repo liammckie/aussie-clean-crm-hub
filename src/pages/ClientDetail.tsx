@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import {
@@ -34,6 +33,7 @@ import {
   BreadcrumbItem,
   BreadcrumbLink,
   BreadcrumbList,
+  BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { 
@@ -44,7 +44,7 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { mockClients } from "@/data/mockClients"; // We'll create this file next
+import { mockClients } from "@/data/mockClients"; // We'll create this file next"
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -65,7 +65,6 @@ const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [activeTab, setActiveTab] = useState("overview");
   
-  // Find client by ID from mock data
   const client = mockClients.find(client => client.id === id);
   
   if (!client) {
@@ -88,15 +87,18 @@ const ClientDetail = () => {
 
   return (
     <div className="container mx-auto px-0 max-w-full">
-      {/* Breadcrumb Navigation */}
       <Breadcrumb className="my-4">
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink as={Link} to="/dashboard">Dashboard</BreadcrumbLink>
+            <BreadcrumbLink asChild>
+              <Link to="/dashboard">Dashboard</Link>
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink as={Link} to="/clients">Clients</BreadcrumbLink>
+            <BreadcrumbLink asChild>
+              <Link to="/clients">Clients</Link>
+            </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
@@ -105,7 +107,6 @@ const ClientDetail = () => {
         </BreadcrumbList>
       </Breadcrumb>
 
-      {/* Client Header */}
       <Card className="mb-6">
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -140,7 +141,6 @@ const ClientDetail = () => {
         </CardContent>
       </Card>
 
-      {/* Tabs Navigation */}
       <Tabs defaultValue="overview" value={activeTab} onValueChange={setActiveTab} className="mb-6">
         <TabsList className="grid grid-cols-3 md:grid-cols-7 lg:w-fit">
           <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -152,10 +152,8 @@ const ClientDetail = () => {
           <TabsTrigger value="activity">Activity</TabsTrigger>
         </TabsList>
         
-        {/* Overview Tab */}
         <TabsContent value="overview">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Client Info Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Client Information</CardTitle>
@@ -212,7 +210,6 @@ const ClientDetail = () => {
               </CardContent>
             </Card>
             
-            {/* Contact Info Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Primary Contact</CardTitle>
@@ -242,7 +239,6 @@ const ClientDetail = () => {
               </CardContent>
             </Card>
             
-            {/* Quick Stats Card */}
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle>Quick Overview</CardTitle>
@@ -272,7 +268,6 @@ const ClientDetail = () => {
           </div>
         </TabsContent>
         
-        {/* Contacts Tab */}
         <TabsContent value="contacts">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -320,7 +315,6 @@ const ClientDetail = () => {
           </Card>
         </TabsContent>
         
-        {/* Sites Tab */}
         <TabsContent value="sites">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -372,7 +366,6 @@ const ClientDetail = () => {
           </Card>
         </TabsContent>
         
-        {/* Contracts Tab */}
         <TabsContent value="contracts">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -430,7 +423,6 @@ const ClientDetail = () => {
           </Card>
         </TabsContent>
         
-        {/* Billing Tab */}
         <TabsContent value="billing">
           <Card>
             <CardHeader>
@@ -500,7 +492,6 @@ const ClientDetail = () => {
           </Card>
         </TabsContent>
         
-        {/* Documents Tab */}
         <TabsContent value="documents">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -550,7 +541,6 @@ const ClientDetail = () => {
           </Card>
         </TabsContent>
         
-        {/* Activity Tab */}
         <TabsContent value="activity">
           <Card>
             <CardHeader>
