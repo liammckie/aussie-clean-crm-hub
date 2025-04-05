@@ -90,6 +90,48 @@ export function AddressFields({ form }: AddressFieldsProps) {
           </FormItem>
         )}
       />
+
+      <FormField
+        control={form.control}
+        name="latitude"
+        render={({ field: { onChange, value, ...rest } }) => (
+          <FormItem>
+            <FormLabel>Latitude (Optional)</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="e.g. -37.8136" 
+                type="number"
+                step="0.000001"
+                value={value === undefined ? '' : String(value)}
+                onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
+                {...rest} 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+
+      <FormField
+        control={form.control}
+        name="longitude"
+        render={({ field: { onChange, value, ...rest } }) => (
+          <FormItem>
+            <FormLabel>Longitude (Optional)</FormLabel>
+            <FormControl>
+              <Input 
+                placeholder="e.g. 144.9631" 
+                type="number" 
+                step="0.000001"
+                value={value === undefined ? '' : String(value)}
+                onChange={(e) => onChange(e.target.value ? Number(e.target.value) : undefined)}
+                {...rest} 
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
     </>
   );
 }

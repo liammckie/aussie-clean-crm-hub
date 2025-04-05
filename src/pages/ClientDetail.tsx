@@ -99,6 +99,7 @@ const ClientDetail = () => {
   const { data: client, isLoading, error, refetch } = useClientDetails(id);
   
   const { 
+    useEntityContacts, 
     createContact, 
     isCreatingContact,
   } = useUnifiedEntities();
@@ -107,16 +108,26 @@ const ClientDetail = () => {
     if (!id) return;
     
     try {
-      const contactData = {
-        ...data,
-        entity_type: 'client',
-        entity_id: id,
-      };
-      
-      await createContact(contactData);
-      toast.success('Contact added successfully!');
-      setIsContactDialogOpen(false);
-      refetch();
+      await createContact(
+        {
+          entityType: 'client',
+          entityId: id,
+          contactData: {
+            ...data,
+            is_primary: data.is_primary ?? false
+          }
+        },
+        {
+          onSuccess: () => {
+            toast.success('Contact added successfully!');
+            setIsContactDialogOpen(false);
+            refetch();
+          },
+          onError: (error: any) => {
+            toast.error(`Failed to add contact: ${error.message}`);
+          }
+        }
+      );
     } catch (error) {
       console.error('Error adding contact:', error);
       toast.error('Failed to add contact. Please try again.');

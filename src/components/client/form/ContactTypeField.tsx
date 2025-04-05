@@ -15,12 +15,23 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedContactFormData } from '@/types/form-types';
+import { UnifiedContactFormData, ContactType } from '@/types/form-types';
 
 interface ContactTypeFieldProps {
   form: UseFormReturn<UnifiedContactFormData>;
-  contactTypes: string[];
+  contactTypes: ContactType[];
 }
+
+const contactTypeLabels: Record<ContactType, string> = {
+  'client_primary': 'Client Primary Contact',
+  'client_site': 'Client Site Contact',
+  'supplier': 'Supplier Contact',
+  'subcontractor': 'Subcontractor Contact',
+  'employee': 'Employee Contact',
+  'emergency': 'Emergency Contact',
+  'hr_payroll': 'HR/Payroll Contact',
+  'sales_lead': 'Sales Contact (Lead)'
+};
 
 export function ContactTypeField({ form, contactTypes }: ContactTypeFieldProps) {
   return (
@@ -38,7 +49,7 @@ export function ContactTypeField({ form, contactTypes }: ContactTypeFieldProps) 
             </FormControl>
             <SelectContent>
               {contactTypes.map((type) => (
-                <SelectItem key={type} value={type}>{type}</SelectItem>
+                <SelectItem key={type} value={type}>{contactTypeLabels[type] || type}</SelectItem>
               ))}
             </SelectContent>
           </Select>

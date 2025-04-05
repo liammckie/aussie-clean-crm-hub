@@ -3,6 +3,41 @@ import { z } from 'zod';
 import { AddressType, EntityType } from '@/services/unified/types';
 
 /**
+ * Contact types based on database enum
+ */
+export const contactTypeEnum = z.enum([
+  'client_primary',
+  'client_site',
+  'supplier',
+  'subcontractor',
+  'employee',
+  'emergency',
+  'hr_payroll',
+  'sales_lead'
+]);
+
+/**
+ * Address types based on database enum
+ */
+export const addressTypeEnum = z.enum([
+  'head_office',
+  'billing',
+  'site',
+  'residential',
+  'postal',
+  'warehouse'
+]);
+
+/**
+ * Preferred communication method enum
+ */
+export const preferredCommunicationEnum = z.enum([
+  'phone',
+  'email',
+  'portal'
+]);
+
+/**
  * Base address schema with all required fields properly specified
  */
 export const addressBaseSchema = z.object({
@@ -12,8 +47,10 @@ export const addressBaseSchema = z.object({
   state: z.string().min(1, { message: 'State is required' }),
   postcode: z.string().min(4, { message: 'Postcode must be at least 4 characters' }),
   country: z.string().default('Australia'),
-  address_type: z.enum(['billing', 'postal', 'physical']).default('billing'),
+  address_type: addressTypeEnum.default('billing'),
   is_primary: z.boolean().default(false),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 /**
@@ -23,11 +60,15 @@ export const contactBaseSchema = z.object({
   name: z.string().min(1, { message: "Name is required" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   position: z.string().optional(),
+  job_title: z.string().optional(),
   phone: z.string().optional(),
+  phone_landline: z.string().optional(),
   mobile: z.string().optional(),
   company: z.string().optional(),
-  contact_type: z.string().min(1, { message: "Contact type is required" }),
+  contact_type: contactTypeEnum.default('client_primary'),
+  preferred_communication: preferredCommunicationEnum.default('email'),
   is_primary: z.boolean().default(false),
+  notes: z.string().optional(),
 });
 
 /**
@@ -35,6 +76,9 @@ export const contactBaseSchema = z.object({
  */
 export type AddressBaseFormData = z.infer<typeof addressBaseSchema>;
 export type ContactBaseFormData = z.infer<typeof contactBaseSchema>;
+export type ContactType = z.infer<typeof contactTypeEnum>;
+export type AddressType = z.infer<typeof addressTypeEnum>;
+export type PreferredCommunication = z.infer<typeof preferredCommunicationEnum>;
 
 /**
  * Unified address form data with entity information
@@ -76,6 +120,8 @@ export const createDefaultAddressValues = (
   entity_type: initialData.entity_type,
   entity_id: initialData.entity_id,
   name: initialData.name || '',
+  latitude: initialData.latitude,
+  longitude: initialData.longitude,
 });
 
 /**
@@ -83,16 +129,20 @@ export const createDefaultAddressValues = (
  */
 export const createDefaultContactValues = (
   initialData: Partial<UnifiedContactFormData> = {},
-  defaultContactType: string = 'Primary'
+  defaultContactType: ContactType = 'client_primary'
 ): UnifiedContactFormData => ({
   name: initialData.name || '',
   email: initialData.email || '',
   position: initialData.position || '',
+  job_title: initialData.job_title || '',
   phone: initialData.phone || '',
+  phone_landline: initialData.phone_landline || '',
   mobile: initialData.mobile || '',
   company: initialData.company || '',
   contact_type: initialData.contact_type || defaultContactType,
+  preferred_communication: initialData.preferred_communication || 'email',
   is_primary: initialData.is_primary ?? false,
   entity_type: initialData.entity_type,
   entity_id: initialData.entity_id,
+  notes: initialData.notes || '',
 });

@@ -15,11 +15,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedAddressFormData } from '@/types/form-types';
+import { UnifiedAddressFormData, AddressType } from '@/types/form-types';
 
 interface AddressTypeFieldProps {
   form: UseFormReturn<UnifiedAddressFormData>;
 }
+
+const addressTypeLabels: Record<AddressType, string> = {
+  'head_office': 'Head Office Address',
+  'billing': 'Billing Address',
+  'site': 'Site Address',
+  'residential': 'Employee Residential',
+  'postal': 'Postal Address',
+  'warehouse': 'Warehouse/Depot Address'
+};
 
 export function AddressTypeField({ form }: AddressTypeFieldProps) {
   return (
@@ -39,9 +48,9 @@ export function AddressTypeField({ form }: AddressTypeFieldProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="billing">Billing</SelectItem>
-              <SelectItem value="postal">Postal</SelectItem>
-              <SelectItem value="physical">Physical</SelectItem>
+              {Object.entries(addressTypeLabels).map(([value, label]) => (
+                <SelectItem key={value} value={value}>{label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <FormMessage />

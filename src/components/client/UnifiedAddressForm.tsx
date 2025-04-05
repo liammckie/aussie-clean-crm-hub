@@ -42,7 +42,7 @@ export function UnifiedAddressForm({
     // Ensure is_primary is always a boolean
     const submissionData = {
       ...data,
-      is_primary: data.is_primary ?? false
+      is_primary: Boolean(data.is_primary) // Convert to boolean to ensure it's always a boolean
     };
     onSubmit(submissionData);
   };

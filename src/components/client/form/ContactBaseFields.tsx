@@ -23,7 +23,7 @@ export function ContactBaseFields({ form }: ContactBaseFieldsProps) {
         name="name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Name</FormLabel>
+            <FormLabel>Full Name</FormLabel>
             <FormControl>
               <Input placeholder="Contact name" {...field} />
             </FormControl>

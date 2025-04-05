@@ -1,6 +1,8 @@
 
 export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
-export type AddressType = 'billing' | 'postal' | 'physical';
+export type AddressType = 'head_office' | 'billing' | 'site' | 'residential' | 'postal' | 'warehouse';
+export type ContactType = 'client_primary' | 'client_site' | 'supplier' | 'subcontractor' | 'employee' | 'emergency' | 'hr_payroll' | 'sales_lead';
+export type PreferredCommunication = 'phone' | 'email' | 'portal';
 
 export interface UnifiedAddressRecord {
   id: string;
@@ -15,6 +17,8 @@ export interface UnifiedAddressRecord {
   country: string;
   address_type: AddressType;
   is_primary: boolean; // Changed from optional to required
+  latitude?: number;
+  longitude?: number;
   created_at?: string;
   updated_at?: string;
 }
@@ -26,11 +30,15 @@ export interface UnifiedContactRecord {
   name: string;
   email: string;
   phone?: string;
+  phone_landline?: string;
   mobile?: string;
   position?: string;
+  job_title?: string;
   company?: string;
-  contact_type: string;
+  contact_type: ContactType;
+  preferred_communication?: PreferredCommunication;
   is_primary: boolean;
+  notes?: string;
   created_at?: string;
   updated_at?: string;
 }

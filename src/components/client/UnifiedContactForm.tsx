@@ -8,14 +8,14 @@ import { ContactBaseFields } from './form/ContactBaseFields';
 import { ContactTypeField } from './form/ContactTypeField';
 import { ContactAdditionalFields } from './form/ContactAdditionalFields';
 import { IsPrimaryField } from './form/IsPrimaryField';
-import { UnifiedContactFormData } from '@/types/form-types';
+import { UnifiedContactFormData, ContactType } from '@/types/form-types';
 import { unifiedContactSchema, createDefaultContactValues } from '@/types/form-types';
 
 interface UnifiedContactFormProps {
   onSubmit: (data: UnifiedContactFormData) => void;
   isLoading?: boolean;
   initialData?: Partial<UnifiedContactFormData>;
-  contactTypes?: string[];
+  contactTypes?: ContactType[];
   buttonText?: string;
   showIsPrimary?: boolean;
 }
@@ -24,7 +24,7 @@ export function UnifiedContactForm({
   onSubmit, 
   isLoading = false, 
   initialData = {}, 
-  contactTypes = ['Primary', 'Billing', 'Operations', 'Emergency'],
+  contactTypes = ['client_primary', 'client_site', 'supplier', 'employee'],
   buttonText = "Add Contact",
   showIsPrimary = true
 }: UnifiedContactFormProps) {
@@ -46,7 +46,7 @@ export function UnifiedContactForm({
     // Ensure is_primary is always a boolean
     const submissionData = {
       ...data,
-      is_primary: data.is_primary ?? false
+      is_primary: Boolean(data.is_primary) // Convert to boolean to ensure it's always a boolean
     };
     onSubmit(submissionData);
   };
