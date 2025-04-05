@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { ClientFormData } from '@/services/client';
@@ -167,7 +166,13 @@ export function ClientDetailsTab({ clientId, onSaveSuccess, initialData }: Clien
                           "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
                           field.value ? "text-foreground" : "text-muted-foreground"
                         )}
-                        onSelect={field.onChange}
+                        onSelect={(date) => {
+                          if (date) {
+                            field.onChange(date.toISOString().split('T')[0]);
+                          } else {
+                            field.onChange(undefined);
+                          }
+                        }}
                         value={field.value ? new Date(field.value) : undefined}
                       />
                     </FormControl>

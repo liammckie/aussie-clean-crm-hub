@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
 import { ClientFormData, ContactFormData, ValidationErrorResponse, ClientRecord } from './types';
@@ -64,14 +63,8 @@ export const clientApi = {
    */
   createClient: async (clientData: ClientFormData) => {
     try {
-      // Ensure onboarding_date is a string for Supabase
-      const processedData = {
-        ...clientData,
-        onboarding_date: typeof clientData.onboarding_date === 'string' 
-          ? clientData.onboarding_date 
-          : clientData.onboarding_date?.toISOString().split('T')[0]
-      };
-
+      const processedData = { ...clientData };
+      
       const { data, error } = await supabase
         .from('clients')
         .insert(processedData)
@@ -97,13 +90,7 @@ export const clientApi = {
    */
   updateClient: async (clientId: string, clientData: Partial<ClientFormData>) => {
     try {
-      // Ensure onboarding_date is a string for Supabase
-      const processedData = {
-        ...clientData,
-        onboarding_date: typeof clientData.onboarding_date === 'string' 
-          ? clientData.onboarding_date 
-          : clientData.onboarding_date?.toISOString().split('T')[0]
-      };
+      const processedData = { ...clientData };
 
       const { data, error } = await supabase
         .from('clients')

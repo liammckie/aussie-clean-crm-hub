@@ -50,9 +50,14 @@ export function prepareClientDataForSubmission(data: ClientFormData) {
     preparedData.acn = validationService.cleanBusinessIdentifier(preparedData.acn);
   }
 
-  // Format date if it's a Date object
-  if (preparedData.onboarding_date instanceof Date) {
-    preparedData.onboarding_date = preparedData.onboarding_date.toISOString().split('T')[0];
+  // Format date if it's a string that represents a Date object
+  // We don't use instanceof Date check since onboarding_date is typed as string | null
+  if (preparedData.onboarding_date && preparedData.onboarding_date.includes('-')) {
+    // Ensure the date is in YYYY-MM-DD format for the database
+    const dateObj = new Date(preparedData.onboarding_date);
+    if (!isNaN(dateObj.getTime())) {
+      preparedData.onboarding_date = dateObj.toISOString().split('T')[0];
+    }
   }
 
   return preparedData;

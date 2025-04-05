@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ClientFormData } from '@/services/client';
+import { ClientFormData, ClientWithContacts } from '@/services/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Users, Map } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -61,14 +61,14 @@ const EditClient = () => {
             acn: clientData.acn || '',
             industry: clientData.industry || '',
             status: clientData.status,
-            onboarding_date: clientData.onboarding_date ? new Date(clientData.onboarding_date).toLocaleDateString('en-CA') : undefined,
+            onboarding_date: clientData.onboarding_date || undefined,
             source: clientData.source || '',
             billing_cycle: clientData.billing_cycle || '',
             payment_terms: clientData.payment_terms || '',
             payment_method: clientData.payment_method || '',
             tax_status: clientData.tax_status || '',
             credit_limit: clientData.credit_limit || undefined,
-            // Load address fields
+            // Load address fields - use null coalescing to handle potentially undefined fields
             address_line_1: clientData.address_line_1 || '',
             address_line_2: clientData.address_line_2 || '',
             suburb: clientData.suburb || '',
