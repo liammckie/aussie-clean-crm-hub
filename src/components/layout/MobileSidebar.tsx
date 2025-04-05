@@ -23,7 +23,7 @@ export function MobileSidebar({ expanded, onToggle }: MobileSidebarProps) {
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="p-0 max-w-xs bg-gradient-to-b from-slate-900/95 to-slate-950/95 backdrop-blur-xl border-white/10 text-white">
-        <NewSidebar expanded={true} onToggle={onToggle} />
+        <NewSidebar />
       </SheetContent>
     </Sheet>
   );

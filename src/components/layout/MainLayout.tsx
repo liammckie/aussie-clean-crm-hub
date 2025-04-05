@@ -26,10 +26,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 text-white">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
-        <NewSidebar 
-          expanded={sidebarExpanded} 
-          onToggle={toggleSidebar} 
-        />
+        <NewSidebar />
       </div>
       
       {/* Mobile Sidebar */}
