@@ -43,7 +43,7 @@ export const createQueryClient = () => {
         refetchOnWindowFocus: import.meta.env.PROD, // Only in production
         refetchOnReconnect: true,
         refetchOnMount: true,
-        placeholderData: (_, { previousData }) => previousData, // Equivalent to keepPreviousData
+        // Fix: Don't use previousData to avoid undefined errors
       },
       mutations: {
         retry: false, // Don't retry mutations by default
