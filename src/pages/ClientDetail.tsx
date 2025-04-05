@@ -104,6 +104,13 @@ const ClientDetail = () => {
     isCreatingContact,
   } = useUnifiedEntities();
   
+  const clientContactTypes: ContactType[] = [
+    'client_primary', 
+    'client_site', 
+    'hr_payroll',
+    'emergency'
+  ];
+
   const handleContactSubmit = async (data: UnifiedContactFormData) => {
     if (!id) return;
     
@@ -133,7 +140,7 @@ const ClientDetail = () => {
       toast.error('Failed to add contact. Please try again.');
     }
   };
-  
+
   const handleDeleteClient = async () => {
     if (!id) return;
     
@@ -725,7 +732,7 @@ const ClientDetail = () => {
           <UnifiedContactForm 
             onSubmit={handleContactSubmit}
             isLoading={isCreatingContact}
-            contactTypes={['Primary', 'Billing', 'Operations', 'Emergency']}
+            contactTypes={clientContactTypes}
             buttonText="Add Contact"
           />
         </DialogContent>

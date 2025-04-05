@@ -1,8 +1,13 @@
 
 export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
-export type AddressType = 'head_office' | 'billing' | 'site' | 'residential' | 'postal' | 'warehouse';
-export type ContactType = 'client_primary' | 'client_site' | 'supplier' | 'subcontractor' | 'employee' | 'emergency' | 'hr_payroll' | 'sales_lead';
-export type PreferredCommunication = 'phone' | 'email' | 'portal';
+// Import these types from form-types.ts instead of redefining them
+import { 
+  AddressType,
+  ContactType,
+  PreferredCommunication,
+  UnifiedAddressFormData,
+  UnifiedContactFormData
+} from '@/types/form-types';
 
 export interface UnifiedAddressRecord {
   id: string;
@@ -43,9 +48,8 @@ export interface UnifiedContactRecord {
   updated_at?: string;
 }
 
-// Using the types from the centralized form-types.ts
-// Fixed re-export using 'export type'
-export type { UnifiedAddressFormData, UnifiedContactFormData } from '@/types/form-types';
+// Re-export the types from form-types.ts
+export { UnifiedAddressFormData, UnifiedContactFormData };
 
 export type ValidationErrorResponse = {
   category: 'validation';

@@ -1,6 +1,8 @@
 
 import { z } from 'zod';
-import { AddressType, EntityType } from '@/services/unified/types';
+// Remove the import that causes conflicts
+// import { AddressType, EntityType } from '@/services/unified/types';
+import { EntityType } from '@/services/unified/types';
 
 /**
  * Contact types based on database enum

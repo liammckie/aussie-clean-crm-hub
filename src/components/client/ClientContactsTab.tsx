@@ -22,6 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ContactType } from '@/types/form-types';
 
 interface ClientContactsTabProps {
   clientId: string;
@@ -47,6 +48,14 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     error, 
     refetch 
   } = useEntityContacts('client', clientId);
+
+  // Define client-specific contact types
+  const clientContactTypes: ContactType[] = [
+    'client_primary', 
+    'client_site', 
+    'hr_payroll',
+    'emergency'
+  ];
 
   const handleContactSubmit = (formData: any) => {
     createContact(
@@ -143,7 +152,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
             <UnifiedContactForm 
               onSubmit={handleContactSubmit}
               isLoading={isCreatingContact}
-              contactTypes={['Primary', 'Billing', 'Operations', 'Emergency']}
+              contactTypes={clientContactTypes}
               buttonText="Add Contact"
             />
           </DialogContent>

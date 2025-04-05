@@ -12,12 +12,12 @@ import { UseFormReturn } from 'react-hook-form';
 import { Path } from 'react-hook-form';
 
 // Updated interface with a more flexible type constraint
-interface IsPrimaryFieldProps<T extends { is_primary: boolean | undefined | null }> {
+interface IsPrimaryFieldProps<T extends { is_primary: boolean }> {
   form: UseFormReturn<T>;
   label?: string;
 }
 
-export function IsPrimaryField<T extends { is_primary: boolean | undefined | null }>({ 
+export function IsPrimaryField<T extends { is_primary: boolean }>({ 
   form, 
   label = "Set as primary" 
 }: IsPrimaryFieldProps<T>) {

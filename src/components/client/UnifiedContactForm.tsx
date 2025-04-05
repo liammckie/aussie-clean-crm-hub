@@ -28,7 +28,7 @@ export function UnifiedContactForm({
   buttonText = "Add Contact",
   showIsPrimary = true
 }: UnifiedContactFormProps) {
-  // Ensure is_primary is always set, defaulting to false if not provided
+  // Always ensure is_primary is a boolean
   const formInitialData = createDefaultContactValues(
     { 
       ...initialData,

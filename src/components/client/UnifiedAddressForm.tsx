@@ -27,7 +27,7 @@ export function UnifiedAddressForm({
   showAddressType = true,
   showIsPrimary = true,
 }: UnifiedAddressFormProps) {
-  // Ensure is_primary is always set, defaulting to false if not provided
+  // Always ensure is_primary is a boolean
   const formInitialData = createDefaultAddressValues({
     ...initialData,
     is_primary: initialData.is_primary ?? false
