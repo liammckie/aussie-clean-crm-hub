@@ -1,170 +1,118 @@
-
-import { useEffect, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
-import {
-  ArrowLeft,
-  Building,
-  Briefcase,
-  ClipboardList,
-  Loader2,
-  AlertCircle,
-} from "lucide-react";
-import { 
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from "@/components/ui/alert";
-import { useClients } from "@/hooks/use-clients";
-import { ClientFormData, ClientStatus } from "@/services/client.service";
-
-// Schema for client form
-const clientFormSchema = z.object({
-  business_name: z.string().min(1, "Business name is required"),
-  trading_name: z.string().optional(),
-  abn: z.string().min(11, "ABN must be 11 digits").max(11).or(z.literal('')),
-  acn: z.string().max(9).or(z.literal('')).optional(),
-  industry: z.string().min(1, "Industry is required"),
-  status: z.enum(['Active', 'Prospect', 'On Hold', 'Cancelled']).default('Prospect'),
-});
-
-// Define form values type to ensure it matches ClientFormData
-type ClientFormValues = z.infer<typeof clientFormSchema>;
+import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { ClientFormData, clientService, ClientStatus } from '@/services/client';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { DatePicker } from '@/components/ui/date-picker';
+import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
+import { prepareClientDataForSubmission, validateBusinessIdentifiers } from '@/utils/clientUtils';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { Link } from 'react-router-dom';
+import { ArrowLeft } from 'lucide-react';
 
 const EditClient = () => {
-  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  // Get client data
-  const { useClientDetails, updateClient, isUpdatingClient, updateClientError } = useClients();
-  const { data: client, isLoading, error } = useClientDetails(id);
+  const navigate = useNavigate();
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  // Initialize form with client data when available
-  const form = useForm<ClientFormValues>({
-    resolver: zodResolver(clientFormSchema),
+  const form = useForm<ClientFormData>({
     defaultValues: {
-      business_name: "",
-      trading_name: "",
-      abn: "",
-      acn: "",
-      industry: "",
-      status: "Prospect" as ClientStatus,
+      business_name: '',
+      trading_name: '',
+      abn: '',
+      acn: '',
+      industry: '',
+      status: 'Prospect',
+      onboarding_date: undefined,
+      source: '',
+      billing_cycle: '',
+      payment_terms: '',
+      payment_method: '',
+      tax_status: '',
+      credit_limit: undefined,
     },
   });
-  
-  // Update form values when client data is loaded
-  useEffect(() => {
-    if (client) {
-      form.reset({
-        business_name: client.business_name || "",
-        trading_name: client.trading_name || "",
-        abn: client.abn || "",
-        acn: client.acn || "",
-        industry: client.industry || "",
-        status: (client.status as ClientStatus) || "Prospect",
-      });
-    }
-  }, [client, form]);
 
-  const onSubmit = async (values: ClientFormValues) => {
-    if (!id) return;
-    
-    setIsSubmitting(true);
-    
-    try {
-      // Format the data as needed
-      const clientData: Partial<ClientFormData> = {
-        business_name: values.business_name,
-        trading_name: values.trading_name || null,
-        abn: values.abn || null,
-        acn: values.acn || null,
-        industry: values.industry,
-        status: values.status as ClientStatus,
-      };
-      
-      // Call the update function
-      await updateClient({ id, data: clientData });
-      
-      // Navigate back to client details
-      navigate(`/clients/${id}`);
-    } catch (error) {
-      console.error("Error updating client:", error);
-    } finally {
-      setIsSubmitting(false);
+  useEffect(() => {
+    if (id) {
+      clientService.getClientById(id)
+        .then(response => {
+          if (!response || 'category' in response || !response.data) {
+            toast.error(`Failed to load client data: ${response?.message || 'Unknown error'}`);
+            return;
+          }
+
+          const clientData = response.data;
+          form.reset({
+            business_name: clientData.business_name,
+            trading_name: clientData.trading_name || '',
+            abn: clientData.abn || '',
+            acn: clientData.acn || '',
+            industry: clientData.industry || '',
+            status: clientData.status,
+            onboarding_date: clientData.onboarding_date ? new Date(clientData.onboarding_date).toLocaleDateString('en-CA') : undefined,
+            source: clientData.source || '',
+            billing_cycle: clientData.billing_cycle || '',
+            payment_terms: clientData.payment_terms || '',
+            payment_method: clientData.payment_method || '',
+            tax_status: clientData.tax_status || '',
+            credit_limit: clientData.credit_limit || undefined,
+          });
+          setIsLoaded(true);
+        })
+        .catch(error => {
+          toast.error(`Failed to load client data: ${error.message}`);
+        });
     }
+  }, [id, form]);
+
+  const onSubmit = async (data: ClientFormData) => {
+    if (!id) {
+      toast.error('Client ID is missing.');
+      return;
+    }
+
+    // Validate business identifiers before submission
+    const identifierError = validateBusinessIdentifiers(data);
+    if (identifierError) {
+      toast.error(identifierError.message);
+      form.setError(identifierError.details?.field as keyof ClientFormData, {
+        type: 'manual',
+        message: identifierError.message,
+      });
+      return;
+    }
+
+    const preparedData = prepareClientDataForSubmission(data);
+
+    clientService.updateClient(id, preparedData)
+      .then(response => {
+        if ('category' in response) {
+          toast.error(response.message);
+          return;
+        }
+        toast.success('Client updated successfully!');
+        navigate('/clients');
+      })
+      .catch(error => {
+        toast.error(`Failed to update client: ${error.message}`);
+      });
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        <span className="ml-2 text-lg text-muted-foreground">Loading client data...</span>
-      </div>
-    );
-  }
-
-  if (error || !client) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error</AlertTitle>
-          <AlertDescription>
-            {error?.message || "Failed to load client data"}
-          </AlertDescription>
-        </Alert>
-        
-        <div className="mt-4">
-          <Button variant="outline" asChild>
-            <Link to="/clients">
-              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Clients
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
+  if (!isLoaded) {
+    return <div>Loading...</div>;
   }
 
   return (
-    <div className="container mx-auto px-0 max-w-full">
-      {/* Breadcrumb Navigation */}
-      <Breadcrumb className="my-4">
+    <div className="container mx-auto px-4 py-8">
+      <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink asChild>
@@ -179,195 +127,217 @@ const EditClient = () => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to={`/clients/${id}`}>{client.business_name}</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Edit</BreadcrumbPage>
+            <BreadcrumbPage>Edit Client</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
-
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Edit Client</h1>
-        <Button variant="outline" asChild>
-          <Link to={`/clients/${id}`}>
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Client
-          </Link>
-        </Button>
+      <div className="mb-4">
+        <Link to="/clients" className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+          <ArrowLeft className="h-4 w-4" />
+          Back to Clients
+        </Link>
       </div>
-
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          {/* Business Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Business Information</CardTitle>
-              <CardDescription>
-                Update the basic details about the client business
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="business_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Business Name</FormLabel>
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Client</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <FormField
+                control={form.control}
+                name="business_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Business Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Business Name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="trading_name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Trading Name (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Trading Name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="abn"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ABN (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ABN" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="acn"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>ACN (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="ACN" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="industry"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Industry (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Industry" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-3 text-muted-foreground">
-                            <Building className="h-4 w-4" />
-                          </span>
-                          <Input className="pl-10" placeholder="Legal business name" {...field} />
-                        </div>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a status" />
+                        </SelectTrigger>
                       </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="trading_name"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Trading Name (Optional)</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-3 text-muted-foreground">
-                            <Briefcase className="h-4 w-4" />
-                          </span>
-                          <Input className="pl-10" placeholder="Trading as name" {...field} />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="abn"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ABN</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-3 text-muted-foreground">
-                            <ClipboardList className="h-4 w-4" />
-                          </span>
-                          <Input 
-                            className="pl-10" 
-                            placeholder="11 digit ABN" 
-                            {...field} 
-                            maxLength={11}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="acn"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ACN (Optional)</FormLabel>
-                      <FormControl>
-                        <div className="relative">
-                          <span className="absolute left-3 top-3 text-muted-foreground">
-                            <ClipboardList className="h-4 w-4" />
-                          </span>
-                          <Input 
-                            className="pl-10" 
-                            placeholder="9 digit ACN" 
-                            {...field}
-                            maxLength={9}
-                          />
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="industry"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Industry</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select industry" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Retail">Retail</SelectItem>
-                          <SelectItem value="Healthcare">Healthcare</SelectItem>
-                          <SelectItem value="Education">Education</SelectItem>
-                          <SelectItem value="Technology">Technology</SelectItem>
-                          <SelectItem value="Real Estate">Real Estate</SelectItem>
-                          <SelectItem value="Hospitality">Hospitality</SelectItem>
-                          <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-                          <SelectItem value="Construction">Construction</SelectItem>
-                          <SelectItem value="Other">Other</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Client Status</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value || ""}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select status" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="Prospect">Prospect</SelectItem>
-                          <SelectItem value="Active">Active</SelectItem>
-                          <SelectItem value="On Hold">On Hold</SelectItem>
-                          <SelectItem value="Cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-            </CardContent>
-          </Card>
-          
-          {/* Form Actions */}
-          <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" asChild>
-              <Link to={`/clients/${id}`}>Cancel</Link>
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Saving..." : "Save Changes"}
-            </Button>
-          </div>
-        </form>
-      </Form>
+                      <SelectContent>
+                        <SelectItem value="Prospect">Prospect</SelectItem>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="On Hold">On Hold</SelectItem>
+                        <SelectItem value="Cancelled">Cancelled</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="onboarding_date"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Onboarding Date (Optional)</FormLabel>
+                    <FormControl>
+                      <DatePicker
+                        className={cn(
+                          "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                          field.value ? "text-foreground" : "text-muted-foreground"
+                        )}
+                        onSelect={field.onChange}
+                        value={field.value ? new Date(field.value) : undefined}
+                      />
+                    </FormControl>
+                    <FormDescription>
+                      Date when the client was onboarded.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="source"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Source (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Source" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="billing_cycle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Billing Cycle (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Billing Cycle" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="payment_terms"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Terms (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Payment Terms" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="payment_method"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Method (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Payment Method" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="tax_status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tax Status (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Tax Status" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="credit_limit"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Credit Limit (Optional)</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="Credit Limit" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button type="submit">Update Client</Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
     </div>
   );
 };
