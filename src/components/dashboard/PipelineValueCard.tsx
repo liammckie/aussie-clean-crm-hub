@@ -54,9 +54,33 @@ export function PipelineValueCard() {
                 itemStyle={{ color: "#e2e8f0" }}
                 labelStyle={{ color: "#94a3b8" }}
               />
-              <Area type="monotone" dataKey="john" name="John" stroke="#8884d8" fillOpacity={1} fill="url(#colorJohn)" />
-              <Area type="monotone" dataKey="sarah" name="Sarah" stroke="#82ca9d" fillOpacity={1} fill="url(#colorSarah)" />
-              <Area type="monotone" dataKey="tom" name="Tom" stroke="#ffc658" fillOpacity={1} fill="url(#colorTom)" />
+              <Area 
+                type="monotone" 
+                dataKey="john" 
+                name="John" 
+                stroke="#8884d8" 
+                fillOpacity={1} 
+                fill="url(#colorJohn)" 
+                xAxisId={0} 
+              />
+              <Area 
+                type="monotone" 
+                dataKey="sarah" 
+                name="Sarah" 
+                stroke="#82ca9d" 
+                fillOpacity={1} 
+                fill="url(#colorSarah)" 
+                xAxisId={0} 
+              />
+              <Area 
+                type="monotone" 
+                dataKey="tom" 
+                name="Tom" 
+                stroke="#ffc658" 
+                fillOpacity={1} 
+                fill="url(#colorTom)" 
+                xAxisId={0} 
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>
