@@ -39,7 +39,8 @@ function initSentry() {
           useNavigationType,
           createRoutesFromChildren,
           matchRoutes,
-          {}
+          // Fix: Replace empty object with required boolean parameter
+          true
         ),
       }),
       new Replay({
