@@ -27,7 +27,7 @@ const contactTypeLabels: Record<ContactType, string> = {
   'client_primary': 'Client Primary Contact',
   'client_site': 'Client Site Contact',
   'supplier': 'Supplier Contact',
-  'employee': 'Employee Contact',
+  'employee': 'Internal Staff Member',
   'emergency': 'Emergency Contact',
   'hr_payroll': 'HR/Payroll Contact',
   'sales_lead': 'Sales Contact (Lead)',

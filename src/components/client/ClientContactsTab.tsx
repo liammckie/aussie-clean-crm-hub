@@ -49,12 +49,13 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     refetch 
   } = useEntityContacts('client', clientId);
 
-  // Define client-specific contact types
+  // Define client-specific contact types - make sure to include 'employee'
   const clientContactTypes: ContactType[] = [
     'client_primary', 
     'client_site', 
     'hr_payroll',
-    'emergency'
+    'emergency',
+    'employee' // Added employee for internal staff
   ];
 
   const handleContactSubmit = (formData: any) => {
@@ -145,7 +146,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
         )}
 
         <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-lg">
             <DialogHeader>
               <DialogTitle>Add New Contact</DialogTitle>
             </DialogHeader>
