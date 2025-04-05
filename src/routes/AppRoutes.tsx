@@ -1,9 +1,11 @@
+
 import React, { lazy, Suspense, useEffect, useState } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ErrorBoundaryWrapper } from '@/components/ErrorBoundaryWrapper';
 import { Index } from '@/pages/index';
+import { toast } from 'sonner';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Clients = lazy(() => import('@/pages/Clients'));
@@ -21,16 +23,31 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isAuthenticated, isLoading, children }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      toast.error("Please login to continue", {
+        description: "You'll be redirected to the login page"
+      });
+      navigate('/login', { state: { from: location.pathname } });
+    }
+  }, [isAuthenticated, isLoading, navigate, location]);
+  
   if (isLoading) {
-    return <div>Loading...</div>;
+    return <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>;
   }
 
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+  return isAuthenticated ? <>{children}</> : null;
 };
 
 const AppRoutes: React.FC = () => {
   const { isAuthenticated, isLoading, user } = useAuth();
   const [isAdminSession, setIsAdminSession] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     const adminSession = localStorage.getItem('admin_session');
@@ -55,6 +72,11 @@ const AppRoutes: React.FC = () => {
       setIsAdminSession(false);
     }
   }, [user]);
+
+  // Redirect authenticated users away from login page
+  if (isAuthenticated && location.pathname === '/login') {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   return (
     <Routes>
