@@ -3,7 +3,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ErrorBoundaryWrapper } from '@/components/ErrorBoundaryWrapper';
-import Index from '@/pages/Index'; // Updated import to match the correct file
+import Index from '@/pages/Index';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Clients = lazy(() => import('@/pages/Clients'));
@@ -59,7 +59,7 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
-      <Route path="/login" element={<ErrorBoundaryWrapper><Login /></ErrorBoundaryWrapper>} />
+      <Route path="/login" element={<ErrorBoundaryWrapper><Suspense fallback={<div>Loading...</div>}><Login /></Suspense></ErrorBoundaryWrapper>} />
       
       <Route path="/dashboard" 
         element={

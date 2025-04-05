@@ -3,15 +3,13 @@ import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { NewSidebar } from "./NewSidebar";
+import { useSidebar } from "@/components/ui/sidebar";
 
-interface MobileSidebarProps {
-  expanded: boolean;
-  onToggle: () => void;
-}
-
-export function MobileSidebar({ expanded, onToggle }: MobileSidebarProps) {
+export function MobileSidebar() {
+  const { openMobile, setOpenMobile } = useSidebar();
+  
   return (
-    <Sheet>
+    <Sheet open={openMobile} onOpenChange={setOpenMobile}>
       <SheetTrigger asChild>
         <Button 
           variant="outline" 

@@ -3,16 +3,16 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Sidebar,
-  SidebarTrigger,
   SidebarContent,
   SidebarHeader,
-  SidebarFooter,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarGroup,
   SidebarGroupLabel,
-  SidebarGroupContent
+  SidebarGroupContent,
+  useSidebar,
+  SidebarTrigger
 } from "@/components/ui/sidebar"
 import { 
   LayoutDashboard, 
@@ -20,14 +20,17 @@ import {
   Users
 } from 'lucide-react';
 
-interface NewSidebarProps {
-  expanded?: boolean;
-  onToggle?: () => void;
-}
-
-export function NewSidebar({ expanded, onToggle }: NewSidebarProps) {
+export function NewSidebar() {
+  const { open } = useSidebar();
+  
   return (
-    <Sidebar className="border-r bg-card pt-2 h-screen">
+    <Sidebar>
+      <SidebarHeader className="flex items-center justify-between p-4">
+        <div className="flex items-center">
+          <span className="text-lg font-semibold">CleanMap</span>
+        </div>
+        <SidebarTrigger />
+      </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
