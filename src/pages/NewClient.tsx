@@ -44,6 +44,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import { useClients } from "@/hooks/use-clients";
+import { ClientFormData, ClientStatus } from "@/services/client.service";
 
 // Schema for client form
 const clientFormSchema = z.object({
@@ -52,15 +53,18 @@ const clientFormSchema = z.object({
   abn: z.string().min(11, "ABN must be 11 digits").max(11).or(z.literal('')),
   acn: z.string().max(9).or(z.literal('')).optional(),
   industry: z.string().min(1, "Industry is required"),
-  status: z.string().min(1, "Status is required"),
+  status: z.enum(['Active', 'Prospect', 'On Hold', 'Cancelled']).default('Prospect'),
 });
+
+// Define form values type to ensure it matches ClientFormData
+type ClientFormValues = z.infer<typeof clientFormSchema>;
 
 const NewClient = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createClient, isCreatingClient } = useClients();
 
-  const form = useForm<z.infer<typeof clientFormSchema>>({
+  const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
       business_name: "",
@@ -68,24 +72,26 @@ const NewClient = () => {
       abn: "",
       acn: "",
       industry: "",
-      status: "Prospect",
+      status: "Prospect" as ClientStatus,
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof clientFormSchema>) => {
+  const onSubmit = async (values: ClientFormValues) => {
     setIsSubmitting(true);
     
     try {
       // Format the data as needed
-      const clientData = {
-        ...values,
-        // Convert empty strings to null for optional fields
+      const clientData: ClientFormData = {
+        business_name: values.business_name,
         trading_name: values.trading_name || null,
+        abn: values.abn || null,
         acn: values.acn || null,
+        industry: values.industry,
+        status: values.status as ClientStatus,
       };
       
       // Create the client
-      const result = await createClient(clientData);
+      await createClient(clientData);
       
       // Navigate to the client list
       navigate("/clients");

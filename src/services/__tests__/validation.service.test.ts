@@ -53,21 +53,21 @@ describe('Validation Service', () => {
     it('should format ACN correctly', () => {
       const data = { abn: null, acn: '004085616' };
       const formatted = validationService.formatBusinessIdentifiers(data);
-      expect(formatted.acn).toBe('00 408 561 6');
+      expect(formatted.acn).toBe('004 085 616');
     });
 
     it('should handle both ABN and ACN together', () => {
       const data = { abn: '51824753556', acn: '004085616' };
       const formatted = validationService.formatBusinessIdentifiers(data);
       expect(formatted.abn).toBe('51 824 753 556');
-      expect(formatted.acn).toBe('00 408 561 6');
+      expect(formatted.acn).toBe('004 085 616');
     });
 
     it('should handle inputs that are already formatted', () => {
-      const data = { abn: '51 824 753 556', acn: '00 408 561 6' };
+      const data = { abn: '51 824 753 556', acn: '004 085 616' };
       const formatted = validationService.formatBusinessIdentifiers(data);
       expect(formatted.abn).toBe('51 824 753 556');
-      expect(formatted.acn).toBe('00 408 561 6');
+      expect(formatted.acn).toBe('004 085 616');
     });
 
     it('should not modify other fields', () => {

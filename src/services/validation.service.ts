@@ -37,7 +37,7 @@ export const validationService = {
   isValidACN: (acn: string | null | undefined): boolean => {
     if (!acn) return true; // ACN is optional, so null/undefined is acceptable
     
-    // Remove spaces and ensure it's 9 digits
+    // Remove spaces and check length
     const cleanACN = acn.replace(/\s/g, '');
     if (!/^\d{9}$/.test(cleanACN)) return false;
     
@@ -52,12 +52,12 @@ export const validationService = {
     const remainder = sum % 10;
     const checkDigit = remainder === 0 ? 0 : 10 - remainder;
     
-    // Compare with the provided check digit
+    // Compare with the calculated check digit
     return checkDigit === parseInt(cleanACN[8]);
   },
   
   /**
-   * Formats an ABN by adding spaces for readability
+   * Formats an ABN with proper spacing for readability
    * Format: XX XXX XXX XXX
    * @param abn - The ABN to format
    * @returns Formatted ABN string
@@ -94,5 +94,58 @@ export const validationService = {
   cleanBusinessIdentifier: (value: string | null | undefined): string | null => {
     if (!value) return null;
     return value.replace(/[^\d]/g, '');
+  },
+  
+  /**
+   * Validates ABN and returns a result object with validation status and error message
+   * @param abn - The ABN to validate
+   * @returns Validation result object
+   */
+  validateABN: (abn: string | null | undefined) => {
+    if (!abn || abn.trim() === '') {
+      return { valid: true }; // ABN is optional
+    }
+    
+    const isValid = validationService.isValidABN(abn);
+    return {
+      valid: isValid,
+      error: isValid ? undefined : 'Invalid ABN format or checksum'
+    };
+  },
+  
+  /**
+   * Validates ACN and returns a result object with validation status and error message
+   * @param acn - The ACN to validate
+   * @returns Validation result object
+   */
+  validateACN: (acn: string | null | undefined) => {
+    if (!acn || acn.trim() === '') {
+      return { valid: true }; // ACN is optional
+    }
+    
+    const isValid = validationService.isValidACN(acn);
+    return {
+      valid: isValid,
+      error: isValid ? undefined : 'Invalid ACN format or checksum'
+    };
+  },
+  
+  /**
+   * Formats business identifiers in an object
+   * @param data - Object containing abn and/or acn fields
+   * @returns New object with formatted identifiers
+   */
+  formatBusinessIdentifiers: (data: Record<string, any>) => {
+    const result = { ...data };
+    
+    if (data.abn) {
+      result.abn = validationService.formatABN(data.abn);
+    }
+    
+    if (data.acn) {
+      result.acn = validationService.formatACN(data.acn);
+    }
+    
+    return result;
   }
 };

@@ -51,6 +51,7 @@ import {
   AlertTitle,
 } from "@/components/ui/alert";
 import { useClients } from "@/hooks/use-clients";
+import { ClientFormData, ClientStatus } from "@/services/client.service";
 
 // Schema for client form
 const clientFormSchema = z.object({
@@ -59,8 +60,11 @@ const clientFormSchema = z.object({
   abn: z.string().min(11, "ABN must be 11 digits").max(11).or(z.literal('')),
   acn: z.string().max(9).or(z.literal('')).optional(),
   industry: z.string().min(1, "Industry is required"),
-  status: z.string().min(1, "Status is required"),
+  status: z.enum(['Active', 'Prospect', 'On Hold', 'Cancelled']).default('Prospect'),
 });
+
+// Define form values type to ensure it matches ClientFormData
+type ClientFormValues = z.infer<typeof clientFormSchema>;
 
 const EditClient = () => {
   const navigate = useNavigate();
@@ -72,7 +76,7 @@ const EditClient = () => {
   const { data: client, isLoading, error } = useClientDetails(id);
 
   // Initialize form with client data when available
-  const form = useForm<z.infer<typeof clientFormSchema>>({
+  const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
       business_name: "",
@@ -80,7 +84,7 @@ const EditClient = () => {
       abn: "",
       acn: "",
       industry: "",
-      status: "",
+      status: "Prospect" as ClientStatus,
     },
   });
   
@@ -93,23 +97,25 @@ const EditClient = () => {
         abn: client.abn || "",
         acn: client.acn || "",
         industry: client.industry || "",
-        status: client.status || "Prospect",
+        status: (client.status as ClientStatus) || "Prospect",
       });
     }
   }, [client, form]);
 
-  const onSubmit = async (values: z.infer<typeof clientFormSchema>) => {
+  const onSubmit = async (values: ClientFormValues) => {
     if (!id) return;
     
     setIsSubmitting(true);
     
     try {
       // Format the data as needed
-      const clientData = {
-        ...values,
-        // Convert empty strings to null for optional fields
+      const clientData: Partial<ClientFormData> = {
+        business_name: values.business_name,
         trading_name: values.trading_name || null,
+        abn: values.abn || null,
         acn: values.acn || null,
+        industry: values.industry,
+        status: values.status as ClientStatus,
       };
       
       // Call the update function

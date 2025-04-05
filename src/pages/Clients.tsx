@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
   SearchX, 
@@ -94,7 +94,7 @@ const Clients = () => {
   };
 
   // Update filters when clients data or filters change
-  React.useEffect(() => {
+  useEffect(() => {
     if (clients) {
       filterClients();
     }

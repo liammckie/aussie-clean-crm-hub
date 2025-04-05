@@ -4,22 +4,25 @@ import { supabase } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError, logSuccess } from '@/utils/supabaseErrors';
 import { validationService } from './validation.service';
 
+// Client status type to match database enum
+export type ClientStatus = 'Active' | 'Prospect' | 'On Hold' | 'Cancelled';
+
 // Client data types
 export interface ClientFormData {
   business_name: string;
-  trading_name?: string;
-  abn?: string;
-  acn?: string;
-  industry?: string;
-  status: string;
-  onboarding_date?: string;
-  source?: string;
+  trading_name?: string | null;
+  abn?: string | null;
+  acn?: string | null;
+  industry?: string | null;
+  status: ClientStatus;
+  onboarding_date?: string | null;
+  source?: string | null;
   // Billing fields
-  billing_cycle?: string;
-  payment_terms?: string;
-  payment_method?: string;
-  tax_status?: string;
-  credit_limit?: number;
+  billing_cycle?: string | null;
+  payment_terms?: string | null;
+  payment_method?: string | null;
+  tax_status?: string | null;
+  credit_limit?: number | null;
 }
 
 // Get all clients from the database
