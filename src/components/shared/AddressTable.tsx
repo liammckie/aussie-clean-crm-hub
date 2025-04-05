@@ -17,7 +17,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { PlusCircle, MoreHorizontal, Pencil, Trash2, MapPin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { EntityType, AddressType } from '@/services/client/types';
+import { EntityType } from '@/services/client/types';
+import { AddressType } from '@/types/form-types';
 
 // Define the unified address record structure
 export interface UnifiedAddressRecord {

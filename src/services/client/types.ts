@@ -1,4 +1,3 @@
-
 // If this file doesn't exist yet, we'll create it with the address types needed
 
 export type ClientStatus = 'Prospect' | 'Active' | 'On Hold' | 'Cancelled';
@@ -11,6 +10,9 @@ export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal
 
 // Use the same ContactType as defined in form-types or map to it
 export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary';
+
+// Re-export AddressType from form-types for backward compatibility
+export { AddressType };
 
 export interface ClientRecord {
   id: string;

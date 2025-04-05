@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { AddressType } from '@/services/client';
+import { AddressType } from '@/types/form-types';
 
 // Address schema for validation
 const addressSchema = z.object({
