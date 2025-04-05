@@ -3,6 +3,7 @@ import * as Sentry from "@sentry/react";
 import { BrowserTracing } from "@sentry/react";
 import { Replay } from "@sentry/react";
 import React from "react";
+import { useRouteError } from "react-router-dom";
 
 import {
   Route,
@@ -99,7 +100,7 @@ export function useSentryRouteError() {
   try {
     // This hook should only be used within components rendered as errorElement
     // in a createBrowserRouter configuration
-    const error = Sentry.useRouteError();
+    const error = useRouteError();
     
     React.useEffect(() => {
       if (error) {

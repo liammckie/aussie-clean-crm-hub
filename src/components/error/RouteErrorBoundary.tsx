@@ -1,23 +1,21 @@
 
 import React, { useEffect, useState } from "react";
 import * as Sentry from "@sentry/react";
+import { useRouteError } from "react-router-dom";
 
 export const RouteErrorBoundary = () => {
   const [errorMessage, setErrorMessage] = useState<string>("An unexpected error occurred");
   
+  // Get the error from React Router directly
+  const routeError = useRouteError();
+  
   useEffect(() => {
-    // Try to capture the error if it exists in the React Router error element context
-    try {
-      const error = Sentry.useRouteError();
-      if (error) {
-        Sentry.captureException(error);
-        setErrorMessage(error instanceof Error ? error.message : String(error));
-      }
-    } catch (e) {
-      // If useRouteError fails (not in a data router context), use a generic error
-      console.warn("Not within a data router context");
+    // Capture the error if it exists
+    if (routeError) {
+      Sentry.captureException(routeError);
+      setErrorMessage(routeError instanceof Error ? routeError.message : String(routeError));
     }
-  }, []);
+  }, [routeError]);
   
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
