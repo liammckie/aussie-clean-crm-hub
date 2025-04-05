@@ -9,8 +9,9 @@ import {
 } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
+import { Path } from 'react-hook-form';
 
-// Updated interface that makes the generic constraint more flexible
+// Updated interface with a more flexible generic constraint
 interface IsPrimaryFieldProps<T extends { is_primary: boolean | undefined | null }> {
   form: UseFormReturn<T>;
   label?: string;
@@ -23,7 +24,8 @@ export function IsPrimaryField<T extends { is_primary: boolean | undefined | nul
   return (
     <FormField
       control={form.control}
-      name="is_primary" as const
+      // Cast to Path<T> to ensure TypeScript understands this is a valid field path
+      name={"is_primary" as Path<T>}
       render={({ field }) => (
         <FormItem className="flex flex-row items-center space-x-3 space-y-0">
           <FormControl>

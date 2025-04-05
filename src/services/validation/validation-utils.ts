@@ -79,5 +79,21 @@ export function checkRequiredFields<T extends Record<string, any>>(
 }
 
 /**
- * Updates the service/validation/index.ts file to export our new utilities
+ * Ensures boolean fields have a default value
+ * @param value The boolean value or undefined
+ * @param defaultValue The default boolean value to use
+ * @returns A boolean value, never undefined or null
  */
+export function ensureBooleanValue(value: boolean | undefined | null, defaultValue = false): boolean {
+  return value === undefined || value === null ? defaultValue : value;
+}
+
+/**
+ * Ensures string fields have a default value
+ * @param value The string value or undefined
+ * @param defaultValue The default string value to use
+ * @returns A string value, never undefined or null
+ */
+export function ensureStringValue(value: string | undefined | null, defaultValue = ''): string {
+  return value === undefined || value === null ? defaultValue : value;
+}

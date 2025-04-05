@@ -16,6 +16,25 @@ Each change entry includes:
 
 ## Recent Changes
 
+### 2025-04-05: Database Performance Optimization
+
+**Change Type**: Addition (Indexes)
+
+**Affected Tables/Columns**:
+- `client_addresses` table (added index on `client_id`)
+- `contract_financial_entries` table (added index on `contract_id`)
+- `supplier_compliance_documents` table (added index on `supplier_id`)
+
+**Description**:
+Added missing indexes on foreign key columns to improve query performance, especially for join operations.
+
+**Migration Scripts**: `20250405_add_missing_indexes.sql`
+
+**Backward Compatibility**:
+Fully compatible. Adding indexes does not affect existing functionality but improves performance.
+
+**Developer**: System Administrator
+
 ### 2025-04-03: Client Contact Structure Enhancement
 
 **Change Type**: Modification
@@ -180,6 +199,7 @@ Planning to add multi-currency support throughout the system:
 
 | Version | Date       | Major Changes                                 |
 |---------|------------|----------------------------------------------|
+| 3.1.0   | 2025-04-05 | Database performance optimization            |
 | 3.0.0   | 2025-03-01 | Site management overhaul, contract enhancements |
 | 2.5.0   | 2025-02-01 | Financial tracking system implementation      |
 | 2.0.0   | 2025-01-15 | User permission system redesign               |
