@@ -135,4 +135,3 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
     </Card>
   );
 }
-
