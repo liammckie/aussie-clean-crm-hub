@@ -1,7 +1,4 @@
 
-/**
- * @jest-environment jsdom
- */
 import { validationService } from '../validation.service';
 import { describe, it, expect } from '@jest/globals';
 
@@ -77,11 +74,11 @@ describe('Validation Service', () => {
       const data = { 
         abn: '51824753556', 
         acn: '004085616',
-        name: 'Test Company', 
+        businessName: 'Test Company', 
         email: 'test@example.com' 
       };
       const formatted = validationService.formatBusinessIdentifiers(data);
-      expect(formatted.name).toBe('Test Company');
+      expect(formatted.businessName).toBe('Test Company');
       expect(formatted.email).toBe('test@example.com');
     });
   });

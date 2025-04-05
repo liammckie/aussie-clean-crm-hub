@@ -38,6 +38,14 @@ The validation tests ensure our application correctly validates and formats Aust
 
 These tests help ensure the application conforms to Australian business standards and prevents invalid data from entering the system.
 
+### Service Layer Testing
+
+We have separate test suites for:
+
+- Validation services: Testing ABN/ACN validation and formatting
+- Client services: Testing CRUD operations for client data
+- Error handling: Testing error categorization and handling
+
 ## Error Logging Integration
 
 Tests also cover the integration with our error reporting system to ensure errors are properly logged, categorized, and displayed to users.

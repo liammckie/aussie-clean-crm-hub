@@ -2,75 +2,64 @@
 import { isValidABN, isValidACN, formatABN } from '@/utils/validators';
 
 /**
- * ValidationService - Provides validation functions for business identifiers
+ * Service for handling validation of business data
  */
 export const validationService = {
   /**
-   * Validates an Australian Business Number (ABN)
-   * @param abn The ABN to validate
-   * @returns Validation result with an optional error message
+   * Validate an Australian Business Number (ABN)
    */
-  validateABN(abn: string | null | undefined): { valid: boolean; error?: string } {
-    if (!abn) {
-      return { valid: true }; // ABN is optional in our system
-    }
+  validateABN: (abn: string | null | undefined) => {
+    // If ABN is not provided, it's valid (since it's optional)
+    if (!abn) return { valid: true };
     
-    const cleanABN = abn.replace(/\s/g, '');
-    if (!isValidABN(cleanABN)) {
+    // Validate the ABN format
+    if (!isValidABN(abn)) {
       return { 
         valid: false, 
-        error: 'Invalid ABN format. Please enter a valid 11-digit ABN.' 
+        error: 'Invalid ABN - please enter an 11-digit number with valid checksum' 
       };
     }
     
     return { valid: true };
   },
-
+  
   /**
-   * Validates an Australian Company Number (ACN)
-   * @param acn The ACN to validate
-   * @returns Validation result with an optional error message
+   * Validate an Australian Company Number (ACN)
    */
-  validateACN(acn: string | null | undefined): { valid: boolean; error?: string } {
-    if (!acn) {
-      return { valid: true }; // ACN is optional in our system
-    }
+  validateACN: (acn: string | null | undefined) => {
+    // If ACN is not provided, it's valid (since it's optional)
+    if (!acn) return { valid: true };
     
-    const cleanACN = acn.replace(/\s/g, '');
-    if (!isValidACN(cleanACN)) {
+    // Validate the ACN format
+    if (!isValidACN(acn)) {
       return { 
         valid: false, 
-        error: 'Invalid ACN format. Please enter a valid 9-digit ACN.' 
+        error: 'Invalid ACN - please enter a 9-digit number with valid checksum' 
       };
     }
     
     return { valid: true };
   },
-
+  
   /**
-   * Formats business identifiers for display and storage
+   * Format business identifiers (ABN/ACN) in a consistent way
    */
-  formatBusinessIdentifiers(data: { 
-    abn?: string | null; 
-    acn?: string | null;
-  }): { 
-    abn?: string | null; 
-    acn?: string | null;
-  } {
-    const formatted = { ...data };
+  formatBusinessIdentifiers: (data: any) => {
+    const result = { ...data };
     
-    if (formatted.abn) {
-      formatted.abn = formatABN(formatted.abn);
+    // Format ABN if present
+    if (data.abn) {
+      result.abn = formatABN(data.abn);
     }
     
-    if (formatted.acn) {
-      // Format ACN as XX XXX XXX
-      const cleanACN = formatted.acn.replace(/\s/g, '');
-      if (cleanACN.length === 9) {
-        formatted.acn = `${cleanACN.slice(0, 2)} ${cleanACN.slice(2, 5)} ${cleanACN.slice(5)}`;
+    // Format ACN if present - add spaces after positions 2 and 5
+    if (data.acn) {
+      const clean = data.acn.replace(/\s/g, '');
+      if (clean.length === 9) {
+        result.acn = `${clean.substring(0, 2)} ${clean.substring(2, 5)} ${clean.substring(5)}`;
       }
     }
     
-    return formatted;
+    return result;
   }
 };
