@@ -1,82 +1,135 @@
 
-import { Tables } from '@/integrations/supabase/types';
+// If this file doesn't exist yet, we'll create it with the address types needed
 
-// Client status type to match database enum
-export type ClientStatus = 'Active' | 'Prospect' | 'On Hold' | 'Cancelled';
+export type ClientStatus = 'Prospect' | 'Active' | 'On Hold' | 'Cancelled';
 
-// Contact type to match database enum
-export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary';
-
-// Address type to match database enum
 export type AddressType = 'billing' | 'postal' | 'physical';
 
-// Client data types
-export interface ClientFormData {
+export interface ClientRecord {
+  id: string;
   business_name: string;
-  trading_name?: string | null;
-  abn?: string | null;
-  acn?: string | null;
-  industry?: string | null;
+  trading_name?: string;
+  abn?: string;
+  acn?: string;
+  industry?: string;
   status: ClientStatus;
-  onboarding_date?: string | null;
-  source?: string | null;
-  // Billing fields
-  billing_cycle?: string | null;
-  payment_terms?: string | null;
-  payment_method?: string | null;
-  tax_status?: string | null;
-  credit_limit?: number | null;
+  onboarding_date?: string;
+  source?: string;
+  
   // Address fields
-  address_line_1?: string | null;
-  address_line_2?: string | null;
-  suburb?: string | null;
-  state?: string | null;
-  postcode?: string | null;
-  country?: string | null;
+  address_line_1?: string;
+  address_line_2?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  
+  // Financial fields
+  billing_cycle?: string;
+  payment_terms?: string;
+  payment_method?: string;
+  tax_status?: string;
+  credit_limit?: number;
+  
+  // Timestamps
+  created_at?: string;
+  updated_at?: string;
+  
+  // Relations
+  client_contacts?: ContactRecord[];
+  client_addresses?: AddressRecord[];
 }
 
-// Client address form data
-export interface AddressFormData {
+export interface ClientFormData {
+  business_name: string;
+  trading_name?: string;
+  abn?: string;
+  acn?: string;
+  industry?: string;
+  status: ClientStatus;
+  onboarding_date?: string;
+  source?: string;
+  
+  // Address fields
+  address_line_1?: string;
+  address_line_2?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  
+  // Financial fields
+  billing_cycle?: string;
+  payment_terms?: string;
+  payment_method?: string;
+  tax_status?: string;
+  credit_limit?: number;
+}
+
+export interface ClientWithContacts extends ClientRecord {
+  client_contacts: ContactRecord[];
+}
+
+export interface ContactRecord {
+  id: string;
+  name: string;
+  position?: string;
+  email: string;
+  phone?: string;
+  mobile?: string;
+  is_primary: boolean;
   client_id: string;
+  contact_type: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface ContactFormData {
+  name: string;
+  position?: string;
+  email: string;
+  phone?: string;
+  mobile?: string;
+  is_primary: boolean;
+  contact_type: string;
+  client_id: string;
+}
+
+export interface AddressRecord {
+  id: string;
   street: string;
-  street_2?: string | null;
+  street_2?: string;
   suburb: string;
   state: string;
   postcode: string;
   country: string;
   address_type: AddressType;
-}
-
-// Client contact form data
-export interface ContactFormData {
   client_id: string;
-  name: string;
-  email: string;
-  position?: string | null;
-  phone?: string | null;
-  mobile?: string | null;
-  contact_type: ContactType;
-  is_primary?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
-// Error response for validation errors
+export interface AddressFormData {
+  street: string;
+  street_2?: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  country: string;
+  address_type: AddressType;
+  client_id: string;
+}
+
 export interface ValidationErrorResponse {
   category: 'validation';
   message: string;
-  details?: { field?: string };
+  details?: {
+    field?: string;
+    error?: string;
+  };
 }
 
-// Client type from database
-export type ClientRecord = Tables<'clients'>;
-
-// Contact type from database
-export type ContactRecord = Tables<'client_contacts'>;
-
-// Address type from database
-export type AddressRecord = Tables<'client_addresses'>;
-
-// Client with contacts
-export interface ClientWithContacts extends ClientRecord {
-  client_contacts?: ContactRecord[];
-  client_addresses?: AddressRecord[];
+export interface ErrorResponse {
+  status: number;
+  message: string;
 }

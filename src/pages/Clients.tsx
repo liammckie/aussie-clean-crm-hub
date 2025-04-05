@@ -48,12 +48,19 @@ const Clients = () => {
           client.trading_name?.toLowerCase().includes(search) ||
           client.abn?.includes(search) ||
           client.industry?.toLowerCase().includes(search) ||
-          // Add address fields to search
+          // Address fields for search
           client.address_line_1?.toLowerCase().includes(search) ||
           client.address_line_2?.toLowerCase().includes(search) ||
           client.suburb?.toLowerCase().includes(search) ||
           client.state?.toLowerCase().includes(search) ||
-          client.postcode?.includes(search)
+          client.postcode?.includes(search) ||
+          // Client address relation search
+          client.client_addresses?.some(addr => 
+            addr.street?.toLowerCase().includes(search) || 
+            addr.suburb?.toLowerCase().includes(search) ||
+            addr.state?.toLowerCase().includes(search) ||
+            addr.postcode?.includes(search)
+          )
       );
     }
     
@@ -87,6 +94,36 @@ const Clients = () => {
     setSearchTerm("");
     setActiveStatusFilter(null);
   };
+
+  const getClientPrimaryAddress = (client: any) => {
+    if (client.address_line_1) {
+      let address = client.address_line_1;
+      if (client.suburb) address += `, ${client.suburb}`;
+      if (client.state) address += `, ${client.state}`;
+      if (client.postcode) address += ` ${client.postcode}`;
+      return address;
+    } else if (client.client_addresses && client.client_addresses.length > 0) {
+      const primaryAddress = client.client_addresses[0];
+      let address = primaryAddress.street;
+      if (primaryAddress.suburb) address += `, ${primaryAddress.suburb}`;
+      if (primaryAddress.state) address += `, ${primaryAddress.state}`;
+      if (primaryAddress.postcode) address += ` ${primaryAddress.postcode}`;
+      return address;
+    }
+    return "No address";
+  };
+
+  // Process clients to include address information for display
+  const processClientsForDisplay = (clients: any[]) => {
+    return clients.map(client => ({
+      ...client,
+      displayAddress: getClientPrimaryAddress(client)
+    }));
+  };
+
+  // Process filtered clients for display
+  const displayClients = filteredClients.length > 0 ? 
+    processClientsForDisplay(filteredClients) : [];
 
   return (
     <div className="container mx-auto px-0 max-w-full">
@@ -138,12 +175,12 @@ const Clients = () => {
           {clientsError && <ErrorState error={clientsError} refetch={refetchClients} />}
 
           {/* Client Table */}
-          {!isLoadingClients && !clientsError && filteredClients.length > 0 ? (
+          {!isLoadingClients && !clientsError && displayClients.length > 0 ? (
             <div>
               {/* Desktop View */}
               <div className="hidden sm:block">
                 <ClientsTable 
-                  clients={filteredClients} 
+                  clients={displayClients} 
                   formatDate={formatDate}
                   getStatusColor={getStatusColor} 
                 />
@@ -152,7 +189,7 @@ const Clients = () => {
               {/* Mobile View */}
               <div className="sm:hidden">
                 <ClientCards 
-                  clients={filteredClients}
+                  clients={displayClients}
                   formatDate={formatDate}
                   getStatusColor={getStatusColor}
                 />

@@ -358,6 +358,10 @@ const ClientDetail = () => {
                     <span>{formatDate(client.onboarding_date)}</span>
                   </div>
                 </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1">Address</h4>
+                  {renderPrimaryAddress(client)}
+                </div>
               </CardContent>
             </Card>
             

@@ -66,7 +66,7 @@ const SearchFilterBar = ({
               Status
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent>
+          <DropdownMenuContent align="end" className="bg-background border">
             <DropdownMenuItem onClick={() => handleStatusFilter("Prospect")}>
               Prospect
             </DropdownMenuItem>
@@ -78,6 +78,29 @@ const SearchFilterBar = ({
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => handleStatusFilter("Cancelled")}>
               Cancelled
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <MapPin className="mr-2 h-4 w-4" />Location
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-background border">
+            <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
+              All Locations
+            </DropdownMenuItem>
+            {/* Just placeholders - would be dynamic in a real implementation */}
+            <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
+              NSW
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
+              VIC
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
+              QLD
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
