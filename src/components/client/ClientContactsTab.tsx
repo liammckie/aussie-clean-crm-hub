@@ -7,11 +7,14 @@ import {
   CardTitle,
   CardDescription
 } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import ContactsTable from '@/components/shared/ContactsTable';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { UnifiedContactForm } from '@/components/client/UnifiedContactForm';
+import { UnifiedContactFormData } from '@/types/form-types';
+import { validateContact } from '@/services/validation';
+import { X } from 'lucide-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,7 +51,27 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     refetch 
   } = useEntityContacts('client', clientId);
 
-  const handleContactSubmit = (formData: any) => {
+  const handleContactSubmit = (formData: UnifiedContactFormData) => {
+    // Validate the data before submission
+    const validationResult = validateContact(formData);
+    if (!validationResult.success) {
+      const errors = validationResult.error.format();
+      const firstError = Object.entries(errors)
+        .filter(([key, value]) => key !== '_errors' && value?._errors.length > 0)
+        .map(([key, value]) => `${key}: ${value?._errors[0]}`)
+        .join(', ');
+      
+      toast.error(`Validation failed: ${firstError || 'Please check your form data'}`);
+      return;
+    }
+    
+    // If creating a primary contact, check if one already exists
+    if (formData.is_primary && contacts?.some(c => c.is_primary)) {
+      if (!confirm("A primary contact already exists. Set this new contact as primary instead?")) {
+        return;
+      }
+    }
+
     createContact(
       {
         entityType: 'client',
@@ -109,6 +132,8 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     setIsContactDialogOpen(true);
   };
 
+  const contactTypes = ['Primary', 'Billing', 'Operations', 'Emergency', 'Technical', 'Support', 'Sales'];
+
   return (
     <Card>
       <CardHeader className="flex flex-row justify-between items-center">
@@ -136,15 +161,26 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
         )}
 
         <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader className="flex justify-between items-center">
               <DialogTitle>Add New Contact</DialogTitle>
+              <DialogClose asChild>
+                <button className="rounded-full h-6 w-6 flex items-center justify-center border border-input">
+                  <X className="h-4 w-4" />
+                  <span className="sr-only">Close</span>
+                </button>
+              </DialogClose>
             </DialogHeader>
             <UnifiedContactForm 
               onSubmit={handleContactSubmit}
               isLoading={isCreatingContact}
-              contactTypes={['Primary', 'Billing', 'Operations', 'Emergency']}
+              contactTypes={contactTypes}
               buttonText="Add Contact"
+              // If there are already contacts and none are primary, suggest making this one primary
+              initialData={{
+                is_primary: contacts && contacts.length > 0 ? 
+                  !contacts.some(contact => contact.is_primary) : true
+              }}
             />
           </DialogContent>
         </Dialog>

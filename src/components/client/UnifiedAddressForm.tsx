@@ -2,7 +2,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form } from '@/components/ui/form';
+import { Form as FormProvider } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { UnifiedAddressFormData } from '@/types/form-types';
 import { AddressTypeField } from './form/AddressTypeField';
@@ -49,7 +49,7 @@ export function UnifiedAddressForm({
 
   return (
     <div>
-      <Form {...form}>
+      <FormProvider {...form}>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
           {showAddressType && <AddressTypeField form={form} />}
           
@@ -66,7 +66,7 @@ export function UnifiedAddressForm({
             {isLoading ? "Saving..." : buttonText}
           </Button>
         </form>
-      </Form>
+      </FormProvider>
     </div>
   );
 }

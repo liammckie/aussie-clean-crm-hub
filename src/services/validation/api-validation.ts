@@ -1,49 +1,23 @@
 
-import { z } from 'zod';
-import { validateServerData } from './form-validation';
-import { ErrorCategory, ErrorResponse } from '@/utils/supabaseErrors';
-import { unifiedAddressSchema, unifiedContactSchema } from '@/types/form-types';
+import { ErrorCategory } from '@/utils/supabaseErrors';
+import { 
+  contactValidationSchema,
+  addressValidationSchema
+} from './form-validation';
 
 /**
- * Security validation for API operations
- * This adds protection against unsafe operations and type inconsistencies
+ * Validate entity access 
  */
-export interface ApiValidationResult<T> {
-  isValid: boolean;
-  data?: T;
-  error?: ErrorResponse;
-}
-
-/**
- * Validates entity access permissions
- * Ensures that the requesting user has access to the specified entity
- * 
- * @param entityType Type of entity being accessed
- * @param entityId ID of entity being accessed
- * @returns Validation result with error if unauthorized
- */
-export function validateEntityAccess(entityType: string, entityId: string): ApiValidationResult<boolean> {
-  // Basic input validation
+export function validateEntityAccess(
+  entityType: string | undefined, 
+  entityId: string | undefined
+) {
   if (!entityType || !entityId) {
     return {
       isValid: false,
       error: {
-        message: 'Missing required entity information',
-        category: ErrorCategory.VALIDATION,
-        details: { entityType, entityId }
-      }
-    };
-  }
-
-  // UUID format validation 
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-  if (!uuidRegex.test(entityId)) {
-    return {
-      isValid: false,
-      error: {
-        message: 'Invalid entity ID format',
-        category: ErrorCategory.VALIDATION,
-        details: { entityId }
+        message: 'Entity type and ID are required',
+        category: ErrorCategory.VALIDATION
       }
     };
   }
@@ -52,111 +26,105 @@ export function validateEntityAccess(entityType: string, entityId: string): ApiV
   const validEntityTypes = ['client', 'supplier', 'employee', 'site', 'internal'];
   if (!validEntityTypes.includes(entityType)) {
     return {
-      isValid: false, 
+      isValid: false,
       error: {
-        message: 'Invalid entity type',
-        category: ErrorCategory.VALIDATION,
-        details: { entityType, validTypes: validEntityTypes }
+        message: `Invalid entity type: ${entityType}`,
+        category: ErrorCategory.VALIDATION
       }
     };
   }
-
-  return { isValid: true };
-}
-
-/**
- * Validates unified address data before database operations
- * Ensures type safety and prevents injection attacks
- * 
- * @param addressData Data to validate
- * @returns Validation result with verified data or error
- */
-export function validateAddressData<T>(addressData: unknown): ApiValidationResult<T> {
-  const result = validateServerData(unifiedAddressSchema, addressData);
   
-  if ('category' in result) {
+  // Validate entity ID format (UUID)
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(entityId)) {
     return {
       isValid: false,
-      error: result as ErrorResponse
-    };
-  }
-  
-  return {
-    isValid: true,
-    data: result.data as unknown as T
-  };
-}
-
-/**
- * Validates unified contact data before database operations
- * Ensures type safety and prevents injection attacks
- * 
- * @param contactData Data to validate
- * @returns Validation result with verified data or error
- */
-export function validateContactData<T>(contactData: unknown): ApiValidationResult<T> {
-  const result = validateServerData(unifiedContactSchema, contactData);
-  
-  if ('category' in result) {
-    return {
-      isValid: false,
-      error: result as ErrorResponse
-    };
-  }
-  
-  return {
-    isValid: true,
-    data: result.data as unknown as T
-  };
-}
-
-/**
- * Sanitizes input to prevent SQL injection and XSS attacks
- * Use for all user-provided inputs before passing to database
- * 
- * @param input User input to sanitize
- * @returns Sanitized input string
- */
-export function sanitizeInput(input: string): string {
-  if (typeof input !== 'string') return '';
-  
-  // Basic sanitization - remove dangerous characters
-  return input
-    .replace(/[\\<>]/g, '') // Remove potentially dangerous characters
-    .trim();
-}
-
-/**
- * Creates a schema validator for API parameters
- * @param schema Zod schema for validation
- */
-export function createApiValidator<T>(schema: z.ZodSchema<T>) {
-  return (data: unknown): ApiValidationResult<T> => {
-    try {
-      const validData = schema.parse(data);
-      return {
-        isValid: true,
-        data: validData
-      };
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        return {
-          isValid: false,
-          error: {
-            message: 'Invalid API parameters',
-            category: ErrorCategory.VALIDATION,
-            details: error.errors
-          }
-        };
+      error: {
+        message: 'Invalid entity ID format',
+        category: ErrorCategory.VALIDATION
       }
+    };
+  }
+  
+  return { isValid: true, error: null };
+}
+
+/**
+ * Validate contact data
+ */
+export function validateContactData<T>(contactData: T) {
+  try {
+    const result = contactValidationSchema.safeParse(contactData);
+
+    if (!result.success) {
+      // Get first validation error
+      const formattedErrors = result.error.format();
+      const firstErrorField = Object.keys(formattedErrors).find(
+        key => key !== '_errors' && formattedErrors[key]?._errors?.length
+      );
+      
+      const firstErrorMessage = firstErrorField 
+        ? formattedErrors[firstErrorField]?._errors?.[0] 
+        : 'Invalid contact data';
       
       return {
         isValid: false,
         error: {
-          message: 'Validation failed',
-          category: ErrorCategory.VALIDATION
+          message: firstErrorMessage,
+          category: ErrorCategory.VALIDATION,
+          details: { field: firstErrorField }
         }
       };
     }
-  };
+    
+    return { isValid: true, data: result.data, error: null };
+  } catch (error) {
+    return {
+      isValid: false,
+      error: {
+        message: error instanceof Error ? error.message : 'Contact validation failed',
+        category: ErrorCategory.VALIDATION
+      }
+    };
+  }
+}
+
+/**
+ * Validate address data
+ */
+export function validateAddressData<T>(addressData: T) {
+  try {
+    const result = addressValidationSchema.safeParse(addressData);
+
+    if (!result.success) {
+      // Get first validation error
+      const formattedErrors = result.error.format();
+      const firstErrorField = Object.keys(formattedErrors).find(
+        key => key !== '_errors' && formattedErrors[key]?._errors?.length
+      );
+      
+      const firstErrorMessage = firstErrorField 
+        ? formattedErrors[firstErrorField]?._errors?.[0] 
+        : 'Invalid address data';
+      
+      return {
+        isValid: false,
+        error: {
+          message: firstErrorMessage,
+          category: ErrorCategory.VALIDATION,
+          details: { field: firstErrorField }
+        }
+      };
+    }
+    
+    return { isValid: true, data: result.data, error: null };
+  } catch (error) {
+    return {
+      isValid: false,
+      error: {
+        message: error instanceof Error ? error.message : 'Address validation failed',
+        category: ErrorCategory.VALIDATION
+      }
+    };
+  }
 }
