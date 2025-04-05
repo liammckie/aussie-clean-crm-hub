@@ -403,6 +403,7 @@ export type Database = {
       }
       contracts: {
         Row: {
+          account_manager: string | null
           billing_cycle: string | null
           billing_frequency: string | null
           billing_type: string | null
@@ -420,6 +421,7 @@ export type Database = {
           hourly_rate: number | null
           id: string
           is_ongoing: boolean | null
+          national_manager: string | null
           notes: string | null
           payment_method: string | null
           payment_terms: string | null
@@ -429,6 +431,7 @@ export type Database = {
           service_type: string | null
           sla_requirements: string | null
           start_date: string
+          state_manager: string | null
           status: string
           total_annual_value: number | null
           total_monthly_value: number | null
@@ -440,6 +443,7 @@ export type Database = {
           value_weekly: number | null
         }
         Insert: {
+          account_manager?: string | null
           billing_cycle?: string | null
           billing_frequency?: string | null
           billing_type?: string | null
@@ -457,6 +461,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_ongoing?: boolean | null
+          national_manager?: string | null
           notes?: string | null
           payment_method?: string | null
           payment_terms?: string | null
@@ -466,6 +471,7 @@ export type Database = {
           service_type?: string | null
           sla_requirements?: string | null
           start_date: string
+          state_manager?: string | null
           status?: string
           total_annual_value?: number | null
           total_monthly_value?: number | null
@@ -477,6 +483,7 @@ export type Database = {
           value_weekly?: number | null
         }
         Update: {
+          account_manager?: string | null
           billing_cycle?: string | null
           billing_frequency?: string | null
           billing_type?: string | null
@@ -494,6 +501,7 @@ export type Database = {
           hourly_rate?: number | null
           id?: string
           is_ongoing?: boolean | null
+          national_manager?: string | null
           notes?: string | null
           payment_method?: string | null
           payment_terms?: string | null
@@ -503,6 +511,7 @@ export type Database = {
           service_type?: string | null
           sla_requirements?: string | null
           start_date?: string
+          state_manager?: string | null
           status?: string
           total_annual_value?: number | null
           total_monthly_value?: number | null

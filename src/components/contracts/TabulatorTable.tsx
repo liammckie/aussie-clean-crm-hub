@@ -60,7 +60,7 @@ export function TabulatorTable({ contracts, onSelectionChange }: TabulatorTableP
           groupBy: "service_type",
           groupStartOpen: false,
 
-          groupHeader: function(value, count, data, group) {
+          groupHeader: function(value, count, data, group){
             let totalWeekly = 0;
             let totalMonthly = 0;
             let totalAnnual = 0;
@@ -71,11 +71,7 @@ export function TabulatorTable({ contracts, onSelectionChange }: TabulatorTableP
               totalAnnual += parseFloat(row.total_annual_value || 0);
             });
 
-            return `${value || 'Not Specified'} 
-                    | Contracts: ${count} 
-                    | Weekly: $${totalWeekly.toFixed(2)} 
-                    | Monthly: $${totalMonthly.toFixed(2)} 
-                    | Annual: $${totalAnnual.toFixed(2)}`;
+            return `${value || 'Not Specified'} | Contracts: ${count} | Weekly: $${totalWeekly.toFixed(2)} | Monthly: $${totalMonthly.toFixed(2)} | Annual: $${totalAnnual.toFixed(2)}`;
           },
 
           columns: [
