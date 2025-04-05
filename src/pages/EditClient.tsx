@@ -31,6 +31,13 @@ const EditClient = () => {
     payment_method: '',
     tax_status: '',
     credit_limit: undefined,
+    // Address fields with defaults
+    address_line_1: '',
+    address_line_2: '',
+    suburb: '',
+    state: '',
+    postcode: '',
+    country: 'Australia',
   });
   
   const { useClientDetails } = useClients();
@@ -61,6 +68,13 @@ const EditClient = () => {
             payment_method: clientData.payment_method || '',
             tax_status: clientData.tax_status || '',
             credit_limit: clientData.credit_limit || undefined,
+            // Load address fields
+            address_line_1: clientData.address_line_1 || '',
+            address_line_2: clientData.address_line_2 || '',
+            suburb: clientData.suburb || '',
+            state: clientData.state || '',
+            postcode: clientData.postcode || '',
+            country: clientData.country || 'Australia',
           });
           setIsLoaded(true);
         })

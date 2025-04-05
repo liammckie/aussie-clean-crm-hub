@@ -15,7 +15,7 @@ export interface ClientFormData {
   acn?: string | null;
   industry?: string | null;
   status: ClientStatus;
-  onboarding_date?: string | null;
+  onboarding_date?: string | Date | null;
   source?: string | null;
   // Billing fields
   billing_cycle?: string | null;
@@ -23,6 +23,13 @@ export interface ClientFormData {
   payment_method?: string | null;
   tax_status?: string | null;
   credit_limit?: number | null;
+  // Address fields
+  address_line_1?: string | null;
+  address_line_2?: string | null;
+  suburb?: string | null;
+  state?: string | null;
+  postcode?: string | null;
+  country?: string | null;
 }
 
 // Client contact form data

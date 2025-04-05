@@ -1,108 +1,59 @@
 
-import { ClientFormData } from '@/services/client/types';
-import { validationService } from '@/services/validation.service';
-import { ValidationErrorResponse } from '@/services/client/types';
+import { ClientFormData } from "@/services/client";
+import { validationService } from "@/services/validation.service";
 
 /**
- * Prepare client data for submission by cleaning/formatting fields
+ * Validates business identifiers (ABN, ACN)
+ * @returns Error object if validation fails, null if valid
  */
-export const prepareClientDataForSubmission = (data: ClientFormData): ClientFormData => {
-  return {
-    ...data,
-    // Clean business identifiers
-    abn: data.abn ? validationService.cleanBusinessIdentifier(data.abn) : null,
-    acn: data.acn ? validationService.cleanBusinessIdentifier(data.acn) : null,
-    // Ensure nullable fields are properly handled
-    trading_name: data.trading_name || null,
-    industry: data.industry || null,
-    source: data.source || null,
-    onboarding_date: data.onboarding_date || null,
-    billing_cycle: data.billing_cycle || null,
-    payment_terms: data.payment_terms || null,
-    payment_method: data.payment_method || null,
-    tax_status: data.tax_status || null,
-    credit_limit: data.credit_limit || null
-  };
-};
-
-/**
- * Format client data for display
- */
-export const formatClientDataForDisplay = (client: any) => {
-  if (!client) return null;
-  
-  return {
-    ...client,
-    // Format business identifiers for display
-    abn: client.abn ? validationService.formatABN(client.abn) : null,
-    acn: client.acn ? validationService.formatACN(client.acn) : null,
-    // Format dates if needed
-    onboarding_date: client.onboarding_date 
-      ? new Date(client.onboarding_date).toLocaleDateString() 
-      : null
-  };
-};
-
-/**
- * Validate client data for business rules compliance
- */
-export const validateClientData = (data: ClientFormData) => {
-  const errors: Record<string, string> = {};
-  
-  // Validate ABN if provided
-  if (data.abn) {
-    const cleanABN = validationService.cleanBusinessIdentifier(data.abn);
-    if (!validationService.isValidABN(cleanABN)) {
-      errors.abn = 'Invalid ABN format or checksum';
-    }
-  }
-  
-  // Validate ACN if provided
-  if (data.acn) {
-    const cleanACN = validationService.cleanBusinessIdentifier(data.acn);
-    if (!validationService.isValidACN(cleanACN)) {
-      errors.acn = 'Invalid ACN format or checksum';
-    }
-  }
-  
-  // Required fields
-  if (!data.business_name || data.business_name.trim() === '') {
-    errors.business_name = 'Business name is required';
-  }
-  
-  return {
-    isValid: Object.keys(errors).length === 0,
-    errors
-  };
-};
-
-/**
- * Function to check and validate business identifiers
- */
-export const validateBusinessIdentifiers = (client: Pick<ClientFormData, 'abn' | 'acn'>): ValidationErrorResponse | null => {
-  // ABN validation (if provided)
-  if (client.abn) {
-    const cleanABN = validationService.cleanBusinessIdentifier(client.abn);
-    if (!validationService.isValidABN(cleanABN)) {
+export function validateBusinessIdentifiers({ abn, acn }: { abn?: string, acn?: string }) {
+  if (abn) {
+    const abnValidation = validationService.validateABN(abn);
+    if (!abnValidation.valid) {
       return {
-        category: 'validation',
-        message: 'Invalid ABN provided. Please check and try again.',
+        category: 'validation' as const,
+        message: abnValidation.error || "Invalid ABN",
         details: { field: 'abn' }
       };
     }
   }
-  
-  // ACN validation (if provided)
-  if (client.acn) {
-    const cleanACN = validationService.cleanBusinessIdentifier(client.acn);
-    if (!validationService.isValidACN(cleanACN)) {
+
+  if (acn) {
+    const acnValidation = validationService.validateACN(acn);
+    if (!acnValidation.valid) {
       return {
-        category: 'validation',
-        message: 'Invalid ACN provided. Please check and try again.',
+        category: 'validation' as const,
+        message: acnValidation.error || "Invalid ACN",
         details: { field: 'acn' }
       };
     }
   }
 
   return null;
-};
+}
+
+/**
+ * Prepares client data for submission to the API
+ * - Cleans business identifiers
+ * - Formats dates
+ */
+export function prepareClientDataForSubmission(data: ClientFormData) {
+  // Create a new object to avoid mutating the original
+  const preparedData = { ...data };
+
+  // Clean business identifiers
+  if (preparedData.abn) {
+    preparedData.abn = validationService.cleanBusinessIdentifier(preparedData.abn);
+  }
+
+  if (preparedData.acn) {
+    preparedData.acn = validationService.cleanBusinessIdentifier(preparedData.acn);
+  }
+
+  // Format date if it's a Date object
+  if (preparedData.onboarding_date instanceof Date) {
+    preparedData.onboarding_date = preparedData.onboarding_date.toISOString().split('T')[0];
+  }
+
+  return preparedData;
+}

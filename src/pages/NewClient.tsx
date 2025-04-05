@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
@@ -17,6 +18,7 @@ import { toast } from 'sonner';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { prepareClientDataForSubmission } from '@/utils/clientUtils';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { AddressFieldsSection } from '@/components/client/AddressFieldsSection';
 
 const NewClient = () => {
   const navigate = useNavigate();
@@ -37,6 +39,13 @@ const NewClient = () => {
       payment_method: '',
       tax_status: '',
       credit_limit: undefined,
+      // Address fields with defaults
+      address_line_1: '',
+      address_line_2: '',
+      suburb: '',
+      state: '',
+      postcode: '',
+      country: 'Australia',
     },
   });
 
@@ -277,85 +286,101 @@ const NewClient = () => {
                 />
               </div>
 
-              {/* Billing Information */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={control}
-                  name="billing_cycle"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Billing Cycle (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Monthly, Quarterly, etc." {...field} />
-                      </FormControl>
-                      <FormDescription>How often the client is billed.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="payment_terms"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Payment Terms (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Net 30, Due on Receipt, etc." {...field} />
-                      </FormControl>
-                      <FormDescription>The terms for client payments.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={control}
-                  name="payment_method"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Payment Method (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Credit Card, Bank Transfer, etc." {...field} />
-                      </FormControl>
-                      <FormDescription>The method the client uses to pay.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={control}
-                  name="tax_status"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Tax Status (Optional)</FormLabel>
-                      <FormControl>
-                        <Input placeholder="GST, VAT, etc." {...field} />
-                      </FormControl>
-                      <FormDescription>The tax status of the client.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-              <div>
-                <FormField
-                  control={control}
-                  name="credit_limit"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Credit Limit (Optional)</FormLabel>
-                      <FormControl>
-                        <Input type="number" placeholder="10000" {...field} />
-                      </FormControl>
-                      <FormDescription>The credit limit for the client.</FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              {/* Address Fields */}
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-medium mb-4">Address Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <AddressFieldsSection form={form} showHeading={false} />
+                </div>
               </div>
 
-              <Button type="submit" disabled={isCreating}>
+              {/* Billing Information */}
+              <div className="border-t pt-6 mt-6">
+                <h3 className="text-lg font-medium mb-4">Billing Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <FormField
+                    control={control}
+                    name="billing_cycle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Billing Cycle (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Monthly, Quarterly, etc." {...field} />
+                        </FormControl>
+                        <FormDescription>How often the client is billed.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name="payment_terms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Terms (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Net 30, Due on Receipt, etc." {...field} />
+                        </FormControl>
+                        <FormDescription>The terms for client payments.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <FormField
+                    control={control}
+                    name="payment_method"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Method (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Credit Card, Bank Transfer, etc." {...field} />
+                        </FormControl>
+                        <FormDescription>The method the client uses to pay.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={control}
+                    name="tax_status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tax Status (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="GST, VAT, etc." {...field} />
+                        </FormControl>
+                        <FormDescription>The tax status of the client.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div className="mt-4">
+                  <FormField
+                    control={control}
+                    name="credit_limit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Credit Limit (Optional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="10000" 
+                            {...field} 
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                          />
+                        </FormControl>
+                        <FormDescription>The credit limit for the client.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+
+              <Button type="submit" disabled={isCreating} className="mt-6">
                 {isCreating ? 'Creating...' : 'Create Client'}
               </Button>
             </form>
