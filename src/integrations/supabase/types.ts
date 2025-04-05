@@ -596,6 +596,105 @@ export type Database = {
         }
         Relationships: []
       }
+      unified_addresses: {
+        Row: {
+          address_line_1: string
+          address_line_2: string | null
+          address_type: string
+          country: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          is_primary: boolean | null
+          name: string | null
+          postcode: string
+          state: string
+          suburb: string
+          updated_at: string
+        }
+        Insert: {
+          address_line_1: string
+          address_line_2?: string | null
+          address_type: string
+          country?: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_primary?: boolean | null
+          name?: string | null
+          postcode: string
+          state: string
+          suburb: string
+          updated_at?: string
+        }
+        Update: {
+          address_line_1?: string
+          address_line_2?: string | null
+          address_type?: string
+          country?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_primary?: boolean | null
+          name?: string | null
+          postcode?: string
+          state?: string
+          suburb?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      unified_contacts: {
+        Row: {
+          company: string | null
+          contact_type: string
+          created_at: string
+          email: string
+          entity_id: string
+          entity_type: string
+          id: string
+          is_primary: boolean
+          mobile: string | null
+          name: string
+          phone: string | null
+          position: string | null
+          updated_at: string
+        }
+        Insert: {
+          company?: string | null
+          contact_type: string
+          created_at?: string
+          email: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          is_primary?: boolean
+          mobile?: string | null
+          name: string
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Update: {
+          company?: string | null
+          contact_type?: string
+          created_at?: string
+          email?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          is_primary?: boolean
+          mobile?: string | null
+          name?: string
+          phone?: string | null
+          position?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

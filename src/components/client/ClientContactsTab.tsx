@@ -1,83 +1,105 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   Card, 
   CardContent, 
   CardHeader, 
-  CardTitle 
+  CardTitle,
+  CardDescription
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { ContactForm } from '@/components/client/ContactForm';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { clientService } from '@/services';
-import { ContactRecord, UnifiedContactRecord } from '@/services/client';
 import ContactsTable from '@/components/shared/ContactsTable';
+import { useUnifiedEntities } from '@/hooks/use-unified-entities';
+import { UnifiedContactForm, UnifiedContactFormData } from '@/components/client/UnifiedContactForm';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ClientContactsTabProps {
   clientId: string;
-  contacts: ContactRecord[];
   onContactAdded?: () => void;
 }
 
-export function ClientContactsTab({ clientId, contacts, onContactAdded }: ClientContactsTabProps) {
+export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTabProps) {
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
-  const [unifiedContacts, setUnifiedContacts] = useState<UnifiedContactRecord[]>([]);
+  const [contactToDelete, setContactToDelete] = useState<string | null>(null);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  
+  const { 
+    useEntityContacts, 
+    createContact, 
+    isCreatingContact,
+    deleteContact,
+    isDeletingContact 
+  } = useUnifiedEntities();
+  
+  const { 
+    data: contacts, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useEntityContacts('client', clientId);
 
-  // Convert client contacts to unified format for the table
-  useEffect(() => {
-    if (contacts && contacts.length > 0) {
-      const transformed: UnifiedContactRecord[] = contacts.map(contact => ({
-        id: contact.id,
-        entity_type: 'client',
-        entity_id: clientId,
-        name: contact.name,
-        position: contact.position,
-        email: contact.email,
-        phone: contact.phone,
-        mobile: contact.mobile,
-        is_primary: contact.is_primary,
-        contact_type: contact.contact_type,
-        created_at: contact.created_at,
-        updated_at: contact.updated_at
-      }));
-      setUnifiedContacts(transformed);
-    } else {
-      setUnifiedContacts([]);
-    }
-  }, [contacts, clientId]);
-
-  const handleContactSubmit = (data: any) => {
-    if (!clientId) return;
-    
-    const contactData = { ...data, client_id: clientId };
-    
-    clientService.createClientContact(clientId, data)
-      .then(response => {
-        if ('category' in response) {
-          toast.error(response.message);
-          return;
+  const handleContactSubmit = (formData: UnifiedContactFormData) => {
+    createContact(
+      {
+        entityType: 'client',
+        entityId: clientId,
+        contactData: formData
+      },
+      {
+        onSuccess: () => {
+          setIsContactDialogOpen(false);
+          refetch();
+          if (onContactAdded) {
+            onContactAdded();
+          }
+          toast.success('Contact added successfully!');
+        },
+        onError: (error: any) => {
+          toast.error(`Failed to add contact: ${error.message}`);
         }
-        toast.success('Contact added successfully!');
-        setIsContactDialogOpen(false);
-        if (onContactAdded) {
-          onContactAdded();
-        }
-      })
-      .catch(error => {
-        toast.error(`Failed to add contact: ${error.message}`);
-      });
+      }
+    );
   };
 
-  const handleEditContact = (contact: UnifiedContactRecord) => {
+  const handleEditContact = (contact: any) => {
     // Implementation for editing - would open a dialog with the form pre-populated
     toast.info("Edit functionality will be implemented in future sprint");
   };
 
   const handleDeleteContact = (contactId: string) => {
-    // Implementation for deleting a contact
-    toast.info("Delete functionality will be implemented in future sprint");
+    setContactToDelete(contactId);
+    setDeleteAlertOpen(true);
+  };
+
+  const confirmDeleteContact = async () => {
+    if (!contactToDelete) return;
+    
+    deleteContact(
+      { contactId: contactToDelete },
+      {
+        onSuccess: () => {
+          toast.success("Contact deleted successfully");
+          refetch();
+          setDeleteAlertOpen(false);
+          setContactToDelete(null);
+        },
+        onError: (error: any) => {
+          toast.error(`Failed to delete contact: ${error.message}`);
+          setDeleteAlertOpen(false);
+          setContactToDelete(null);
+        }
+      }
+    );
   };
 
   const handleAddClick = () => {
@@ -87,25 +109,63 @@ export function ClientContactsTab({ clientId, contacts, onContactAdded }: Client
   return (
     <Card>
       <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle>Client Contacts</CardTitle>
+        <div>
+          <CardTitle>Client Contacts</CardTitle>
+          <CardDescription>Manage contacts for this client</CardDescription>
+        </div>
       </CardHeader>
       <CardContent>
-        <ContactsTable
-          contacts={unifiedContacts}
-          onEdit={handleEditContact}
-          onDelete={handleDeleteContact}
-          onAdd={handleAddClick}
-          showEntityType={false}
-        />
+        {isLoading ? (
+          <div className="text-center py-4">Loading contacts...</div>
+        ) : error ? (
+          <div className="p-4 border rounded bg-red-50 text-red-800">
+            Error loading contacts: {error instanceof Error ? error.message : 'Unknown error'}
+          </div>
+        ) : (
+          <ContactsTable
+            contacts={contacts || []}
+            onEdit={handleEditContact}
+            onDelete={handleDeleteContact}
+            onAdd={handleAddClick}
+            showEntityType={false}
+            isLoading={isLoading || isDeletingContact}
+          />
+        )}
 
         <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
               <DialogTitle>Add New Contact</DialogTitle>
             </DialogHeader>
-            <ContactForm onSubmit={handleContactSubmit} />
+            <UnifiedContactForm 
+              onSubmit={handleContactSubmit}
+              isLoading={isCreatingContact}
+              contactTypes={['Primary', 'Billing', 'Operations', 'Emergency']}
+              buttonText="Add Contact"
+            />
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to delete this contact?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the contact from the client record.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmDeleteContact}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={isDeletingContact}
+              >
+                {isDeletingContact ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );

@@ -1,11 +1,9 @@
 
-import React, { useState, useEffect } from 'react';
-import { useClients } from '@/hooks/use-clients';
-import { AddressFormData, AddressType, UnifiedAddressRecord } from '@/services/client';
+import React, { useState } from 'react';
+import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { AddressForm } from '@/components/client/AddressForm';
-import { Plus, MapPin } from 'lucide-react';
+import { UnifiedAddressForm, UnifiedAddressFormData } from '@/components/client/UnifiedAddressForm';
 import { toast } from 'sonner';
 import { 
   Dialog,
@@ -13,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from '@/components/ui/dialog';
 import AddressTable from '@/components/shared/AddressTable';
@@ -35,43 +32,31 @@ interface ClientAddressTabProps {
 
 export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabProps) {
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedAddressType, setSelectedAddressType] = useState<AddressType>('billing');
-  const [unifiedAddresses, setUnifiedAddresses] = useState<UnifiedAddressRecord[]>([]);
+  const [selectedAddressType, setSelectedAddressType] = useState<'billing' | 'postal' | 'physical'>('billing');
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   
-  const { useClientAddresses, createAddress, isCreatingAddress, deleteAddress, isDeletingAddress } = useClients();
-  const { data: addresses, isLoading, error, refetch } = useClientAddresses(clientId);
+  const { 
+    useEntityAddresses, 
+    createAddress, 
+    isCreatingAddress, 
+    deleteAddress, 
+    isDeletingAddress 
+  } = useUnifiedEntities();
+  
+  const { 
+    data: addresses, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useEntityAddresses('client', clientId);
 
-  // Convert client addresses to unified format for the table
-  useEffect(() => {
-    if (addresses && addresses.length > 0) {
-      const transformed: UnifiedAddressRecord[] = addresses.map(address => ({
-        id: address.id,
-        entity_type: 'client',
-        entity_id: clientId,
-        address_line_1: address.street,
-        address_line_2: address.street_2,
-        suburb: address.suburb,
-        state: address.state,
-        postcode: address.postcode,
-        country: address.country,
-        address_type: address.address_type,
-        created_at: address.created_at,
-        updated_at: address.updated_at,
-        is_primary: address.address_type === 'billing' // Assuming billing is primary
-      }));
-      setUnifiedAddresses(transformed);
-    } else {
-      setUnifiedAddresses([]);
-    }
-  }, [addresses, clientId]);
-
-  const handleAddAddress = async (data: Omit<AddressFormData, 'client_id'>) => {
+  const handleAddAddress = async (formData: UnifiedAddressFormData) => {
     createAddress(
       { 
-        clientId, 
-        addressData: data 
+        entityType: 'client', 
+        entityId: clientId, 
+        addressData: formData
       },
       {
         onSuccess: () => {
@@ -89,7 +74,7 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
     );
   };
 
-  const handleEditAddress = (address: UnifiedAddressRecord) => {
+  const handleEditAddress = (address: any) => {
     // Implementation for editing - would open a dialog with the form pre-populated
     toast.info("Edit functionality will be implemented in future sprint");
   };
@@ -141,7 +126,7 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
           </div>
         ) : (
           <AddressTable 
-            addresses={unifiedAddresses}
+            addresses={addresses || []}
             onEdit={handleEditAddress}
             onDelete={handleDeleteAddress}
             onAdd={handleAddClick}
@@ -158,7 +143,7 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
                 Add an address for this client. Each client can have multiple addresses.
               </DialogDescription>
             </DialogHeader>
-            <AddressForm 
+            <UnifiedAddressForm 
               onSubmit={handleAddAddress} 
               isLoading={isCreatingAddress}
               initialData={{ address_type: selectedAddressType }}

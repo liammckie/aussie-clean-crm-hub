@@ -164,3 +164,33 @@ export function useClientAddressesRealtimeSync(clientId?: string) {
     enabled: !!clientId
   });
 }
+
+/**
+ * Hook to synchronize unified addresses in real-time
+ */
+export function useUnifiedAddressesRealtimeSync(entityType?: string, entityId?: string) {
+  const queryKey = entityType && entityId 
+    ? ['unified-addresses', entityType, entityId]
+    : ['unified-addresses'];
+  
+  return useRealtimeSync({
+    table: 'unified_addresses',
+    queryKey,
+    enabled: true
+  });
+}
+
+/**
+ * Hook to synchronize unified contacts in real-time
+ */
+export function useUnifiedContactsRealtimeSync(entityType?: string, entityId?: string) {
+  const queryKey = entityType && entityId 
+    ? ['unified-contacts', entityType, entityId]
+    : ['unified-contacts'];
+  
+  return useRealtimeSync({
+    table: 'unified_contacts',
+    queryKey,
+    enabled: true
+  });
+}
