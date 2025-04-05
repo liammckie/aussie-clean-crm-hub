@@ -72,7 +72,7 @@ export const createDefaultAddressValues = (
   postcode: initialData.postcode || '',
   country: initialData.country || 'Australia',
   address_type: initialData.address_type || 'billing',
-  is_primary: initialData.is_primary || false,
+  is_primary: initialData.is_primary ?? false,
   entity_type: initialData.entity_type,
   entity_id: initialData.entity_id,
   name: initialData.name || '',
@@ -92,7 +92,7 @@ export const createDefaultContactValues = (
   mobile: initialData.mobile || '',
   company: initialData.company || '',
   contact_type: initialData.contact_type || defaultContactType,
-  is_primary: initialData.is_primary || false,
+  is_primary: initialData.is_primary ?? false,
   entity_type: initialData.entity_type,
   entity_id: initialData.entity_id,
 });

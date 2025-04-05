@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
 import { Path } from 'react-hook-form';
 
-// Updated interface with a more flexible generic constraint
+// Updated interface with a more flexible type constraint
 interface IsPrimaryFieldProps<T extends { is_primary: boolean | undefined | null }> {
   form: UseFormReturn<T>;
   label?: string;

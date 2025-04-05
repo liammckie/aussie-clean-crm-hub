@@ -69,6 +69,7 @@ import { useClientRealtimeSync } from "@/hooks/use-realtime-sync";
 import { useUnifiedEntities } from "@/hooks/use-unified-entities";
 import { UnifiedContactForm } from "@/components/client/UnifiedContactForm";
 import { toast } from "sonner";
+import { UnifiedContactFormData } from "@/types/form-types";
 
 const getStatusColor = (status: string | null | undefined) => {
   switch (status) {
@@ -101,6 +102,26 @@ const ClientDetail = () => {
     createContact, 
     isCreatingContact,
   } = useUnifiedEntities();
+  
+  const handleContactSubmit = async (data: UnifiedContactFormData) => {
+    if (!id) return;
+    
+    try {
+      const contactData = {
+        ...data,
+        entity_type: 'client',
+        entity_id: id,
+      };
+      
+      await createContact(contactData);
+      toast.success('Contact added successfully!');
+      setIsContactDialogOpen(false);
+      refetch();
+    } catch (error) {
+      console.error('Error adding contact:', error);
+      toast.error('Failed to add contact. Please try again.');
+    }
+  };
   
   const handleDeleteClient = async () => {
     if (!id) return;
