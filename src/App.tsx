@@ -11,7 +11,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AppRoutes } from "@/routes/AppRoutes";
 import * as Sentry from "@sentry/react";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { GlobalErrorBoundary, RouterErrorBoundary } from "@/components/error/GlobalErrorBoundary";
+import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
 import { createQueryClient } from "@/utils/query/queryConfig";
 import { AppLogger, LogCategory } from "@/utils/logging";
 
@@ -100,11 +100,7 @@ const App = () => {
                   />
                 ) : (
                   <Suspense fallback={<SuspenseFallback />}>
-                    <RouterErrorBoundary>
-                      <SentryErrorBoundary>
-                        <AppRoutes />
-                      </SentryErrorBoundary>
-                    </RouterErrorBoundary>
+                    <AppRoutes />
                   </Suspense>
                 )}
               </BrowserRouter>

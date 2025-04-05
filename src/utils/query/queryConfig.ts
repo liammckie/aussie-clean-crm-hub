@@ -44,40 +44,47 @@ export const createQueryClient = () => {
         refetchOnReconnect: true,
         refetchOnMount: true,
         placeholderData: (_, { previousData }) => previousData, // Equivalent to keepPreviousData
-        onError: (error: Error) => {
-          // Log error details
-          AppLogger.error(
-            LogCategory.API, 
-            `React Query error: ${error.message}`, 
-            { error }
-          );
-          
-          // Report error to monitoring
-          ErrorReporting.captureException(error, { 
-            source: 'react-query',
-          });
-          
-          // Show toast notification for user-friendly errors
-          if (!error.message?.includes('timeout') && 
-              !error.message?.includes('network')) {
-            toast.error('Failed to load data. Please try again.');
-          }
-        }
+        // Remove the incorrect onError property at this level - it needs to be in callbacks
       },
       mutations: {
         retry: false, // Don't retry mutations by default
-        onError: (error: Error) => {
-          // Log mutation error details
-          AppLogger.error(
-            LogCategory.API, 
-            `React Query mutation error: ${error.message}`, 
-            { error }
-          );
-          
-          // Report error to monitoring
-          ErrorReporting.captureException(error, { 
-            source: 'react-query-mutation',
-          });
+        // Use callbacks object with onError for mutation options
+        callbacks: {
+          onError: (error: Error) => {
+            // Log mutation error details
+            AppLogger.error(
+              LogCategory.API, 
+              `React Query mutation error: ${error.message}`, 
+              { error }
+            );
+            
+            // Report error to monitoring
+            ErrorReporting.captureException(error, { 
+              source: 'react-query-mutation',
+            });
+          }
+        }
+      }
+    },
+    // Add QueryClient-level default error handler
+    queryCache: {
+      onError: (error: Error) => {
+        // Log error details
+        AppLogger.error(
+          LogCategory.API, 
+          `React Query error: ${error.message}`, 
+          { error }
+        );
+        
+        // Report error to monitoring
+        ErrorReporting.captureException(error, { 
+          source: 'react-query',
+        });
+        
+        // Show toast notification for user-friendly errors
+        if (!error.message?.includes('timeout') && 
+            !error.message?.includes('network')) {
+          toast.error('Failed to load data. Please try again.');
         }
       }
     }

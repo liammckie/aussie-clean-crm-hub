@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, RefreshCw, Home, RotateCw } from "lucide-react";
-import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorReporting } from "@/utils/errorReporting";
 import { AppLogger, LogCategory, LogLevel } from "@/utils/logging";
 
@@ -226,19 +224,10 @@ const StandaloneErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
 };
 
 // Create a router-aware version when inside a router context
-const RouterAwareErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
-  // This is only used when wrapped inside a router
-  const location = useLocation();
-  const [key, setKey] = useState(location.pathname);
-  const { resetOnRouteChange = true, ...restProps } = props;
-
-  useEffect(() => {
-    if (resetOnRouteChange) {
-      setKey(location.pathname);
-    }
-  }, [location.pathname, resetOnRouteChange]);
-
-  return <GlobalErrorBoundaryBase key={key} {...restProps} />;
+const RouterAwareErrorBoundary = ({ children, ...props }: GlobalErrorBoundaryProps) => {
+  // Remove the dependency on useLocation by not using it here
+  // This prevents the error when used outside of Router context
+  return <GlobalErrorBoundaryBase {...props}>{children}</GlobalErrorBoundaryBase>;
 };
 
 /**
