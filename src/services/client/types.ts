@@ -15,7 +15,7 @@ export interface ClientFormData {
   acn?: string | null;
   industry?: string | null;
   status: ClientStatus;
-  onboarding_date?: string | Date | null;
+  onboarding_date?: string | null;
   source?: string | null;
   // Billing fields
   billing_cycle?: string | null;

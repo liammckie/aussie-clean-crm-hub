@@ -144,8 +144,11 @@ export type Database = {
           abn: string | null
           account_manager_id: string | null
           acn: string | null
+          address_line_1: string | null
+          address_line_2: string | null
           billing_cycle: string | null
           business_name: string
+          country: string | null
           created_at: string
           credit_limit: number | null
           id: string
@@ -153,9 +156,12 @@ export type Database = {
           onboarding_date: string
           payment_method: string | null
           payment_terms: string | null
+          postcode: string | null
           relationship_rating: number | null
           source: string | null
+          state: string | null
           status: Database["public"]["Enums"]["client_status"]
+          suburb: string | null
           tax_status: string | null
           trading_name: string | null
           updated_at: string
@@ -164,8 +170,11 @@ export type Database = {
           abn?: string | null
           account_manager_id?: string | null
           acn?: string | null
+          address_line_1?: string | null
+          address_line_2?: string | null
           billing_cycle?: string | null
           business_name: string
+          country?: string | null
           created_at?: string
           credit_limit?: number | null
           id?: string
@@ -173,9 +182,12 @@ export type Database = {
           onboarding_date?: string
           payment_method?: string | null
           payment_terms?: string | null
+          postcode?: string | null
           relationship_rating?: number | null
           source?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          suburb?: string | null
           tax_status?: string | null
           trading_name?: string | null
           updated_at?: string
@@ -184,8 +196,11 @@ export type Database = {
           abn?: string | null
           account_manager_id?: string | null
           acn?: string | null
+          address_line_1?: string | null
+          address_line_2?: string | null
           billing_cycle?: string | null
           business_name?: string
+          country?: string | null
           created_at?: string
           credit_limit?: number | null
           id?: string
@@ -193,9 +208,12 @@ export type Database = {
           onboarding_date?: string
           payment_method?: string | null
           payment_terms?: string | null
+          postcode?: string | null
           relationship_rating?: number | null
           source?: string | null
+          state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          suburb?: string | null
           tax_status?: string | null
           trading_name?: string | null
           updated_at?: string
