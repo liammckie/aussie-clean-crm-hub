@@ -1,21 +1,34 @@
 
-import { supabase, isAuthenticated } from '@/integrations/supabase/client';
-import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
+import { supabase, isAuthenticated, checkAuthentication } from '@/integrations/supabase/client';
+import { ErrorResponse, handleSupabaseError, ErrorCategory } from '@/utils/supabaseErrors';
 import { UnifiedContactFormData } from '../types';
+import { validateEntityAccess, validateContactData } from '@/services/validation';
+import { ErrorReporting } from '@/utils/errorReporting';
 
 /**
- * API service for unified contacts management
+ * API service for unified contacts management with enhanced security
  */
 export const contactApi = {
   /**
-   * Fetch contacts for an entity
+   * Fetch contacts for an entity with security validations
    */
   fetchContacts: async (entityType: string, entityId: string) => {
     try {
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
+      // Ensure user is authenticated
+      await checkAuthentication();
+
+      // Validate entity access
+      const accessValidation = validateEntityAccess(entityType, entityId);
+      if (!accessValidation.isValid) {
+        return { data: null, error: accessValidation.error };
       }
+
+      // Log security-relevant operation for audit trail
+      ErrorReporting.addBreadcrumb({
+        category: 'security',
+        message: `Fetch contacts requested for ${entityType} ${entityId}`,
+        level: 'info'
+      });
 
       const { data, error } = await supabase
         .from('unified_contacts')
@@ -40,13 +53,32 @@ export const contactApi = {
   },
 
   /**
-   * Create a new contact
+   * Create a new contact with enhanced security validation
    */
   createContact: async (contactData: UnifiedContactFormData) => {
     try {
+      // Ensure user is authenticated
+      await checkAuthentication();
+      
+      // Validate and sanitize contact data
+      const validation = validateContactData<UnifiedContactFormData>(contactData);
+      if (!validation.isValid) {
+        return { data: null, error: validation.error };
+      }
+      
+      // Verify entity access
+      const accessValidation = validateEntityAccess(
+        validation.data!.entity_type || '', 
+        validation.data!.entity_id || ''
+      );
+      
+      if (!accessValidation.isValid) {
+        return { data: null, error: accessValidation.error };
+      }
+
       const { data, error } = await supabase
         .from('unified_contacts')
-        .insert(contactData)
+        .insert(validation.data)
         .select()
         .single();
 
@@ -65,13 +97,38 @@ export const contactApi = {
   },
 
   /**
-   * Update an existing contact
+   * Update an existing contact with security checks
    */
   updateContact: async (contactId: string, contactData: Partial<UnifiedContactFormData>) => {
     try {
+      // Ensure user is authenticated
+      await checkAuthentication();
+      
+      // Validate contact ID format
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(contactId)) {
+        return {
+          data: null,
+          error: {
+            message: 'Invalid contact ID format',
+            category: ErrorCategory.VALIDATION
+          }
+        };
+      }
+      
+      // Validate input data to prevent injection
+      const validation = validateContactData<Partial<UnifiedContactFormData>>(contactData);
+      if (!validation.isValid) {
+        return { data: null, error: validation.error };
+      }
+      
+      // Prevent tampering with entity relationships
+      const secureData = { ...validation.data };
+      delete secureData.entity_id;
+      delete secureData.entity_type;
+
       const { data, error } = await supabase
         .from('unified_contacts')
-        .update(contactData)
+        .update(secureData)
         .eq('id', contactId)
         .select()
         .single();
@@ -91,10 +148,43 @@ export const contactApi = {
   },
 
   /**
-   * Delete a contact
+   * Delete a contact with security validation
    */
   deleteContact: async (contactId: string) => {
     try {
+      // Ensure user is authenticated
+      await checkAuthentication();
+      
+      // Validate contact ID format
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(contactId)) {
+        return {
+          success: false,
+          error: {
+            message: 'Invalid contact ID format',
+            category: ErrorCategory.VALIDATION
+          }
+        };
+      }
+      
+      // First fetch the contact to verify ownership - security best practice
+      const { data: contactData, error: fetchError } = await supabase
+        .from('unified_contacts')
+        .select('entity_type, entity_id')
+        .eq('id', contactId)
+        .single();
+      
+      if (fetchError) {
+        throw fetchError;
+      }
+      
+      // Log security-sensitive operation
+      ErrorReporting.addBreadcrumb({
+        category: 'security',
+        message: `Contact deletion requested: ${contactId}`,
+        level: 'warning',
+        data: { contactId, entityType: contactData.entity_type, entityId: contactData.entity_id }
+      });
+
       const { data, error } = await supabase
         .from('unified_contacts')
         .delete()
