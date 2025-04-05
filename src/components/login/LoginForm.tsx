@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -39,7 +40,7 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { signIn } = useAuth(); // Changed from login to signIn to match the AuthContext
+  const { signIn, setAdminSession } = useAuth(); // Get setAdminSession from auth context
   
   // Initialize react-hook-form with zod validation
   const form = useForm<LoginFormValues>({
@@ -93,6 +94,21 @@ export function LoginForm() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // Handle admin bypass login (for development purposes)
+  const handleDevBypass = () => {
+    setAdminSession();
+    
+    toast({
+      title: "Admin session set",
+      description: "You can now access the app without authentication",
+    });
+    
+    // Navigate to dashboard
+    setTimeout(() => {
+      navigate("/dashboard");
+    }, 1000);
   };
 
   return (
@@ -200,6 +216,20 @@ export function LoginForm() {
                   {isLoading ? "Signing in..." : "Sign In"}
                 </span>
               </Button>
+              
+              {/* Admin bypass button - only show in development mode */}
+              {import.meta.env.DEV && (
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  className="w-full border-amber-500/30 hover:bg-amber-950/50"
+                  onClick={handleDevBypass}
+                >
+                  <span className="relative text-amber-400">
+                    Developer Mode: Skip Login
+                  </span>
+                </Button>
+              )}
               
               <div className="text-xs text-center text-slate-500 mt-4">
                 <p>

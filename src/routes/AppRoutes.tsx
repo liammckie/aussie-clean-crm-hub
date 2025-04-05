@@ -21,31 +21,13 @@ import {
   LazyContracts
 } from "./lazyRoutes";
 
-// Check for admin session
-const isAdminSession = () => {
-  const adminSession = localStorage.getItem("admin_session");
-  if (!adminSession) return false;
-  
-  try {
-    const session = JSON.parse(adminSession);
-    // Add simple expiration check (24 hours)
-    const sessionTime = new Date(session.timestamp).getTime();
-    const now = new Date().getTime();
-    const hoursPassed = (now - sessionTime) / (1000 * 60 * 60);
-    
-    return hoursPassed < 24;
-  } catch (e) {
-    return false;
-  }
-};
-
 // ProtectedRoute component to protect routes that require authentication
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
   const location = useLocation();
   
-  // Check for admin session as well
-  if (!isAuthenticated && !isAdminSession()) {
+  // Authentication is now fully handled by the AuthContext's isAuthenticated state
+  if (!isAuthenticated) {
     // Save the current location they were trying to go to for later redirect
     return <Navigate to="/login" state={{ from: location }} replace />;
   }

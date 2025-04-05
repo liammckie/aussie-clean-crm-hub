@@ -37,6 +37,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setIsAuthenticated(!!data.session?.user);
         console.log('Auth state initialized:', !!data.session?.user);
         
+        // Check for admin session as a fallback
+        if (!data.session?.user) {
+          const adminSession = localStorage.getItem("admin_session");
+          if (adminSession) {
+            try {
+              const session = JSON.parse(adminSession);
+              // Add simple expiration check (24 hours)
+              const sessionTime = new Date(session.timestamp).getTime();
+              const now = new Date().getTime();
+              const hoursPassed = (now - sessionTime) / (1000 * 60 * 60);
+              
+              if (hoursPassed < 24) {
+                // Set as authenticated if valid admin session
+                setIsAuthenticated(true);
+                console.log('Admin session is valid and active');
+              }
+            } catch (e) {
+              console.error('Error parsing admin session:', e);
+            }
+          }
+        }
+        
         // Send user info to error reporting
         if (data.session?.user) {
           ErrorReporting.setUser({
@@ -119,6 +141,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setIsLoading(true);
       await supabase.auth.signOut();
+      // Clear admin session as well
+      localStorage.removeItem('admin_session');
       setIsAuthenticated(false);
       setUser(null);
       toast.success('Logged out successfully');
@@ -135,6 +159,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const setAdminSession = () => {
     const timestamp = new Date().toISOString();
     localStorage.setItem('admin_session', JSON.stringify({ timestamp }));
+    setIsAuthenticated(true);
     toast.success('Admin session set');
   };
 
