@@ -1,11 +1,12 @@
 
 import { ClientFormData } from '@/services/client/types';
 import { validationService } from '@/services/validation.service';
+import { ValidationErrorResponse } from '@/services/client/types';
 
 /**
  * Prepare client data for submission by cleaning/formatting fields
  */
-export const prepareClientDataForSubmission = (data: ClientFormData): Record<string, any> => {
+export const prepareClientDataForSubmission = (data: ClientFormData): ClientFormData => {
   return {
     ...data,
     // Clean business identifiers

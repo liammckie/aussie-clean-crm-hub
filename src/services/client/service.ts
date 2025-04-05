@@ -1,6 +1,6 @@
 
 import { clientApi } from './api';
-import { ClientFormData, ValidationErrorResponse } from './types';
+import { ClientFormData, ValidationErrorResponse, ContactFormData } from './types';
 import { validationService } from '@/services/validation.service';
 import { logSuccess } from '@/utils/supabaseErrors';
 import { prepareClientDataForSubmission, validateBusinessIdentifiers } from '@/utils/clientUtils';
@@ -140,9 +140,9 @@ export const clientService = {
   },
 
   // Create a new client contact
-  createClientContact: async (clientId: string, contactData: any) => {
+  createClientContact: async (clientId: string, contactData: Omit<ContactFormData, 'client_id'>) => {
     // Add client ID to contact data
-    const contact = {
+    const contact: ContactFormData = {
       ...contactData,
       client_id: clientId
     };

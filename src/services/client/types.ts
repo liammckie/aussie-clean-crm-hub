@@ -4,6 +4,9 @@ import { Tables } from '@/integrations/supabase/types';
 // Client status type to match database enum
 export type ClientStatus = 'Active' | 'Prospect' | 'On Hold' | 'Cancelled';
 
+// Contact type to match database enum
+export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary';
+
 // Client data types
 export interface ClientFormData {
   business_name: string;
@@ -20,6 +23,18 @@ export interface ClientFormData {
   payment_method?: string | null;
   tax_status?: string | null;
   credit_limit?: number | null;
+}
+
+// Client contact form data
+export interface ContactFormData {
+  client_id: string;
+  name: string;
+  email: string;
+  position?: string | null;
+  phone?: string | null;
+  mobile?: string | null;
+  contact_type: ContactType;
+  is_primary?: boolean;
 }
 
 // Error response for validation errors

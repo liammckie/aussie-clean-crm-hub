@@ -1,7 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
-import { ClientFormData, ValidationErrorResponse, ClientRecord } from './types';
+import { ClientFormData, ContactFormData, ValidationErrorResponse, ClientRecord } from './types';
 
 /**
  * Client API service - handles raw Supabase calls for client data
@@ -62,7 +62,7 @@ export const clientApi = {
   /**
    * Create a new client
    */
-  createClient: async (clientData: Record<string, any>) => {
+  createClient: async (clientData: ClientFormData) => {
     try {
       const { data, error } = await supabase
         .from('clients')
@@ -87,7 +87,7 @@ export const clientApi = {
   /**
    * Update an existing client
    */
-  updateClient: async (clientId: string, clientData: Record<string, any>) => {
+  updateClient: async (clientId: string, clientData: Partial<ClientFormData>) => {
     try {
       const { data, error } = await supabase
         .from('clients')
@@ -162,7 +162,7 @@ export const clientApi = {
   /**
    * Create a client contact
    */
-  createClientContact: async (contactData: Record<string, any>) => {
+  createClientContact: async (contactData: ContactFormData) => {
     try {
       const { data, error } = await supabase
         .from('client_contacts')
