@@ -6,6 +6,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { RouteErrorBoundary } from "@/components/error/RouteErrorBoundary";
 import { ErrorFallback } from "@/components/error/SentryRouteError";
+import { RouterErrorBoundary } from "@/components/error/GlobalErrorBoundary";
 
 // Import lazy-loaded components
 import { 
@@ -78,90 +79,90 @@ export const AppRoutes = () => {
       <Route 
         path="/login" 
         element={
-          <ErrorBoundaryWrapper>
+          <RouterErrorBoundary>
             <LazyLogin />
-          </ErrorBoundaryWrapper>
+          </RouterErrorBoundary>
         }
       />
       <Route 
         path="/" 
         element={
-          <ErrorBoundaryWrapper>
+          <RouterErrorBoundary>
             <ProtectedRoute>
               <LazyIndex />
             </ProtectedRoute>
-          </ErrorBoundaryWrapper>
+          </RouterErrorBoundary>
         }
       />
       <Route 
         path="/dashboard" 
         element={
-          <ErrorBoundaryWrapper>
+          <RouterErrorBoundary>
             <ProtectedRoute>
               <LazyDashboard />
             </ProtectedRoute>
-          </ErrorBoundaryWrapper>
+          </RouterErrorBoundary>
         }
       />
       {/* Client Routes */}
       <Route 
         path="/clients" 
         element={
-          <ErrorBoundaryWrapper>
+          <RouterErrorBoundary>
             <ProtectedRoute>
               <LazyClients />
             </ProtectedRoute>
-          </ErrorBoundaryWrapper>
+          </RouterErrorBoundary>
         }
       />
       <Route 
         path="/clients/new" 
         element={
-          <ErrorBoundaryWrapper>
+          <RouterErrorBoundary>
             <ProtectedRoute>
               <LazyNewClient />
             </ProtectedRoute>
-          </ErrorBoundaryWrapper>
+          </RouterErrorBoundary>
         }
       />
       <Route 
         path="/clients/:id" 
         element={
-          <ErrorBoundaryWrapper>
+          <RouterErrorBoundary>
             <ProtectedRoute>
               <LazyClientDetail />
             </ProtectedRoute>
-          </ErrorBoundaryWrapper>
+          </RouterErrorBoundary>
         }
       />
       <Route 
         path="/clients/:id/edit" 
         element={
-          <ErrorBoundaryWrapper>
+          <RouterErrorBoundary>
             <ProtectedRoute>
               <LazyEditClient />
             </ProtectedRoute>
-          </ErrorBoundaryWrapper>
+          </RouterErrorBoundary>
         }
       />
       {/* Contract Routes */}
       <Route 
         path="/contracts" 
         element={
-          <ErrorBoundaryWrapper>
+          <RouterErrorBoundary>
             <ProtectedRoute>
               <LazyContracts />
             </ProtectedRoute>
-          </ErrorBoundaryWrapper>
+          </RouterErrorBoundary>
         }
       />
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route 
         path="*" 
         element={
-          <ErrorBoundaryWrapper>
+          <RouterErrorBoundary>
             <LazyNotFound />
-          </ErrorBoundaryWrapper>
+          </RouterErrorBoundary>
         }
       />
     </SentryRoutes>

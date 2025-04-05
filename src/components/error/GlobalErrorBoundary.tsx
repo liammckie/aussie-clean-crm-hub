@@ -128,7 +128,8 @@ export const GlobalErrorFallback = ({
   retryCount?: number;
   maxRetries?: number;
 }) => {
-  const navigate = useNavigate();
+  // Instead of using useNavigate directly, we'll create a navigation function
+  // that works both inside and outside router context
   const [errorId, setErrorId] = useState<string | null>(null);
   const exceededRetries = retryCount >= maxRetries;
   
@@ -149,7 +150,8 @@ export const GlobalErrorFallback = ({
   }, [error, retryCount]);
   
   const goHome = () => {
-    navigate("/");
+    // Use window.location instead of navigate for universal compatibility
+    window.location.href = "/";
   };
   
   const refreshPage = () => {
@@ -217,30 +219,41 @@ export const GlobalErrorFallback = ({
   );
 };
 
-/**
- * GlobalErrorBoundary wrapper component that accepts location from context
- * This fixes the issue with useLocation not being available in class components
- */
-const LocationAwareErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
+// Create a version that doesn't depend on router hooks
+const StandaloneErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
+  // This boundary doesn't use any router hooks and can be used outside of router
+  return <GlobalErrorBoundaryBase {...props} />;
+};
+
+// Create a router-aware version when inside a router context
+const RouterAwareErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
+  // This is only used when wrapped inside a router
   const location = useLocation();
   const [key, setKey] = useState(location.pathname);
   const { resetOnRouteChange = true, ...restProps } = props;
-  
-  // Reset error boundary when route changes if enabled
+
   useEffect(() => {
     if (resetOnRouteChange) {
       setKey(location.pathname);
     }
   }, [location.pathname, resetOnRouteChange]);
-  
+
   return <GlobalErrorBoundaryBase key={key} {...restProps} />;
 };
 
 /**
  * GlobalErrorBoundary component - the main export
+ * This is a safe version that doesn't require router context
  */
 export const GlobalErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
-  return <LocationAwareErrorBoundary {...props} />;
+  // By default, use the standalone version that doesn't depend on router hooks
+  return <StandaloneErrorBoundary {...props} />;
+};
+
+// Export a router-aware version for use inside router contexts
+export const RouterErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
+  // This should only be used inside a Router
+  return <RouterAwareErrorBoundary {...props} />;
 };
 
 /**

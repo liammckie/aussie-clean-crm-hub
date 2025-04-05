@@ -43,7 +43,7 @@ export const createQueryClient = () => {
         refetchOnWindowFocus: import.meta.env.PROD, // Only in production
         refetchOnReconnect: true,
         refetchOnMount: true,
-        keepPreviousData: true, // Keep previous data while fetching new data
+        placeholderData: (_, { previousData }) => previousData, // Equivalent to keepPreviousData
         onError: (error: Error) => {
           // Log error details
           AppLogger.error(

@@ -11,7 +11,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { AppRoutes } from "@/routes/AppRoutes";
 import * as Sentry from "@sentry/react";
 import { SidebarProvider } from "@/components/ui/sidebar";
-import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
+import { GlobalErrorBoundary, RouterErrorBoundary } from "@/components/error/GlobalErrorBoundary";
 import { createQueryClient } from "@/utils/query/queryConfig";
 import { AppLogger, LogCategory } from "@/utils/logging";
 
@@ -53,7 +53,7 @@ const App = () => {
       
       // Call original handler if exists
       if (originalOnError) {
-        return originalOnError.call(window, message, source, lineno, colno, error);
+        return originalOnError.call(this, message, source, lineno, colno, error);
       }
       
       return false;
@@ -74,7 +74,7 @@ const App = () => {
       
       // Call original handler if exists
       if (originalOnUnhandledRejection) {
-        originalOnUnhandledRejection.call(window, event);
+        originalOnUnhandledRejection.call(this, event);
       }
     };
     
@@ -100,9 +100,11 @@ const App = () => {
                   />
                 ) : (
                   <Suspense fallback={<SuspenseFallback />}>
-                    <SentryErrorBoundary>
-                      <AppRoutes />
-                    </SentryErrorBoundary>
+                    <RouterErrorBoundary>
+                      <SentryErrorBoundary>
+                        <AppRoutes />
+                      </SentryErrorBoundary>
+                    </RouterErrorBoundary>
                   </Suspense>
                 )}
               </BrowserRouter>
