@@ -9,7 +9,7 @@ import { STALE_TIMES, CACHE_TIMES } from '@/utils/query/queryConfig';
 export function useOptimizedClients(options = {}) {
   return useOptimizedQuery(
     ['clients'],
-    () => clientService.getAll(),
+    () => clientService.getAllClients(),
     {
       performance: {
         operationName: 'fetch-all-clients',
@@ -29,7 +29,7 @@ export function useOptimizedClients(options = {}) {
 export function useOptimizedClientById(clientId: string | undefined, options = {}) {
   return useOptimizedQuery(
     ['client', clientId],
-    () => clientId ? clientService.getById(clientId) : Promise.resolve(null),
+    () => clientId ? clientService.getClientById(clientId) : Promise.resolve(null),
     {
       enabled: !!clientId,
       performance: {

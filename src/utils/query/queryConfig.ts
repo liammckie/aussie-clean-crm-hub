@@ -20,19 +20,6 @@ export const CACHE_TIMES = {
   EXTENDED: 1000 * 60 * 60 * 3, // 3 hours
 };
 
-// Define retry configuration based on error type
-const getRetryConfig = (error: Error) => {
-  // Don't retry for user validation errors (400s)
-  if (error.message?.includes('validation') || 
-      error.message?.includes('not found') ||
-      error.message?.includes('unauthorized')) {
-    return false;
-  }
-  
-  // Retry for server/network errors
-  return 2; // Max 2 retries
-};
-
 // Create and configure the query client
 export const createQueryClient = () => {
   return new QueryClient({
@@ -40,7 +27,19 @@ export const createQueryClient = () => {
       queries: {
         staleTime: STALE_TIMES.STANDARD, // Default stale time is 5 minutes
         gcTime: CACHE_TIMES.STANDARD, // Default cache time is 10 minutes
-        retry: getRetryConfig,
+        retry: (failureCount, error) => {
+          // Don't retry for user validation errors (400s)
+          if (error instanceof Error) {
+            if (error.message?.includes('validation') || 
+                error.message?.includes('not found') ||
+                error.message?.includes('unauthorized')) {
+              return false;
+            }
+          }
+          
+          // Retry for server/network errors (max 2 retries)
+          return failureCount < 2;
+        },
         refetchOnWindowFocus: import.meta.env.PROD, // Only in production
         refetchOnReconnect: true,
         refetchOnMount: true,

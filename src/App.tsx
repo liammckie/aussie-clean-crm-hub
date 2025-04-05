@@ -37,7 +37,7 @@ const App = () => {
     
     // Setup global error handler
     const originalOnError = window.onerror;
-    window.onerror = (message, source, lineno, colno, error) => {
+    window.onerror = function(message, source, lineno, colno, error) {
       AppLogger.error(
         LogCategory.UI,
         `Global error: ${String(message)}`,
@@ -53,7 +53,7 @@ const App = () => {
       
       // Call original handler if exists
       if (originalOnError) {
-        return originalOnError(message, source, lineno, colno, error);
+        return originalOnError.call(window, message, source, lineno, colno, error);
       }
       
       return false;
@@ -61,7 +61,7 @@ const App = () => {
     
     // Setup unhandled promise rejection handler
     const originalOnUnhandledRejection = window.onunhandledrejection;
-    window.onunhandledrejection = (event) => {
+    window.onunhandledrejection = function(event) {
       AppLogger.error(
         LogCategory.UI,
         `Unhandled promise rejection: ${String(event.reason)}`,
@@ -74,7 +74,7 @@ const App = () => {
       
       // Call original handler if exists
       if (originalOnUnhandledRejection) {
-        originalOnUnhandledRejection(event);
+        originalOnUnhandledRejection.call(window, event);
       }
     };
     

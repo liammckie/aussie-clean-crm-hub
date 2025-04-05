@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, RefreshCw, Home, RotateCw } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { ErrorReporting } from "@/utils/errorReporting";
 import { AppLogger, LogCategory, LogLevel } from "@/utils/logging";
 
@@ -217,12 +218,13 @@ export const GlobalErrorFallback = ({
 };
 
 /**
- * GlobalErrorBoundary component with route change detection
+ * GlobalErrorBoundary wrapper component that accepts location from context
+ * This fixes the issue with useLocation not being available in class components
  */
-export const GlobalErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
-  const { resetOnRouteChange = true, ...restProps } = props;
+const LocationAwareErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
   const location = useLocation();
   const [key, setKey] = useState(location.pathname);
+  const { resetOnRouteChange = true, ...restProps } = props;
   
   // Reset error boundary when route changes if enabled
   useEffect(() => {
@@ -232,6 +234,13 @@ export const GlobalErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) =
   }, [location.pathname, resetOnRouteChange]);
   
   return <GlobalErrorBoundaryBase key={key} {...restProps} />;
+};
+
+/**
+ * GlobalErrorBoundary component - the main export
+ */
+export const GlobalErrorBoundary: React.FC<GlobalErrorBoundaryProps> = (props) => {
+  return <LocationAwareErrorBoundary {...props} />;
 };
 
 /**
