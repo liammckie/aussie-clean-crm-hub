@@ -1,16 +1,14 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
+  ResponsiveContainer,
   AreaChart,
   Area,
-  CartesianGrid
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip
 } from "recharts";
-import { XAxis, YAxis } from "@/components/ui/sidebar/components/chart-wrappers";
-import { 
-  ChartContainer, 
-  ChartTooltip, 
-  ChartTooltipContent 
-} from "@/components/ui/chart";
 
 const data = [
   { name: "Jan", john: 4000, sarah: 2400, tom: 1600 },
@@ -21,21 +19,6 @@ const data = [
   { name: "Jun", john: 2390, sarah: 3800, tom: 2500 },
 ];
 
-const chartConfig = {
-  john: {
-    label: "John",
-    color: "#8884d8"
-  },
-  sarah: {
-    label: "Sarah",
-    color: "#82ca9d"
-  },
-  tom: {
-    label: "Tom",
-    color: "#ffc658"
-  }
-};
-
 export function PipelineValueCard() {
   return (
     <Card className="bg-card/50 border-border/50">
@@ -44,53 +27,38 @@ export function PipelineValueCard() {
       </CardHeader>
       <CardContent>
         <div className="h-[240px] w-full">
-          <ChartContainer config={chartConfig}>
+          <ResponsiveContainer width="100%" height="100%">
             <AreaChart
               data={data}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             >
               <defs>
                 <linearGradient id="colorJohn" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-john, #8884d8)" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="var(--color-john, #8884d8)" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#8884d8" stopOpacity={0}/>
                 </linearGradient>
                 <linearGradient id="colorSarah" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-sarah, #82ca9d)" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="var(--color-sarah, #82ca9d)" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#82ca9d" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#82ca9d" stopOpacity={0}/>
                 </linearGradient>
                 <linearGradient id="colorTom" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--color-tom, #ffc658)" stopOpacity={0.8}/>
-                  <stop offset="95%" stopColor="var(--color-tom, #ffc658)" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="#ffc658" stopOpacity={0.8}/>
+                  <stop offset="95%" stopColor="#ffc658" stopOpacity={0}/>
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" />
-              {/* Specify just one XAxis with default id */}
-              <XAxis dataKey="name" />
-              <YAxis />
-              <ChartTooltip content={<ChartTooltipContent />} />
-              <Area 
-                type="monotone" 
-                dataKey="john" 
-                stroke="var(--color-john, #8884d8)" 
-                fillOpacity={1} 
-                fill="url(#colorJohn)" 
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis dataKey="name" stroke="#888" fontSize={12} />
+              <YAxis stroke="#888" fontSize={12} />
+              <Tooltip 
+                contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #475569", borderRadius: "8px" }}
+                itemStyle={{ color: "#e2e8f0" }}
+                labelStyle={{ color: "#94a3b8" }}
               />
-              <Area 
-                type="monotone" 
-                dataKey="sarah" 
-                stroke="var(--color-sarah, #82ca9d)" 
-                fillOpacity={1} 
-                fill="url(#colorSarah)" 
-              />
-              <Area 
-                type="monotone" 
-                dataKey="tom" 
-                stroke="var(--color-tom, #ffc658)" 
-                fillOpacity={1} 
-                fill="url(#colorTom)" 
-              />
+              <Area type="monotone" dataKey="john" name="John" stroke="#8884d8" fillOpacity={1} fill="url(#colorJohn)" />
+              <Area type="monotone" dataKey="sarah" name="Sarah" stroke="#82ca9d" fillOpacity={1} fill="url(#colorSarah)" />
+              <Area type="monotone" dataKey="tom" name="Tom" stroke="#ffc658" fillOpacity={1} fill="url(#colorTom)" />
             </AreaChart>
-          </ChartContainer>
+          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>

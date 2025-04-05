@@ -10,17 +10,13 @@ import {
 } from '@/components/ui/card';
 import {
   Input,
-} from '@/components/ui/input';
-import {
   Button,
-} from '@/components/ui/button';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from '@/components/ui';
 import { Search, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';

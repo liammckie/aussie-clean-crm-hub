@@ -1,28 +1,19 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
+  ResponsiveContainer,
   PieChart,
   Pie,
   Cell
 } from "recharts";
 import { TrendingUp } from "lucide-react";
-import { ChartContainer } from "@/components/ui/chart";
 
 const data = [
   { name: "Profit", value: 68 },
   { name: "Costs", value: 32 },
 ];
 
-const chartConfig = {
-  profit: {
-    label: "Profit",
-    color: "#22c55e"
-  },
-  costs: {
-    label: "Costs",
-    color: "#334155"
-  }
-};
+const COLORS = ["#22c55e", "#334155"];
 
 export function NetProfitCard() {
   return (
@@ -41,7 +32,7 @@ export function NetProfitCard() {
           </div>
         </div>
         <div className="h-[200px] w-full flex items-center justify-center">
-          <ChartContainer config={chartConfig}>
+          <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
                 data={data}
@@ -52,17 +43,13 @@ export function NetProfitCard() {
                 paddingAngle={5}
                 dataKey="value"
                 stroke="none"
-                nameKey="name"
               >
                 {data.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={index === 0 ? "var(--color-profit, #22c55e)" : "var(--color-costs, #334155)"} 
-                  />
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
             </PieChart>
-          </ChartContainer>
+          </ResponsiveContainer>
           <div className="absolute text-center">
             <div className="text-4xl font-bold">68%</div>
             <div className="text-sm text-muted-foreground">Profit Margin</div>

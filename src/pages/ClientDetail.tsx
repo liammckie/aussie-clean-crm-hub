@@ -60,12 +60,6 @@ import {
 } from "@/components/ui/table";
 import { useClients } from "@/hooks/use-clients";
 import { useClientRealtimeSync } from "@/hooks/use-realtime-sync";
-import { ClientContactsTab } from "@/components/client/ClientContactsTab";
-import { ContactDialog } from "@/components/client/ContactDialog";
-import { useUnifiedEntities } from "@/hooks/use-unified-entities";
-import { UnifiedContactFormData } from "@/types/form-types";
-import { validateContact } from "@/services/validation";
-import { toast } from "sonner";
 
 const getStatusColor = (status: string | null | undefined) => {
   switch (status) {
@@ -87,15 +81,12 @@ const ClientDetail = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
-  const [isAddContactOpen, setIsAddContactOpen] = useState(false);
   
   useClientRealtimeSync(id);
   
   const { useClientDetails, deleteClient, isDeletingClient } = useClients();
-  const { data: client, isLoading, error, refetch } = useClientDetails(id);
+  const { data: client, isLoading, error } = useClientDetails(id);
   
-  const { createContact, isCreatingContact } = useUnifiedEntities();
-
   const handleDeleteClient = async () => {
     if (!id) return;
     
@@ -180,75 +171,6 @@ const ClientDetail = () => {
     );
   };
   
-  const handleAddContact = (formData: UnifiedContactFormData) => {
-    if (!id) {
-      toast.error("Client ID is missing. Please try again.");
-      return;
-    }
-    
-    const validationResult = validateContact(formData);
-    if (!validationResult.success) {
-      const errors = validationResult.error.format();
-      let firstError = "Please check your form data";
-      
-      try {
-        const fieldWithError = Object.entries(errors).find(([key, value]) => {
-          return key !== '_errors' && 
-            typeof value === 'object' && 
-            value !== null &&
-            '_errors' in value &&
-            Array.isArray((value as any)._errors) && 
-            (value as any)._errors.length > 0;
-        });
-        
-        if (fieldWithError) {
-          const [fieldName, fieldErrors] = fieldWithError;
-          const errorMessage = (fieldErrors as { _errors: string[] })._errors[0];
-          firstError = `${fieldName}: ${errorMessage}`;
-        } else if (
-          '_errors' in errors && 
-          Array.isArray(errors._errors) && 
-          errors._errors.length > 0
-        ) {
-          firstError = errors._errors[0];
-        }
-      } catch (e) {
-        console.error("Error processing validation errors:", e);
-        firstError = "Validation failed, please check your input";
-      }
-      
-      toast.error(`Validation failed: ${firstError}`);
-      return;
-    }
-    
-    if (formData.is_primary && client?.client_contacts?.some(c => c.is_primary)) {
-      if (!confirm("A primary contact already exists. Set this new contact as primary instead?")) {
-        return;
-      }
-    }
-
-    createContact(
-      {
-        entityType: 'client',
-        entityId: id,
-        contactData: {
-          ...formData,
-          is_primary: formData.is_primary || false
-        }
-      },
-      {
-        onSuccess: () => {
-          setIsAddContactOpen(false);
-          refetch();
-          toast.success('Contact added successfully!');
-        },
-        onError: (error: any) => {
-          toast.error(`Failed to add contact: ${error.message}`);
-        }
-      }
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-64">
@@ -278,9 +200,6 @@ const ClientDetail = () => {
       </div>
     );
   }
-
-  const primaryContact = client?.client_contacts?.find(contact => contact.is_primary);
-  const hasPrimaryContact = !!primaryContact;
 
   return (
     <div className="container mx-auto px-0 max-w-full">
@@ -452,7 +371,7 @@ const ClientDetail = () => {
                   <CardTitle>Primary Contact</CardTitle>
                   <CardDescription>Main point of contact for this client</CardDescription>
                 </div>
-                <Button size="sm" variant="outline" onClick={() => setIsAddContactOpen(true)}>
+                <Button size="sm" variant="outline">
                   <User className="mr-2 h-4 w-4" /> Add Contact
                 </Button>
               </CardHeader>
@@ -491,13 +410,7 @@ const ClientDetail = () => {
                     <User className="h-8 w-8 text-muted-foreground mb-2" />
                     <h3 className="font-medium mb-1">No primary contact</h3>
                     <p className="text-sm text-muted-foreground mb-4">Add contact information for this client</p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      onClick={() => setIsAddContactOpen(true)}
-                    >
-                      Add Contact
-                    </Button>
+                    <Button size="sm" variant="outline">Add Contact</Button>
                   </div>
                 )}
               </CardContent>
@@ -539,7 +452,61 @@ const ClientDetail = () => {
         </TabsContent>
         
         <TabsContent value="contacts">
-          {id && <ClientContactsTab clientId={id} onContactAdded={() => refetch()} />}
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Client Contacts</CardTitle>
+                <CardDescription>Manage all contacts associated with this client</CardDescription>
+              </div>
+              <Button size="sm">
+                <User className="mr-2 h-4 w-4" /> Add Contact
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {client.client_contacts && client.client_contacts.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {client.client_contacts.map(contact => (
+                      <TableRow key={contact.id}>
+                        <TableCell className="font-medium">{contact.name}</TableCell>
+                        <TableCell>{contact.position || "-"}</TableCell>
+                        <TableCell>{contact.email}</TableCell>
+                        <TableCell>{contact.phone || contact.mobile || "-"}</TableCell>
+                        <TableCell>
+                          <Badge variant={contact.is_primary ? "default" : "outline"}>
+                            {contact.contact_type}
+                            {contact.is_primary ? " (Primary)" : ""}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm">Edit</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center border rounded-md border-dashed">
+                  <User className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No contacts found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    This client doesn't have any contacts yet.
+                  </p>
+                  <Button>Add First Contact</Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
         
         <TabsContent value="sites">
@@ -702,19 +669,6 @@ const ClientDetail = () => {
           </Card>
         </TabsContent>
       </Tabs>
-
-      <ContactDialog
-        open={isAddContactOpen}
-        onOpenChange={setIsAddContactOpen}
-        onSubmit={handleAddContact}
-        isSubmitting={isCreatingContact}
-        initialData={{
-          is_primary: !hasPrimaryContact,
-          entity_type: 'client',
-          entity_id: id
-        }}
-        title="Add New Contact"
-      />
     </div>
   );
 };
