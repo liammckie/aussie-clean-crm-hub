@@ -4,12 +4,14 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { ErrorReporting } from '@/utils/errorReporting';
+import { toast } from 'sonner';
 
 type SyncConfig = {
   table: string;
   schema?: string;
   queryKey: string | string[];
   enabled?: boolean;
+  onDataChange?: (payload: any) => void;
 };
 
 /**
@@ -22,7 +24,8 @@ export function useRealtimeSync(config: SyncConfig) {
     table, 
     schema = 'public', 
     queryKey, 
-    enabled = true 
+    enabled = true,
+    onDataChange 
   } = config;
   
   const queryClient = useQueryClient();
@@ -35,7 +38,7 @@ export function useRealtimeSync(config: SyncConfig) {
 
     try {
       channel = supabase
-        .channel('db-changes')
+        .channel(`${table}-changes`)
         .on(
           'postgres_changes',
           {
@@ -60,15 +63,22 @@ export function useRealtimeSync(config: SyncConfig) {
             
             // Invalidate the relevant queries
             queryClient.invalidateQueries({ queryKey: queryKeyArray });
+            
+            // Call custom handler if provided
+            if (onDataChange) {
+              onDataChange(payload);
+            }
           }
         )
         .subscribe((status) => {
-          console.log('Realtime subscription status:', status);
+          console.log(`Realtime subscription status for ${table}:`, status);
           
           if (status === 'SUBSCRIBED') {
             console.log(`Realtime sync enabled for ${table}`);
           } else if (status === 'CHANNEL_ERROR') {
             console.error(`Error subscribing to ${table} changes`);
+            
+            toast.error(`Failed to subscribe to real-time updates for ${table}`);
             
             ErrorReporting.captureMessage(
               `Failed to subscribe to real-time updates for ${table}`,
@@ -93,7 +103,7 @@ export function useRealtimeSync(config: SyncConfig) {
         supabase.removeChannel(channel);
       }
     };
-  }, [table, schema, queryKeyArray.join(','), enabled, queryClient]);
+  }, [table, schema, queryKeyArray.join(','), enabled, queryClient, onDataChange]);
 }
 
 /**
@@ -123,7 +133,18 @@ export function useClientRealtimeSync(clientId?: string) {
 export function useClientContactsRealtimeSync(clientId?: string) {
   return useRealtimeSync({
     table: 'client_contacts',
-    queryKey: ['client', clientId],
+    queryKey: ['client', clientId, 'contacts'],
+    enabled: !!clientId
+  });
+}
+
+/**
+ * Hook to synchronize client addresses in real-time
+ */
+export function useClientAddressesRealtimeSync(clientId?: string) {
+  return useRealtimeSync({
+    table: 'client_addresses',
+    queryKey: ['client', clientId, 'addresses'],
     enabled: !!clientId
   });
 }

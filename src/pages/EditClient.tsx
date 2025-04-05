@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ClientFormData, ClientWithContacts } from '@/services/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Users, Map } from 'lucide-react';
+import { ArrowLeft, Users, Map, Home } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { toast } from 'sonner';
 import { clientService } from '@/services';
@@ -11,6 +11,7 @@ import { useClients } from '@/hooks/use-clients';
 import { ClientDetailsTab } from '@/components/client/ClientDetailsTab';
 import { ClientContactsTab } from '@/components/client/ClientContactsTab';
 import { ClientSitesTab } from '@/components/client/ClientSitesTab';
+import { ClientAddressTab } from '@/components/client/ClientAddressTab';
 
 const EditClient = () => {
   const { id } = useParams<{ id: string }>();
@@ -44,7 +45,7 @@ const EditClient = () => {
   const { data: client, isLoading: isLoadingClient, refetch: refetchClient } = useClientDetails(id);
 
   useEffect(() => {
-    if (id) {
+    if (id && !isLoaded) {
       clientService.getClientById(id)
         .then(response => {
           if (!response || 'category' in response || !response.data) {
@@ -79,18 +80,55 @@ const EditClient = () => {
           setIsLoaded(true);
         })
         .catch(error => {
+          console.error('Error loading client data:', error);
           toast.error(`Failed to load client data: ${error.message}`);
         });
+    } else if (client && !isLoaded) {
+      // Use client data from React Query if available
+      setClientData({
+        business_name: client.business_name,
+        trading_name: client.trading_name || '',
+        abn: client.abn || '',
+        acn: client.acn || '',
+        industry: client.industry || '',
+        status: client.status,
+        onboarding_date: client.onboarding_date || undefined,
+        source: client.source || '',
+        billing_cycle: client.billing_cycle || '',
+        payment_terms: client.payment_terms || '',
+        payment_method: client.payment_method || '',
+        tax_status: client.tax_status || '',
+        credit_limit: client.credit_limit || undefined,
+        address_line_1: client.address_line_1 || '',
+        address_line_2: client.address_line_2 || '',
+        suburb: client.suburb || '',
+        state: client.state || '',
+        postcode: client.postcode || '',
+        country: client.country || 'Australia',
+      });
+      setIsLoaded(true);
     }
-  }, [id]);
+  }, [id, client, isLoaded]);
 
-  if (!isLoaded || isLoadingClient) {
-    return <div>Loading...</div>;
+  if (!isLoaded && isLoadingClient) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+        </div>
+      </div>
+    );
   }
 
   if (!id) {
     toast.error('Client ID is missing.');
-    return <div>Error: Client ID is missing</div>;
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="p-4 border rounded bg-red-50 text-red-800">
+          Error: Client ID is missing
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -122,7 +160,7 @@ const EditClient = () => {
       </div>
       
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{client?.business_name || 'Edit Client'}</h1>
+        <h1 className="text-2xl font-bold">{client?.business_name || clientData.business_name || 'Edit Client'}</h1>
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -131,6 +169,10 @@ const EditClient = () => {
           <TabsTrigger value="contacts">
             <Users className="h-4 w-4 mr-2" />
             Contacts
+          </TabsTrigger>
+          <TabsTrigger value="addresses">
+            <Home className="h-4 w-4 mr-2" />
+            Addresses
           </TabsTrigger>
           <TabsTrigger value="sites">
             <Map className="h-4 w-4 mr-2" />
@@ -151,6 +193,13 @@ const EditClient = () => {
             clientId={id} 
             contacts={client?.client_contacts || []} 
             onContactAdded={() => refetchClient()} 
+          />
+        </TabsContent>
+        
+        <TabsContent value="addresses">
+          <ClientAddressTab 
+            clientId={id} 
+            onAddressAdded={() => refetchClient()} 
           />
         </TabsContent>
         

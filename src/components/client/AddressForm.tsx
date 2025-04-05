@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
@@ -20,6 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { AddressType } from '@/services/client';
 
 // Address schema for validation
 const addressSchema = z.object({
@@ -58,7 +59,7 @@ export function AddressForm({
       state: initialData.state || '',
       postcode: initialData.postcode || '',
       country: initialData.country || 'Australia',
-      address_type: initialData.address_type || 'billing',
+      address_type: (initialData.address_type as AddressType) || 'billing',
     }
   });
 
@@ -84,9 +85,13 @@ export function AddressForm({
     'Australian Capital Territory': 'ACT'
   };
 
+  const handleFormSubmit = (data: AddressFormData) => {
+    onSubmit(data);
+  };
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         {showAddressType && (
           <FormField
             control={form.control}
@@ -193,6 +198,20 @@ export function AddressForm({
               <FormLabel>Postcode</FormLabel>
               <FormControl>
                 <Input placeholder="3000" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
+          name="country"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Country</FormLabel>
+              <FormControl>
+                <Input placeholder="Australia" defaultValue="Australia" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>

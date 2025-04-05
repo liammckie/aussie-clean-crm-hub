@@ -7,6 +7,9 @@ export type ClientStatus = 'Active' | 'Prospect' | 'On Hold' | 'Cancelled';
 // Contact type to match database enum
 export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary';
 
+// Address type to match database enum
+export type AddressType = 'billing' | 'postal' | 'physical';
+
 // Client data types
 export interface ClientFormData {
   business_name: string;
@@ -30,6 +33,18 @@ export interface ClientFormData {
   state?: string | null;
   postcode?: string | null;
   country?: string | null;
+}
+
+// Client address form data
+export interface AddressFormData {
+  client_id: string;
+  street: string;
+  street_2?: string | null;
+  suburb: string;
+  state: string;
+  postcode: string;
+  country: string;
+  address_type: AddressType;
 }
 
 // Client contact form data
@@ -57,7 +72,11 @@ export type ClientRecord = Tables<'clients'>;
 // Contact type from database
 export type ContactRecord = Tables<'client_contacts'>;
 
+// Address type from database
+export type AddressRecord = Tables<'client_addresses'>;
+
 // Client with contacts
 export interface ClientWithContacts extends ClientRecord {
   client_contacts?: ContactRecord[];
+  client_addresses?: AddressRecord[];
 }

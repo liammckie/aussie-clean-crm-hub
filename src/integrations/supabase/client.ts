@@ -28,11 +28,19 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   },
 });
 
-// Check if an error is a Supabase error
-export const isSupabaseError = (error: any): boolean => {
-  return error && 
-    typeof error === 'object' && 
-    ('code' in error || 'message' in error || 'error' in error);
+// Type guard to check if an error is from Supabase
+export const isSupabaseError = (error: unknown): boolean => {
+  if (!error || typeof error !== 'object') return false;
+  
+  // Check for common properties in Supabase error objects
+  return (
+    'code' in error || 
+    'message' in error || 
+    'error' in error || 
+    'details' in error ||
+    'hint' in error ||
+    'errorMessage' in error
+  );
 };
 
 /**
@@ -44,7 +52,7 @@ export function setupSupabaseInterceptor(client: SupabaseClient) {
     // @ts-ignore - Accessing private members for debug purposes
     if (client._logDebug) {
       console.log('Supabase debug logging already enabled');
-      return;
+      return client;
     }
     
     // @ts-ignore - Enable debug logging

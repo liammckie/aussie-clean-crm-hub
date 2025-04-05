@@ -38,9 +38,9 @@ export function validateBusinessIdentifiers({ abn, acn }: { abn?: string, acn?: 
  * - Formats dates
  * - Validates required fields match database schema
  */
-export function prepareClientDataForSubmission(data: ClientFormData) {
+export function prepareClientDataForSubmission(data: ClientFormData): ClientFormData {
   // Create a new object to avoid mutating the original
-  const preparedData = { ...data };
+  const preparedData: ClientFormData = { ...data };
 
   // Clean business identifiers
   if (preparedData.abn) {
@@ -56,6 +56,7 @@ export function prepareClientDataForSubmission(data: ClientFormData) {
     preparedData.status = 'Prospect';
   }
 
+  // Handle onboarding date
   if (!preparedData.onboarding_date) {
     // Set current date if not provided
     const today = new Date();
@@ -63,9 +64,20 @@ export function prepareClientDataForSubmission(data: ClientFormData) {
   } else if (typeof preparedData.onboarding_date === 'string') {
     // Ensure date is in YYYY-MM-DD format for database
     try {
-      const dateObj = new Date(preparedData.onboarding_date);
-      if (!isNaN(dateObj.getTime())) {
-        preparedData.onboarding_date = dateObj.toISOString().split('T')[0];
+      // Check if the string is already in YYYY-MM-DD format
+      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      if (dateRegex.test(preparedData.onboarding_date)) {
+        // It's already in the correct format
+      } else {
+        const dateObj = new Date(preparedData.onboarding_date);
+        if (!isNaN(dateObj.getTime())) {
+          preparedData.onboarding_date = dateObj.toISOString().split('T')[0];
+        } else {
+          console.warn('Invalid date format for onboarding_date:', preparedData.onboarding_date);
+          // If date parsing fails, use current date
+          const today = new Date();
+          preparedData.onboarding_date = today.toISOString().split('T')[0];
+        }
       }
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -73,6 +85,11 @@ export function prepareClientDataForSubmission(data: ClientFormData) {
       const today = new Date();
       preparedData.onboarding_date = today.toISOString().split('T')[0];
     }
+  }
+
+  // Ensure country has a default value
+  if (!preparedData.country) {
+    preparedData.country = 'Australia';
   }
 
   return preparedData;
@@ -106,4 +123,27 @@ export function loadSampleClientData(setFormData: (data: ClientFormData) => void
   };
 
   setFormData(sampleClient);
+}
+
+/**
+ * Format a date string or Date object to display format (DD/MM/YYYY)
+ * @param date The date to format
+ * @returns Formatted date string
+ */
+export function formatDisplayDate(date: string | Date | null | undefined): string {
+  if (!date) return '';
+  
+  try {
+    const dateObj = typeof date === 'string' ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return '';
+    
+    return dateObj.toLocaleDateString('en-AU', {
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric'
+    });
+  } catch (error) {
+    console.error('Error formatting date for display:', error);
+    return '';
+  }
 }

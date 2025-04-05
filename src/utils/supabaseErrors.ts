@@ -31,6 +31,9 @@ interface SupabaseErrorWithCode {
   code?: string;
   message?: string;
   error?: string;
+  details?: string | object;
+  hint?: string;
+  errorMessage?: string;
 }
 
 /**
@@ -102,6 +105,12 @@ export function handleSupabaseError(
     // Add specific details based on error type
     if (category === ErrorCategory.VALIDATION && supabaseError.message) {
       message = `${customMessage}: ${supabaseError.message}`;
+    } else if (supabaseError.error) {
+      message = `${customMessage}: ${supabaseError.error}`;
+    } else if (supabaseError.errorMessage) {
+      message = `${customMessage}: ${supabaseError.errorMessage}`;
+    } else if (supabaseError.details) {
+      message = `${customMessage}: ${typeof supabaseError.details === 'string' ? supabaseError.details : JSON.stringify(supabaseError.details)}`;
     }
   } else if (error instanceof Error) {
     message = `${customMessage}: ${error.message}`;

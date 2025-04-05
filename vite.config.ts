@@ -38,6 +38,9 @@ export default defineConfig(({ mode }: { mode: string }) => ({
   define: {
     // Provide environment variables to client code
     'import.meta.env.PROD': mode === 'production',
-    'import.meta.env': JSON.stringify(process.env)
+    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(process.env.VITE_SUPABASE_URL || ''),
+    'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(process.env.VITE_SUPABASE_ANON_KEY || ''),
+    'import.meta.env.VITE_SENTRY_DSN': JSON.stringify(process.env.VITE_SENTRY_DSN || ''),
+    'import.meta.env.VITE_ENVIRONMENT': JSON.stringify(process.env.VITE_ENVIRONMENT || 'development')
   }
 }));

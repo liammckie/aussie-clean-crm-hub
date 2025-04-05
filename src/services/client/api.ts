@@ -1,7 +1,13 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
-import { ClientFormData, ContactFormData, ValidationErrorResponse, ClientRecord } from './types';
+import { 
+  ClientFormData, 
+  ContactFormData, 
+  ValidationErrorResponse, 
+  ClientRecord,
+  AddressFormData 
+} from './types';
 
 /**
  * Client API service - handles raw Supabase calls for client data
@@ -32,7 +38,7 @@ export const clientApi = {
   },
 
   /**
-   * Fetch a single client by ID, including contacts
+   * Fetch a single client by ID, including contacts and addresses
    */
   fetchClientById: async (clientId: string) => {
     try {
@@ -40,7 +46,8 @@ export const clientApi = {
         .from('clients')
         .select(`
           *,
-          client_contacts(*)
+          client_contacts(*),
+          client_addresses(*)
         `)
         .eq('id', clientId)
         .single();
@@ -196,6 +203,67 @@ export const clientApi = {
         error,
         'Failed to create client contact',
         { operation: 'createClientContact', contactData }
+      );
+    }
+  },
+
+  /**
+   * Fetch client addresses
+   */
+  fetchClientAddresses: async (clientId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('client_addresses')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      return handleSupabaseError(
+        error,
+        `Failed to fetch addresses for client with ID ${clientId}`,
+        { operation: 'fetchClientAddresses', clientId }
+      );
+    }
+  },
+
+  /**
+   * Create a client address
+   */
+  createClientAddress: async (addressData: AddressFormData) => {
+    try {
+      // Transform to match database schema
+      const dbAddressData = {
+        client_id: addressData.client_id,
+        street: addressData.street,
+        suburb: addressData.suburb,
+        state: addressData.state,
+        postcode: addressData.postcode,
+        country: addressData.country,
+        address_type: addressData.address_type
+      };
+
+      const { data, error } = await supabase
+        .from('client_addresses')
+        .insert(dbAddressData)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return { data, error: null };
+    } catch (error) {
+      return handleSupabaseError(
+        error,
+        'Failed to create client address',
+        { operation: 'createClientAddress', addressData }
       );
     }
   }
