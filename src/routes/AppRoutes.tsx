@@ -18,7 +18,8 @@ import {
   LazyEditClient,
   LazyLogin,
   LazyNotFound,
-  LazyContracts
+  LazyContracts,
+  LazyNewContract
 } from "./lazyRoutes";
 
 // ProtectedRoute component to protect routes that require authentication
@@ -263,6 +264,16 @@ export const AppRoutes = () => {
           <RouterErrorBoundary>
             <ProtectedRoute>
               <LazyContracts />
+            </ProtectedRoute>
+          </RouterErrorBoundary>
+        }
+      />
+      <Route 
+        path="/contracts/new" 
+        element={
+          <RouterErrorBoundary>
+            <ProtectedRoute>
+              <LazyNewContract />
             </ProtectedRoute>
           </RouterErrorBoundary>
         }

@@ -48,5 +48,6 @@ export const LazyClientDetail = withLazyLoading(() => import("@/pages/ClientDeta
 export const LazyNewClient = withLazyLoading(() => import("@/pages/NewClient"), "NewClient");
 export const LazyEditClient = withLazyLoading(() => import("@/pages/EditClient"), "EditClient");
 export const LazyContracts = withLazyLoading(() => import("@/pages/Contracts"), "Contracts");
+export const LazyNewContract = withLazyLoading(() => import("@/pages/NewContract"), "NewContract");
 export const LazyNotFound = withLazyLoading(() => import("@/pages/NotFound"), "NotFound");
 export const LazyIndex = withLazyLoading(() => import("@/pages/Index"), "Index");
