@@ -46,7 +46,7 @@ export function categorizeError(error: unknown): ErrorCategory {
 
   // Safe type assertion since we've verified it's a Supabase error
   const supabaseError = error as SupabaseErrorWithCode;
-  const code = supabaseError.code;
+  const code = supabaseError?.code;
 
   // Authentication errors
   if (code?.startsWith('auth/') || code === 'unauthorized') {
@@ -99,21 +99,27 @@ export function handleSupabaseError(
   if (isSupabaseError(error)) {
     const supabaseError = error as SupabaseErrorWithCode;
     category = categorizeError(error);
-    code = supabaseError.code;
+    code = supabaseError?.code;
     details = error;
     
     // Add specific details based on error type
-    if (category === ErrorCategory.VALIDATION && supabaseError.message) {
+    if (category === ErrorCategory.VALIDATION && supabaseError?.message) {
       message = `${customMessage}: ${supabaseError.message}`;
-    } else if (supabaseError.error) {
+    } else if (supabaseError?.error) {
       message = `${customMessage}: ${supabaseError.error}`;
-    } else if (supabaseError.errorMessage) {
+    } else if (supabaseError?.errorMessage) {
       message = `${customMessage}: ${supabaseError.errorMessage}`;
-    } else if (supabaseError.details) {
+    } else if (supabaseError?.details) {
       message = `${customMessage}: ${typeof supabaseError.details === 'string' ? supabaseError.details : JSON.stringify(supabaseError.details)}`;
     }
   } else if (error instanceof Error) {
     message = `${customMessage}: ${error.message}`;
+    details = error;
+  } else if (typeof error === 'string') {
+    message = `${customMessage}: ${error}`;
+    details = { error };
+  } else if (error && typeof error === 'object') {
+    message = `${customMessage}: ${JSON.stringify(error)}`;
     details = error;
   }
 

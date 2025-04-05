@@ -1,4 +1,3 @@
-
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -12,6 +11,8 @@ type SyncConfig = {
   queryKey: string | string[];
   enabled?: boolean;
   onDataChange?: (payload: any) => void;
+  retries?: number;
+  maxRetries?: number;
 };
 
 /**
@@ -25,7 +26,9 @@ export function useRealtimeSync(config: SyncConfig) {
     schema = 'public', 
     queryKey, 
     enabled = true,
-    onDataChange 
+    onDataChange,
+    retries = 0,
+    maxRetries = 3
   } = config;
   
   const queryClient = useQueryClient();
@@ -38,7 +41,7 @@ export function useRealtimeSync(config: SyncConfig) {
 
     try {
       channel = supabase
-        .channel(`${table}-changes`)
+        .channel(`${table}-changes-${Date.now()}`) // Use unique channel name to avoid conflicts
         .on(
           'postgres_changes',
           {
@@ -78,13 +81,26 @@ export function useRealtimeSync(config: SyncConfig) {
           } else if (status === 'CHANNEL_ERROR') {
             console.error(`Error subscribing to ${table} changes`);
             
-            toast.error(`Failed to subscribe to real-time updates for ${table}`);
-            
-            ErrorReporting.captureMessage(
-              `Failed to subscribe to real-time updates for ${table}`,
-              { table, schema },
-              'error'
-            );
+            // Only show toast on final retry
+            if (retries >= maxRetries) {
+              toast.error(`Failed to establish real-time connection`, {
+                description: `Updates to ${table} may not appear automatically. Try refreshing the page.`
+              });
+              
+              ErrorReporting.captureMessage(
+                `Failed to subscribe to real-time updates for ${table} after ${retries} attempts`,
+                { table, schema },
+                'error'
+              );
+            } else if (retries < maxRetries) {
+              // Retry with exponential backoff
+              const retryDelay = Math.min(1000 * Math.pow(2, retries), 10000);
+              console.log(`Will retry ${table} subscription in ${retryDelay}ms (attempt ${retries + 1})`);
+              
+              setTimeout(() => {
+                useRealtimeSync({...config, retries: retries + 1, maxRetries});
+              }, retryDelay);
+            }
           }
         });
     } catch (error) {
@@ -103,7 +119,7 @@ export function useRealtimeSync(config: SyncConfig) {
         supabase.removeChannel(channel);
       }
     };
-  }, [table, schema, queryKeyArray.join(','), enabled, queryClient, onDataChange]);
+  }, [table, schema, queryKeyArray.join(','), enabled, queryClient, onDataChange, retries, maxRetries]);
 }
 
 /**

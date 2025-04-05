@@ -34,11 +34,12 @@ function initSentry() {
     integrations: [
       new BrowserTracing({
         routingInstrumentation: Sentry.reactRouterV6Instrumentation(
-          React.createElement, // Added React.createElement as a required parameter
+          React.createElement,
           useLocation,
           useNavigationType,
           createRoutesFromChildren,
-          matchRoutes
+          matchRoutes,
+          {}
         ),
       }),
       new Replay({
@@ -132,8 +133,7 @@ export const withSentryAPI = async <T,>(
     transaction.setStatus("internal_error");
     Sentry.captureException(error, {
       tags: { api: options.name },
-      // Fix: Change extras to extra which is the correct property name
-      extra: options.data,
+      extra: options.data, // Changed from extras to extra - the correct property name
     });
     throw error;
   } finally {

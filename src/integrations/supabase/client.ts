@@ -2,26 +2,13 @@
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-// Default values for local development
-const DEFAULT_SUPABASE_URL = 'https://your-project.supabase.co';
-const DEFAULT_SUPABASE_ANON_KEY = 'your-anon-key';
-
-// Get URL and key from environment variables
-let supabaseUrl: string;
-let supabaseAnonKey: string;
-
-// Check if import.meta is available (browser environment)
-if (typeof import.meta !== 'undefined' && import.meta.env) {
-  supabaseUrl = import.meta.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
-} else {
-  // Fallback for environments where import.meta is not available
-  supabaseUrl = process.env.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
-}
+// Define the Supabase project URL and anon key
+// Using the project ID from the project information
+const SUPABASE_URL = 'https://fzrhweggxusfwrohtvpb.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cmh3ZWdneHVzZndyb2h0dnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MDU4MjQsImV4cCI6MjA1OTI4MTgyNH0.W0ocOlTW9Oc4nRytpYByg49B_4pA4lgWoxeSUM0tqdc';
 
 // Create the Supabase client
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
