@@ -8,13 +8,13 @@ import { ContactBaseFields } from './form/ContactBaseFields';
 import { ContactTypeField } from './form/ContactTypeField';
 import { ContactAdditionalFields } from './form/ContactAdditionalFields';
 import { IsPrimaryField } from './form/IsPrimaryField';
-import { UnifiedContactForm as ContactFormType } from '@/types/form-types';
+import { UnifiedContactFormData } from '@/types/form-types';
 import { unifiedContactSchema, createDefaultContactValues } from '@/types/form-types';
 
 interface UnifiedContactFormProps {
-  onSubmit: (data: ContactFormType) => void;
+  onSubmit: (data: UnifiedContactFormData) => void;
   isLoading?: boolean;
-  initialData?: Partial<ContactFormType>;
+  initialData?: Partial<UnifiedContactFormData>;
   contactTypes?: string[];
   buttonText?: string;
   showIsPrimary?: boolean;
@@ -37,12 +37,12 @@ export function UnifiedContactForm({
     contactTypes[0]
   );
 
-  const form = useForm<ContactFormType>({
+  const form = useForm<UnifiedContactFormData>({
     resolver: zodResolver(unifiedContactSchema),
     defaultValues: formInitialData
   });
 
-  const handleFormSubmit = (data: ContactFormType) => {
+  const handleFormSubmit = (data: UnifiedContactFormData) => {
     // Ensure is_primary is always a boolean
     const submissionData = {
       ...data,
@@ -61,7 +61,7 @@ export function UnifiedContactForm({
         </div>
         
         {showIsPrimary && (
-          <IsPrimaryField<ContactFormType> 
+          <IsPrimaryField<UnifiedContactFormData> 
             form={form} 
             label="Primary contact" 
           />

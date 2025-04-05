@@ -4,15 +4,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { UnifiedAddressForm as AddressFormType } from '@/types/form-types';
+import { UnifiedAddressFormData } from '@/types/form-types';
 import { AddressTypeField } from './form/AddressTypeField';
 import { AddressFields } from './form/AddressFields';
 import { IsPrimaryField } from './form/IsPrimaryField';
 import { unifiedAddressSchema, createDefaultAddressValues } from '@/types/form-types';
 
 interface UnifiedAddressFormProps {
-  onSubmit: (data: AddressFormType) => void;
-  initialData?: Partial<AddressFormType>;
+  onSubmit: (data: UnifiedAddressFormData) => void;
+  initialData?: Partial<UnifiedAddressFormData>;
   isLoading?: boolean;
   buttonText?: string;
   showAddressType?: boolean;
@@ -33,12 +33,12 @@ export function UnifiedAddressForm({
     is_primary: initialData.is_primary ?? false
   });
 
-  const form = useForm<AddressFormType>({
+  const form = useForm<UnifiedAddressFormData>({
     resolver: zodResolver(unifiedAddressSchema),
     defaultValues: formInitialData
   });
 
-  const handleFormSubmit = (data: AddressFormType) => {
+  const handleFormSubmit = (data: UnifiedAddressFormData) => {
     // Ensure is_primary is always a boolean
     const submissionData = {
       ...data,
@@ -55,7 +55,7 @@ export function UnifiedAddressForm({
         <AddressFields form={form} />
 
         {showIsPrimary && (
-          <IsPrimaryField<AddressFormType> 
+          <IsPrimaryField<UnifiedAddressFormData> 
             form={form} 
             label="Set as primary address" 
           />
