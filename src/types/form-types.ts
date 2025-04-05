@@ -1,7 +1,6 @@
 
 import { z } from 'zod';
-// Remove the import that causes conflicts
-// import { AddressType, EntityType } from '@/services/unified/types';
+// Import EntityType from the unified types
 import { EntityType } from '@/services/unified/types';
 
 /**
@@ -118,7 +117,7 @@ export const createDefaultAddressValues = (
   postcode: initialData.postcode || '',
   country: initialData.country || 'Australia',
   address_type: initialData.address_type || 'billing',
-  is_primary: initialData.is_primary ?? false,
+  is_primary: Boolean(initialData.is_primary ?? false),  // Ensure it's always a boolean
   entity_type: initialData.entity_type,
   entity_id: initialData.entity_id,
   name: initialData.name || '',
@@ -143,7 +142,7 @@ export const createDefaultContactValues = (
   company: initialData.company || '',
   contact_type: initialData.contact_type || defaultContactType,
   preferred_communication: initialData.preferred_communication || 'email',
-  is_primary: initialData.is_primary ?? false,
+  is_primary: Boolean(initialData.is_primary ?? false),  // Ensure it's always a boolean
   entity_type: initialData.entity_type,
   entity_id: initialData.entity_id,
   notes: initialData.notes || '',

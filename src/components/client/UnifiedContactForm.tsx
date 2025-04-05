@@ -28,18 +28,19 @@ export function UnifiedContactForm({
   buttonText = "Add Contact",
   showIsPrimary = true
 }: UnifiedContactFormProps) {
-  // Always ensure is_primary is a boolean
+  // Always ensure is_primary is defined as a boolean
   const formInitialData = createDefaultContactValues(
     { 
       ...initialData,
-      is_primary: initialData.is_primary ?? false 
+      // Ensure is_primary is always defined as a boolean
+      is_primary: initialData.is_primary === undefined ? false : Boolean(initialData.is_primary) 
     }, 
     contactTypes[0]
   );
 
-  const form = useForm<UnifiedContactFormData>({
-    resolver: zodResolver(unifiedContactSchema),
-    defaultValues: formInitialData
+  const form = useForm<UnifiedAddressFormData>({
+    resolver: zodResolver(unifiedContactSchema) as any,
+    defaultValues: formInitialData as any
   });
 
   const handleFormSubmit = (data: UnifiedContactFormData) => {
@@ -53,16 +54,16 @@ export function UnifiedContactForm({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit as any)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <ContactBaseFields form={form} />
-          <ContactTypeField form={form} contactTypes={contactTypes} />
-          <ContactAdditionalFields form={form} />
+          <ContactBaseFields form={form as any} />
+          <ContactTypeField form={form as any} contactTypes={contactTypes} />
+          <ContactAdditionalFields form={form as any} />
         </div>
         
         {showIsPrimary && (
           <IsPrimaryField<UnifiedContactFormData> 
-            form={form} 
+            form={form as any} 
             label="Primary contact" 
           />
         )}

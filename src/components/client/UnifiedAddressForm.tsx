@@ -27,10 +27,11 @@ export function UnifiedAddressForm({
   showAddressType = true,
   showIsPrimary = true,
 }: UnifiedAddressFormProps) {
-  // Always ensure is_primary is a boolean
+  // Always ensure is_primary is defined as a boolean
   const formInitialData = createDefaultAddressValues({
     ...initialData,
-    is_primary: initialData.is_primary ?? false
+    // Ensure is_primary is always defined as a boolean
+    is_primary: initialData.is_primary === undefined ? false : Boolean(initialData.is_primary)
   });
 
   const form = useForm<UnifiedAddressFormData>({

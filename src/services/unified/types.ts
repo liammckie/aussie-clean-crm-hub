@@ -1,6 +1,4 @@
 
-export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
-// Import these types from form-types.ts instead of redefining them
 import { 
   AddressType,
   ContactType,
@@ -8,6 +6,8 @@ import {
   UnifiedAddressFormData,
   UnifiedContactFormData
 } from '@/types/form-types';
+
+export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
 
 export interface UnifiedAddressRecord {
   id: string;
