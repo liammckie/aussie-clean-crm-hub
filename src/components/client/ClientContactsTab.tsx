@@ -7,14 +7,14 @@ import {
   CardTitle,
   CardDescription
 } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import ContactsTable from '@/components/shared/ContactsTable';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
-import { UnifiedContactForm } from '@/components/client/UnifiedContactForm';
 import { UnifiedContactFormData } from '@/types/form-types';
 import { validateContact } from '@/services/validation';
-import { X } from 'lucide-react';
+import { User } from 'lucide-react';
+import { ContactDialog } from '@/components/client/ContactDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -162,6 +162,9 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     setIsContactDialogOpen(true);
   };
 
+  // Check if we have any primary contact
+  const hasPrimaryContact = contacts?.some(contact => contact.is_primary);
+
   return (
     <Card>
       <CardHeader className="flex flex-row justify-between items-center">
@@ -169,6 +172,12 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           <CardTitle>Client Contacts</CardTitle>
           <CardDescription>Manage contacts for this client</CardDescription>
         </div>
+        <Button
+          onClick={handleAddClick}
+          size="sm"
+        >
+          <User className="mr-2 h-4 w-4" /> Add Contact
+        </Button>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -188,29 +197,18 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           />
         )}
 
-        <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader className="flex justify-between items-center">
-              <DialogTitle>Add New Contact</DialogTitle>
-              <DialogClose asChild>
-                <button className="rounded-full h-6 w-6 flex items-center justify-center border border-input">
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
-                </button>
-              </DialogClose>
-            </DialogHeader>
-            <UnifiedContactForm 
-              onSubmit={handleContactSubmit}
-              isLoading={isCreatingContact}
-              contactTypes={['Primary', 'Billing', 'Operations', 'Emergency', 'Technical', 'Support', 'Sales']}
-              buttonText="Add Contact"
-              initialData={{
-                is_primary: contacts && contacts.length > 0 ? 
-                  !contacts.some(contact => contact.is_primary) : true
-              }}
-            />
-          </DialogContent>
-        </Dialog>
+        <ContactDialog
+          open={isContactDialogOpen}
+          onOpenChange={setIsContactDialogOpen}
+          onSubmit={handleContactSubmit}
+          isSubmitting={isCreatingContact}
+          initialData={{
+            is_primary: !hasPrimaryContact, // Set as primary if no primary contact exists
+            entity_type: 'client',
+            entity_id: clientId
+          }}
+          title="Add New Contact"
+        />
 
         <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
           <AlertDialogContent>
