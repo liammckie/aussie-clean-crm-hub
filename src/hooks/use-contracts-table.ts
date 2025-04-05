@@ -2,6 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { contractService } from '@/services/contract';
+import { getMockContractData } from '@/utils/contractTestData';
 
 export function useContracts() {
   const queryClient = useQueryClient();
@@ -15,10 +16,29 @@ export function useContracts() {
   } = useQuery({
     queryKey: ['contracts-table'],
     queryFn: async () => {
+      // Check if we have mock data in localStorage (for permission error workaround)
+      const mockDataStr = localStorage.getItem('mock-contracts-data');
+      if (mockDataStr) {
+        try {
+          console.log('Using mock contracts data from localStorage');
+          // Clear the mock data after reading it so it doesn't persist forever
+          localStorage.removeItem('mock-contracts-data');
+          return JSON.parse(mockDataStr);
+        } catch (e) {
+          console.error('Error parsing mock data from localStorage:', e);
+        }
+      }
+      
       // Get all contracts
       const response = await contractService.getAllContracts();
       
       if ('category' in response) {
+        // If it's a permission error, we'll let the component handle it
+        // by showing a visualization option
+        if (response.category === 'permission') {
+          console.log('Permission error fetching contracts');
+        }
+        
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
       }

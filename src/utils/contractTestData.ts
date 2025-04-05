@@ -1,4 +1,3 @@
-
 import { generateRandomId } from '@/utils/idGenerator';
 import { contractService } from '@/services/contract';
 import { toast } from 'sonner';
@@ -96,6 +95,62 @@ const formatDateToISODate = (date: Date): string => {
  */
 const randomValue = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min + 1)) + min;
+};
+
+/**
+ * Generates random client names for visualization purposes
+ */
+const generateClientName = () => {
+  const companies = [
+    'Acme Corp', 'TechGlobal', 'Pacific Enterprises', 
+    'Sunset Industries', 'Metro Services', 'Harbor Group',
+    'Summit Holdings', 'Evergreen Solutions', 'Cityscape Properties',
+    'Horizon Healthcare', 'Atlas Logistics', 'Pinnacle Retail'
+  ];
+  
+  return companies[Math.floor(Math.random() * companies.length)];
+};
+
+/**
+ * Generate mock contract data for UI visualization (no database calls)
+ */
+export const getMockContractData = (count = 10) => {
+  const mockContracts = [];
+  
+  for (let i = 0; i < count; i++) {
+    const weeklyValue = randomValue(1000, 10000);
+    const monthlyValue = weeklyValue * 4.33;
+    const annualValue = weeklyValue * 52;
+    
+    const now = new Date();
+    const startDate = randomDate(new Date(now.getFullYear() - 1, 0, 1), now);
+    const endDate = randomDate(now, new Date(now.getFullYear() + 2, 11, 31));
+    
+    mockContracts.push({
+      id: generateRandomId(),
+      client_id: generateRandomId(),
+      client_name: generateClientName(),
+      contract_name: generateContractName(),
+      contract_code: `C${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
+      service_type: generateServiceType(),
+      status: generateStatus(),
+      delivery_mode: generateDeliveryMode(),
+      account_manager: generateManagerName(),
+      state_manager: generateManagerName(),
+      national_manager: generateManagerName(),
+      start_date: formatDateToISODate(startDate),
+      end_date: formatDateToISODate(endDate),
+      total_weekly_value: weeklyValue,
+      total_monthly_value: monthlyValue,
+      total_annual_value: annualValue,
+      description: `This is a mock visualization contract for testing purposes.`,
+      billing_frequency: 'Monthly',
+      billing_type: 'Fixed',
+      payment_terms: 'Net 30'
+    });
+  }
+  
+  return mockContracts;
 };
 
 /**

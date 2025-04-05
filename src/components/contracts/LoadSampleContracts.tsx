@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { createSampleContracts } from '@/utils/contractTestData';
+import { createSampleContracts, getMockContractData } from '@/utils/contractTestData';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Loader2, AlertCircle } from 'lucide-react';
+import { Loader2, AlertCircle, Info } from 'lucide-react';
 import { contractService } from '@/services/contract';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { AppLogger, LogCategory, Cache, withCache } from '@/utils/logging';
@@ -16,6 +16,7 @@ interface LoadSampleContractsProps {
 export function LoadSampleContracts({ onContractsLoaded }: LoadSampleContractsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [attempts, setAttempts] = useState(0); // Track number of attempts
   
   // Fetch existing clients to use for sample contracts
   const { data: existingClients, error: clientsError, refetch: refetchClients } = useQuery({
@@ -74,6 +75,10 @@ export function LoadSampleContracts({ onContractsLoaded }: LoadSampleContractsPr
           const response = await contractService.getAllContracts();
           
           if ('category' in response) {
+            if (response.category === 'permission') {
+              console.log('Permission issue detected when checking contracts');
+              return [];
+            }
             throw new Error(response.message);
           }
           
@@ -93,6 +98,7 @@ export function LoadSampleContracts({ onContractsLoaded }: LoadSampleContractsPr
   const handleLoadSample = async () => {
     setIsLoading(true);
     setError(null);
+    setAttempts(prev => prev + 1);
     
     try {
       AppLogger.info(LogCategory.CONTRACT, 'Load sample contracts initiated');
@@ -134,35 +140,85 @@ export function LoadSampleContracts({ onContractsLoaded }: LoadSampleContractsPr
         clientIds: existingClients ? JSON.stringify(existingClients.map(c => c.id)) : 'none'
       });
       
-      toast.error('Failed to load sample data', {
-        description: errorMessage
-      });
+      // Show toast with more helpful message if permission error
+      if (errorMessage.includes('permission') || attempts > 0) {
+        toast.error('Permission error loading contracts', {
+          description: "Try using the 'View Sample Data' option instead"
+        });
+      } else {
+        toast.error('Failed to load sample data', {
+          description: errorMessage
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
   
+  // Check for permissions issue during rendering
+  const hasPermissionIssue = error?.includes('permission') || 
+    (attempts > 0 && existingContracts?.length === 0);
+
   return (
     <div>
-      <Button 
-        variant="outline" 
-        onClick={handleLoadSample}
-        disabled={isLoading || hasExistingContracts}
-        size="sm"
-      >
-        {isLoading ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Loading samples...
-          </>
-        ) : hasExistingContracts ? (
-          'Samples Already Loaded'
-        ) : (
-          'Load Sample Contracts'
-        )}
-      </Button>
+      {hasPermissionIssue ? (
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline" 
+            onClick={handleLoadSample}
+            disabled={isLoading || hasExistingContracts}
+            size="sm"
+            className="text-amber-600 border-amber-400"
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Loading...
+              </>
+            ) : (
+              <>
+                <Info className="mr-2 h-4 w-4" />
+                Try Again
+              </>
+            )}
+          </Button>
+          <Button 
+            variant="default" 
+            onClick={() => {
+              // Use mock data instead
+              const mockData = getMockContractData(8);
+              localStorage.setItem('mock-contracts-data', JSON.stringify(mockData));
+              toast.success('Loaded sample visualization data', {
+                description: "Note: This is for UI testing only and won't persist"
+              });
+              onContractsLoaded();
+            }}
+            size="sm"
+          >
+            View Sample Data
+          </Button>
+        </div>
+      ) : (
+        <Button 
+          variant="outline" 
+          onClick={handleLoadSample}
+          disabled={isLoading || hasExistingContracts}
+          size="sm"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Loading samples...
+            </>
+          ) : hasExistingContracts ? (
+            'Samples Already Loaded'
+          ) : (
+            'Load Sample Contracts'
+          )}
+        </Button>
+      )}
       
-      {error && (
+      {error && !hasPermissionIssue && (
         <div className="flex items-center text-sm text-destructive mt-2">
           <AlertCircle className="h-4 w-4 mr-1" />
           Error: {error}

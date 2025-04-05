@@ -13,11 +13,24 @@ import { toast } from "sonner";
 import { AlertCircle } from "lucide-react";
 import { TabulatorTable } from "@/components/contracts/TabulatorTable";
 import { LoadSampleContracts } from "@/components/contracts/LoadSampleContracts";
+import { getMockContractData } from "@/utils/contractTestData";
 
 export default function Contracts() {
   const { contracts, isLoadingContracts, contractsError, refetchContracts } = useContracts();
   const [selectedContracts, setSelectedContracts] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<string>("tabulator");
+  const [useMockData, setUseMockData] = useState(false);
+  const [mockContracts, setMockContracts] = useState<any[]>([]);
+
+  useEffect(() => {
+    // If there's a permission error, load mock data for visualization
+    if (contractsError && contractsError.message?.includes('permission')) {
+      const sampleData = getMockContractData(5);
+      setMockContracts(sampleData);
+      setUseMockData(true);
+      console.log('Using mock data due to permission error');
+    }
+  }, [contractsError]);
 
   const handleContractsSelected = (contracts: any[]) => {
     setSelectedContracts(contracts);
@@ -34,22 +47,33 @@ export default function Contracts() {
     );
   }
 
-  if (contractsError) {
+  // Consider the data available if we have real contracts or mock contracts
+  const hasContracts = (contracts && contracts.length > 0) || mockContracts.length > 0;
+  const displayContracts = useMockData ? mockContracts : (contracts || []);
+
+  if (contractsError && !useMockData) {
     return (
       <div className="flex items-center justify-center h-96">
         <div className="text-center p-6 bg-destructive/10 rounded-lg max-w-md">
           <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
           <h2 className="text-xl font-semibold mb-2">Failed to load contracts</h2>
           <p className="text-muted-foreground mb-4">
-            There was an error loading the contracts data. Please try again.
+            There was an error loading the contracts data. {contractsError.message}
           </p>
-          <Button onClick={() => refetchContracts()}>Retry</Button>
+          <div className="space-y-2">
+            <Button onClick={() => refetchContracts()}>Retry</Button>
+            <Button 
+              variant="secondary" 
+              className="ml-2"
+              onClick={() => setUseMockData(true)}
+            >
+              Use Sample Data
+            </Button>
+          </div>
         </div>
       </div>
     );
   }
-
-  const hasContracts = contracts && contracts.length > 0;
 
   return (
     <div className="container mx-auto px-4 py-6">
@@ -61,6 +85,23 @@ export default function Contracts() {
         
         {!hasContracts && (
           <LoadSampleContracts onContractsLoaded={refetchContracts} />
+        )}
+
+        {useMockData && (
+          <div className="flex items-center">
+            <Button
+              variant="ghost" 
+              onClick={() => {
+                setUseMockData(false);
+                refetchContracts();
+              }}
+            >
+              Try Real Data
+            </Button>
+            <span className="ml-2 text-amber-500 text-sm">
+              Showing visualization data only
+            </span>
+          </div>
         )}
       </header>
 
@@ -96,7 +137,7 @@ export default function Contracts() {
                 </div>
               )}
               <TabulatorTable 
-                contracts={contracts || []}
+                contracts={displayContracts} 
                 onSelectionChange={handleContractsSelected}
               />
             </Card>
@@ -104,7 +145,7 @@ export default function Contracts() {
 
           <TabsContent value="standard" className="space-y-4">
             <Card className="p-6">
-              <ContractsTable contracts={contracts || []} />
+              <ContractsTable contracts={displayContracts} />
             </Card>
           </TabsContent>
         </Tabs>
