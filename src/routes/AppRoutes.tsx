@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ErrorBoundaryWrapper } from '@/components/ErrorBoundaryWrapper';
+import { SidebarProvider } from "@/components/ui/sidebar";
 import Index from '@/pages/Index';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
@@ -27,6 +28,34 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ isAuthenticated, isLoad
   }
 
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+};
+
+// Wrap the MainLayout with SidebarProvider
+const ProtectedLayoutRoute: React.FC<{ element: React.ReactElement }> = ({ element }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [sidebarExpanded, setSidebarExpanded] = useState(() => {
+    const saved = localStorage.getItem("sidebar-expanded");
+    return saved !== null ? JSON.parse(saved) : true;
+  });
+
+  // Save sidebar state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem("sidebar-expanded", JSON.stringify(sidebarExpanded));
+  }, [sidebarExpanded]);
+
+  return (
+    <ProtectedRoute isAuthenticated={isAuthenticated} isLoading={isLoading}>
+      <SidebarProvider defaultOpen={sidebarExpanded} onOpenChange={(open) => setSidebarExpanded(open)}>
+        <MainLayout>
+          <ErrorBoundaryWrapper>
+            <Suspense fallback={<div>Loading...</div>}>
+              {element}
+            </Suspense>
+          </ErrorBoundaryWrapper>
+        </MainLayout>
+      </SidebarProvider>
+    </ProtectedRoute>
+  );
 };
 
 const AppRoutes: React.FC = () => {
@@ -62,89 +91,12 @@ const AppRoutes: React.FC = () => {
       <Route path="/" element={<Index />} />
       <Route path="/login" element={<ErrorBoundaryWrapper><Suspense fallback={<div>Loading...</div>}><Login /></Suspense></ErrorBoundaryWrapper>} />
       
-      <Route path="/dashboard" 
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} isLoading={isLoading}>
-            <MainLayout>
-              <ErrorBoundaryWrapper>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Dashboard />
-                </Suspense>
-              </ErrorBoundaryWrapper>
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route path="/clients" 
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} isLoading={isLoading}>
-            <MainLayout>
-              <ErrorBoundaryWrapper>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Clients />
-                </Suspense>
-              </ErrorBoundaryWrapper>
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route path="/clients/:id" 
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} isLoading={isLoading}>
-            <MainLayout>
-              <ErrorBoundaryWrapper>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <ClientDetail />
-                </Suspense>
-              </ErrorBoundaryWrapper>
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route path="/clients/edit/:id" 
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} isLoading={isLoading}>
-            <MainLayout>
-              <ErrorBoundaryWrapper>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <EditClient />
-                </Suspense>
-              </ErrorBoundaryWrapper>
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-      
-      <Route path="/clients/new" 
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} isLoading={isLoading}>
-            <MainLayout>
-              <ErrorBoundaryWrapper>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <NewClient />
-                </Suspense>
-              </ErrorBoundaryWrapper>
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
-
-      <Route path="/contacts" 
-        element={
-          <ProtectedRoute isAuthenticated={isAuthenticated} isLoading={isLoading}>
-            <MainLayout>
-              <ErrorBoundaryWrapper>
-                <Suspense fallback={<div>Loading...</div>}>
-                  <Contacts />
-                </Suspense>
-              </ErrorBoundaryWrapper>
-            </MainLayout>
-          </ProtectedRoute>
-        } 
-      />
+      <Route path="/dashboard" element={<ProtectedLayoutRoute element={<Dashboard />} />} />
+      <Route path="/clients" element={<ProtectedLayoutRoute element={<Clients />} />} />
+      <Route path="/clients/:id" element={<ProtectedLayoutRoute element={<ClientDetail />} />} />
+      <Route path="/clients/edit/:id" element={<ProtectedLayoutRoute element={<EditClient />} />} />
+      <Route path="/clients/new" element={<ProtectedLayoutRoute element={<NewClient />} />} />
+      <Route path="/contacts" element={<ProtectedLayoutRoute element={<Contacts />} />} />
       
       <Route path="*" element={<NotFound />} />
     </Routes>

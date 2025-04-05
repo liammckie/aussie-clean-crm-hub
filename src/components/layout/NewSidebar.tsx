@@ -13,7 +13,7 @@ import {
   SidebarGroupContent,
   useSidebar,
   SidebarTrigger
-} from "@/components/ui/sidebar"
+} from "@/components/ui/sidebar";
 import { 
   LayoutDashboard, 
   Building2,

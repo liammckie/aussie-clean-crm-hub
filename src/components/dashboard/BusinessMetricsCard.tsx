@@ -1,9 +1,9 @@
-
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ChevronDown } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
+import { BarChart, Bar, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
+import { XAxis, YAxis } from "@/components/ui/sidebar/components/chart-wrappers";
 import { generateForecastData, formatCurrency, ForecastDataPoint } from "@/utils/forecastData";
 
 type MetricView = "clients" | "financial" | "profit";
