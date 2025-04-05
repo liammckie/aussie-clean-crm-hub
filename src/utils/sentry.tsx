@@ -10,7 +10,6 @@ import {
   useNavigationType,
   createRoutesFromChildren,
   matchRoutes,
-  useRouteError,
 } from "react-router-dom";
 
 // Initialize Sentry
@@ -74,10 +73,9 @@ export const SentryErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ c
   );
 };
 
-// Generic error fallback UI
+// Generic error fallback UI - Modified to NOT use useRouteError
 function ErrorFallback() {
-  const error = useRouteError();
-  
+  // Remove useRouteError as it requires a data router
   return (
     <div className="flex h-screen w-full items-center justify-center bg-gray-900 text-white">
       <div className="p-8 text-center">
@@ -96,21 +94,28 @@ function ErrorFallback() {
   );
 }
 
-// Custom hook to report route errors to Sentry
+// Custom hook to report route errors to Sentry - this needs to be used only within error elements
 export function useSentryRouteError() {
-  const error = useRouteError();
-  
-  React.useEffect(() => {
-    if (error) {
-      Sentry.captureException(error, {
-        tags: {
-          mechanism: "route-error",
-        },
-      });
-    }
-  }, [error]);
-  
-  return error;
+  try {
+    // This hook should only be used within components rendered as errorElement
+    // in a createBrowserRouter configuration
+    const error = Sentry.useRouteError();
+    
+    React.useEffect(() => {
+      if (error) {
+        Sentry.captureException(error, {
+          tags: {
+            mechanism: "route-error",
+          },
+        });
+      }
+    }, [error]);
+    
+    return error;
+  } catch (e) {
+    console.warn("useSentryRouteError must be used within a data router error element");
+    return null;
+  }
 }
 
 // Create a Sentry wrapper for all API calls

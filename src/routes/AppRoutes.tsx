@@ -5,6 +5,7 @@ import * as Sentry from "@sentry/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { RouteErrorBoundary } from "@/components/error/RouteErrorBoundary";
+import { ErrorFallback } from "@/components/error/SentryRouteError";
 
 // Lazy load pages with Sentry profiling
 const SentryIndex = Sentry.withProfiler(React.lazy(() => import("@/pages/Index")), { name: "Index" });
@@ -48,6 +49,22 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <MainLayout>{children}</MainLayout>;
 };
 
+// ErrorBoundaryWrapper that uses Sentry's error boundary but with our custom fallback
+const ErrorBoundaryWrapper = ({ children }: { children: React.ReactNode }) => {
+  return (
+    <Sentry.ErrorBoundary fallback={({ error, resetError }) => 
+      <ErrorFallback 
+        error={error} 
+        resetError={resetError} 
+        componentStack={null} 
+        eventId={null} 
+      />
+    }>
+      {children}
+    </Sentry.ErrorBoundary>
+  );
+};
+
 // Route configuration
 export const AppRoutes = () => {
   // Use Sentry Routes wrapper
@@ -56,64 +73,84 @@ export const AppRoutes = () => {
   return (
     <React.Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
       <SentryRoutes>
-        <Route path="/login" element={<SentryLogin />} errorElement={<RouteErrorBoundary />} />
+        <Route 
+          path="/login" 
+          element={
+            <ErrorBoundaryWrapper>
+              <SentryLogin />
+            </ErrorBoundaryWrapper>
+          }
+        />
         <Route 
           path="/" 
           element={
-            <ProtectedRoute>
-              <SentryIndex />
-            </ProtectedRoute>
+            <ErrorBoundaryWrapper>
+              <ProtectedRoute>
+                <SentryIndex />
+              </ProtectedRoute>
+            </ErrorBoundaryWrapper>
           }
-          errorElement={<RouteErrorBoundary />}
         />
         <Route 
           path="/dashboard" 
           element={
-            <ProtectedRoute>
-              <SentryDashboard />
-            </ProtectedRoute>
+            <ErrorBoundaryWrapper>
+              <ProtectedRoute>
+                <SentryDashboard />
+              </ProtectedRoute>
+            </ErrorBoundaryWrapper>
           }
-          errorElement={<RouteErrorBoundary />}
         />
         {/* Client Routes */}
         <Route 
           path="/clients" 
           element={
-            <ProtectedRoute>
-              <SentryClients />
-            </ProtectedRoute>
+            <ErrorBoundaryWrapper>
+              <ProtectedRoute>
+                <SentryClients />
+              </ProtectedRoute>
+            </ErrorBoundaryWrapper>
           }
-          errorElement={<RouteErrorBoundary />}
         />
         <Route 
           path="/clients/new" 
           element={
-            <ProtectedRoute>
-              <SentryNewClient />
-            </ProtectedRoute>
+            <ErrorBoundaryWrapper>
+              <ProtectedRoute>
+                <SentryNewClient />
+              </ProtectedRoute>
+            </ErrorBoundaryWrapper>
           }
-          errorElement={<RouteErrorBoundary />}
         />
         <Route 
           path="/clients/:id" 
           element={
-            <ProtectedRoute>
-              <SentryClientDetail />
-            </ProtectedRoute>
+            <ErrorBoundaryWrapper>
+              <ProtectedRoute>
+                <SentryClientDetail />
+              </ProtectedRoute>
+            </ErrorBoundaryWrapper>
           }
-          errorElement={<RouteErrorBoundary />}
         />
         <Route 
           path="/clients/:id/edit" 
           element={
-            <ProtectedRoute>
-              <SentryEditClient />
-            </ProtectedRoute>
+            <ErrorBoundaryWrapper>
+              <ProtectedRoute>
+                <SentryEditClient />
+              </ProtectedRoute>
+            </ErrorBoundaryWrapper>
           }
-          errorElement={<RouteErrorBoundary />}
         />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route path="*" element={<SentryNotFound />} errorElement={<RouteErrorBoundary />} />
+        <Route 
+          path="*" 
+          element={
+            <ErrorBoundaryWrapper>
+              <SentryNotFound />
+            </ErrorBoundaryWrapper>
+          }
+        />
       </SentryRoutes>
     </React.Suspense>
   );
