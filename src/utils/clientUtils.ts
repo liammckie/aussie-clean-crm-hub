@@ -1,3 +1,4 @@
+
 import { ClientFormData } from "@/services/client";
 import { validationService } from "@/services/validation.service";
 
@@ -35,6 +36,7 @@ export function validateBusinessIdentifiers({ abn, acn }: { abn?: string, acn?: 
  * Prepares client data for submission to the API
  * - Cleans business identifiers
  * - Formats dates
+ * - Validates required fields match database schema
  */
 export function prepareClientDataForSubmission(data: ClientFormData) {
   // Create a new object to avoid mutating the original
@@ -49,21 +51,27 @@ export function prepareClientDataForSubmission(data: ClientFormData) {
     preparedData.acn = validationService.cleanBusinessIdentifier(preparedData.acn);
   }
 
-  // Format date if present
-  // We check for string type because onboarding_date is typed as string | null
-  if (preparedData.onboarding_date) {
-    // If it's already a string in YYYY-MM-DD format, keep it as is
-    if (typeof preparedData.onboarding_date === 'string' && preparedData.onboarding_date.includes('-')) {
-      // Ensure the date is in YYYY-MM-DD format for the database
-      try {
-        const dateObj = new Date(preparedData.onboarding_date);
-        if (!isNaN(dateObj.getTime())) {
-          preparedData.onboarding_date = dateObj.toISOString().split('T')[0];
-        }
-      } catch (error) {
-        console.error('Error formatting date:', error);
-        // Keep original value if date parsing fails
+  // Ensure required fields have values to match database schema
+  if (!preparedData.status) {
+    preparedData.status = 'Prospect';
+  }
+
+  if (!preparedData.onboarding_date) {
+    // Set current date if not provided
+    const today = new Date();
+    preparedData.onboarding_date = today.toISOString().split('T')[0];
+  } else if (typeof preparedData.onboarding_date === 'string') {
+    // Ensure date is in YYYY-MM-DD format for database
+    try {
+      const dateObj = new Date(preparedData.onboarding_date);
+      if (!isNaN(dateObj.getTime())) {
+        preparedData.onboarding_date = dateObj.toISOString().split('T')[0];
       }
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      // If date parsing fails, use current date
+      const today = new Date();
+      preparedData.onboarding_date = today.toISOString().split('T')[0];
     }
   }
 
@@ -82,7 +90,7 @@ export function loadSampleClientData(setFormData: (data: ClientFormData) => void
     acn: '000 000 019',
     industry: 'Commercial Cleaning',
     status: 'Prospect',
-    onboarding_date: '2023-10-15',
+    onboarding_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
     source: 'Trade Show',
     billing_cycle: 'Monthly',
     payment_terms: 'Net 30',

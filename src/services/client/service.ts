@@ -75,9 +75,13 @@ export const clientService = {
         };
       }
 
-      // Ensure status is valid
-      if (!['Prospect', 'Active', 'On Hold', 'Cancelled'].includes(formattedClient.status)) {
+      // Ensure required fields that have database constraints are set
+      if (!formattedClient.status) {
         formattedClient.status = 'Prospect';
+      }
+
+      if (!formattedClient.onboarding_date) {
+        formattedClient.onboarding_date = new Date().toISOString().split('T')[0];
       }
 
       console.log('Submitting client data to Supabase:', formattedClient);

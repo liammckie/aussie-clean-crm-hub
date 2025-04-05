@@ -11,10 +11,12 @@ import { prepareClientDataForSubmission } from '@/utils/clientUtils';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { ClientFormFields } from '@/components/client/ClientFormFields';
 import { loadSampleClientData } from '@/utils/clientUtils';
+import { LoadSampleButton } from '@/components/ui/load-sample-button';
 
 const NewClient = () => {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
+  const [isSampleLoaded, setIsSampleLoaded] = useState(false);
 
   const form = useForm<ClientFormData>({
     defaultValues: {
@@ -24,7 +26,7 @@ const NewClient = () => {
       acn: '',
       industry: '',
       status: 'Prospect',
-      onboarding_date: undefined,
+      onboarding_date: new Date().toISOString().split('T')[0], // Default to today
       source: '',
       billing_cycle: '',
       payment_terms: '',
@@ -44,7 +46,10 @@ const NewClient = () => {
   const onSubmit = async (data: ClientFormData) => {
     setIsCreating(true);
     try {
+      // Prepare data to match database schema requirements
       const preparedData = prepareClientDataForSubmission(data);
+      console.log('Submitting client data:', preparedData);
+      
       const response = await clientService.createClient(preparedData);
 
       if ('category' in response && response.category === 'validation') {
@@ -57,15 +62,21 @@ const NewClient = () => {
             type: 'manual',
             message: validationError.message,
           });
+          toast.error(validationError.message);
+        } else {
+          // General validation error without specific field
+          toast.error(validationError.message || 'Validation error occurred');
         }
-        toast.error(validationError.message);
       } else if ('category' in response) {
-        toast.error(response.message);
+        // Handle other error types
+        toast.error(response.message || 'An error occurred');
       } else {
+        // Success case
         toast.success('Client created successfully!');
         navigate('/clients');
       }
     } catch (error: any) {
+      console.error('Error creating client:', error);
       toast.error(error?.message || 'Failed to create client');
     } finally {
       setIsCreating(false);
@@ -78,8 +89,15 @@ const NewClient = () => {
       Object.entries(data).forEach(([key, value]) => {
         form.setValue(key as keyof ClientFormData, value);
       });
+      setIsSampleLoaded(true);
     });
     toast.success('Sample data loaded! Check the form fields and submit to test.');
+  };
+
+  const handleClearSampleData = () => {
+    form.reset();
+    setIsSampleLoaded(false);
+    toast.info('Form cleared');
   };
 
   return (
@@ -107,13 +125,10 @@ const NewClient = () => {
 
       <div className="mb-8 flex justify-between items-center">
         <h1 className="text-2xl font-bold">Create New Client</h1>
-        <Button 
-          variant="outline" 
-          onClick={handleLoadSampleData}
-          type="button"
-        >
-          Load Sample Data
-        </Button>
+        <LoadSampleButton 
+          onLoadSample={isSampleLoaded ? handleClearSampleData : handleLoadSampleData}
+          isLoaded={isSampleLoaded}
+        />
       </div>
 
       <Card>

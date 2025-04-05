@@ -15,7 +15,7 @@ export function LoadSampleButton({
 }: LoadSampleButtonProps) {
   return (
     <Button 
-      variant="outline"
+      variant={isLoaded ? "destructive" : "outline"}
       size="sm"
       onClick={onLoadSample}
       className={className}

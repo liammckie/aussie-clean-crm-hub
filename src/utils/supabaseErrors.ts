@@ -1,7 +1,6 @@
-
 import { isSupabaseError } from '@/integrations/supabase/client';
 import { ErrorReporting } from '@/utils/errorReporting';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 
 /**
  * Error categories for better error handling
@@ -109,12 +108,8 @@ export function handleSupabaseError(
     }
   );
 
-  // Show user-friendly toast
-  toast({
-    title: 'Error',
-    description: message,
-    variant: 'destructive',
-  });
+  // Show user-friendly toast (using sonner instead of shadcn/ui)
+  toast.error(message);
 
   // Return structured error response
   return {
