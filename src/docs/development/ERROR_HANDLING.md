@@ -4,6 +4,25 @@
 ## Overview
 This document outlines the comprehensive error handling and validation approach implemented in the Aussie Clean ERP system. Proper error handling and validation are critical for maintaining data integrity, providing clear user feedback, and ensuring system reliability.
 
+## Recent Enhancements
+
+### Code Splitting
+We now implement code splitting using React.lazy and Suspense, which improves initial load time by only loading necessary components.
+
+### React Query Optimizations
+Queries now use appropriate staleTime and cacheTime settings to reduce unnecessary refetches and improve performance:
+- Short stale time (1 minute) for frequently changing data
+- Standard stale time (5 minutes) for most data
+- Long stale time (30 minutes) for rarely changing data
+- Infinite stale time for static data
+
+### Enhanced Error Boundaries
+We've implemented a robust error boundary system that:
+- Captures and reports errors to Sentry
+- Provides retry mechanisms with configurable attempt limits
+- Supports automatic reset on route change
+- Includes detailed error reporting and logging
+
 ## Validation Patterns
 
 ### ABN/ACN Validation
@@ -168,6 +187,18 @@ We implement React Error Boundaries to:
 - **Error Aggregation**: Dashboard for monitoring error rates and patterns
 - **Alerting**: Notifications for critical error conditions
 
+## Performance Optimizations
+
+### Code Splitting
+- Lazy loading of routes and components
+- Performance tracking of component loading times
+- Fallback UI during loading
+
+### React Query Caching
+- Optimized stale times based on data volatility
+- Appropriate cache retention policies
+- Performance tracking of query execution
+
 ## Testing Approach
 
 ### Validation Testing
@@ -180,4 +211,3 @@ We implement React Error Boundaries to:
 - Test database constraints
 - Verify error messages
 - Validate recovery paths
-

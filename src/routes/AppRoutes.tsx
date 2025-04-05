@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import * as Sentry from "@sentry/react";
@@ -6,16 +7,18 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { RouteErrorBoundary } from "@/components/error/RouteErrorBoundary";
 import { ErrorFallback } from "@/components/error/SentryRouteError";
 
-// Lazy load pages with Sentry profiling
-const SentryIndex = Sentry.withProfiler(React.lazy(() => import("@/pages/Index")), { name: "Index" });
-const SentryDashboard = Sentry.withProfiler(React.lazy(() => import("@/pages/Dashboard")), { name: "Dashboard" });
-const SentryClients = Sentry.withProfiler(React.lazy(() => import("@/pages/Clients")), { name: "Clients" });
-const SentryClientDetail = Sentry.withProfiler(React.lazy(() => import("@/pages/ClientDetail")), { name: "ClientDetail" });
-const SentryNewClient = Sentry.withProfiler(React.lazy(() => import("@/pages/NewClient")), { name: "NewClient" });
-const SentryEditClient = Sentry.withProfiler(React.lazy(() => import("@/pages/EditClient")), { name: "EditClient" });
-const SentryLogin = Sentry.withProfiler(React.lazy(() => import("@/pages/Login")), { name: "Login" });
-const SentryNotFound = Sentry.withProfiler(React.lazy(() => import("@/pages/NotFound")), { name: "NotFound" });
-const SentryContracts = Sentry.withProfiler(React.lazy(() => import("@/pages/Contracts")), { name: "Contracts" });
+// Import lazy-loaded components
+import { 
+  LazyIndex,
+  LazyDashboard,
+  LazyClients,
+  LazyClientDetail,
+  LazyNewClient,
+  LazyEditClient,
+  LazyLogin,
+  LazyNotFound,
+  LazyContracts
+} from "./lazyRoutes";
 
 // Check for admin session
 const isAdminSession = () => {
@@ -71,98 +74,96 @@ export const AppRoutes = () => {
   const SentryRoutes = Sentry.withSentryReactRouterV6Routing(Routes);
   
   return (
-    <React.Suspense fallback={<div className="p-4 text-center">Loading...</div>}>
-      <SentryRoutes>
-        <Route 
-          path="/login" 
-          element={
-            <ErrorBoundaryWrapper>
-              <SentryLogin />
-            </ErrorBoundaryWrapper>
-          }
-        />
-        <Route 
-          path="/" 
-          element={
-            <ErrorBoundaryWrapper>
-              <ProtectedRoute>
-                <SentryIndex />
-              </ProtectedRoute>
-            </ErrorBoundaryWrapper>
-          }
-        />
-        <Route 
-          path="/dashboard" 
-          element={
-            <ErrorBoundaryWrapper>
-              <ProtectedRoute>
-                <SentryDashboard />
-              </ProtectedRoute>
-            </ErrorBoundaryWrapper>
-          }
-        />
-        {/* Client Routes */}
-        <Route 
-          path="/clients" 
-          element={
-            <ErrorBoundaryWrapper>
-              <ProtectedRoute>
-                <SentryClients />
-              </ProtectedRoute>
-            </ErrorBoundaryWrapper>
-          }
-        />
-        <Route 
-          path="/clients/new" 
-          element={
-            <ErrorBoundaryWrapper>
-              <ProtectedRoute>
-                <SentryNewClient />
-              </ProtectedRoute>
-            </ErrorBoundaryWrapper>
-          }
-        />
-        <Route 
-          path="/clients/:id" 
-          element={
-            <ErrorBoundaryWrapper>
-              <ProtectedRoute>
-                <SentryClientDetail />
-              </ProtectedRoute>
-            </ErrorBoundaryWrapper>
-          }
-        />
-        <Route 
-          path="/clients/:id/edit" 
-          element={
-            <ErrorBoundaryWrapper>
-              <ProtectedRoute>
-                <SentryEditClient />
-              </ProtectedRoute>
-            </ErrorBoundaryWrapper>
-          }
-        />
-        {/* Contract Routes */}
-        <Route 
-          path="/contracts" 
-          element={
-            <ErrorBoundaryWrapper>
-              <ProtectedRoute>
-                <SentryContracts />
-              </ProtectedRoute>
-            </ErrorBoundaryWrapper>
-          }
-        />
-        {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-        <Route 
-          path="*" 
-          element={
-            <ErrorBoundaryWrapper>
-              <SentryNotFound />
-            </ErrorBoundaryWrapper>
-          }
-        />
-      </SentryRoutes>
-    </React.Suspense>
+    <SentryRoutes>
+      <Route 
+        path="/login" 
+        element={
+          <ErrorBoundaryWrapper>
+            <LazyLogin />
+          </ErrorBoundaryWrapper>
+        }
+      />
+      <Route 
+        path="/" 
+        element={
+          <ErrorBoundaryWrapper>
+            <ProtectedRoute>
+              <LazyIndex />
+            </ProtectedRoute>
+          </ErrorBoundaryWrapper>
+        }
+      />
+      <Route 
+        path="/dashboard" 
+        element={
+          <ErrorBoundaryWrapper>
+            <ProtectedRoute>
+              <LazyDashboard />
+            </ProtectedRoute>
+          </ErrorBoundaryWrapper>
+        }
+      />
+      {/* Client Routes */}
+      <Route 
+        path="/clients" 
+        element={
+          <ErrorBoundaryWrapper>
+            <ProtectedRoute>
+              <LazyClients />
+            </ProtectedRoute>
+          </ErrorBoundaryWrapper>
+        }
+      />
+      <Route 
+        path="/clients/new" 
+        element={
+          <ErrorBoundaryWrapper>
+            <ProtectedRoute>
+              <LazyNewClient />
+            </ProtectedRoute>
+          </ErrorBoundaryWrapper>
+        }
+      />
+      <Route 
+        path="/clients/:id" 
+        element={
+          <ErrorBoundaryWrapper>
+            <ProtectedRoute>
+              <LazyClientDetail />
+            </ProtectedRoute>
+          </ErrorBoundaryWrapper>
+        }
+      />
+      <Route 
+        path="/clients/:id/edit" 
+        element={
+          <ErrorBoundaryWrapper>
+            <ProtectedRoute>
+              <LazyEditClient />
+            </ProtectedRoute>
+          </ErrorBoundaryWrapper>
+        }
+      />
+      {/* Contract Routes */}
+      <Route 
+        path="/contracts" 
+        element={
+          <ErrorBoundaryWrapper>
+            <ProtectedRoute>
+              <LazyContracts />
+            </ProtectedRoute>
+          </ErrorBoundaryWrapper>
+        }
+      />
+      {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+      <Route 
+        path="*" 
+        element={
+          <ErrorBoundaryWrapper>
+            <LazyNotFound />
+          </ErrorBoundaryWrapper>
+        }
+      />
+    </SentryRoutes>
   );
 };
