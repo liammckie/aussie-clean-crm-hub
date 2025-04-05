@@ -1,10 +1,24 @@
 
 import { generateSampleContract } from '../contractTestData';
+import { AppLogger, LogLevel, LogCategory } from '../logging';
 
 /**
  * Basic tests for the contract utility functions
  */
 describe('Contract Utilities', () => {
+  beforeEach(() => {
+    // Clear logs before each test
+    AppLogger.clearLogs();
+    
+    // Spy on logger methods for assertions
+    jest.spyOn(AppLogger, 'debug');
+    jest.spyOn(AppLogger, 'error');
+  });
+  
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+  
   describe('generateSampleContract', () => {
     it('should generate a valid contract object', () => {
       // Arrange
@@ -45,6 +59,21 @@ describe('Contract Utilities', () => {
       // Assert
       expect(contract1.contract_code).not.toEqual(contract2.contract_code);
       expect(contract1.contract_name).not.toEqual(contract2.contract_name);
+    });
+    
+    it('should log debug information during contract generation', () => {
+      // Arrange
+      const testClientId = '00000000-0000-0000-0000-000000000000';
+      
+      // Act
+      generateSampleContract(testClientId);
+      
+      // Assert - check that appropriate logging occurred
+      expect(AppLogger.debug).toHaveBeenCalledWith(
+        LogCategory.CONTRACT,
+        expect.stringContaining('Generating sample contract'),
+        expect.anything()
+      );
     });
   });
 });

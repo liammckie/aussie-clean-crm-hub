@@ -1,8 +1,8 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { contractService, ContractData, BillingLineData } from '@/services/contract';
 import { ErrorReporting } from '@/utils/errorReporting';
+import { AppLogger, LogCategory, withCache } from '@/utils/logging';
 
 export const useContracts = (clientId?: string) => {
   const queryClient = useQueryClient();
@@ -18,12 +18,28 @@ export const useContracts = (clientId?: string) => {
     queryFn: async () => {
       if (!clientId) return [];
       
-      const response = await contractService.getClientContracts(clientId);
-      if ('category' in response) {
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
-      }
-      return response.data;
+      AppLogger.debug(LogCategory.CONTRACT, `Fetching contracts for client: ${clientId}`);
+      
+      // Use cache wrapper for contract queries
+      const cacheKey = `client-contracts-${clientId}`;
+      
+      return await withCache(cacheKey, async () => {
+        const response = await contractService.getClientContracts(clientId);
+        
+        if ('category' in response) {
+          AppLogger.error(LogCategory.CONTRACT, `Error fetching contracts: ${response.message}`, { clientId });
+          toast.error(`Error: ${response.message}`);
+          throw new Error(response.message);
+        }
+        
+        AppLogger.info(
+          LogCategory.CONTRACT, 
+          `Retrieved ${response.data?.length || 0} contracts for client`,
+          { clientId }
+        );
+        
+        return response.data;
+      }, { ttl: 2 * 60 * 1000, tag: 'contracts' }); // Cache for 2 minutes
     },
     enabled: !!clientId,
   });
@@ -35,12 +51,26 @@ export const useContracts = (clientId?: string) => {
       queryFn: async () => {
         if (!contractId) throw new Error('Contract ID is required');
         
-        const response = await contractService.getContractById(contractId);
-        if ('category' in response) {
-          toast.error(`Error: ${response.message}`);
-          throw new Error(response.message);
-        }
-        return response.data;
+        AppLogger.debug(LogCategory.CONTRACT, `Fetching contract details: ${contractId}`);
+        
+        // Use cache wrapper for contract details
+        const cacheKey = `contract-detail-${contractId}`;
+        
+        return await withCache(cacheKey, async () => {
+          const response = await contractService.getContractById(contractId);
+          
+          if ('category' in response) {
+            AppLogger.error(
+              LogCategory.CONTRACT, 
+              `Error fetching contract details: ${response.message}`, 
+              { contractId }
+            );
+            toast.error(`Error: ${response.message}`);
+            throw new Error(response.message);
+          }
+          
+          return response.data;
+        }, { ttl: 2 * 60 * 1000, tag: 'contracts' });
       },
       enabled: !!contractId,
     });
@@ -53,12 +83,35 @@ export const useContracts = (clientId?: string) => {
       queryFn: async () => {
         if (!contractId) return [];
         
-        const response = await contractService.getContractBillingLines(contractId);
-        if ('category' in response) {
-          toast.error(`Error: ${response.message}`);
-          throw new Error(response.message);
-        }
-        return response.data;
+        AppLogger.debug(
+          LogCategory.CONTRACT, 
+          `Fetching billing lines for contract: ${contractId}`
+        );
+        
+        // Use cache wrapper for billing lines
+        const cacheKey = `contract-billing-lines-${contractId}`;
+        
+        return await withCache(cacheKey, async () => {
+          const response = await contractService.getContractBillingLines(contractId);
+          
+          if ('category' in response) {
+            AppLogger.error(
+              LogCategory.CONTRACT, 
+              `Error fetching billing lines: ${response.message}`, 
+              { contractId }
+            );
+            toast.error(`Error: ${response.message}`);
+            throw new Error(response.message);
+          }
+          
+          AppLogger.info(
+            LogCategory.CONTRACT, 
+            `Retrieved ${response.data?.length || 0} billing lines`, 
+            { contractId }
+          );
+          
+          return response.data;
+        }, { ttl: 2 * 60 * 1000, tag: 'billing-lines' });
       },
       enabled: !!contractId,
     });
@@ -70,6 +123,7 @@ export const useContracts = (clientId?: string) => {
       const response = await contractService.createContract(data);
       
       if ('category' in response) {
+        AppLogger.error(LogCategory.CONTRACT, `Error creating contract: ${response.message}`);
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
       }
@@ -93,6 +147,7 @@ export const useContracts = (clientId?: string) => {
       const response = await contractService.updateContract(id, data);
       
       if ('category' in response) {
+        AppLogger.error(LogCategory.CONTRACT, `Error updating contract: ${response.message}`);
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
       }
@@ -117,6 +172,7 @@ export const useContracts = (clientId?: string) => {
       const response = await contractService.deleteContract(contractId);
       
       if ('category' in response) {
+        AppLogger.error(LogCategory.CONTRACT, `Error deleting contract: ${response.message}`);
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
       }
@@ -139,6 +195,7 @@ export const useContracts = (clientId?: string) => {
       const response = await contractService.createBillingLine(data);
       
       if ('category' in response) {
+        AppLogger.error(LogCategory.CONTRACT, `Error creating billing line: ${response.message}`);
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
       }
