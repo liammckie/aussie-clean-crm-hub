@@ -11,13 +11,13 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
 import { Path } from 'react-hook-form';
 
-// Updated interface with a more flexible generic constraint
-interface IsPrimaryFieldProps<T extends { is_primary: boolean | undefined | null }> {
+// Update the interface to make constraint more flexible with optional is_primary
+interface IsPrimaryFieldProps<T extends { is_primary?: boolean | null | undefined }> {
   form: UseFormReturn<T>;
   label?: string;
 }
 
-export function IsPrimaryField<T extends { is_primary: boolean | undefined | null }>({ 
+export function IsPrimaryField<T extends { is_primary?: boolean | null | undefined }>({ 
   form, 
   label = "Set as primary" 
 }: IsPrimaryFieldProps<T>) {
