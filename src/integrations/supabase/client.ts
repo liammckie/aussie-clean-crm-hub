@@ -15,19 +15,40 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
 });
 
-// Type guard to check if an error is from Supabase
+// Enhanced type guard to check if an error is from Supabase with more detailed error properties
 export const isSupabaseError = (error: unknown): boolean => {
   if (!error || typeof error !== 'object') return false;
   
   // Check for common properties in Supabase error objects
-  return (
-    'code' in error || 
-    'message' in error || 
-    'error' in error || 
-    'details' in error ||
-    'hint' in error ||
-    'errorMessage' in error
-  );
+  const possibleError = error as Record<string, unknown>;
+  
+  // PostgreSQL error codes (e.g. "23505" for unique violation)
+  if ('code' in possibleError) return true;
+  
+  // Error message
+  if ('message' in possibleError) return true;
+  
+  // General error description
+  if ('error' in possibleError) return true;
+  
+  // Detailed error information
+  if ('details' in possibleError || 'hint' in possibleError) return true;
+  
+  // Error message in different format
+  if ('errorMessage' in possibleError) return true;
+  
+  // Check for RLS policy violation which has a specific pattern
+  if ('msg' in possibleError && typeof possibleError.msg === 'string') {
+    const msgStr = possibleError.msg as string;
+    if (msgStr.includes('row-level security')) return true;
+  }
+  
+  // Check for auth-related errors
+  if ('status' in possibleError && 'message' in possibleError) {
+    return true;
+  }
+  
+  return false;
 };
 
 /**
