@@ -66,6 +66,20 @@ export const clientService = {
         return validationError;
       }
 
+      // Validate required fields
+      if (!formattedClient.business_name?.trim()) {
+        return {
+          category: 'validation' as const,
+          message: 'Business name is required',
+          details: { field: 'business_name' }
+        };
+      }
+
+      // Ensure status is valid
+      if (!['Prospect', 'Active', 'On Hold', 'Cancelled'].includes(formattedClient.status)) {
+        formattedClient.status = 'Prospect';
+      }
+
       console.log('Submitting client data to Supabase:', formattedClient);
       const response = await clientApi.createClient(formattedClient);
 
@@ -146,6 +160,23 @@ export const clientService = {
       ...contactData,
       client_id: clientId
     };
+
+    // Validate required fields
+    if (!contact.name?.trim()) {
+      return {
+        category: 'validation' as const,
+        message: 'Contact name is required',
+        details: { field: 'name' }
+      };
+    }
+
+    if (!contact.email?.trim()) {
+      return {
+        category: 'validation' as const,
+        message: 'Contact email is required',
+        details: { field: 'email' }
+      };
+    }
 
     const response = await clientApi.createClientContact(contact);
     

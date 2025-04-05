@@ -1,4 +1,3 @@
-
 import { ClientFormData } from "@/services/client";
 import { validationService } from "@/services/validation.service";
 
@@ -50,15 +49,53 @@ export function prepareClientDataForSubmission(data: ClientFormData) {
     preparedData.acn = validationService.cleanBusinessIdentifier(preparedData.acn);
   }
 
-  // Format date if it's a string that represents a Date object
-  // We don't use instanceof Date check since onboarding_date is typed as string | null
-  if (preparedData.onboarding_date && preparedData.onboarding_date.includes('-')) {
-    // Ensure the date is in YYYY-MM-DD format for the database
-    const dateObj = new Date(preparedData.onboarding_date);
-    if (!isNaN(dateObj.getTime())) {
-      preparedData.onboarding_date = dateObj.toISOString().split('T')[0];
+  // Format date if present
+  // We check for string type because onboarding_date is typed as string | null
+  if (preparedData.onboarding_date) {
+    // If it's already a string in YYYY-MM-DD format, keep it as is
+    if (typeof preparedData.onboarding_date === 'string' && preparedData.onboarding_date.includes('-')) {
+      // Ensure the date is in YYYY-MM-DD format for the database
+      try {
+        const dateObj = new Date(preparedData.onboarding_date);
+        if (!isNaN(dateObj.getTime())) {
+          preparedData.onboarding_date = dateObj.toISOString().split('T')[0];
+        }
+      } catch (error) {
+        console.error('Error formatting date:', error);
+        // Keep original value if date parsing fails
+      }
     }
   }
 
   return preparedData;
+}
+
+/**
+ * Loads a sample client into the form for testing
+ * @param setFormData Function to set form data
+ */
+export function loadSampleClientData(setFormData: (data: ClientFormData) => void) {
+  const sampleClient: ClientFormData = {
+    business_name: 'Aussie Clean Enterprises',
+    trading_name: 'ACE Cleaning Services',
+    abn: '83 914 571 673',
+    acn: '000 000 019',
+    industry: 'Commercial Cleaning',
+    status: 'Prospect',
+    onboarding_date: '2023-10-15',
+    source: 'Trade Show',
+    billing_cycle: 'Monthly',
+    payment_terms: 'Net 30',
+    payment_method: 'Direct Debit',
+    tax_status: 'GST Registered',
+    credit_limit: 15000,
+    address_line_1: '123 Business Avenue',
+    address_line_2: 'Level 5, Tower B',
+    suburb: 'Melbourne',
+    state: 'VIC',
+    postcode: '3000',
+    country: 'Australia',
+  };
+
+  setFormData(sampleClient);
 }

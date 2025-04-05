@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
 import { ClientFormData, ContactFormData, ValidationErrorResponse, ClientRecord } from './types';
@@ -63,7 +64,14 @@ export const clientApi = {
    */
   createClient: async (clientData: ClientFormData) => {
     try {
+      // Handle the date conversion safely if it's a string
       const processedData = { ...clientData };
+      
+      // Ensure date is in proper format for database
+      if (clientData.onboarding_date && typeof clientData.onboarding_date === 'string') {
+        // Already in YYYY-MM-DD format, no conversion needed
+        // The database expects a date string in ISO format
+      }
       
       const { data, error } = await supabase
         .from('clients')
@@ -91,6 +99,11 @@ export const clientApi = {
   updateClient: async (clientId: string, clientData: Partial<ClientFormData>) => {
     try {
       const processedData = { ...clientData };
+
+      // Ensure date is in proper format for database
+      if (clientData.onboarding_date && typeof clientData.onboarding_date === 'string') {
+        // Already in YYYY-MM-DD format, no conversion needed
+      }
 
       const { data, error } = await supabase
         .from('clients')
