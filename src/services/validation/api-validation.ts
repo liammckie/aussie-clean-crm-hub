@@ -50,29 +50,64 @@ export function validateEntityAccess(
 }
 
 /**
- * Validate contact data
+ * Safely extracts the first field error from a Zod validation error object
+ */
+function extractFirstValidationError(formattedErrors: any): { field: string | null, message: string } {
+  try {
+    // Find first field with errors that's not the root _errors
+    const firstErrorField = Object.keys(formattedErrors).find(
+      key => key !== '_errors' && 
+        typeof formattedErrors[key] === 'object' &&
+        '_errors' in formattedErrors[key] &&
+        Array.isArray(formattedErrors[key]._errors) &&
+        formattedErrors[key]._errors.length > 0
+    );
+    
+    if (firstErrorField && typeof formattedErrors[firstErrorField] === 'object') {
+      return {
+        field: firstErrorField,
+        message: formattedErrors[firstErrorField]._errors[0] || 'Invalid data'
+      };
+    }
+    
+    // Fallback to global _errors if available
+    if (formattedErrors._errors && formattedErrors._errors.length) {
+      return {
+        field: null,
+        message: formattedErrors._errors[0]
+      };
+    }
+    
+    return {
+      field: null,
+      message: 'Invalid data format'
+    };
+  } catch (err) {
+    return {
+      field: null,
+      message: 'Validation error occurred'
+    };
+  }
+}
+
+/**
+ * Validate contact data with improved error handling
  */
 export function validateContactData<T>(contactData: T) {
   try {
     const result = contactValidationSchema.safeParse(contactData);
 
     if (!result.success) {
-      // Get first validation error
+      // Get first validation error with safer extraction
       const formattedErrors = result.error.format();
-      const firstErrorField = Object.keys(formattedErrors).find(
-        key => key !== '_errors' && formattedErrors[key]?._errors?.length
-      );
-      
-      const firstErrorMessage = firstErrorField 
-        ? formattedErrors[firstErrorField]?._errors?.[0] 
-        : 'Invalid contact data';
+      const { field, message } = extractFirstValidationError(formattedErrors);
       
       return {
         isValid: false,
         error: {
-          message: firstErrorMessage,
+          message,
           category: ErrorCategory.VALIDATION,
-          details: { field: firstErrorField }
+          details: field ? { field } : undefined
         }
       };
     }
@@ -90,29 +125,23 @@ export function validateContactData<T>(contactData: T) {
 }
 
 /**
- * Validate address data
+ * Validate address data with improved error handling
  */
 export function validateAddressData<T>(addressData: T) {
   try {
     const result = addressValidationSchema.safeParse(addressData);
 
     if (!result.success) {
-      // Get first validation error
+      // Get first validation error with safer extraction
       const formattedErrors = result.error.format();
-      const firstErrorField = Object.keys(formattedErrors).find(
-        key => key !== '_errors' && formattedErrors[key]?._errors?.length
-      );
-      
-      const firstErrorMessage = firstErrorField 
-        ? formattedErrors[firstErrorField]?._errors?.[0] 
-        : 'Invalid address data';
+      const { field, message } = extractFirstValidationError(formattedErrors);
       
       return {
         isValid: false,
         error: {
-          message: firstErrorMessage,
+          message,
           category: ErrorCategory.VALIDATION,
-          details: { field: firstErrorField }
+          details: field ? { field } : undefined
         }
       };
     }

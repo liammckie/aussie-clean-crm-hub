@@ -54,14 +54,14 @@ export const addressValidationSchema = z.object({
 });
 
 /**
- * Validate contact data
+ * Validate contact data with proper typing for error handling
  */
 export function validateContact(data: Partial<UnifiedContactFormData>) {
   return contactValidationSchema.safeParse(data);
 }
 
 /**
- * Validate address data
+ * Validate address data with proper typing for error handling
  */
 export function validateAddress(data: Partial<UnifiedAddressFormData>) {
   return addressValidationSchema.safeParse(data);

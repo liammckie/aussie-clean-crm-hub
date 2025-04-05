@@ -55,13 +55,27 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     // Validate the data before submission
     const validationResult = validateContact(formData);
     if (!validationResult.success) {
+      // Fix: Safely extract the first error message
       const errors = validationResult.error.format();
-      const firstError = Object.entries(errors)
-        .filter(([key, value]) => key !== '_errors' && value?._errors.length > 0)
-        .map(([key, value]) => `${key}: ${value?._errors[0]}`)
-        .join(', ');
+      let firstError = "Please check your form data";
       
-      toast.error(`Validation failed: ${firstError || 'Please check your form data'}`);
+      // Safely get the first error by finding an entry with _errors array
+      const errorEntry = Object.entries(errors)
+        .find(([key, value]) => {
+          return key !== '_errors' && 
+            typeof value === 'object' && 
+            '_errors' in value && 
+            Array.isArray(value._errors) && 
+            value._errors.length > 0;
+        });
+        
+      if (errorEntry) {
+        const [key, value] = errorEntry;
+        // We know _errors exists and is an array based on our find condition
+        firstError = `${key}: ${(value as {_errors: string[]})._errors[0]}`;
+      }
+      
+      toast.error(`Validation failed: ${firstError}`);
       return;
     }
     
@@ -174,9 +188,8 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
             <UnifiedContactForm 
               onSubmit={handleContactSubmit}
               isLoading={isCreatingContact}
-              contactTypes={contactTypes}
+              contactTypes={['Primary', 'Billing', 'Operations', 'Emergency', 'Technical', 'Support', 'Sales']}
               buttonText="Add Contact"
-              // If there are already contacts and none are primary, suggest making this one primary
               initialData={{
                 is_primary: contacts && contacts.length > 0 ? 
                   !contacts.some(contact => contact.is_primary) : true
