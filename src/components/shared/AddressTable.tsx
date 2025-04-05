@@ -73,7 +73,14 @@ const AddressTable: React.FC<AddressTableProps> = ({
     const typeMap: Record<AddressType, string> = {
       'billing': 'Billing',
       'postal': 'Postal',
-      'physical': 'Physical'
+      'physical': 'Physical',
+      'shipping': 'Shipping',
+      'head_office': 'Head Office',
+      'branch': 'Branch',
+      'residential': 'Residential',
+      'commercial': 'Commercial',
+      'warehouse': 'Warehouse',
+      'site': 'Site'
     };
     return typeMap[type] || type;
   };

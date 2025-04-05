@@ -30,7 +30,7 @@ const addressSchema = z.object({
   state: z.string().min(1, { message: 'State is required' }),
   postcode: z.string().min(4, { message: 'Postcode must be at least 4 characters' }),
   country: z.string().default('Australia'),
-  address_type: z.enum(['billing', 'postal', 'physical']),
+  address_type: z.enum(['billing', 'postal', 'physical', 'shipping', 'head_office', 'branch', 'residential', 'commercial', 'warehouse', 'site']),
 });
 
 export type AddressFormData = z.infer<typeof addressSchema>;
@@ -112,6 +112,13 @@ export function AddressForm({
                     <SelectItem value="billing">Billing</SelectItem>
                     <SelectItem value="postal">Postal</SelectItem>
                     <SelectItem value="physical">Physical</SelectItem>
+                    <SelectItem value="shipping">Shipping</SelectItem>
+                    <SelectItem value="head_office">Head Office</SelectItem>
+                    <SelectItem value="branch">Branch</SelectItem>
+                    <SelectItem value="residential">Residential</SelectItem>
+                    <SelectItem value="commercial">Commercial</SelectItem>
+                    <SelectItem value="warehouse">Warehouse</SelectItem>
+                    <SelectItem value="site">Site</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
