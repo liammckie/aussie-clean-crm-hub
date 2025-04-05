@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AddressType } from '@/services/unified';
+import { AddressType } from '@/types/form-types';
 
 interface ClientAddressTabProps {
   clientId: string;

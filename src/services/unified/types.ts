@@ -49,7 +49,7 @@ export interface UnifiedContactRecord {
 }
 
 // Re-export the types from form-types.ts
-export { UnifiedAddressFormData, UnifiedContactFormData };
+export type { UnifiedAddressFormData, UnifiedContactFormData };
 
 export type ValidationErrorResponse = {
   category: 'validation';

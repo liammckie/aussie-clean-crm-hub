@@ -69,7 +69,7 @@ import { useClientRealtimeSync } from "@/hooks/use-realtime-sync";
 import { useUnifiedEntities } from "@/hooks/use-unified-entities";
 import { UnifiedContactForm } from "@/components/client/UnifiedContactForm";
 import { toast } from "sonner";
-import { UnifiedContactFormData } from "@/types/form-types";
+import { UnifiedContactFormData, ContactType } from "@/types/form-types";
 
 const getStatusColor = (status: string | null | undefined) => {
   switch (status) {
