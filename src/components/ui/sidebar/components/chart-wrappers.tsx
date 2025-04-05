@@ -14,7 +14,6 @@ export function XAxis(props: XAxisProps) {
     width: 0,
     height: 30,
     mirror: false,
-    xAxisId: 0,
     tickCount: 5,
     scale: 'auto',
   };
@@ -31,7 +30,6 @@ export function YAxis(props: YAxisProps) {
     width: 60,
     height: 0,
     mirror: false,
-    yAxisId: 0,
     tickCount: 5,
     scale: 'auto',
   };

@@ -64,6 +64,7 @@ export function PipelineValueCard() {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" />
+              {/* Specify just one XAxis with default id */}
               <XAxis dataKey="name" />
               <YAxis />
               <ChartTooltip content={<ChartTooltipContent />} />
