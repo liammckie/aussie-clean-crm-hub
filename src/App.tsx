@@ -29,7 +29,8 @@ const SuspenseFallback = () => (
 );
 
 const App = () => {
-  const [showLoading, setShowLoading] = useState(true);
+  // Make sure React is in scope for useState to work
+  const [showLoading, setShowLoading] = React.useState(true);
 
   // Log app initialization
   React.useEffect(() => {
