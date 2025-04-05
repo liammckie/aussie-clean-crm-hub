@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -47,7 +46,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { toast } from "sonner";
 import { useClients } from '@/hooks/use-clients';
-import { ClientFormData, ClientStatus } from "@/services/client.service";
+import { ClientFormData, ClientStatus, ValidationErrorResponse } from "@/services/client.service";
 
 // Schema for client form
 const clientFormSchema = z.object({
@@ -100,7 +99,15 @@ const NewClient = () => {
       };
       
       // Create the client
-      const result = await createClient(clientData);
+      const result = await new Promise<ReturnType<typeof createClient>>((resolve) => {
+        createClient(clientData, {
+          onSuccess: (data) => resolve(data),
+          onError: (error) => {
+            console.error("Error in mutation:", error);
+            resolve(null);
+          }
+        });
+      });
       
       // Check for validation errors
       if (result && 'category' in result && result.category === 'validation') {
