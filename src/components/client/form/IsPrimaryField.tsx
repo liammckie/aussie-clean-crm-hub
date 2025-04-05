@@ -10,16 +10,19 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
 
-interface IsPrimaryFieldProps {
-  form: UseFormReturn<any>;
+interface IsPrimaryFieldProps<T extends { is_primary: boolean }> {
+  form: UseFormReturn<T>;
   label?: string;
 }
 
-export function IsPrimaryField({ form, label = "Set as primary" }: IsPrimaryFieldProps) {
+export function IsPrimaryField<T extends { is_primary: boolean }>({ 
+  form, 
+  label = "Set as primary" 
+}: IsPrimaryFieldProps<T>) {
   return (
     <FormField
       control={form.control}
-      name="is_primary"
+      name="is_primary" as="is_primary"
       render={({ field }) => (
         <FormItem className="flex flex-row items-center space-x-3 space-y-0">
           <FormControl>
