@@ -2,7 +2,8 @@
 import { ErrorCategory } from '@/utils/supabaseErrors';
 import { 
   contactValidationSchema,
-  addressValidationSchema
+  addressValidationSchema,
+  loginValidationSchema
 } from './form-validation';
 
 /**
@@ -153,6 +154,40 @@ export function validateAddressData<T>(addressData: T) {
       error: {
         message: error instanceof Error ? error.message : 'Address validation failed',
         category: ErrorCategory.VALIDATION
+      }
+    };
+  }
+}
+
+/**
+ * Validate login data with improved error handling
+ */
+export function validateLoginData<T extends { email: string; password: string; rememberMe?: boolean }>(loginData: T) {
+  try {
+    const result = loginValidationSchema.safeParse(loginData);
+
+    if (!result.success) {
+      // Get first validation error with safer extraction
+      const formattedErrors = result.error.format();
+      const { field, message } = extractFirstValidationError(formattedErrors);
+      
+      return {
+        isValid: false,
+        error: {
+          message,
+          category: ErrorCategory.AUTHENTICATION,
+          details: field ? { field } : undefined
+        }
+      };
+    }
+    
+    return { isValid: true, data: result.data, error: null };
+  } catch (error) {
+    return {
+      isValid: false,
+      error: {
+        message: error instanceof Error ? error.message : 'Login validation failed',
+        category: ErrorCategory.AUTHENTICATION
       }
     };
   }

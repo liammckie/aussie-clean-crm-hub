@@ -54,6 +54,29 @@ export const addressValidationSchema = z.object({
 });
 
 /**
+ * Login validation schema with enhanced password requirements
+ */
+export const loginValidationSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z.string()
+    .min(8, { message: "Password must be at least 8 characters" })
+    .max(128, { message: "Password cannot exceed 128 characters" })
+    .refine(
+      (password) => /[a-z]/.test(password),
+      { message: "Password must contain at least one lowercase letter" }
+    )
+    .refine(
+      (password) => /[A-Z]/.test(password),
+      { message: "Password must contain at least one uppercase letter" }
+    )
+    .refine(
+      (password) => /\d/.test(password),
+      { message: "Password must contain at least one number" }
+    ),
+  rememberMe: z.boolean().default(true)
+});
+
+/**
  * Validate contact data with proper typing for error handling
  */
 export function validateContact(data: Partial<UnifiedContactFormData>) {
@@ -65,4 +88,11 @@ export function validateContact(data: Partial<UnifiedContactFormData>) {
  */
 export function validateAddress(data: Partial<UnifiedAddressFormData>) {
   return addressValidationSchema.safeParse(data);
+}
+
+/**
+ * Validate login data with proper typing for error handling
+ */
+export function validateLogin(data: { email: string; password: string; rememberMe?: boolean }) {
+  return loginValidationSchema.safeParse(data);
 }
