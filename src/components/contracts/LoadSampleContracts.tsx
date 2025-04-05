@@ -1,11 +1,12 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { createSampleContracts } from '@/utils/contractTestData';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { contractService } from '@/services/contract';
+import { ErrorReporting } from '@/utils/errorReporting';
 
 interface LoadSampleContractsProps {
   onContractsLoaded: () => void;
@@ -13,84 +14,156 @@ interface LoadSampleContractsProps {
 
 export function LoadSampleContracts({ onContractsLoaded }: LoadSampleContractsProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   
   // Fetch existing clients to use for sample contracts
-  const { data: existingClients } = useQuery({
+  const { data: existingClients, error: clientsError, refetch: refetchClients } = useQuery({
     queryKey: ['clients-basic'],
     queryFn: async () => {
+      console.log('Fetching clients for sample contracts');
       try {
         // This is a simplified version - in a real app, you'd use a dedicated endpoint
         const response = await fetch('/api/clients/basic');
+        
         if (!response.ok) {
+          console.warn('Client API returned non-OK response, falling back to mock data');
           // For our demo, we'll use mock client IDs if we can't fetch real ones
           return [
-            { id: 'c1f0f1a0-5f1a-4f1a-8f1a-1f1a0f1a0f1a' },
-            { id: 'c2f0f2a0-5f2a-4f2a-8f2a-2f2a0f2a0f2a' },
-            { id: 'c3f0f3a0-5f3a-4f3a-8f3a-3f3a0f3a0f3a' }
+            { id: 'c1f0f1a0-5f1a-4f1a-8f1a-1f1a0f1a0f1a', name: 'Mock Client 1' },
+            { id: 'c2f0f2a0-5f2a-4f2a-8f2a-2f2a0f2a0f2a', name: 'Mock Client 2' },
+            { id: 'c3f0f3a0-5f3a-4f3a-8f3a-3f3a0f3a0f3a', name: 'Mock Client 3' }
           ];
         }
-        return await response.json();
+        
+        const clientData = await response.json();
+        console.log(`Retrieved ${clientData.length} clients from API`);
+        return clientData;
       } catch (error) {
         console.error('Error fetching clients:', error);
+        ErrorReporting.captureException(error instanceof Error ? error : new Error('Client fetch failed'), {
+          component: 'LoadSampleContracts',
+          operation: 'fetchClients'
+        });
+        
         // Return mock client IDs for the demo
+        console.log('Using mock client data due to error');
         return [
-          { id: 'c1f0f1a0-5f1a-4f1a-8f1a-1f1a0f1a0f1a' },
-          { id: 'c2f0f2a0-5f2a-4f2a-8f2a-2f2a0f2a0f2a' },
-          { id: 'c3f0f3a0-5f3a-4f3a-8f3a-3f3a0f3a0f3a' }
+          { id: 'c1f0f1a0-5f1a-4f1a-8f1a-1f1a0f1a0f1a', name: 'Mock Client 1' },
+          { id: 'c2f0f2a0-5f2a-4f2a-8f2a-2f2a0f2a0f2a', name: 'Mock Client 2' },
+          { id: 'c3f0f3a0-5f3a-4f3a-8f3a-3f3a0f3a0f3a', name: 'Mock Client 3' }
         ];
       }
     },
-    enabled: false, // Don't run on mount
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 1
   });
+  
+  // Check existing contracts on mount to determine button state
+  const { data: existingContracts } = useQuery({
+    queryKey: ['sample-contracts-check'],
+    queryFn: async () => {
+      try {
+        console.log('Checking for existing contracts');
+        const response = await contractService.getAllContracts();
+        
+        if ('category' in response) {
+          throw new Error(response.message);
+        }
+        
+        console.log(`Found ${response.data.length} existing contracts`);
+        return response.data;
+      } catch (error) {
+        console.error('Error checking for existing contracts:', error);
+        // Don't block the UI for this check
+        return [];
+      }
+    },
+  });
+  
+  const hasExistingContracts = existingContracts && existingContracts.length > 0;
   
   const handleLoadSample = async () => {
     setIsLoading(true);
+    setError(null);
+    
     try {
-      // Check if we have any contracts already
-      const existingContracts = await contractService.getAllContracts();
+      console.log('Load sample contracts initiated');
       
-      if ('data' in existingContracts && existingContracts.data.length > 0) {
-        toast.info('Sample contracts already exist in the database');
-        setIsLoading(false);
-        return;
+      if (!existingClients || existingClients.length === 0) {
+        console.log('No clients available, refetching...');
+        await refetchClients();
+        
+        if (!existingClients || existingClients.length === 0) {
+          throw new Error('No clients available to create sample contracts');
+        }
       }
       
-      // Use mock client IDs if we don't have real ones
-      const clientIds = existingClients?.map(client => client.id) || [
-        'c1f0f1a0-5f1a-4f1a-8f1a-1f1a0f1a0f1a',
-        'c2f0f2a0-5f2a-4f2a-8f2a-2f2a0f2a0f2a',
-        'c3f0f3a0-5f3a-4f3a-8f3a-3f3a0f3a0f3a'
-      ];
+      // Use client IDs from fetched data
+      const clientIds = existingClients.map(client => client.id);
+      console.log(`Proceeding with ${clientIds.length} client IDs`);
       
-      // Create sample contracts
-      await createSampleContracts(clientIds, 20);
+      // Create sample contracts - pass fewer contracts for faster testing
+      const success = await createSampleContracts(clientIds, 5);
       
-      // Notify parent component
-      onContractsLoaded();
+      if (success) {
+        // Notify parent component
+        onContractsLoaded();
+      } else {
+        throw new Error('Sample contract creation failed');
+      }
       
     } catch (error) {
-      console.error('Error loading sample data:', error);
-      toast.error('Failed to load sample data');
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error loading sample data';
+      console.error('Error in handleLoadSample:', errorMessage, error);
+      setError(errorMessage);
+      
+      ErrorReporting.captureException(error instanceof Error ? error : new Error(errorMessage), {
+        component: 'LoadSampleContracts',
+        operation: 'handleLoadSample',
+        clientIds: existingClients ? JSON.stringify(existingClients.map(c => c.id)) : 'none'
+      });
+      
+      toast.error('Failed to load sample data', {
+        description: errorMessage
+      });
     } finally {
       setIsLoading(false);
     }
   };
   
   return (
-    <Button 
-      variant="outline" 
-      onClick={handleLoadSample}
-      disabled={isLoading}
-      size="sm"
-    >
-      {isLoading ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Loading samples...
-        </>
-      ) : (
-        'Load Sample Contracts'
+    <div>
+      <Button 
+        variant="outline" 
+        onClick={handleLoadSample}
+        disabled={isLoading || hasExistingContracts}
+        size="sm"
+      >
+        {isLoading ? (
+          <>
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Loading samples...
+          </>
+        ) : hasExistingContracts ? (
+          'Samples Already Loaded'
+        ) : (
+          'Load Sample Contracts'
+        )}
+      </Button>
+      
+      {error && (
+        <div className="flex items-center text-sm text-destructive mt-2">
+          <AlertCircle className="h-4 w-4 mr-1" />
+          Error: {error}
+        </div>
       )}
-    </Button>
+      
+      {clientsError && !isLoading && (
+        <div className="flex items-center text-sm text-amber-600 mt-2">
+          <AlertCircle className="h-4 w-4 mr-1" />
+          Warning: Using mock clients due to API error
+        </div>
+      )}
+    </div>
   );
 }

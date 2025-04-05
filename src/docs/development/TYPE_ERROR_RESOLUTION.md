@@ -1,3 +1,4 @@
+
 # TypeScript Error Resolution Guide
 
 ## Common Type Errors
@@ -218,6 +219,31 @@ const typeMap: Record<AddressType, string> = {
 };
 ```
 
+### Error 5: Contract API Error Handling
+
+**Error:**
+Sample contract loading fails silently with no clear error message
+
+**Solution:**
+```typescript
+// Enhanced error handling in contract API calls
+try {
+  const response = await contractService.createContract(contractData);
+  if ('category' in response) {
+    console.error(`Contract creation failed: ${response.message}`);
+    throw new Error(response.message);
+  }
+  return response.data;
+} catch (error) {
+  console.error('Contract creation error:', error);
+  ErrorReporting.captureException(error, { 
+    contractData: JSON.stringify(contractData),
+    operation: 'createContract' 
+  });
+  throw error;
+}
+```
+
 ## Preventing Future Errors
 
 1. **Centralize Type Definitions**
@@ -243,6 +269,16 @@ const typeMap: Record<AddressType, string> = {
 6. **Use IDE Tools**
    - Leverage IDE features to find type references
    - Use the TypeScript Language Server to verify type compatibility
+
+7. **Implement Comprehensive Error Logging**
+   - Add detailed error context to all API calls
+   - Log both client and server-side errors consistently
+   - Use structured error objects with categorization
+
+8. **Add Testing Framework**
+   - Create unit tests for core business logic
+   - Implement integration tests for critical workflows
+   - Add contract test fixtures for reliable testing
 
 ## Additional Resources
 
