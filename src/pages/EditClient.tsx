@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
@@ -45,7 +46,8 @@ const EditClient = () => {
       clientService.getClientById(id)
         .then(response => {
           if (!response || 'category' in response || !response.data) {
-            toast.error(`Failed to load client data: ${response?.message || 'Unknown error'}`);
+            const errorMessage = 'category' in response ? response.message || 'Unknown error' : 'Unknown error';
+            toast.error(`Failed to load client data: ${errorMessage}`);
             return;
           }
 

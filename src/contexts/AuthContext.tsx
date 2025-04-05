@@ -89,14 +89,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setLoading(true);
       
+      // Remove the invalid property 'shouldCreateSession'
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        options: {
-          // If rememberMe is false, don't persist the session
-          // When true, the default behavior will persist the session
-          shouldCreateSession: true, // Always create a session
-        }
+        // The rememberMe functionality is handled by Supabase's default behavior
+        // When using localStorage as the storage mechanism
       });
       
       if (error) {
