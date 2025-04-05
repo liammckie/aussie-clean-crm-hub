@@ -1,65 +1,98 @@
 
-import { isValidABN, isValidACN, formatABN } from '@/utils/validators';
-
 /**
- * Service for handling validation of business data
+ * Service for validating and formatting business identifiers
  */
 export const validationService = {
   /**
-   * Validate an Australian Business Number (ABN)
+   * Validates an Australian Business Number (ABN)
+   * @param abn - The ABN to validate
+   * @returns True if the ABN is valid, false otherwise
    */
-  validateABN: (abn: string | null | undefined) => {
-    // If ABN is not provided, it's valid (since it's optional)
-    if (!abn) return { valid: true };
+  isValidABN: (abn: string | null | undefined): boolean => {
+    if (!abn) return false;
     
-    // Validate the ABN format
-    if (!isValidABN(abn)) {
-      return { 
-        valid: false, 
-        error: 'Invalid ABN - please enter an 11-digit number with valid checksum' 
-      };
-    }
+    // Remove spaces and ensure it's 11 digits
+    const cleanABN = abn.replace(/\s/g, '');
+    if (!/^\d{11}$/.test(cleanABN)) return false;
     
-    return { valid: true };
+    // ABN validation algorithm
+    const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+    
+    // Subtract 1 from the first digit for the check calculation
+    const digits = cleanABN.split('').map(d => parseInt(d));
+    digits[0] -= 1;
+    
+    // Calculate checksum
+    const sum = weights.reduce((acc, weight, i) => acc + weight * digits[i], 0);
+    
+    // Valid if divisible by 89
+    return sum % 89 === 0;
   },
   
   /**
-   * Validate an Australian Company Number (ACN)
+   * Validates an Australian Company Number (ACN)
+   * @param acn - The ACN to validate
+   * @returns True if the ACN is valid, false otherwise
    */
-  validateACN: (acn: string | null | undefined) => {
-    // If ACN is not provided, it's valid (since it's optional)
-    if (!acn) return { valid: true };
+  isValidACN: (acn: string | null | undefined): boolean => {
+    if (!acn) return true; // ACN is optional, so null/undefined is acceptable
     
-    // Validate the ACN format
-    if (!isValidACN(acn)) {
-      return { 
-        valid: false, 
-        error: 'Invalid ACN - please enter a 9-digit number with valid checksum' 
-      };
-    }
+    // Remove spaces and ensure it's 9 digits
+    const cleanACN = acn.replace(/\s/g, '');
+    if (!/^\d{9}$/.test(cleanACN)) return false;
     
-    return { valid: true };
+    // ACN validation algorithm
+    const weights = [8, 7, 6, 5, 4, 3, 2, 1];
+    const digits = cleanACN.slice(0, 8).split('').map(d => parseInt(d));
+    
+    // Calculate weighted sum
+    const sum = weights.reduce((acc, weight, i) => acc + weight * digits[i], 0);
+    
+    // Calculate check digit (last digit)
+    const remainder = sum % 10;
+    const checkDigit = remainder === 0 ? 0 : 10 - remainder;
+    
+    // Compare with the provided check digit
+    return checkDigit === parseInt(cleanACN[8]);
   },
   
   /**
-   * Format business identifiers (ABN/ACN) in a consistent way
+   * Formats an ABN by adding spaces for readability
+   * Format: XX XXX XXX XXX
+   * @param abn - The ABN to format
+   * @returns Formatted ABN string
    */
-  formatBusinessIdentifiers: (data: any) => {
-    const result = { ...data };
+  formatABN: (abn: string | null | undefined): string | null => {
+    if (!abn) return null;
     
-    // Format ABN if present
-    if (data.abn) {
-      result.abn = formatABN(data.abn);
-    }
+    const cleanABN = abn.replace(/\s/g, '');
+    if (cleanABN.length !== 11) return cleanABN;
     
-    // Format ACN if present - add spaces after positions 2 and 5
-    if (data.acn) {
-      const clean = data.acn.replace(/\s/g, '');
-      if (clean.length === 9) {
-        result.acn = `${clean.substring(0, 2)} ${clean.substring(2, 5)} ${clean.substring(5)}`;
-      }
-    }
+    return `${cleanABN.slice(0, 2)} ${cleanABN.slice(2, 5)} ${cleanABN.slice(5, 8)} ${cleanABN.slice(8, 11)}`;
+  },
+  
+  /**
+   * Formats an ACN by adding spaces for readability
+   * Format: XXX XXX XXX
+   * @param acn - The ACN to format
+   * @returns Formatted ACN string
+   */
+  formatACN: (acn: string | null | undefined): string | null => {
+    if (!acn) return null;
     
-    return result;
+    const cleanACN = acn.replace(/\s/g, '');
+    if (cleanACN.length !== 9) return cleanACN;
+    
+    return `${cleanACN.slice(0, 3)} ${cleanACN.slice(3, 6)} ${cleanACN.slice(6, 9)}`;
+  },
+  
+  /**
+   * Cleans an ABN or ACN by removing spaces and non-numeric characters
+   * @param value - The value to clean
+   * @returns Cleaned string with only digits
+   */
+  cleanBusinessIdentifier: (value: string | null | undefined): string | null => {
+    if (!value) return null;
+    return value.replace(/[^\d]/g, '');
   }
 };

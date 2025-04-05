@@ -1,6 +1,6 @@
 
-import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -9,6 +9,8 @@ import {
   Building,
   Briefcase,
   ClipboardList,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 import { 
   Card,
@@ -43,6 +45,11 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert";
 import { useClients } from "@/hooks/use-clients";
 
 // Schema for client form
@@ -55,11 +62,16 @@ const clientFormSchema = z.object({
   status: z.string().min(1, "Status is required"),
 });
 
-const NewClient = () => {
+const EditClient = () => {
   const navigate = useNavigate();
+  const { id } = useParams<{ id: string }>();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { createClient, isCreatingClient } = useClients();
+  
+  // Get client data
+  const { useClientDetails, updateClient, isUpdatingClient, updateClientError } = useClients();
+  const { data: client, isLoading, error } = useClientDetails(id);
 
+  // Initialize form with client data when available
   const form = useForm<z.infer<typeof clientFormSchema>>({
     resolver: zodResolver(clientFormSchema),
     defaultValues: {
@@ -68,11 +80,27 @@ const NewClient = () => {
       abn: "",
       acn: "",
       industry: "",
-      status: "Prospect",
+      status: "",
     },
   });
+  
+  // Update form values when client data is loaded
+  useEffect(() => {
+    if (client) {
+      form.reset({
+        business_name: client.business_name || "",
+        trading_name: client.trading_name || "",
+        abn: client.abn || "",
+        acn: client.acn || "",
+        industry: client.industry || "",
+        status: client.status || "Prospect",
+      });
+    }
+  }, [client, form]);
 
   const onSubmit = async (values: z.infer<typeof clientFormSchema>) => {
+    if (!id) return;
+    
     setIsSubmitting(true);
     
     try {
@@ -84,17 +112,48 @@ const NewClient = () => {
         acn: values.acn || null,
       };
       
-      // Create the client
-      const result = await createClient(clientData);
+      // Call the update function
+      await updateClient({ id, data: clientData });
       
-      // Navigate to the client list
-      navigate("/clients");
+      // Navigate back to client details
+      navigate(`/clients/${id}`);
     } catch (error) {
-      console.error("Error creating client:", error);
+      console.error("Error updating client:", error);
     } finally {
       setIsSubmitting(false);
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-lg text-muted-foreground">Loading client data...</span>
+      </div>
+    );
+  }
+
+  if (error || !client) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>
+            {error?.message || "Failed to load client data"}
+          </AlertDescription>
+        </Alert>
+        
+        <div className="mt-4">
+          <Button variant="outline" asChild>
+            <Link to="/clients">
+              <ArrowLeft className="mr-2 h-4 w-4" /> Back to Clients
+            </Link>
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-0 max-w-full">
@@ -114,16 +173,22 @@ const NewClient = () => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>New Client</BreadcrumbPage>
+            <BreadcrumbLink asChild>
+              <Link to={`/clients/${id}`}>{client.business_name}</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Edit</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
 
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">New Client</h1>
+        <h1 className="text-2xl font-bold">Edit Client</h1>
         <Button variant="outline" asChild>
-          <Link to="/clients">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Clients
+          <Link to={`/clients/${id}`}>
+            <ArrowLeft className="mr-2 h-4 w-4" /> Back to Client
           </Link>
         </Button>
       </div>
@@ -135,7 +200,7 @@ const NewClient = () => {
             <CardHeader>
               <CardTitle>Business Information</CardTitle>
               <CardDescription>
-                Enter the basic details about the client business
+                Update the basic details about the client business
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -236,7 +301,7 @@ const NewClient = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Industry</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select industry" />
@@ -265,7 +330,7 @@ const NewClient = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Client Status</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} value={field.value || ""}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select status" />
@@ -289,10 +354,10 @@ const NewClient = () => {
           {/* Form Actions */}
           <div className="flex justify-end gap-4">
             <Button type="button" variant="outline" asChild>
-              <Link to="/clients">Cancel</Link>
+              <Link to={`/clients/${id}`}>Cancel</Link>
             </Button>
-            <Button type="submit" disabled={isSubmitting || isCreatingClient}>
-              {isSubmitting || isCreatingClient ? "Creating..." : "Create Client"}
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? "Saving..." : "Save Changes"}
             </Button>
           </div>
         </form>
@@ -301,4 +366,4 @@ const NewClient = () => {
   );
 };
 
-export default NewClient;
+export default EditClient;

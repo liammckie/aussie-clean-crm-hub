@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { 
@@ -7,7 +8,8 @@ import {
   MoreHorizontal, 
   User,
   Building,
-  CalendarClock
+  CalendarClock,
+  Loader2
 } from "lucide-react";
 import { 
   Card, 
@@ -41,7 +43,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { mockClients } from "@/data/mockClients";
+import { useClients } from '@/hooks/use-clients';
 
 // Status badge color mapping
 const getStatusColor = (status: string) => {
@@ -61,26 +63,57 @@ const getStatusColor = (status: string) => {
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [filteredClients, setFilteredClients] = useState(mockClients);
+  const { clients, isLoadingClients, clientsError, refetchClients } = useClients();
+  const [filteredClients, setFilteredClients] = useState<any[]>([]);
+  const [activeStatusFilter, setActiveStatusFilter] = useState<string | null>(null);
 
-  // Filter clients based on search term
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const value = event.target.value.toLowerCase();
-    setSearchTerm(value);
+  // Filter clients based on search term and status
+  const filterClients = () => {
+    if (!clients) return;
     
-    if (value === "") {
-      setFilteredClients(mockClients);
-    } else {
-      const filtered = mockClients.filter(
+    let filtered = [...clients];
+    
+    // Apply search filter
+    if (searchTerm) {
+      const search = searchTerm.toLowerCase();
+      filtered = filtered.filter(
         client => 
-          client.businessName.toLowerCase().includes(value) ||
-          client.tradingName.toLowerCase().includes(value) ||
-          client.abn.includes(value) ||
-          client.primaryContact.toLowerCase().includes(value) ||
-          client.email.toLowerCase().includes(value)
+          client.business_name?.toLowerCase().includes(search) ||
+          client.trading_name?.toLowerCase().includes(search) ||
+          client.abn?.includes(search) ||
+          client.industry?.toLowerCase().includes(search)
       );
-      setFilteredClients(filtered);
     }
+    
+    // Apply status filter
+    if (activeStatusFilter) {
+      filtered = filtered.filter(client => client.status === activeStatusFilter);
+    }
+    
+    setFilteredClients(filtered);
+  };
+
+  // Update filters when clients data or filters change
+  React.useEffect(() => {
+    if (clients) {
+      filterClients();
+    }
+  }, [clients, searchTerm, activeStatusFilter]);
+
+  // Handle search input change
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+  
+  // Handle status filter
+  const handleStatusFilter = (status: string | null) => {
+    setActiveStatusFilter(status === activeStatusFilter ? null : status);
+  };
+  
+  // Format date to locale format
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    return new Date(dateString).toLocaleDateString();
   };
 
   return (
@@ -145,8 +178,12 @@ const Clients = () => {
             </div>
 
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Filter className="mr-2 h-4 w-4" /> Filter
+              <Button 
+                variant={activeStatusFilter ? "secondary" : "outline"} 
+                size="sm"
+                onClick={() => setActiveStatusFilter(null)}
+              >
+                <Filter className="mr-2 h-4 w-4" /> All
               </Button>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -155,18 +192,67 @@ const Clients = () => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem>All</DropdownMenuItem>
-                  <DropdownMenuItem>Active</DropdownMenuItem>
-                  <DropdownMenuItem>Prospect</DropdownMenuItem>
-                  <DropdownMenuItem>On Hold</DropdownMenuItem>
-                  <DropdownMenuItem>Cancelled</DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusFilter("Prospect")}>
+                    Prospect
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusFilter("Active")}>
+                    Active
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusFilter("On Hold")}>
+                    On Hold
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusFilter("Cancelled")}>
+                    Cancelled
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              
+              <Button variant="outline" size="sm" onClick={() => refetchClients()}>
+                Refresh
+              </Button>
             </div>
           </div>
 
+          {/* Loading State */}
+          {isLoadingClients && (
+            <div className="flex justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+              <span className="ml-2 text-lg text-muted-foreground">Loading clients...</span>
+            </div>
+          )}
+
+          {/* Error State */}
+          {clientsError && (
+            <div className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="rounded-full bg-red-100 p-3 text-red-600 mb-4">
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="24" 
+                  height="24" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <path d="M12 9v4"></path>
+                  <path d="M12 17h.01"></path>
+                  <circle cx="12" cy="12" r="10"></circle>
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold mb-2">Error loading clients</h3>
+              <p className="text-muted-foreground mb-4">
+                {clientsError.message || "There was an error fetching client data"}
+              </p>
+              <Button variant="outline" onClick={() => refetchClients()}>
+                Try Again
+              </Button>
+            </div>
+          )}
+
           {/* Client Table */}
-          {filteredClients.length > 0 ? (
+          {!isLoadingClients && !clientsError && filteredClients.length > 0 ? (
             <div className="rounded-md border overflow-hidden">
               <Table>
                 <TableHeader>
@@ -174,9 +260,8 @@ const Clients = () => {
                     <TableHead className="w-[300px]">Business Name</TableHead>
                     <TableHead>ABN</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Primary Contact</TableHead>
-                    <TableHead>Sites</TableHead>
-                    <TableHead>Contracts</TableHead>
+                    <TableHead>Industry</TableHead>
+                    <TableHead>Onboarding Date</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -190,32 +275,23 @@ const Clients = () => {
                         >
                           <Building className="h-4 w-4 text-muted-foreground" />
                           <div>
-                            <div>{client.businessName}</div>
-                            {client.tradingName !== client.businessName && (
+                            <div>{client.business_name}</div>
+                            {client.trading_name && client.trading_name !== client.business_name && (
                               <div className="text-xs text-muted-foreground">
-                                Trading as: {client.tradingName}
+                                Trading as: {client.trading_name}
                               </div>
                             )}
                           </div>
                         </Link>
                       </TableCell>
-                      <TableCell>{client.abn}</TableCell>
+                      <TableCell>{client.abn || 'N/A'}</TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(client.status)}>
                           {client.status}
                         </Badge>
                       </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <div>
-                            <div>{client.primaryContact}</div>
-                            <div className="text-xs text-muted-foreground">{client.email}</div>
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>{client.sites}</TableCell>
-                      <TableCell>{client.contracts}</TableCell>
+                      <TableCell>{client.industry || 'N/A'}</TableCell>
+                      <TableCell>{formatDate(client.onboarding_date)}</TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -240,7 +316,7 @@ const Clients = () => {
                 </TableBody>
               </Table>
             </div>
-          ) : (
+          ) : !isLoadingClients && !clientsError ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <SearchX className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No clients found</h3>
@@ -249,20 +325,20 @@ const Clients = () => {
               </p>
               <Button variant="outline" onClick={() => {
                 setSearchTerm("");
-                setFilteredClients(mockClients);
-              }}>Clear Search</Button>
+                setActiveStatusFilter(null);
+              }}>Clear Filters</Button>
             </div>
-          )}
+          ) : null}
 
           {/* Client Cards for Mobile View - This would be shown only on small screens */}
           <div className="sm:hidden mt-4 flex flex-col gap-4">
-            {filteredClients.map((client) => (
+            {!isLoadingClients && filteredClients.map((client) => (
               <Card key={client.id}>
                 <CardContent className="p-4">
                   <div className="flex justify-between items-start">
                     <div>
-                      <h3 className="font-semibold">{client.businessName}</h3>
-                      <p className="text-sm text-muted-foreground">{client.tradingName}</p>
+                      <h3 className="font-semibold">{client.business_name}</h3>
+                      <p className="text-sm text-muted-foreground">{client.trading_name || ''}</p>
                     </div>
                     <Badge className={getStatusColor(client.status)}>
                       {client.status}
@@ -272,15 +348,14 @@ const Clients = () => {
                   <div className="mt-3 space-y-2">
                     <div className="flex items-center gap-2 text-sm">
                       <User className="h-4 w-4 text-muted-foreground" />
-                      <span>{client.primaryContact}</span>
+                      <span>{client.industry || 'N/A'}</span>
                     </div>
                     <div className="flex items-center gap-2 text-sm">
                       <CalendarClock className="h-4 w-4 text-muted-foreground" />
-                      <span>Client since {new Date(client.onboardingDate).toLocaleDateString()}</span>
+                      <span>Client since {formatDate(client.onboarding_date)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Sites: {client.sites}</span>
-                      <span>Contracts: {client.contracts}</span>
+                    <div className="flex text-sm">
+                      <span>ABN: {client.abn || 'N/A'}</span>
                     </div>
                   </div>
                   

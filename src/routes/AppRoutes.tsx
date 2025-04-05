@@ -12,6 +12,7 @@ const SentryDashboard = Sentry.withProfiler(React.lazy(() => import("@/pages/Das
 const SentryClients = Sentry.withProfiler(React.lazy(() => import("@/pages/Clients")), { name: "Clients" });
 const SentryClientDetail = Sentry.withProfiler(React.lazy(() => import("@/pages/ClientDetail")), { name: "ClientDetail" });
 const SentryNewClient = Sentry.withProfiler(React.lazy(() => import("@/pages/NewClient")), { name: "NewClient" });
+const SentryEditClient = Sentry.withProfiler(React.lazy(() => import("@/pages/EditClient")), { name: "EditClient" });
 const SentryLogin = Sentry.withProfiler(React.lazy(() => import("@/pages/Login")), { name: "Login" });
 const SentryNotFound = Sentry.withProfiler(React.lazy(() => import("@/pages/NotFound")), { name: "NotFound" });
 
@@ -77,6 +78,15 @@ export const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <SentryClientDetail />
+            </ProtectedRoute>
+          }
+          errorElement={<RouteErrorBoundary />}
+        />
+        <Route 
+          path="/clients/:id/edit" 
+          element={
+            <ProtectedRoute>
+              <SentryEditClient />
             </ProtectedRoute>
           }
           errorElement={<RouteErrorBoundary />}

@@ -1,5 +1,6 @@
+
 import { useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import {
   Building,
   Phone,
@@ -12,6 +13,9 @@ import {
   Edit,
   ArrowLeft,
   User,
+  Loader2,
+  AlertCircle,
+  Trash2,
 } from "lucide-react";
 import {
   Tabs,
@@ -19,6 +23,17 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -44,9 +59,10 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { mockClients } from "@/data/mockClients"; // We'll create this file next"
+import { useClients } from "@/hooks/use-clients";
+import { useClientRealtimeSync } from "@/hooks/use-realtime-sync";
 
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: string | null | undefined) => {
   switch (status) {
     case "Active":
       return "bg-emerald-500 hover:bg-emerald-600";
@@ -63,17 +79,53 @@ const getStatusColor = (status: string) => {
 
 const ClientDetail = () => {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   
-  const client = mockClients.find(client => client.id === id);
+  // Set up realtime sync for this client
+  useClientRealtimeSync(id);
   
-  if (!client) {
+  // Get client data
+  const { useClientDetails, deleteClient, isDeletingClient } = useClients();
+  const { data: client, isLoading, error } = useClientDetails(id);
+  
+  const handleDeleteClient = async () => {
+    if (!id) return;
+    
+    try {
+      await deleteClient(id);
+      navigate("/clients");
+    } catch (error) {
+      console.error("Error deleting client:", error);
+    }
+  };
+  
+  // Format date
+  const formatDate = (dateString: string | null | undefined) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toLocaleDateString();
+  };
+  
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        <span className="ml-2 text-lg text-muted-foreground">Loading client data...</span>
+      </div>
+    );
+  }
+  
+  if (error || !client) {
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="text-center">
+          <div className="inline-flex items-center justify-center rounded-full bg-red-100 p-6 mb-5">
+            <AlertCircle className="h-10 w-10 text-red-600" />
+          </div>
           <h2 className="text-2xl font-bold mb-4">Client Not Found</h2>
           <p className="mb-4 text-muted-foreground">
-            The client you're looking for doesn't exist or has been removed.
+            {error?.message || "The client you're looking for doesn't exist or has been removed."}
           </p>
           <Button asChild>
             <Link to="/clients">
@@ -102,7 +154,7 @@ const ClientDetail = () => {
           </BreadcrumbItem>
           <BreadcrumbSeparator />
           <BreadcrumbItem>
-            <BreadcrumbPage>{client.businessName}</BreadcrumbPage>
+            <BreadcrumbPage>{client.business_name}</BreadcrumbPage>
           </BreadcrumbItem>
         </BreadcrumbList>
       </Breadcrumb>
@@ -112,12 +164,12 @@ const ClientDetail = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div className="flex items-center gap-4">
               <div className="bg-slate-800 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-semibold">
-                {client.businessName.charAt(0)}
+                {client.business_name.charAt(0)}
               </div>
               <div>
-                <h1 className="text-2xl font-bold">{client.businessName}</h1>
-                {client.tradingName !== client.businessName && (
-                  <p className="text-muted-foreground">Trading as: {client.tradingName}</p>
+                <h1 className="text-2xl font-bold">{client.business_name}</h1>
+                {client.trading_name && client.trading_name !== client.business_name && (
+                  <p className="text-muted-foreground">Trading as: {client.trading_name}</p>
                 )}
               </div>
             </div>
@@ -130,6 +182,34 @@ const ClientDetail = () => {
                   <Edit className="mr-2 h-4 w-4" /> Edit Client
                 </Link>
               </Button>
+              
+              <AlertDialog open={isDeleteConfirmOpen} onOpenChange={setIsDeleteConfirmOpen}>
+                <AlertDialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Trash2 className="mr-2 h-4 w-4" /> Delete
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This action cannot be undone. This will permanently delete the client
+                      and all associated data.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={handleDeleteClient}
+                      disabled={isDeletingClient}
+                      className="bg-red-600 hover:bg-red-700"
+                    >
+                      {isDeletingClient ? "Deleting..." : "Delete Client"}
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              
               <Button variant="outline" size="sm">
                 Create Quote
               </Button>
@@ -165,14 +245,14 @@ const ClientDetail = () => {
                     <h4 className="text-sm font-medium text-muted-foreground mb-1">Business Name</h4>
                     <div className="flex items-center gap-2">
                       <Building className="h-4 w-4 text-muted-foreground" />
-                      <span>{client.businessName}</span>
+                      <span>{client.business_name}</span>
                     </div>
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-1">Trading Name</h4>
                     <div className="flex items-center gap-2">
                       <Building className="h-4 w-4 text-muted-foreground" />
-                      <span>{client.tradingName}</span>
+                      <span>{client.trading_name || "N/A"}</span>
                     </div>
                   </div>
                 </div>
@@ -181,61 +261,90 @@ const ClientDetail = () => {
                     <h4 className="text-sm font-medium text-muted-foreground mb-1">ABN</h4>
                     <div className="flex items-center gap-2">
                       <ClipboardList className="h-4 w-4 text-muted-foreground" />
-                      <span>{client.abn}</span>
+                      <span>{client.abn || "N/A"}</span>
                     </div>
                   </div>
                   <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Industry</h4>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">ACN</h4>
                     <div className="flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-muted-foreground" />
-                      <span>{client.industry}</span>
+                      <ClipboardList className="h-4 w-4 text-muted-foreground" />
+                      <span>{client.acn || "N/A"}</span>
                     </div>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Industry</h4>
+                    <div className="flex items-center gap-2">
+                      <Tag className="h-4 w-4 text-muted-foreground" />
+                      <span>{client.industry || "N/A"}</span>
+                    </div>
+                  </div>
                   <div>
                     <h4 className="text-sm font-medium text-muted-foreground mb-1">Status</h4>
                     <Badge className={getStatusColor(client.status)}>
                       {client.status}
                     </Badge>
                   </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-1">Client Since</h4>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-muted-foreground" />
-                      <span>{new Date(client.onboardingDate).toLocaleDateString()}</span>
-                    </div>
+                </div>
+                <div>
+                  <h4 className="text-sm font-medium text-muted-foreground mb-1">Client Since</h4>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <span>{formatDate(client.onboarding_date)}</span>
                   </div>
                 </div>
               </CardContent>
             </Card>
             
             <Card>
-              <CardHeader>
-                <CardTitle>Primary Contact</CardTitle>
-                <CardDescription>Main point of contact for this client</CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Primary Contact</CardTitle>
+                  <CardDescription>Main point of contact for this client</CardDescription>
+                </div>
+                <Button size="sm" variant="outline">
+                  <User className="mr-2 h-4 w-4" /> Add Contact
+                </Button>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-slate-700 text-white rounded-full w-10 h-10 flex items-center justify-center">
-                    <User className="h-5 w-5" />
+                {client.client_contacts && client.client_contacts.length > 0 ? (
+                  <div className="space-y-4">
+                    {client.client_contacts
+                      .filter(contact => contact.is_primary)
+                      .map(contact => (
+                        <div key={contact.id}>
+                          <div className="flex items-center gap-3">
+                            <div className="bg-slate-700 text-white rounded-full w-10 h-10 flex items-center justify-center">
+                              <User className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium">{contact.name}</h4>
+                              <p className="text-sm text-muted-foreground">{contact.position || "Primary Contact"}</p>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-3 mt-2">
+                            <div className="flex items-center gap-2">
+                              <Mail className="h-4 w-4 text-muted-foreground" />
+                              <span>{contact.email}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Phone className="h-4 w-4 text-muted-foreground" />
+                              <span>{contact.phone || contact.mobile || "N/A"}</span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                   </div>
-                  <div>
-                    <h4 className="font-medium">{client.primaryContact}</h4>
-                    <p className="text-sm text-muted-foreground">Primary Contact</p>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-center border rounded-md border-dashed">
+                    <User className="h-8 w-8 text-muted-foreground mb-2" />
+                    <h3 className="font-medium mb-1">No primary contact</h3>
+                    <p className="text-sm text-muted-foreground mb-4">Add contact information for this client</p>
+                    <Button size="sm" variant="outline">Add Contact</Button>
                   </div>
-                </div>
-                
-                <div className="space-y-3 mt-2">
-                  <div className="flex items-center gap-2">
-                    <Mail className="h-4 w-4 text-muted-foreground" />
-                    <span>{client.email}</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{client.phone}</span>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
             
@@ -247,20 +356,26 @@ const ClientDetail = () => {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="bg-slate-800/40 rounded-lg p-4">
-                    <h3 className="text-sm font-medium text-muted-foreground">Total Sites</h3>
-                    <p className="text-2xl font-bold">{client.sites}</p>
+                    <h3 className="text-sm font-medium text-muted-foreground">Client Since</h3>
+                    <p className="text-2xl font-bold">{formatDate(client.onboarding_date)}</p>
                   </div>
                   <div className="bg-slate-800/40 rounded-lg p-4">
-                    <h3 className="text-sm font-medium text-muted-foreground">Active Contracts</h3>
-                    <p className="text-2xl font-bold">{client.contracts}</p>
+                    <h3 className="text-sm font-medium text-muted-foreground">Status</h3>
+                    <div className="mt-1">
+                      <Badge className={getStatusColor(client.status)}>
+                        {client.status}
+                      </Badge>
+                    </div>
                   </div>
                   <div className="bg-slate-800/40 rounded-lg p-4">
                     <h3 className="text-sm font-medium text-muted-foreground">Last Activity</h3>
-                    <p className="text-2xl font-bold">3 days ago</p>
+                    <p className="text-2xl font-bold">
+                      {formatDate(client.updated_at) || "N/A"}
+                    </p>
                   </div>
                   <div className="bg-slate-800/40 rounded-lg p-4">
-                    <h3 className="text-sm font-medium text-muted-foreground">Revenue YTD</h3>
-                    <p className="text-2xl font-bold">$45,250</p>
+                    <h3 className="text-sm font-medium text-muted-foreground">Payment Terms</h3>
+                    <p className="text-2xl font-bold">{client.payment_terms || "N/A"}</p>
                   </div>
                 </div>
               </CardContent>
@@ -280,37 +395,48 @@ const ClientDetail = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">{client.primaryContact}</TableCell>
-                    <TableCell>Primary Contact</TableCell>
-                    <TableCell>{client.email}</TableCell>
-                    <TableCell>{client.phone}</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Jane Wilson</TableCell>
-                    <TableCell>Financial Officer</TableCell>
-                    <TableCell>j.wilson@example.com</TableCell>
-                    <TableCell>0412 987 654</TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">Edit</Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              {client.client_contacts && client.client_contacts.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {client.client_contacts.map(contact => (
+                      <TableRow key={contact.id}>
+                        <TableCell className="font-medium">{contact.name}</TableCell>
+                        <TableCell>{contact.position || "-"}</TableCell>
+                        <TableCell>{contact.email}</TableCell>
+                        <TableCell>{contact.phone || contact.mobile || "-"}</TableCell>
+                        <TableCell>
+                          <Badge variant={contact.is_primary ? "default" : "outline"}>
+                            {contact.contact_type}
+                            {contact.is_primary ? " (Primary)" : ""}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm">Edit</Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center border rounded-md border-dashed">
+                  <User className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No contacts found</h3>
+                  <p className="text-muted-foreground mb-4">
+                    This client doesn't have any contacts yet.
+                  </p>
+                  <Button>Add First Contact</Button>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -327,41 +453,14 @@ const ClientDetail = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Site Name</TableHead>
-                    <TableHead>Address</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">Main Office</TableCell>
-                    <TableCell>123 Business Ave, Sydney NSW 2000</TableCell>
-                    <TableCell>Office</TableCell>
-                    <TableCell>
-                      <Badge className="bg-emerald-500">Active</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">View</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Warehouse B</TableCell>
-                    <TableCell>45 Industrial Dr, Wetherill Park NSW 2164</TableCell>
-                    <TableCell>Warehouse</TableCell>
-                    <TableCell>
-                      <Badge className="bg-emerald-500">Active</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">View</Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <div className="flex flex-col items-center justify-center py-12 text-center border rounded-md border-dashed">
+                <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No sites yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Add the first site for this client to start managing services
+                </p>
+                <Button>Add First Site</Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -378,47 +477,14 @@ const ClientDetail = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Contract ID</TableHead>
-                    <TableHead>Service Type</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>End Date</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">C-2023-001</TableCell>
-                    <TableCell>Office Cleaning</TableCell>
-                    <TableCell>01/06/2023</TableCell>
-                    <TableCell>31/05/2024</TableCell>
-                    <TableCell>$24,000</TableCell>
-                    <TableCell>
-                      <Badge className="bg-emerald-500">Active</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">View</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">C-2023-015</TableCell>
-                    <TableCell>Warehouse Maintenance</TableCell>
-                    <TableCell>15/07/2023</TableCell>
-                    <TableCell>14/07/2024</TableCell>
-                    <TableCell>$18,500</TableCell>
-                    <TableCell>
-                      <Badge className="bg-emerald-500">Active</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="ghost" size="sm">View</Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <div className="flex flex-col items-center justify-center py-12 text-center border rounded-md border-dashed">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No contracts yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Create the first contract for this client to start tracking services
+                </p>
+                <Button>Create First Contract</Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -436,56 +502,37 @@ const ClientDetail = () => {
                   <div className="space-y-4">
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground">Billing Cycle</h4>
-                      <p>Monthly</p>
+                      <p>{client.billing_cycle || "Not set"}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground">Payment Terms</h4>
-                      <p>Net 14</p>
+                      <p>{client.payment_terms || "Not set"}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground">Payment Method</h4>
-                      <p>Direct Debit</p>
+                      <p>{client.payment_method || "Not set"}</p>
                     </div>
                     <div>
                       <h4 className="text-sm font-medium text-muted-foreground">Credit Limit</h4>
-                      <p>$10,000</p>
+                      <p>{client.credit_limit ? `$${client.credit_limit}` : "Not set"}</p>
                     </div>
                   </div>
-                  <Button variant="outline" size="sm" className="mt-4">
-                    <Edit className="mr-2 h-4 w-4" /> Edit Settings
+                  <Button variant="outline" size="sm" className="mt-4" asChild>
+                    <Link to={`/clients/${client.id}/edit`}>
+                      <Edit className="mr-2 h-4 w-4" /> Edit Settings
+                    </Link>
                   </Button>
                 </div>
+                
                 <div>
                   <h3 className="text-lg font-medium mb-4">Recent Invoices</h3>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Invoice #</TableHead>
-                        <TableHead>Date</TableHead>
-                        <TableHead>Amount</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>INV-2023-042</TableCell>
-                        <TableCell>15/03/2023</TableCell>
-                        <TableCell>$2,450</TableCell>
-                        <TableCell>
-                          <Badge>Paid</Badge>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>INV-2023-036</TableCell>
-                        <TableCell>15/02/2023</TableCell>
-                        <TableCell>$2,450</TableCell>
-                        <TableCell>
-                          <Badge>Paid</Badge>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                  <Button variant="outline" size="sm" className="mt-4">View All Invoices</Button>
+                  <div className="flex flex-col items-center justify-center py-8 text-center border rounded-md border-dashed">
+                    <FileText className="h-8 w-8 text-muted-foreground mb-2" />
+                    <h3 className="font-medium mb-1">No invoices yet</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Invoices will appear here when contracts are created
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>
@@ -504,39 +551,14 @@ const ClientDetail = () => {
               </Button>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Document Name</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Upload Date</TableHead>
-                    <TableHead>Expiry Date</TableHead>
-                    <TableHead>Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">Service Agreement</TableCell>
-                    <TableCell>Contract</TableCell>
-                    <TableCell>15/05/2023</TableCell>
-                    <TableCell>14/05/2024</TableCell>
-                    <TableCell className="flex gap-2">
-                      <Button variant="outline" size="sm">View</Button>
-                      <Button variant="outline" size="sm">Download</Button>
-                    </TableCell>
-                  </TableRow>
-                  <TableRow>
-                    <TableCell className="font-medium">Insurance Certificate</TableCell>
-                    <TableCell>Certificate</TableCell>
-                    <TableCell>10/01/2023</TableCell>
-                    <TableCell>10/01/2024</TableCell>
-                    <TableCell className="flex gap-2">
-                      <Button variant="outline" size="sm">View</Button>
-                      <Button variant="outline" size="sm">Download</Button>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
+              <div className="flex flex-col items-center justify-center py-12 text-center border rounded-md border-dashed">
+                <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No documents yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Upload important documents related to this client
+                </p>
+                <Button>Upload Document</Button>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -551,47 +573,30 @@ const ClientDetail = () => {
               <div className="space-y-6">
                 <div className="flex gap-4">
                   <div className="mt-0.5 h-6 w-6 rounded-full border border-white/20 bg-slate-800 flex items-center justify-center">
-                    <FileText className="h-3 w-3" />
+                    <Edit className="h-3 w-3" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Contract C-2023-015 created</p>
-                    <p className="text-xs text-muted-foreground">15/07/2023 at 10:34 AM by John Doe</p>
+                    <p className="text-sm font-medium">Client details updated</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(client.updated_at)}</p>
                     <div className="mt-2 rounded border p-2">
-                      <p className="text-sm">Warehouse Maintenance contract added with annual value of $18,500</p>
+                      <p className="text-sm">Client information was modified</p>
                     </div>
                   </div>
                 </div>
                 
                 <div className="flex gap-4">
                   <div className="mt-0.5 h-6 w-6 rounded-full border border-white/20 bg-slate-800 flex items-center justify-center">
-                    <Mail className="h-3 w-3" />
+                    <User className="h-3 w-3" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium">Email communication</p>
-                    <p className="text-xs text-muted-foreground">10/07/2023 at 2:15 PM by Jane Smith</p>
+                    <p className="text-sm font-medium">Client created</p>
+                    <p className="text-xs text-muted-foreground">{formatDate(client.created_at)}</p>
                     <div className="mt-2 rounded border p-2">
-                      <p className="text-sm">Sent quote proposal for warehouse maintenance services.</p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="flex gap-4">
-                  <div className="mt-0.5 h-6 w-6 rounded-full border border-white/20 bg-slate-800 flex items-center justify-center">
-                    <Phone className="h-3 w-3" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Phone call</p>
-                    <p className="text-xs text-muted-foreground">05/07/2023 at 11:20 AM by John Doe</p>
-                    <div className="mt-2 rounded border p-2">
-                      <p className="text-sm">Discussed potential expansion of services to include warehouse site.</p>
+                      <p className="text-sm">New client record was created</p>
                     </div>
                   </div>
                 </div>
               </div>
-              
-              <Button variant="outline" size="sm" className="mt-6">
-                Show More Activity
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>

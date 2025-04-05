@@ -1,6 +1,26 @@
+
 import { isSupabaseError } from '@/integrations/supabase/client';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError, logSuccess } from '@/utils/supabaseErrors';
+import { validationService } from './validation.service';
+
+// Client data types
+export interface ClientFormData {
+  business_name: string;
+  trading_name?: string;
+  abn?: string;
+  acn?: string;
+  industry?: string;
+  status: string;
+  onboarding_date?: string;
+  source?: string;
+  // Billing fields
+  billing_cycle?: string;
+  payment_terms?: string;
+  payment_method?: string;
+  tax_status?: string;
+  credit_limit?: number;
+}
 
 // Get all clients from the database
 export const clientService = {
@@ -16,8 +36,15 @@ export const clientService = {
         throw error;
       }
 
-      logSuccess('fetch', 'clients', data);
-      return { data, error: null };
+      // Format business identifiers for display
+      const formattedData = data.map(client => ({
+        ...client,
+        abn: client.abn ? validationService.formatABN(client.abn) : null,
+        acn: client.acn ? validationService.formatACN(client.acn) : null
+      }));
+
+      logSuccess('fetch', 'clients', formattedData);
+      return { data: formattedData, error: null };
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -32,7 +59,10 @@ export const clientService = {
     try {
       const { data, error } = await supabase
         .from('clients')
-        .select('*')
+        .select(`
+          *,
+          client_contacts(*)
+        `)
         .eq('id', clientId)
         .single();
 
@@ -40,8 +70,15 @@ export const clientService = {
         throw error;
       }
       
-      logSuccess('fetch', 'client', data);
-      return { data, error: null };
+      // Format business identifiers for display
+      const formattedData = {
+        ...data,
+        abn: data.abn ? validationService.formatABN(data.abn) : null,
+        acn: data.acn ? validationService.formatACN(data.acn) : null
+      };
+      
+      logSuccess('fetch', 'client', formattedData);
+      return { data: formattedData, error: null };
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -52,16 +89,30 @@ export const clientService = {
   },
 
   // Create a new client
-  createClient: async (client: any) => {
+  createClient: async (client: ClientFormData) => {
     try {
-      // Format ABN/ACN if provided
-      let formattedClient = client;
+      // Format and validate business identifiers
+      const formattedClient = {
+        ...client,
+        abn: client.abn ? validationService.cleanBusinessIdentifier(client.abn) : null,
+        acn: client.acn ? validationService.cleanBusinessIdentifier(client.acn) : null
+      };
       
-      if (client.abn || client.acn) {
-        formattedClient = {
-          ...client,
-          abn: client.abn ? client.abn.replace(/\s/g, '') : null,
-          acn: client.acn ? client.acn.replace(/\s/g, '') : null
+      // ABN validation
+      if (formattedClient.abn && !validationService.isValidABN(formattedClient.abn)) {
+        return {
+          category: 'validation',
+          message: 'Invalid ABN provided. Please check and try again.',
+          details: { field: 'abn' }
+        };
+      }
+      
+      // ACN validation (if provided)
+      if (formattedClient.acn && !validationService.isValidACN(formattedClient.acn)) {
+        return {
+          category: 'validation',
+          message: 'Invalid ACN provided. Please check and try again.',
+          details: { field: 'acn' }
         };
       }
 
@@ -87,11 +138,36 @@ export const clientService = {
   },
 
   // Update an existing client
-  updateClient: async (clientId: string, clientData: any) => {
+  updateClient: async (clientId: string, clientData: Partial<ClientFormData>) => {
     try {
+      // Format and validate business identifiers
+      const formattedData = {
+        ...clientData,
+        abn: clientData.abn ? validationService.cleanBusinessIdentifier(clientData.abn) : undefined,
+        acn: clientData.acn ? validationService.cleanBusinessIdentifier(clientData.acn) : undefined
+      };
+      
+      // ABN validation
+      if (formattedData.abn && !validationService.isValidABN(formattedData.abn)) {
+        return {
+          category: 'validation',
+          message: 'Invalid ABN provided. Please check and try again.',
+          details: { field: 'abn' }
+        };
+      }
+      
+      // ACN validation (if provided)
+      if (formattedData.acn && !validationService.isValidACN(formattedData.acn)) {
+        return {
+          category: 'validation',
+          message: 'Invalid ACN provided. Please check and try again.',
+          details: { field: 'acn' }
+        };
+      }
+
       const { data, error } = await supabase
         .from('clients')
-        .update(clientData)
+        .update(formattedData)
         .eq('id', clientId)
         .select()
         .single();
@@ -134,11 +210,57 @@ export const clientService = {
     }
   },
 
-  // Format business identifiers (ABN, ACN) before saving
-  formatBusinessIdentifiers: (data: { abn?: string, acn?: string }) => {
-    // This function has issues with a missing required field
-    // We need to use a different approach or ensure business_name is provided
-    // For now, we'll just return the data unchanged
-    return data;
+  // Get client contacts by client ID
+  getClientContacts: async (clientId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('client_contacts')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('is_primary', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      logSuccess('fetch', 'client_contacts', data);
+      return { data, error: null };
+    } catch (error) {
+      return handleSupabaseError(
+        error,
+        `Failed to fetch contacts for client with ID ${clientId}`,
+        { operation: 'getClientContacts', clientId }
+      );
+    }
+  },
+
+  // Create a new client contact
+  createClientContact: async (clientId: string, contactData: any) => {
+    try {
+      // Add client ID to contact data
+      const contact = {
+        ...contactData,
+        client_id: clientId
+      };
+
+      const { data, error } = await supabase
+        .from('client_contacts')
+        .insert(contact)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      logSuccess('create', 'client_contact', data);
+      return { data, error: null };
+    } catch (error) {
+      return handleSupabaseError(
+        error,
+        'Failed to create client contact',
+        { operation: 'createClientContact', clientId, contactData }
+      );
+    }
   }
 };
