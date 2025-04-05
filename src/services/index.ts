@@ -1,5 +1,4 @@
 
 // Export all service modules here for easy imports
-export * from './client.service';
+export * from './client';
 export * from './validation.service';
-

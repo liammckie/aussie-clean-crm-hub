@@ -1,11 +1,11 @@
 
-import { ClientFormData } from '@/services/client.service';
+import { ClientFormData } from '@/services/client/types';
 import { validationService } from '@/services/validation.service';
 
 /**
  * Prepare client data for submission by cleaning/formatting fields
  */
-export const prepareClientDataForSubmission = (data: ClientFormData): ClientFormData => {
+export const prepareClientDataForSubmission = (data: ClientFormData): Record<string, any> => {
   return {
     ...data,
     // Clean business identifiers
@@ -43,7 +43,7 @@ export const formatClientDataForDisplay = (client: any) => {
 };
 
 /**
- * Validate client data
+ * Validate client data for business rules compliance
  */
 export const validateClientData = (data: ClientFormData) => {
   const errors: Record<string, string> = {};
@@ -73,4 +73,35 @@ export const validateClientData = (data: ClientFormData) => {
     isValid: Object.keys(errors).length === 0,
     errors
   };
+};
+
+/**
+ * Function to check and validate business identifiers
+ */
+export const validateBusinessIdentifiers = (client: Pick<ClientFormData, 'abn' | 'acn'>): ValidationErrorResponse | null => {
+  // ABN validation (if provided)
+  if (client.abn) {
+    const cleanABN = validationService.cleanBusinessIdentifier(client.abn);
+    if (!validationService.isValidABN(cleanABN)) {
+      return {
+        category: 'validation',
+        message: 'Invalid ABN provided. Please check and try again.',
+        details: { field: 'abn' }
+      };
+    }
+  }
+  
+  // ACN validation (if provided)
+  if (client.acn) {
+    const cleanACN = validationService.cleanBusinessIdentifier(client.acn);
+    if (!validationService.isValidACN(cleanACN)) {
+      return {
+        category: 'validation',
+        message: 'Invalid ACN provided. Please check and try again.',
+        details: { field: 'acn' }
+      };
+    }
+  }
+
+  return null;
 };

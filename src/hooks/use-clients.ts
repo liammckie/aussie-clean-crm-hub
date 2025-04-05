@@ -1,6 +1,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { clientService, ClientFormData, ValidationErrorResponse } from '@/services/client.service';
+import { ClientFormData, ValidationErrorResponse, clientService } from '@/services/client';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
 import { useClientsRealtimeSync } from './use-realtime-sync';
