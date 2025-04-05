@@ -9,7 +9,6 @@ import { toast } from 'sonner';
 import { Form } from '@/components/ui/form';
 import { prepareClientDataForSubmission } from '@/utils/clientUtils';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import { AddressFieldsSection } from '@/components/client/AddressFieldsSection';
 import { ClientFormFields } from '@/components/client/ClientFormFields';
 import { loadSampleClientData } from '@/utils/clientUtils';
 
@@ -51,7 +50,9 @@ const NewClient = () => {
       if ('category' in response && response.category === 'validation') {
         // Set validation errors in the form
         if (response.details?.field) {
-          form.setError(response.details.field as keyof ClientFormData, {
+          // Type assertion to ensure TypeScript knows it's a valid key
+          const fieldName = response.details.field as keyof ClientFormData;
+          form.setError(fieldName, {
             type: 'manual',
             message: response.message,
           });

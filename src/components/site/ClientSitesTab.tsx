@@ -30,10 +30,28 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
   );
 
   const handleCreateSite = async (data: SiteFormData) => {
-    await createSite({
-      ...data,
+    // Make sure all required fields are present before creating site
+    const siteData = {
       client_id: clientId,
-    });
+      site_name: data.site_name,
+      site_code: data.site_code,
+      address_line_1: data.address_line_1,
+      address_line_2: data.address_line_2,
+      suburb: data.suburb,
+      state: data.state,
+      postcode: data.postcode,
+      site_contact_name: data.site_contact_name || null,
+      site_contact_email: data.site_contact_email || null,
+      site_contact_phone: data.site_contact_phone || null,
+      status: data.status,
+      site_type: data.site_type || null,
+      square_meters: data.square_meters || null,
+      region: data.region || null,
+      notes: data.notes || null,
+      induction_required: data.induction_required || false
+    };
+    
+    await createSite(siteData);
     setIsDialogOpen(false);
     refetchSites();
   };
@@ -95,35 +113,5 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
         )}
       </CardContent>
     </Card>
-  );
-}
-
-// Create a placeholder SiteListTable component if it doesn't exist
-export function SiteListTable({ sites, clientId, onSiteUpdated }: any) {
-  return (
-    <div>
-      <table className="w-full">
-        <thead>
-          <tr>
-            <th className="text-left py-2">Site Name</th>
-            <th className="text-left py-2">Location</th>
-            <th className="text-left py-2">Status</th>
-            <th className="text-left py-2">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {sites.map((site: any) => (
-            <tr key={site.id} className="border-t">
-              <td className="py-2">{site.site_name}</td>
-              <td className="py-2">{site.suburb}, {site.state}</td>
-              <td className="py-2">{site.status}</td>
-              <td className="py-2">
-                <Button variant="ghost" size="sm">Edit</Button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
   );
 }
