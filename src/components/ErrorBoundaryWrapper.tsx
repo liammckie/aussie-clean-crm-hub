@@ -1,5 +1,5 @@
 
-import React, { ErrorInfo, ReactNode } from 'react';
+import React, { ReactNode } from 'react';
 import * as Sentry from '@sentry/react';
 
 interface ErrorBoundaryWrapperProps {
@@ -7,9 +7,13 @@ interface ErrorBoundaryWrapperProps {
 }
 
 export const ErrorBoundaryWrapper: React.FC<ErrorBoundaryWrapperProps> = ({ children }) => {
-  const handleError = (error: Error, info: ErrorInfo) => {
-    console.error('Error caught by ErrorBoundary:', error, info);
-    Sentry.captureException(error);
+  // Update the error handler to match Sentry's expected signature
+  const handleError = (error: Error, componentStack: string, eventId: string) => {
+    console.error('Error caught by ErrorBoundary:', error);
+    console.error('Component Stack:', componentStack);
+    console.error('Event ID:', eventId);
+    
+    // The error is already captured by Sentry internally when using ErrorBoundary
   };
 
   return (

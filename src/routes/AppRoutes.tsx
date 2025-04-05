@@ -1,4 +1,3 @@
-
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -38,10 +37,9 @@ const AppRoutes: React.FC = () => {
     if (adminSession) {
       try {
         const sessionData = JSON.parse(adminSession);
-        // Check if the session is still valid (e.g., within a certain time frame)
         const sessionTimestamp = new Date(sessionData.timestamp).getTime();
         const now = new Date().getTime();
-        const sessionDuration = 60 * 60 * 1000; // 1 hour
+        const sessionDuration = 60 * 60 * 1000;
         if (now - sessionTimestamp < sessionDuration) {
           setIsAdminSession(true);
         } else {
