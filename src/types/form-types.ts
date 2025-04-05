@@ -143,7 +143,7 @@ export const createDefaultContactValues = (
   contact_type: initialData.contact_type || defaultContactType,
   preferred_communication: initialData.preferred_communication || 'email',
   is_primary: Boolean(initialData.is_primary ?? false),  // Ensure it's always a boolean
-  entity_type: initialData.entity_type,
+  entity_type: initialData.entity_id,
   entity_id: initialData.entity_id,
   notes: initialData.notes || '',
 });

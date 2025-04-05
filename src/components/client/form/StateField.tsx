@@ -23,26 +23,15 @@ interface StateFieldProps {
 
 export function StateField({ form }: StateFieldProps) {
   const australianStates = [
-    'New South Wales',
-    'Victoria',
-    'Queensland',
-    'South Australia',
-    'Western Australia',
-    'Tasmania',
-    'Northern Territory',
-    'Australian Capital Territory',
+    { value: 'NSW', label: 'New South Wales' },
+    { value: 'VIC', label: 'Victoria' },
+    { value: 'QLD', label: 'Queensland' },
+    { value: 'SA', label: 'South Australia' },
+    { value: 'WA', label: 'Western Australia' },
+    { value: 'TAS', label: 'Tasmania' },
+    { value: 'NT', label: 'Northern Territory' },
+    { value: 'ACT', label: 'Australian Capital Territory' }
   ];
-
-  const stateAbbreviations: Record<string, string> = {
-    'New South Wales': 'NSW',
-    'Victoria': 'VIC',
-    'Queensland': 'QLD',
-    'South Australia': 'SA',
-    'Western Australia': 'WA',
-    'Tasmania': 'TAS',
-    'Northern Territory': 'NT',
-    'Australian Capital Territory': 'ACT'
-  };
 
   return (
     <FormField
@@ -51,12 +40,7 @@ export function StateField({ form }: StateFieldProps) {
       render={({ field }) => (
         <FormItem>
           <FormLabel>State</FormLabel>
-          <Select 
-            onValueChange={(value) => field.onChange(stateAbbreviations[value] || value)} 
-            defaultValue={Object.keys(stateAbbreviations).find(
-              key => stateAbbreviations[key] === field.value
-            ) || field.value}
-          >
+          <Select onValueChange={field.onChange} defaultValue={field.value}>
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder="Select state" />
@@ -64,7 +48,7 @@ export function StateField({ form }: StateFieldProps) {
             </FormControl>
             <SelectContent>
               {australianStates.map((state) => (
-                <SelectItem key={state} value={state}>{state}</SelectItem>
+                <SelectItem key={state.value} value={state.value}>{state.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>

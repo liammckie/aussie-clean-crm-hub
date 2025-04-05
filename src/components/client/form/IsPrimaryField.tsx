@@ -11,7 +11,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
 import { Path } from 'react-hook-form';
 
-// Generic interface that allows for any type that has is_primary field (required or optional)
+// Interface for components that include is_primary field
 interface IsPrimaryFieldProps<T> {
   form: UseFormReturn<T>;
   label?: string;
