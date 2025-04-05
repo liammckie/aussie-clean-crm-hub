@@ -24,7 +24,7 @@ export function MobileSidebar({ links }: MobileSidebarProps) {
           <span className="sr-only">Open Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="p-0 max-w-xs bg-gradient-to-b from-slate-900/95 to-slate-950/95 backdrop-blur-xl border-white/10 text-white">
+      <SheetContent side="left" className="p-0 max-w-[280px] bg-gradient-to-b from-slate-900/95 to-slate-950/95 backdrop-blur-xl border-white/10 text-white">
         <NewSidebar links={links} />
       </SheetContent>
     </Sheet>

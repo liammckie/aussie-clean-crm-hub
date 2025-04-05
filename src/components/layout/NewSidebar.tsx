@@ -59,14 +59,14 @@ export function NewSidebar({ links = defaultLinks }: NewSidebarProps) {
   };
 
   return (
-    <Sidebar className="border-r bg-card pt-2 h-screen">
+    <Sidebar className="border-r border-white/10 bg-gradient-to-b from-slate-900/95 to-slate-950/95 pt-2 h-screen">
       <SidebarHeader className="pb-2 px-4">
-        <h2 className="text-lg font-bold">ERP System</h2>
+        <h2 className="text-lg font-bold text-white">ERP System</h2>
       </SidebarHeader>
       
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-white/70">Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {links.map((link) => {
@@ -76,7 +76,8 @@ export function NewSidebar({ links = defaultLinks }: NewSidebarProps) {
                   <SidebarMenuItem key={link.href}>
                     <SidebarMenuButton 
                       asChild 
-                      className={`${isActive ? 'bg-primary/10 text-primary' : ''} hover:bg-primary/5`}
+                      tooltip={link.text}
+                      className={`${isActive ? 'bg-primary/10 text-primary' : 'text-white'} hover:bg-primary/5`}
                     >
                       <Link to={link.href}>
                         <Icon className="w-4 h-4" />
@@ -91,11 +92,11 @@ export function NewSidebar({ links = defaultLinks }: NewSidebarProps) {
         </SidebarGroup>
         
         <SidebarGroup className="mt-auto">
-          <SidebarGroupLabel>Account</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-white/70">Account</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild>
+                <SidebarMenuButton asChild tooltip="Settings" className="text-white hover:bg-primary/5">
                   <Link to="/settings">
                     <Settings className="w-4 h-4" />
                     <span>Settings</span>
@@ -103,7 +104,7 @@ export function NewSidebar({ links = defaultLinks }: NewSidebarProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleSignOut}>
+                <SidebarMenuButton onClick={handleSignOut} tooltip="Log out" className="text-white hover:bg-primary/5">
                   <LogOut className="w-4 h-4" />
                   <span>Log out</span>
                 </SidebarMenuButton>
@@ -113,7 +114,7 @@ export function NewSidebar({ links = defaultLinks }: NewSidebarProps) {
         </SidebarGroup>
       </SidebarContent>
       
-      <SidebarFooter className="px-4 py-2 text-xs text-muted-foreground">
+      <SidebarFooter className="px-4 py-2 text-xs text-white/50">
         <p>© 2025 ERP Inc.</p>
       </SidebarFooter>
     </Sidebar>

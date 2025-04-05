@@ -16,16 +16,14 @@ export function MainLayout({ children, links }: MainLayoutProps) {
     const saved = localStorage.getItem("sidebar-expanded");
     return saved !== null ? JSON.parse(saved) : true;
   });
-
+  
   // Save sidebar state to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("sidebar-expanded", JSON.stringify(sidebarExpanded));
   }, [sidebarExpanded]);
 
-  const toggleSidebar = () => setSidebarExpanded(prev => !prev);
-
   return (
-    <SidebarProvider defaultOpen={sidebarExpanded}>
+    <SidebarProvider defaultOpen={sidebarExpanded} onOpenChange={setSidebarExpanded}>
       <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 text-white">
         {/* Desktop Sidebar */}
         <div className="hidden md:block">
@@ -35,7 +33,7 @@ export function MainLayout({ children, links }: MainLayoutProps) {
         {/* Mobile Sidebar */}
         <MobileSidebar links={links} />
         
-        {/* Main Content - Fixed the transition and margin classes */}
+        {/* Main Content */}
         <main 
           className={`transition-all duration-300 ${
             sidebarExpanded 
