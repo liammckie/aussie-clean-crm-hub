@@ -34,6 +34,7 @@ function initSentry() {
     integrations: [
       new BrowserTracing({
         routingInstrumentation: Sentry.reactRouterV6Instrumentation(
+          React.createElement, // Added React.createElement as a required parameter
           useLocation,
           useNavigationType,
           createRoutesFromChildren,
@@ -131,7 +132,8 @@ export const withSentryAPI = async <T,>(
     transaction.setStatus("internal_error");
     Sentry.captureException(error, {
       tags: { api: options.name },
-      extras: options.data,
+      // Fix: Change extras to extra which is the correct property name
+      extra: options.data,
     });
     throw error;
   } finally {

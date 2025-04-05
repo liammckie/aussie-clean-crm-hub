@@ -26,6 +26,13 @@ export interface ErrorResponse {
   details?: unknown;
 }
 
+// Define a more specific type for Supabase errors
+interface SupabaseErrorWithCode {
+  code?: string;
+  message?: string;
+  error?: string;
+}
+
 /**
  * Helper to categorize Supabase errors
  */
@@ -34,7 +41,9 @@ export function categorizeError(error: unknown): ErrorCategory {
     return ErrorCategory.UNKNOWN;
   }
 
-  const { code } = error;
+  // Safe type assertion since we've verified it's a Supabase error
+  const supabaseError = error as SupabaseErrorWithCode;
+  const code = supabaseError.code;
 
   // Authentication errors
   if (code?.startsWith('auth/') || code === 'unauthorized') {
@@ -85,13 +94,14 @@ export function handleSupabaseError(
   let details: unknown;
 
   if (isSupabaseError(error)) {
+    const supabaseError = error as SupabaseErrorWithCode;
     category = categorizeError(error);
-    code = error.code;
+    code = supabaseError.code;
     details = error;
     
     // Add specific details based on error type
-    if (category === ErrorCategory.VALIDATION && error.message) {
-      message = `${customMessage}: ${error.message}`;
+    if (category === ErrorCategory.VALIDATION && supabaseError.message) {
+      message = `${customMessage}: ${supabaseError.message}`;
     }
   } else if (error instanceof Error) {
     message = `${customMessage}: ${error.message}`;
