@@ -24,7 +24,7 @@ export function QualityAuditsCard() {
   return (
     <Card className="bg-card/50 border-border/50">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">Quality Audits</CardTitle>
+        <CardTitle className="text-lg font-medium">Quality Audit's</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[240px] w-full">
@@ -42,8 +42,8 @@ export function QualityAuditsCard() {
                 labelStyle={{ color: "#94a3b8" }}
               />
               <Legend />
-              <Bar dataKey="delivered" name="Delivered" fill="#3b82f6" radius={[4, 4, 0, 0]} xAxisId={0} />
-              <Bar dataKey="promised" name="Promised" fill="#22c55e" radius={[4, 4, 0, 0]} xAxisId={0} />
+              <Bar dataKey="delivered" name="Delivered" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="promised" name="Promised" fill="#22c55e" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

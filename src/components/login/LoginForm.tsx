@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -23,32 +22,32 @@ import {
   FormLabel, 
   FormMessage 
 } from "@/components/ui/form";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { ErrorReporting } from "@/utils/errorReporting";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
-import { loginValidationSchema } from "@/services/validation/form-validation";
 
-type LoginFormValues = z.infer<typeof loginValidationSchema>;
+// Create a schema for login validation
+const loginSchema = z.object({
+  email: z.string().email({ message: "Please enter a valid email address" }),
+  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  rememberMe: z.boolean().default(true)
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<{
-    email?: string;
-    password?: string;
-  }>({});
   const navigate = useNavigate();
-  const { signIn } = useAuth();
+  const { toast } = useToast();
+  const { signIn } = useAuth(); // Changed from login to signIn to match the AuthContext
   
   // Initialize react-hook-form with zod validation
   const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginValidationSchema),
+    resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
-      rememberMe: true,
+      rememberMe: true, // Default to remember me
     },
     mode: "onChange", // Enable validation as the user types
   });
@@ -56,8 +55,6 @@ export function LoginForm() {
   // Handle form submission
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
-    setAuthError(null);
-    setFieldErrors({});
     
     try {
       // Log login attempt (with privacy protection)
@@ -67,11 +64,12 @@ export function LoginForm() {
         "info"
       );
       
-      // Call the signIn function from auth context
+      // Call the signIn function from auth context instead of login
       await signIn(data.email, data.password);
       
       // Show success message
-      toast.success("Login successful", {
+      toast({
+        title: "Login successful",
         description: "Redirecting to dashboard...",
       });
       
@@ -79,30 +77,18 @@ export function LoginForm() {
       setTimeout(() => {
         navigate("/dashboard");
       }, 1000);
-    } catch (error: any) {
-      // Report the error to error reporting service (password filtered out for privacy)
+    } catch (error) {
+      // Report the error to Sentry (password filtered out for privacy)
       ErrorReporting.captureException(
         error as Error,
         { email: data.email, formData: "filtered-for-privacy" }
       );
       
-      // Process specific error messages based on error code
-      if (error.message?.includes("Invalid login")) {
-        setAuthError("Invalid email or password");
-      } else if (error.message?.includes("Email not confirmed")) {
-        setAuthError("Please verify your email before logging in");
-      } else if (error.message?.includes("not found")) {
-        setFieldErrors({ email: "No account found with this email address" });
-      } else if (error.message?.includes("Invalid credentials")) {
-        setFieldErrors({ password: "Incorrect password" });
-      } else {
-        // Generic error message
-        setAuthError(error.message || "Login failed. Please try again.");
-      }
-      
-      // Show error toast
-      toast.error("Login failed", {
+      // Show error message if login fails
+      toast({
+        title: "Login failed",
         description: "Please check your credentials and try again",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -132,14 +118,6 @@ export function LoginForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <CardContent className="space-y-4">
-              {/* Display general authentication error */}
-              {authError && (
-                <Alert variant="destructive" className="bg-red-900/20 border-red-900/50 text-red-300">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>{authError}</AlertDescription>
-                </Alert>
-              )}
-              
               <FormField
                 control={form.control}
                 name="email"
@@ -153,18 +131,12 @@ export function LoginForm() {
                         autoComplete="email"
                         className="bg-white/[0.02] border-white/10 focus:border-purple-500 transition-colors focus:bg-white/[0.03]"
                         {...field} 
-                        aria-invalid={!!fieldErrors.email || form.formState.errors.email ? "true" : "false"}
                       />
                     </FormControl>
-                    {fieldErrors.email ? (
-                      <p className="text-sm font-medium text-destructive">{fieldErrors.email}</p>
-                    ) : (
-                      <FormMessage />
-                    )}
+                    <FormMessage />
                   </FormItem>
                 )}
               />
-              
               <FormField
                 control={form.control}
                 name="password"
@@ -174,21 +146,15 @@ export function LoginForm() {
                     <FormControl>
                       <Input 
                         type="password"
-                        autoComplete={form.getValues("rememberMe") ? "current-password" : "off"}
+                        autoComplete="current-password"
                         className="bg-white/[0.02] border-white/10 focus:border-purple-500 transition-colors focus:bg-white/[0.03]"
                         {...field} 
-                        aria-invalid={!!fieldErrors.password || form.formState.errors.password ? "true" : "false"}
                       />
                     </FormControl>
-                    {fieldErrors.password ? (
-                      <p className="text-sm font-medium text-destructive">{fieldErrors.password}</p>
-                    ) : (
-                      <FormMessage />
-                    )}
+                    <FormMessage />
                   </FormItem>
                 )}
               />
-              
               <div className="flex items-center justify-between">
                 <FormField
                   control={form.control}
@@ -198,14 +164,7 @@ export function LoginForm() {
                       <FormControl>
                         <Checkbox 
                           checked={field.value} 
-                          onCheckedChange={(checked) => {
-                            field.onChange(checked);
-                            // Update password field's autocomplete attribute when rememberMe changes
-                            const passwordInput = document.querySelector('input[type="password"]') as HTMLInputElement;
-                            if (passwordInput) {
-                              passwordInput.autocomplete = checked ? "current-password" : "off";
-                            }
-                          }}
+                          onCheckedChange={field.onChange}
                           className="data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500" 
                         />
                       </FormControl>
@@ -222,7 +181,6 @@ export function LoginForm() {
                 </Button>
               </div>
             </CardContent>
-            
             <CardFooter className="flex flex-col space-y-4">
               <Button 
                 type="submit" 

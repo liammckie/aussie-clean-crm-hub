@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Session, User, AuthError } from '@supabase/supabase-js';
+import { Session, User } from '@supabase/supabase-js';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
 
@@ -86,7 +86,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
-  // Enhanced sign in function with better error handling
+  // Sign in function
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
@@ -95,11 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password,
       });
 
-      if (error) {
-        // Enhance error with additional context based on error code
-        const enhancedError = processAuthError(error, email);
-        throw enhancedError;
-      }
+      if (error) throw error;
 
       // Log success and important info for debugging
       console.log('Sign in successful:', data.session ? true : false);
@@ -111,34 +107,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       console.error('Login error:', error);
       ErrorReporting.captureException(error as Error);
+      toast.error(`Login failed: ${error.message}`);
       setIsAuthenticated(false);
-      // Let the form component handle the error display
-      throw error;
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  // Process Supabase auth errors to provide more context
-  const processAuthError = (error: AuthError, email: string): Error => {
-    // Map Supabase error codes to more specific error messages
-    switch (error.message) {
-      case "Invalid login credentials":
-        // Check if the error is related to the email not existing or wrong password
-        return new Error("Invalid login credentials");
-      
-      case "Email not confirmed":
-        return new Error("Email not confirmed");
-      
-      case "User not found":
-        return new Error(`No account found with email: ${email}`);
-      
-      case "Invalid credentials":
-        return new Error("Invalid credentials");
-      
-      default:
-        // For any other errors, return the original error
-        return error;
     }
   };
 

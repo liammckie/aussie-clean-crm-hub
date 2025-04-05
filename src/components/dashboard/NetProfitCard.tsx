@@ -42,7 +42,6 @@ export function NetProfitCard() {
                 outerRadius={80}
                 paddingAngle={5}
                 dataKey="value"
-                nameKey="name"
                 stroke="none"
               >
                 {data.map((entry, index) => (

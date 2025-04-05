@@ -2,7 +2,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Form as FormProvider } from '@/components/ui/form';
+import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { ContactBaseFields } from './form/ContactBaseFields';
 import { ContactTypeField } from './form/ContactTypeField';
@@ -52,7 +52,7 @@ export function UnifiedContactForm({
   };
 
   return (
-    <FormProvider {...form}>
+    <Form {...form}>
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ContactBaseFields form={form} />
@@ -71,7 +71,6 @@ export function UnifiedContactForm({
           {isLoading ? "Saving..." : buttonText}
         </Button>
       </form>
-    </FormProvider>
+    </Form>
   );
 }
-

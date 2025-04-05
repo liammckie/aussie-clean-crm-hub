@@ -2,18 +2,16 @@
 import { Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { NewSidebar, SidebarLink } from "./NewSidebar";
-import { useSidebar } from "@/components/ui/sidebar";
+import { NewSidebar } from "./NewSidebar";
 
 interface MobileSidebarProps {
-  links?: SidebarLink[];
+  expanded: boolean;
+  onToggle: () => void;
 }
 
-export function MobileSidebar({ links }: MobileSidebarProps) {
-  const { openMobile, setOpenMobile } = useSidebar();
-
+export function MobileSidebar({ expanded, onToggle }: MobileSidebarProps) {
   return (
-    <Sheet open={openMobile} onOpenChange={setOpenMobile}>
+    <Sheet>
       <SheetTrigger asChild>
         <Button 
           variant="outline" 
@@ -24,8 +22,8 @@ export function MobileSidebar({ links }: MobileSidebarProps) {
           <span className="sr-only">Open Menu</span>
         </Button>
       </SheetTrigger>
-      <SheetContent side="left" className="p-0 max-w-[280px] bg-[#1A1F2C] border-white/10 text-white">
-        <NewSidebar links={links} />
+      <SheetContent side="left" className="p-0 max-w-xs bg-gradient-to-b from-slate-900/95 to-slate-950/95 backdrop-blur-xl border-white/10 text-white">
+        <NewSidebar expanded={true} onToggle={onToggle} />
       </SheetContent>
     </Sheet>
   );

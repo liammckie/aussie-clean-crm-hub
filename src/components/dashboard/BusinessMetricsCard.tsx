@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -24,10 +25,10 @@ export function BusinessMetricsCard() {
           }}
         />
         <Legend />
-        <Bar yAxisId="left" dataKey="activeClients" fill="#8884d8" name="Active Clients" xAxisId={0} />
-        <Bar yAxisId="left" dataKey="activeSites" fill="#82ca9d" name="Active Sites" xAxisId={0} />
-        <Bar yAxisId="left" dataKey="activeContracts" fill="#ffc658" name="Active Contracts" xAxisId={0} />
-        <Line yAxisId="right" type="monotone" dataKey="fixedBillingMonthly" stroke="#ff7300" name="Monthly Revenue" xAxisId={0} />
+        <Bar yAxisId="left" dataKey="activeClients" fill="#8884d8" name="Active Clients" />
+        <Bar yAxisId="left" dataKey="activeSites" fill="#82ca9d" name="Active Sites" />
+        <Bar yAxisId="left" dataKey="activeContracts" fill="#ffc658" name="Active Contracts" />
+        <Line yAxisId="right" type="monotone" dataKey="fixedBillingMonthly" stroke="#ff7300" name="Monthly Revenue" />
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -52,10 +53,10 @@ export function BusinessMetricsCard() {
           }}
         />
         <Legend />
-        <Bar yAxisId="left" dataKey="fixedBillingMonthly" fill="#82ca9d" name="Monthly Revenue" xAxisId={0} />
-        <Bar yAxisId="left" dataKey="supplierCostMonthly" fill="#ff8042" name="Monthly Cost" xAxisId={0} />
-        <Line yAxisId="left" type="monotone" dataKey="fixedBillingAnnual" stroke="#8884d8" name="Annual Revenue" xAxisId={0} />
-        <Line yAxisId="left" type="monotone" dataKey="supplierCostAnnual" stroke="#ff0000" name="Annual Cost" xAxisId={0} />
+        <Bar yAxisId="left" dataKey="fixedBillingMonthly" fill="#82ca9d" name="Monthly Revenue" />
+        <Bar yAxisId="left" dataKey="supplierCostMonthly" fill="#ff8042" name="Monthly Cost" />
+        <Line yAxisId="left" type="monotone" dataKey="fixedBillingAnnual" stroke="#8884d8" name="Annual Revenue" />
+        <Line yAxisId="left" type="monotone" dataKey="supplierCostAnnual" stroke="#ff0000" name="Annual Cost" />
       </ComposedChart>
     </ResponsiveContainer>
   );
@@ -79,9 +80,9 @@ export function BusinessMetricsCard() {
           }}
         />
         <Legend />
-        <Bar yAxisId="left" dataKey="fixedBillingMonthly" fill="#82ca9d" name="Monthly Revenue" xAxisId={0} />
-        <Bar yAxisId="left" dataKey="supplierCostMonthly" fill="#ff8042" name="Monthly Supplier Cost" xAxisId={0} />
-        <Bar yAxisId="left" dataKey="grossProfitMonthly" fill="#8884d8" name="Monthly Gross Profit" xAxisId={0} />
+        <Bar yAxisId="left" dataKey="fixedBillingMonthly" fill="#82ca9d" name="Monthly Revenue" />
+        <Bar yAxisId="left" dataKey="supplierCostMonthly" fill="#ff8042" name="Monthly Supplier Cost" />
+        <Bar yAxisId="left" dataKey="grossProfitMonthly" fill="#8884d8" name="Monthly Gross Profit" />
       </ComposedChart>
     </ResponsiveContainer>
   );

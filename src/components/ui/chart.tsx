@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
@@ -316,14 +315,13 @@ const ChartLegendContent = React.forwardRef<
 ChartLegendContent.displayName = "ChartLegend"
 
 // Helper to extract item config from a payload.
-// Updated to properly handle Recharts payload types
 function getPayloadConfigFromPayload(
   config: ChartConfig,
-  payload: any,
+  payload: unknown,
   key: string
 ) {
   if (typeof payload !== "object" || payload === null) {
-    return undefined;
+    return undefined
   }
 
   const payloadPayload =
@@ -331,29 +329,28 @@ function getPayloadConfigFromPayload(
     typeof payload.payload === "object" &&
     payload.payload !== null
       ? payload.payload
-      : undefined;
+      : undefined
 
-  let configLabelKey: string = key;
+  let configLabelKey: string = key
 
-  // Handle various payload structures
   if (
     key in payload &&
-    (typeof payload[key as keyof typeof payload] === "string" || 
-     typeof payload[key as keyof typeof payload] === "number")
+    typeof payload[key as keyof typeof payload] === "string"
   ) {
-    configLabelKey = String(payload[key as keyof typeof payload]);
+    configLabelKey = payload[key as keyof typeof payload] as string
   } else if (
     payloadPayload &&
     key in payloadPayload &&
-    (typeof payloadPayload[key as keyof typeof payloadPayload] === "string" ||
-     typeof payloadPayload[key as keyof typeof payloadPayload] === "number")
+    typeof payloadPayload[key as keyof typeof payloadPayload] === "string"
   ) {
-    configLabelKey = String(payloadPayload[key as keyof typeof payloadPayload]);
+    configLabelKey = payloadPayload[
+      key as keyof typeof payloadPayload
+    ] as string
   }
 
   return configLabelKey in config
     ? config[configLabelKey]
-    : config[key as keyof typeof config];
+    : config[key as keyof typeof config]
 }
 
 export {

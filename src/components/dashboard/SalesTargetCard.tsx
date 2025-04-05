@@ -49,7 +49,6 @@ export function SalesTargetCard() {
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
-                xAxisId={0}
               />
               <Line 
                 type="monotone" 
@@ -58,7 +57,6 @@ export function SalesTargetCard() {
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
-                xAxisId={0}
               />
             </LineChart>
           </ResponsiveContainer>
