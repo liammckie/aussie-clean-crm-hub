@@ -1,9 +1,10 @@
+
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ErrorBoundaryWrapper } from '@/components/ErrorBoundaryWrapper';
-import { Index } from '@/pages';
+import { Index } from '@/pages/index';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Clients = lazy(() => import('@/pages/Clients'));

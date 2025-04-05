@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -6,13 +7,12 @@ import {
   SidebarContent,
   SidebarHeader,
   SidebarFooter,
-  SidebarItem,
   SidebarMenu,
-  SidebarToggle,
-  SidebarCollapse,
+  SidebarMenuItem,
+  SidebarMenuButton,
   SidebarGroup,
-  SidebarLabel,
-  SidebarSections
+  SidebarGroupLabel,
+  SidebarGroupContent
 } from "@/components/ui/sidebar"
 import { 
   LayoutDashboard, 
@@ -23,32 +23,39 @@ import {
 export function NewSidebar() {
   return (
     <Sidebar className="border-r bg-card pt-2 h-screen">
-      <SidebarSections>
-        <SidebarSection title="Navigation">
-          <SidebarGroup>
+      <SidebarContent>
+        <SidebarGroup>
+          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarTrigger asChild>
-                <Link to="/dashboard">
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Dashboard</span>
-                </Link>
-              </SidebarTrigger>
-              <SidebarTrigger asChild>
-                <Link to="/clients">
-                  <Building2 className="w-4 h-4" />
-                  <span>Clients</span>
-                </Link>
-              </SidebarTrigger>
-              <SidebarTrigger asChild>
-                <Link to="/contacts">
-                  <Users className="w-4 h-4" />
-                  <span>Contacts</span>
-                </Link>
-              </SidebarTrigger>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/dashboard">
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Dashboard</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/clients">
+                    <Building2 className="w-4 h-4" />
+                    <span>Clients</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild>
+                  <Link to="/contacts">
+                    <Users className="w-4 h-4" />
+                    <span>Contacts</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
-          </SidebarGroup>
-        </SidebarSection>
-      </SidebarSections>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      </SidebarContent>
     </Sidebar>
   );
 }

@@ -8,7 +8,7 @@ import { LoadingScreen } from "./components/LoadingScreen";
 import { SentryErrorBoundary } from "@/utils/sentry";
 import { ErrorReporting } from "@/utils/errorReporting";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { AppRoutes } from "@/routes/AppRoutes";
+import AppRoutes from "@/routes/AppRoutes";
 import * as Sentry from "@sentry/react";
 
 // Create query client with error reporting

@@ -188,6 +188,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           />
         )}
 
+        {/* Contact Creation Dialog */}
         <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader className="flex justify-between items-center">
@@ -212,6 +213,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           </DialogContent>
         </Dialog>
 
+        {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>

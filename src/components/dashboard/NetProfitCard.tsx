@@ -42,8 +42,8 @@ export function NetProfitCard() {
                 outerRadius={80}
                 paddingAngle={5}
                 dataKey="value"
-                stroke="none"
                 nameKey="name"
+                stroke="none"
               >
                 {data.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
