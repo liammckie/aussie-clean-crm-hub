@@ -42,7 +42,13 @@ export function ContactTypeField({ form, contactTypes }: ContactTypeFieldProps) 
       render={({ field }) => (
         <FormItem>
           <FormLabel>Contact Type</FormLabel>
-          <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <Select 
+            onValueChange={(value) => {
+              console.log("Selected contact type:", value);
+              field.onChange(value);
+            }} 
+            value={field.value}
+          >
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder="Select a contact type" />
@@ -50,7 +56,9 @@ export function ContactTypeField({ form, contactTypes }: ContactTypeFieldProps) 
             </FormControl>
             <SelectContent>
               {contactTypes.map((type) => (
-                <SelectItem key={type} value={type}>{contactTypeLabels[type] || type}</SelectItem>
+                <SelectItem key={type} value={type}>
+                  {contactTypeLabels[type] || type}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

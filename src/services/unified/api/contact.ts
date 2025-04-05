@@ -44,18 +44,29 @@ export const contactApi = {
    */
   createContact: async (contactData: UnifiedContactFormData) => {
     try {
+      console.log("API: Creating contact with data:", contactData);
+      
+      // Ensure is_primary is a boolean
+      const processedData = {
+        ...contactData,
+        is_primary: Boolean(contactData.is_primary)
+      };
+      
       const { data, error } = await supabase
         .from('unified_contacts')
-        .insert(contactData)
+        .insert(processedData)
         .select()
         .single();
 
       if (error) {
+        console.error("API: Error creating contact:", error);
         throw error;
       }
 
+      console.log("API: Contact created successfully:", data);
       return { data, error: null };
     } catch (error) {
+      console.error("API: Error handler for createContact:", error);
       return handleSupabaseError(
         error,
         'Failed to create contact',
@@ -69,9 +80,15 @@ export const contactApi = {
    */
   updateContact: async (contactId: string, contactData: Partial<UnifiedContactFormData>) => {
     try {
+      // Ensure is_primary is a boolean if present
+      const processedData = {
+        ...contactData,
+        is_primary: contactData.is_primary !== undefined ? Boolean(contactData.is_primary) : undefined
+      };
+      
       const { data, error } = await supabase
         .from('unified_contacts')
-        .update(contactData)
+        .update(processedData)
         .eq('id', contactId)
         .select()
         .single();
@@ -95,7 +112,7 @@ export const contactApi = {
    */
   deleteContact: async (contactId: string) => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('unified_contacts')
         .delete()
         .eq('id', contactId);

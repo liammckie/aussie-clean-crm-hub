@@ -8,6 +8,7 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import ContactsTable from '@/components/shared/ContactsTable';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
@@ -59,13 +60,14 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
   ];
 
   const handleContactSubmit = (formData: any) => {
+    console.log("Submitting contact form data:", formData);
     createContact(
       {
         entityType: 'client',
         entityId: clientId,
         contactData: {
           ...formData,
-          is_primary: formData.is_primary || false
+          is_primary: Boolean(formData.is_primary)
         }
       },
       {
@@ -78,7 +80,8 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           toast.success('Contact added successfully!');
         },
         onError: (error: any) => {
-          toast.error(`Failed to add contact: ${error.message}`);
+          console.error("Contact creation error:", error);
+          toast.error(`Failed to add contact: ${error.message || "Unknown error"}`);
         }
       }
     );
@@ -107,7 +110,8 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           setContactToDelete(null);
         },
         onError: (error: any) => {
-          toast.error(`Failed to delete contact: ${error.message}`);
+          console.error("Contact deletion error:", error);
+          toast.error(`Failed to delete contact: ${error.message || "Unknown error"}`);
           setDeleteAlertOpen(false);
           setContactToDelete(null);
         }
@@ -126,6 +130,9 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           <CardTitle>Client Contacts</CardTitle>
           <CardDescription>Manage contacts for this client</CardDescription>
         </div>
+        <Button variant="default" onClick={handleAddClick}>
+          Add Contact
+        </Button>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -146,7 +153,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
         )}
 
         <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
-          <DialogContent className="sm:max-w-lg">
+          <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-auto">
             <DialogHeader>
               <DialogTitle>Add New Contact</DialogTitle>
             </DialogHeader>

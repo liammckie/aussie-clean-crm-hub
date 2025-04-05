@@ -27,7 +27,14 @@ export function useContactMutations() {
       contactData: Omit<UnifiedContactFormData, 'entity_type' | 'entity_id'> 
     }) => {
       console.log(`Creating contact for ${entityType} ${entityId} with data:`, contactData);
-      const response = await unifiedService.createContact(entityType, entityId, contactData);
+      
+      // Ensure is_primary is a boolean
+      const processedData = {
+        ...contactData,
+        is_primary: Boolean(contactData.is_primary)
+      };
+      
+      const response = await unifiedService.createContact(entityType, entityId, processedData);
       
       if ('category' in response && response.category === 'validation') {
         console.warn('Validation error during contact creation:', response);
@@ -36,7 +43,6 @@ export function useContactMutations() {
       
       if ('category' in response) {
         console.error('Error creating contact:', response);
-        toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
       }
       
@@ -47,11 +53,11 @@ export function useContactMutations() {
       if (!data || !('category' in data)) {
         console.log('Invalidating contacts query after successful creation');
         queryClient.invalidateQueries({ queryKey: ['unified-contacts', variables.entityType, variables.entityId] });
-        toast.success('Contact created successfully!');
       }
       return data;
     },
     onError: (error) => {
+      console.error('Contact creation error:', error);
       ErrorReporting.captureException(error as Error);
     }
   });
@@ -66,7 +72,14 @@ export function useContactMutations() {
       contactData: Partial<UnifiedContactFormData>;
     }) => {
       console.log(`Updating contact ${contactId} with data:`, contactData);
-      const response = await unifiedService.updateContact(contactId, contactData);
+      
+      // Ensure is_primary is a boolean if present
+      const processedData = {
+        ...contactData,
+        is_primary: contactData.is_primary !== undefined ? Boolean(contactData.is_primary) : undefined
+      };
+      
+      const response = await unifiedService.updateContact(contactId, processedData);
       
       if ('category' in response && response.category === 'validation') {
         console.warn('Validation error during contact update:', response);
@@ -75,7 +88,6 @@ export function useContactMutations() {
       
       if ('category' in response) {
         console.error('Error updating contact:', response);
-        toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
       }
       
@@ -86,11 +98,11 @@ export function useContactMutations() {
       if (!data || !('category' in data)) {
         console.log('Invalidating contacts query after successful update');
         queryClient.invalidateQueries({ queryKey: ['unified-contacts'] });
-        toast.success('Contact updated successfully!');
       }
       return data;
     },
     onError: (error) => {
+      console.error('Contact update error:', error);
       ErrorReporting.captureException(error as Error);
     }
   });
@@ -109,21 +121,21 @@ export function useContactMutations() {
       return response;
     },
     onSuccess: () => {
+      console.log('Contact deleted successfully');
       queryClient.invalidateQueries({ queryKey: ['unified-contacts'] });
-      toast.success('Contact deleted successfully!');
     },
     onError: (error) => {
+      console.error('Contact deletion error:', error);
       ErrorReporting.captureException(error as Error);
-      toast.error('Failed to delete contact');
     }
   });
 
   return {
-    createContact: createContactMutation.mutate,
+    createContact: createContactMutation.mutateAsync,
     isCreatingContact: createContactMutation.isPending,
-    updateContact: updateContactMutation.mutate,
+    updateContact: updateContactMutation.mutateAsync,
     isUpdatingContact: updateContactMutation.isPending,
-    deleteContact: deleteContactMutation.mutate,
+    deleteContact: deleteContactMutation.mutateAsync,
     isDeletingContact: deleteContactMutation.isPending,
   };
 }

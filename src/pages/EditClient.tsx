@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ClientFormData, ClientWithContacts } from '@/services/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ArrowLeft, Users, Map, Home } from 'lucide-react';
+import { ArrowLeft, Users, Map, FileText, Building } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { toast } from 'sonner';
 import { clientService } from '@/services';
@@ -10,7 +11,7 @@ import { useClients } from '@/hooks/use-clients';
 import { ClientDetailsTab } from '@/components/client/ClientDetailsTab';
 import { ClientContactsTab } from '@/components/client/ClientContactsTab';
 import { ClientSitesTab } from '@/components/client/ClientSitesTab';
-import { ClientAddressTab } from '@/components/client/ClientAddressTab';
+import { ClientContractsTab } from '@/components/client/ClientContractsTab';
 
 const EditClient = () => {
   const { id } = useParams<{ id: string }>();
@@ -164,18 +165,21 @@ const EditClient = () => {
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
-          <TabsTrigger value="details">Client Details</TabsTrigger>
+          <TabsTrigger value="details">
+            <Building className="h-4 w-4 mr-2" />
+            Client Details
+          </TabsTrigger>
           <TabsTrigger value="contacts">
             <Users className="h-4 w-4 mr-2" />
             Contacts
           </TabsTrigger>
-          <TabsTrigger value="addresses">
-            <Home className="h-4 w-4 mr-2" />
-            Addresses
-          </TabsTrigger>
           <TabsTrigger value="sites">
             <Map className="h-4 w-4 mr-2" />
             Sites
+          </TabsTrigger>
+          <TabsTrigger value="contracts">
+            <FileText className="h-4 w-4 mr-2" />
+            Contracts
           </TabsTrigger>
         </TabsList>
         
@@ -194,15 +198,12 @@ const EditClient = () => {
           />
         </TabsContent>
         
-        <TabsContent value="addresses">
-          <ClientAddressTab 
-            clientId={id} 
-            onAddressAdded={() => refetchClient()} 
-          />
-        </TabsContent>
-        
         <TabsContent value="sites">
           <ClientSitesTab clientId={id} />
+        </TabsContent>
+        
+        <TabsContent value="contracts">
+          <ClientContractsTab clientId={id} />
         </TabsContent>
       </Tabs>
     </div>

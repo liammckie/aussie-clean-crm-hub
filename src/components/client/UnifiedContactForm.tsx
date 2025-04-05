@@ -66,6 +66,7 @@ export function UnifiedContactForm({
       ...data,
       is_primary: Boolean(data.is_primary) // Convert to boolean to ensure it's always a boolean
     };
+    console.log("Form submission data:", submissionData);
     onSubmit(submissionData);
   };
 
@@ -73,7 +74,7 @@ export function UnifiedContactForm({
   const isInternalStaff = currentContactType === 'employee';
 
   return (
-    <ScrollArea className="h-[70vh] pr-4">
+    <ScrollArea className="max-h-[60vh] pr-4">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -101,7 +102,7 @@ export function UnifiedContactForm({
             />
           )}
 
-          <Button type="submit" disabled={isLoading} className="mt-6">
+          <Button type="submit" disabled={isLoading} className="mt-6 w-full">
             {isLoading ? "Saving..." : buttonText}
           </Button>
         </form>
