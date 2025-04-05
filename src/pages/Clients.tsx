@@ -47,7 +47,13 @@ const Clients = () => {
           client.business_name?.toLowerCase().includes(search) ||
           client.trading_name?.toLowerCase().includes(search) ||
           client.abn?.includes(search) ||
-          client.industry?.toLowerCase().includes(search)
+          client.industry?.toLowerCase().includes(search) ||
+          // Add address fields to search
+          client.address_line_1?.toLowerCase().includes(search) ||
+          client.address_line_2?.toLowerCase().includes(search) ||
+          client.suburb?.toLowerCase().includes(search) ||
+          client.state?.toLowerCase().includes(search) ||
+          client.postcode?.includes(search)
       );
     }
     

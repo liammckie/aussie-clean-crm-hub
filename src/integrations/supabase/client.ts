@@ -71,6 +71,18 @@ export const getCurrentUserId = async (): Promise<string | null> => {
 };
 
 /**
+ * Check authentication and throw an error if not authenticated
+ * This is useful for API calls that require authentication
+ * @throws Error if not authenticated
+ */
+export const checkAuthentication = async (): Promise<void> => {
+  const authenticated = await isAuthenticated();
+  if (!authenticated) {
+    throw new Error('Authentication required. Please sign in to continue.');
+  }
+};
+
+/**
  * Log Supabase API requests in development mode
  */
 export function setupSupabaseInterceptor(client: SupabaseClient) {

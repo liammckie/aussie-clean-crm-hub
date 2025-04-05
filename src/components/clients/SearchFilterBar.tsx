@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Filter } from "lucide-react";
+import { Filter, MapPin } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -31,7 +31,7 @@ const SearchFilterBar = ({
         <Input
           value={searchTerm}
           onChange={handleSearch}
-          placeholder="Search clients..."
+          placeholder="Search by name, ABN, address..."
           className="pl-10"
         />
         <div className="absolute left-3 top-3 text-muted-foreground">

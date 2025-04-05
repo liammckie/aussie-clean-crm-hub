@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
@@ -83,10 +82,8 @@ const ClientDetail = () => {
   const [activeTab, setActiveTab] = useState("overview");
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   
-  // Set up realtime sync for this client
   useClientRealtimeSync(id);
   
-  // Get client data
   const { useClientDetails, deleteClient, isDeletingClient } = useClients();
   const { data: client, isLoading, error } = useClientDetails(id);
   
@@ -101,10 +98,77 @@ const ClientDetail = () => {
     }
   };
   
-  // Format date
   const formatDate = (dateString: string | null | undefined) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleDateString();
+  };
+  
+  const formatAddress = (client: any) => {
+    const parts = [];
+    if (client.address_line_1) parts.push(client.address_line_1);
+    if (client.address_line_2) parts.push(client.address_line_2);
+    
+    let cityStatePostcode = '';
+    if (client.suburb) cityStatePostcode += client.suburb;
+    if (client.state) {
+      cityStatePostcode += cityStatePostcode ? `, ${client.state}` : client.state;
+    }
+    if (client.postcode) {
+      cityStatePostcode += cityStatePostcode ? ` ${client.postcode}` : client.postcode;
+    }
+    
+    if (cityStatePostcode) parts.push(cityStatePostcode);
+    if (client.country && client.country !== 'Australia') parts.push(client.country);
+    
+    return parts.length > 0 ? parts.join(', ') : 'No address on file';
+  };
+  
+  const renderPrimaryAddress = (client: any) => {
+    const hasAddress = client.address_line_1 || client.address_line_2 || client.suburb || client.state || client.postcode;
+    
+    if (hasAddress) {
+      return (
+        <div className="space-y-1">
+          <div className="flex items-start">
+            <MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground" />
+            <div>
+              {client.address_line_1 && <div>{client.address_line_1}</div>}
+              {client.address_line_2 && <div>{client.address_line_2}</div>}
+              <div>
+                {client.suburb && `${client.suburb}, `}
+                {client.state && client.state} 
+                {client.postcode && client.postcode}
+              </div>
+              {client.country && client.country !== 'Australia' && <div>{client.country}</div>}
+            </div>
+          </div>
+        </div>
+      );
+    } else if (client.client_addresses && client.client_addresses.length > 0) {
+      const primaryAddress = client.client_addresses[0];
+      return (
+        <div className="space-y-1">
+          <div className="flex items-start">
+            <MapPin className="h-4 w-4 mr-2 mt-0.5 text-muted-foreground" />
+            <div>
+              <div>{primaryAddress.street}</div>
+              {primaryAddress.street_2 && <div>{primaryAddress.street_2}</div>}
+              <div>
+                {primaryAddress.suburb}, {primaryAddress.state} {primaryAddress.postcode}
+              </div>
+              {primaryAddress.country !== 'Australia' && <div>{primaryAddress.country}</div>}
+              <Badge variant="outline" className="mt-1">
+                {primaryAddress.address_type.charAt(0).toUpperCase() + primaryAddress.address_type.slice(1)}
+              </Badge>
+            </div>
+          </div>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="text-muted-foreground">No address information available</div>
+    );
   };
   
   if (isLoading) {
@@ -529,7 +593,7 @@ const ClientDetail = () => {
                   <div className="flex flex-col items-center justify-center py-8 text-center border rounded-md border-dashed">
                     <FileText className="h-8 w-8 text-muted-foreground mb-2" />
                     <h3 className="font-medium mb-1">No invoices yet</h3>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-sm text-muted-foreground mb-4">
                       Invoices will appear here when contracts are created
                     </p>
                   </div>
