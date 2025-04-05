@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import * as Sentry from "@sentry/react";
 import { useAuth } from "@/contexts/AuthContext";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -16,12 +16,33 @@ const SentryEditClient = Sentry.withProfiler(React.lazy(() => import("@/pages/Ed
 const SentryLogin = Sentry.withProfiler(React.lazy(() => import("@/pages/Login")), { name: "Login" });
 const SentryNotFound = Sentry.withProfiler(React.lazy(() => import("@/pages/NotFound")), { name: "NotFound" });
 
+// Check for admin session
+const isAdminSession = () => {
+  const adminSession = localStorage.getItem("admin_session");
+  if (!adminSession) return false;
+  
+  try {
+    const session = JSON.parse(adminSession);
+    // Add simple expiration check (24 hours)
+    const sessionTime = new Date(session.timestamp).getTime();
+    const now = new Date().getTime();
+    const hoursPassed = (now - sessionTime) / (1000 * 60 * 60);
+    
+    return hoursPassed < 24;
+  } catch (e) {
+    return false;
+  }
+};
+
 // ProtectedRoute component to protect routes that require authentication
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
+  const location = useLocation();
   
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+  // Check for admin session as well
+  if (!isAuthenticated && !isAdminSession()) {
+    // Save the current location they were trying to go to for later redirect
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
   
   return <MainLayout>{children}</MainLayout>;

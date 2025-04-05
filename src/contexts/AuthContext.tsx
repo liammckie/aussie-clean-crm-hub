@@ -30,6 +30,24 @@ interface AuthProviderProps {
   children: React.ReactNode;
 }
 
+// Check if admin session exists in local storage
+const checkAdminSession = () => {
+  const adminSession = localStorage.getItem("admin_session");
+  if (!adminSession) return false;
+  
+  try {
+    const session = JSON.parse(adminSession);
+    // Add simple expiration check (24 hours)
+    const sessionTime = new Date(session.timestamp).getTime();
+    const now = new Date().getTime();
+    const hoursPassed = (now - sessionTime) / (1000 * 60 * 60);
+    
+    return hoursPassed < 24;
+  } catch (e) {
+    return false;
+  }
+};
+
 // AuthProvider component to wrap around components that need auth context
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -39,6 +57,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   
   // Initialize auth state
   useEffect(() => {
+    // Check for admin session first
+    if (checkAdminSession()) {
+      const adminData = JSON.parse(localStorage.getItem("admin_session") || "{}");
+      setIsAuthenticated(true);
+      setUser({
+        id: "admin-user",
+        email: adminData.user.email,
+        app_metadata: { provider: "custom" },
+        user_metadata: { role: "admin" },
+        aud: "authenticated",
+        created_at: adminData.timestamp
+      } as User);
+      setLoading(false);
+      return;
+    }
+    
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -89,12 +123,32 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     try {
       setLoading(true);
       
-      // Remove the invalid property 'shouldCreateSession'
+      // Handle admin login
+      if (email === "liam.kingswood@gmail.com" && password === "Dragon007!") {
+        // Store admin session
+        localStorage.setItem("admin_session", JSON.stringify({
+          user: { email, role: "admin" },
+          timestamp: new Date().toISOString()
+        }));
+        
+        // Set admin user in state
+        setIsAuthenticated(true);
+        setUser({
+          id: "admin-user",
+          email: email,
+          app_metadata: { provider: "custom" },
+          user_metadata: { role: "admin" },
+          aud: "authenticated",
+          created_at: new Date().toISOString()
+        } as User);
+        
+        return { success: true };
+      }
+      
+      // For all other users, use Supabase authentication
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
-        // The rememberMe functionality is handled by Supabase's default behavior
-        // When using localStorage as the storage mechanism
       });
       
       if (error) {
@@ -121,9 +175,19 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const logout = async () => {
     try {
       setLoading(true);
+      
+      // Clear admin session if exists
+      localStorage.removeItem("admin_session");
+      
+      // For regular users, use Supabase logout
       await supabase.auth.signOut();
+      
+      // Reset auth state
+      setIsAuthenticated(false);
+      setUser(null);
+      setSession(null);
+      
       console.log("Logout successful");
-      // Session will be automatically cleared by the onAuthStateChange listener
     } catch (error) {
       console.error("Logout error:", error);
       ErrorReporting.captureException(error as Error, {
