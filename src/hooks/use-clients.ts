@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ClientFormData, ValidationErrorResponse, clientService, AddressFormData, ContactFormData } from '@/services/client';
 import { ErrorReporting } from '@/utils/errorReporting';
@@ -60,7 +61,7 @@ export function useClients() {
   };
 
   // Mutation to create a new client
-  const { mutate: createClient, isPending: isCreatingClient } = useMutation({
+  const createClientMutation = useMutation({
     mutationFn: async (clientData: ClientFormData) => {
       console.log('Creating new client with data:', clientData);
       const response = await clientService.createClient(clientData);
@@ -284,20 +285,26 @@ export function useClients() {
   });
 
   // Mutation to delete a client address
-  const { mutate: deleteAddress, isPending: isDeletingAddress } = useMutation({
+  const deleteAddressMutation = useMutation({
     mutationFn: async ({ addressId }: { addressId: string }) => {
-      try {
-        const { data, success, error } = await clientService.deleteClientAddress(addressId);
-        if (error) throw error;
-        return { data, success };
-      } catch (error: any) {
-        console.error('Error deleting address:', error);
-        throw error;
+      console.log(`Deleting address ${addressId}`);
+      const response = await clientService.deleteClientAddress(addressId);
+      
+      // Handle errors by throwing
+      if ('category' in response) {
+        console.error('Error deleting address:', response);
+        throw new Error(response.message);
       }
+      
+      return response; // Return the success response
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clientAddresses'] });
+      // We will invalidate related queries where the address is used
+      queryClient.invalidateQueries({ queryKey: ['client-addresses'] });
     },
+    onError: (error) => {
+      ErrorReporting.captureException(error as Error);
+    }
   });
 
   return {
@@ -311,9 +318,9 @@ export function useClients() {
     useClientAddresses,
     
     // Mutations
-    createClient: createClient.mutate,
-    isCreatingClient: isCreatingClient,
-    createClientError: createClient.error,
+    createClient: createClientMutation.mutate,
+    isCreatingClient: createClientMutation.isPending,
+    createClientError: createClientMutation.error,
     
     updateClient: updateClientMutation.mutate,
     isUpdatingClient: updateClientMutation.isPending,
@@ -329,7 +336,7 @@ export function useClients() {
     createAddress: createAddressMutation.mutate,
     isCreatingAddress: createAddressMutation.isPending,
     
-    deleteAddress: deleteAddress.mutate,
-    isDeletingAddress: isDeletingAddress
+    deleteAddress: deleteAddressMutation.mutate,
+    isDeletingAddress: deleteAddressMutation.isPending
   };
 }
