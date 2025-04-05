@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { UnifiedAddressForm, UnifiedAddressFormData } from '@/components/client/UnifiedAddressForm';
+import { UnifiedAddressForm } from '@/components/client/UnifiedAddressForm';
 import { toast } from 'sonner';
 import { 
   Dialog,
@@ -24,6 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { AddressType } from '@/services/unified';
 
 interface ClientAddressTabProps {
   clientId: string;
@@ -32,7 +33,7 @@ interface ClientAddressTabProps {
 
 export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabProps) {
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedAddressType, setSelectedAddressType] = useState<'billing' | 'postal' | 'physical'>('billing');
+  const [selectedAddressType, setSelectedAddressType] = useState<AddressType>('billing');
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   
@@ -51,12 +52,15 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
     refetch 
   } = useEntityAddresses('client', clientId);
 
-  const handleAddAddress = async (formData: UnifiedAddressFormData) => {
+  const handleAddAddress = async (formData: any) => {
     createAddress(
       { 
         entityType: 'client', 
         entityId: clientId, 
-        addressData: formData
+        addressData: {
+          ...formData,
+          is_primary: formData.is_primary || false
+        }
       },
       {
         onSuccess: () => {

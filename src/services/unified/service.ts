@@ -2,7 +2,8 @@
 import { unifiedApi } from './api';
 import { 
   UnifiedAddressFormData, 
-  UnifiedContactFormData 
+  UnifiedContactFormData,
+  EntityType
 } from './types';
 
 /**
@@ -12,14 +13,14 @@ export const unifiedService = {
   /**
    * Get addresses for an entity
    */
-  getAddresses: async (entityType: string, entityId: string) => {
+  getAddresses: async (entityType: EntityType, entityId: string) => {
     return await unifiedApi.fetchAddresses(entityType, entityId);
   },
 
   /**
    * Create a new address for an entity
    */
-  createAddress: async (entityType: string, entityId: string, addressData: Omit<UnifiedAddressFormData, 'entity_type' | 'entity_id'>) => {
+  createAddress: async (entityType: EntityType, entityId: string, addressData: Omit<UnifiedAddressFormData, 'entity_type' | 'entity_id'>) => {
     const fullAddressData: UnifiedAddressFormData = {
       entity_type: entityType,
       entity_id: entityId,
@@ -46,14 +47,14 @@ export const unifiedService = {
   /**
    * Get contacts for an entity
    */
-  getContacts: async (entityType: string, entityId: string) => {
+  getContacts: async (entityType: EntityType, entityId: string) => {
     return await unifiedApi.fetchContacts(entityType, entityId);
   },
 
   /**
    * Create a new contact for an entity
    */
-  createContact: async (entityType: string, entityId: string, contactData: Omit<UnifiedContactFormData, 'entity_type' | 'entity_id'>) => {
+  createContact: async (entityType: EntityType, entityId: string, contactData: Omit<UnifiedContactFormData, 'entity_type' | 'entity_id'>) => {
     const fullContactData: UnifiedContactFormData = {
       entity_type: entityType,
       entity_id: entityId,

@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { toast } from 'sonner';
 import ContactsTable from '@/components/shared/ContactsTable';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
-import { UnifiedContactForm, UnifiedContactFormData } from '@/components/client/UnifiedContactForm';
+import { UnifiedContactForm } from '@/components/client/UnifiedContactForm';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -48,12 +48,15 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     refetch 
   } = useEntityContacts('client', clientId);
 
-  const handleContactSubmit = (formData: UnifiedContactFormData) => {
+  const handleContactSubmit = (formData: any) => {
     createContact(
       {
         entityType: 'client',
         entityId: clientId,
-        contactData: formData
+        contactData: {
+          ...formData,
+          is_primary: formData.is_primary || false
+        }
       },
       {
         onSuccess: () => {

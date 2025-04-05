@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ClientFormData, ClientWithContacts } from '@/services/client';
@@ -191,7 +190,6 @@ const EditClient = () => {
         <TabsContent value="contacts">
           <ClientContactsTab 
             clientId={id} 
-            contacts={client?.client_contacts || []} 
             onContactAdded={() => refetchClient()} 
           />
         </TabsContent>

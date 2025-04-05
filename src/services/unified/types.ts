@@ -36,8 +36,8 @@ export interface UnifiedContactRecord {
 }
 
 export interface UnifiedAddressFormData {
-  entity_type: EntityType;
-  entity_id: string;
+  entity_type?: EntityType;
+  entity_id?: string;
   name?: string;
   address_line_1: string;
   address_line_2?: string;
@@ -46,12 +46,12 @@ export interface UnifiedAddressFormData {
   postcode: string;
   country: string;
   address_type: AddressType;
-  is_primary?: boolean;
+  is_primary: boolean;
 }
 
 export interface UnifiedContactFormData {
-  entity_type: EntityType;
-  entity_id: string;
+  entity_type?: EntityType;
+  entity_id?: string;
   name: string;
   email: string;
   phone?: string;
