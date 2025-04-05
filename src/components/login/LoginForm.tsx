@@ -47,6 +47,7 @@ export function LoginForm() {
       email: "",
       password: "",
     },
+    mode: "onChange", // Enable validation as the user types
   });
 
   // Handle form submission
@@ -117,7 +118,7 @@ export function LoginForm() {
         </CardHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <CardContent className="space-y-4">
               <FormField
                 control={form.control}
@@ -128,8 +129,10 @@ export function LoginForm() {
                     <FormControl>
                       <Input 
                         placeholder="you@example.com" 
+                        type="email"
+                        autoComplete="email"
+                        className="bg-white/[0.02] border-white/10 focus:border-purple-500 transition-colors focus:bg-white/[0.03]"
                         {...field} 
-                        className="bg-white/[0.02] border-white/10 focus:border-purple-500 transition-colors focus:bg-white/[0.03]" 
                       />
                     </FormControl>
                     <FormMessage />
@@ -144,9 +147,10 @@ export function LoginForm() {
                     <FormLabel className="text-slate-300">Password</FormLabel>
                     <FormControl>
                       <Input 
-                        type="password" 
+                        type="password"
+                        autoComplete="current-password"
+                        className="bg-white/[0.02] border-white/10 focus:border-purple-500 transition-colors focus:bg-white/[0.03]"
                         {...field} 
-                        className="bg-white/[0.02] border-white/10 focus:border-purple-500 transition-colors focus:bg-white/[0.03]" 
                       />
                     </FormControl>
                     <FormMessage />
