@@ -36,7 +36,8 @@ export interface UnifiedContactRecord {
 }
 
 // Using the types from the centralized form-types.ts
-export { UnifiedAddressFormData, UnifiedContactFormData } from '@/types/form-types';
+// Fixed re-export using 'export type'
+export type { UnifiedAddressFormData, UnifiedContactFormData } from '@/types/form-types';
 
 export type ValidationErrorResponse = {
   category: 'validation';
