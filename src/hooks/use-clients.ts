@@ -56,30 +56,31 @@ export const useClients = () => {
     mutationFn: async (clientData: ClientFormData) => {
       const response = await clientService.createClient(clientData);
       
-      // Handle validation errors specially
+      // Handle validation errors specially by returning the error response
       if ('category' in response && response.category === 'validation') {
         return response as ValidationErrorResponse;
       }
       
-      // Handle other types of errors
+      // Handle other types of errors by throwing
       if ('category' in response) {
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
       }
       
+      // Return the successful data
       return response.data;
     },
     onSuccess: (data) => {
       // Only invalidate queries and show success if not a validation error
       if (!data || !('category' in data)) {
         queryClient.invalidateQueries({ queryKey: ['clients'] });
-        // Success toast is now handled in the component
+        // Toast handled in component
       }
       return data;
     },
     onError: (error) => {
       ErrorReporting.captureException(error as Error);
-      // Error toast is now handled in the component
+      // Error toast handled in component
     }
   });
 

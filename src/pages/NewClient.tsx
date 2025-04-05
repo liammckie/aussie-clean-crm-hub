@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -98,19 +99,35 @@ const NewClient = () => {
         status: values.status as ClientStatus,
       };
       
-      // Create the client
-      const result = await new Promise<ReturnType<typeof createClient>>((resolve) => {
+      let result: ValidationErrorResponse | null = null;
+      
+      // Create the client with a promise wrapper to catch the return value
+      await new Promise<void>((resolve) => {
         createClient(clientData, {
-          onSuccess: (data) => resolve(data),
+          onSuccess: (data: any) => {
+            // If it's a validation error, store it
+            if (data && typeof data === 'object' && 'category' in data) {
+              result = data as ValidationErrorResponse;
+            } else {
+              // On success with no validation errors
+              toast.success("Client created successfully!");
+              navigate("/clients");
+            }
+            resolve();
+          },
           onError: (error) => {
             console.error("Error in mutation:", error);
-            resolve(null);
+            setFormError("An unexpected error occurred. Please try again.");
+            resolve();
+          },
+          onSettled: () => {
+            setIsSubmitting(false);
           }
         });
       });
       
-      // Check for validation errors
-      if (result && 'category' in result && result.category === 'validation') {
+      // Handle validation error if it occurred
+      if (result && result.category === 'validation') {
         setFormError(result.message);
         if (result.details?.field) {
           form.setError(result.details.field as any, {
@@ -118,18 +135,10 @@ const NewClient = () => {
             message: result.message
           });
         }
-        return;
       }
-      
-      // Show success message
-      toast.success("Client created successfully!");
-      
-      // Navigate to the client list
-      navigate("/clients");
     } catch (error) {
       console.error("Error creating client:", error);
       setFormError("An unexpected error occurred. Please try again.");
-    } finally {
       setIsSubmitting(false);
     }
   };

@@ -30,10 +30,10 @@ export interface ClientFormData {
 export interface ValidationErrorResponse {
   category: 'validation';
   message: string;
-  details: { field: string };
+  details?: { field?: string };
 }
 
-// Get all clients from the database
+// Client service containing all client-related operations
 export const clientService = {
   // Get all clients
   getAllClients: async () => {
