@@ -97,7 +97,6 @@ const EditClient = () => {
       return;
     }
 
-    // Validate business identifiers before submission
     const identifierError = validateBusinessIdentifiers(data);
     if (identifierError) {
       toast.error(identifierError.message);
@@ -124,11 +123,9 @@ const EditClient = () => {
       });
   };
   
-  // Handle contact submission
   const handleContactSubmit = (data: any) => {
     if (!id) return;
     
-    // Add client_id to the contact data
     const contactData = { ...data, client_id: id };
     
     clientService.createClientContact(id, data)
@@ -145,11 +142,9 @@ const EditClient = () => {
       });
   };
   
-  // Handle site submission
   const handleSiteSubmit = (data: SiteFormData) => {
     if (!id) return;
     
-    // Add client_id to the site data with all required fields
     const siteData = {
       client_id: id,
       site_name: data.site_name,
@@ -163,7 +158,7 @@ const EditClient = () => {
       site_contact_email: data.site_contact_email || null,
       site_contact_phone: data.site_contact_phone || null,
       status: data.status,
-      site_type: data.site_type || null,
+      site_type: data.site_type as SiteType | null,
       square_meters: data.square_meters || null,
       region: data.region || null,
       notes: data.notes || null,
@@ -223,7 +218,6 @@ const EditClient = () => {
           </TabsTrigger>
         </TabsList>
         
-        {/* Client Details Tab */}
         <TabsContent value="details">
           <Card>
             <CardHeader>
@@ -433,7 +427,6 @@ const EditClient = () => {
           </Card>
         </TabsContent>
         
-        {/* Contacts Tab */}
         <TabsContent value="contacts">
           <Card>
             <CardHeader className="flex flex-row justify-between items-center">
@@ -472,7 +465,6 @@ const EditClient = () => {
           </Card>
         </TabsContent>
         
-        {/* Sites Tab */}
         <TabsContent value="sites">
           <Card>
             <CardHeader className="flex flex-row justify-between items-center">

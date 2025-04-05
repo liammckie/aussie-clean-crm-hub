@@ -41,7 +41,7 @@ const siteSchema = z.object({
   region: z.string().optional(),
   induction_required: z.boolean().default(false),
   status: z.enum(['active', 'inactive', 'pending_activation']).default('pending_activation'),
-  site_type: z.enum(['residential', 'industrial', 'retail', 'hospitality', 'office', 'warehouse', 'educational', 'medical', 'commercial']).optional(),
+  site_type: z.enum(['residential', 'industrial', 'retail', 'hospitality', 'office', 'warehouse', 'educational', 'medical']).optional(),
   square_meters: z.number().optional(),
 });
 
@@ -82,8 +82,9 @@ export function SiteForm({
     }
   });
 
+  // Update site types to match the SiteType enum from services/site/index.ts
   const siteTypes: SiteType[] = [
-    'commercial', 'residential', 'industrial', 'retail', 
+    'residential', 'industrial', 'retail', 
     'hospitality', 'office', 'warehouse', 'educational', 'medical'
   ];
 
