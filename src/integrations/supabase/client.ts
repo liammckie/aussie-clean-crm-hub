@@ -18,8 +18,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   // Add global error handling
   global: {
     fetch: (...args) => {
+      // Fixed: Properly type the arguments for fetch
       // Could add request logging/interception here for security monitoring
-      return fetch(...args);
+      return fetch(args[0], args[1]);
     }
   }
 });
