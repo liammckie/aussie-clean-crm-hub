@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
@@ -40,7 +39,7 @@ export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { signIn } = useAuth(); // Changed from login to signIn to match the AuthContext
   
   // Initialize react-hook-form with zod validation
   const form = useForm<LoginFormValues>({
@@ -65,27 +64,19 @@ export function LoginForm() {
         "info"
       );
       
-      // Call the login function from auth context
-      const result = await login(data.email, data.password, data.rememberMe);
+      // Call the signIn function from auth context instead of login
+      await signIn(data.email, data.password);
       
-      if (result.success) {
-        // Show success message
-        toast({
-          title: "Login successful",
-          description: "Redirecting to dashboard...",
-        });
-        
-        // Navigate to dashboard after successful login
-        setTimeout(() => {
-          navigate("/dashboard");
-        }, 1000);
-      } else {
-        toast({
-          title: "Login failed",
-          description: result.message || "Please check your credentials and try again",
-          variant: "destructive",
-        });
-      }
+      // Show success message
+      toast({
+        title: "Login successful",
+        description: "Redirecting to dashboard...",
+      });
+      
+      // Navigate to dashboard after successful login
+      setTimeout(() => {
+        navigate("/dashboard");
+      }, 1000);
     } catch (error) {
       // Report the error to Sentry (password filtered out for privacy)
       ErrorReporting.captureException(
