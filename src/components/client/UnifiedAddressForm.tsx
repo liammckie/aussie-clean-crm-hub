@@ -48,23 +48,25 @@ export function UnifiedAddressForm({
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-        {showAddressType && <AddressTypeField form={form} />}
-        
-        <AddressFields form={form} />
+    <div>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
+          {showAddressType && <AddressTypeField form={form} />}
+          
+          <AddressFields form={form} />
 
-        {showIsPrimary && (
-          <IsPrimaryField<UnifiedAddressFormData> 
-            form={form} 
-            label="Set as primary address" 
-          />
-        )}
+          {showIsPrimary && (
+            <IsPrimaryField<UnifiedAddressFormData> 
+              form={form} 
+              label="Set as primary address" 
+            />
+          )}
 
-        <Button type="submit" disabled={isLoading} className="mt-4">
-          {isLoading ? "Saving..." : buttonText}
-        </Button>
-      </form>
-    </Form>
+          <Button type="submit" disabled={isLoading} className="mt-4">
+            {isLoading ? "Saving..." : buttonText}
+          </Button>
+        </form>
+      </Form>
+    </div>
   );
 }
