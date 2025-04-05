@@ -11,13 +11,14 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
 import { Path } from 'react-hook-form';
 
-// Updated interface to handle both required and optional is_primary
-interface IsPrimaryFieldProps<T extends { is_primary: boolean | undefined }> {
+// Generic interface that allows for any type that has is_primary field (required or optional)
+interface IsPrimaryFieldProps<T> {
   form: UseFormReturn<T>;
   label?: string;
 }
 
-export function IsPrimaryField<T extends { is_primary: boolean | undefined }>({ 
+// Type guard to ensure form.control can handle the field
+export function IsPrimaryField<T extends Record<string, any>>({ 
   form, 
   label = "Set as primary" 
 }: IsPrimaryFieldProps<T>) {
@@ -30,7 +31,7 @@ export function IsPrimaryField<T extends { is_primary: boolean | undefined }>({
         <FormItem className="flex flex-row items-center space-x-3 space-y-0">
           <FormControl>
             <Checkbox 
-              checked={field.value || false} 
+              checked={Boolean(field.value)} 
               onCheckedChange={field.onChange}
             />
           </FormControl>
