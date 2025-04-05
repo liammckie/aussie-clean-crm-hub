@@ -1,9 +1,10 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { clientService, ClientFormData } from '@/services/client.service';
+import { clientService, ClientFormData, ValidationErrorResponse } from '@/services/client.service';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
 import { useClientsRealtimeSync } from './use-realtime-sync';
+import { ErrorResponse } from '@/utils/supabaseErrors';
 
 /**
  * Hook for accessing client data and operations
@@ -54,20 +55,31 @@ export const useClients = () => {
   const createClientMutation = useMutation({
     mutationFn: async (clientData: ClientFormData) => {
       const response = await clientService.createClient(clientData);
+      
+      // Handle validation errors specially
+      if ('category' in response && response.category === 'validation') {
+        return response as ValidationErrorResponse;
+      }
+      
+      // Handle other types of errors
       if ('category' in response) {
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
       }
+      
       return response.data;
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      toast.success('Client created successfully!');
+      // Only invalidate queries and show success if not a validation error
+      if (!data || !('category' in data)) {
+        queryClient.invalidateQueries({ queryKey: ['clients'] });
+        // Success toast is now handled in the component
+      }
       return data;
     },
     onError: (error) => {
       ErrorReporting.captureException(error as Error);
-      toast.error('Failed to create client');
+      // Error toast is now handled in the component
     }
   });
 
@@ -75,6 +87,12 @@ export const useClients = () => {
   const updateClientMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<ClientFormData> }) => {
       const response = await clientService.updateClient(id, data);
+      
+      // Handle validation errors
+      if ('category' in response && response.category === 'validation') {
+        return response as ValidationErrorResponse;
+      }
+      
       if ('category' in response) {
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
@@ -82,14 +100,17 @@ export const useClients = () => {
       return response.data;
     },
     onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['clients'] });
-      queryClient.invalidateQueries({ queryKey: ['client', variables.id] });
-      toast.success('Client updated successfully!');
+      // Only invalidate queries if not a validation error
+      if (!data || !('category' in data)) {
+        queryClient.invalidateQueries({ queryKey: ['clients'] });
+        queryClient.invalidateQueries({ queryKey: ['client', variables.id] });
+        toast.success('Client updated successfully!');
+      }
       return data;
     },
     onError: (error) => {
       ErrorReporting.captureException(error as Error);
-      toast.error('Failed to update client');
+      // Error is handled in component
     }
   });
 

@@ -3,6 +3,7 @@ import { isSupabaseError } from '@/integrations/supabase/client';
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError, logSuccess } from '@/utils/supabaseErrors';
 import { validationService } from './validation.service';
+import { Tables } from '@/integrations/supabase/types';
 
 // Client status type to match database enum
 export type ClientStatus = 'Active' | 'Prospect' | 'On Hold' | 'Cancelled';
@@ -23,6 +24,13 @@ export interface ClientFormData {
   payment_method?: string | null;
   tax_status?: string | null;
   credit_limit?: number | null;
+}
+
+// Error response for validation errors
+export interface ValidationErrorResponse {
+  category: 'validation';
+  message: string;
+  details: { field: string };
 }
 
 // Get all clients from the database
@@ -92,7 +100,7 @@ export const clientService = {
   },
 
   // Create a new client
-  createClient: async (client: ClientFormData) => {
+  createClient: async (client: ClientFormData): Promise<{ data: Tables['clients'] | null; error: null } | ValidationErrorResponse | ErrorResponse> => {
     try {
       // Format and validate business identifiers
       const formattedClient = {
@@ -101,7 +109,7 @@ export const clientService = {
         acn: client.acn ? validationService.cleanBusinessIdentifier(client.acn) : null
       };
       
-      // ABN validation
+      // ABN validation (if provided)
       if (formattedClient.abn && !validationService.isValidABN(formattedClient.abn)) {
         return {
           category: 'validation',
@@ -119,6 +127,7 @@ export const clientService = {
         };
       }
 
+      console.log('Submitting client data to Supabase:', formattedClient);
       const { data, error } = await supabase
         .from('clients')
         .insert(formattedClient)
@@ -126,12 +135,14 @@ export const clientService = {
         .single();
 
       if (error) {
+        console.error('Supabase error during client creation:', error);
         throw error;
       }
 
       logSuccess('create', 'client', data);
       return { data, error: null };
     } catch (error) {
+      console.error('Error in createClient:', error);
       return handleSupabaseError(
         error,
         'Failed to create client',

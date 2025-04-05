@@ -9,6 +9,7 @@ import {
   Building,
   Briefcase,
   ClipboardList,
+  AlertTriangle
 } from "lucide-react";
 import { 
   Card,
@@ -43,15 +44,21 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
-import { useClients } from "@/hooks/use-clients";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { toast } from "sonner";
+import { useClients } from '@/hooks/use-clients';
 import { ClientFormData, ClientStatus } from "@/services/client.service";
 
 // Schema for client form
 const clientFormSchema = z.object({
   business_name: z.string().min(1, "Business name is required"),
   trading_name: z.string().optional(),
-  abn: z.string().min(11, "ABN must be 11 digits").max(11).or(z.literal('')),
-  acn: z.string().max(9).or(z.literal('')).optional(),
+  abn: z.string().refine(val => val === '' || val.length === 11, {
+    message: "ABN must be 11 digits when provided"
+  }).optional(),
+  acn: z.string().refine(val => val === '' || val.length === 9, {
+    message: "ACN must be 9 digits when provided"
+  }).optional(),
   industry: z.string().min(1, "Industry is required"),
   status: z.enum(['Active', 'Prospect', 'On Hold', 'Cancelled']).default('Prospect'),
 });
@@ -62,6 +69,7 @@ type ClientFormValues = z.infer<typeof clientFormSchema>;
 const NewClient = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const { createClient, isCreatingClient } = useClients();
 
   const form = useForm<ClientFormValues>({
@@ -78,6 +86,7 @@ const NewClient = () => {
 
   const onSubmit = async (values: ClientFormValues) => {
     setIsSubmitting(true);
+    setFormError(null);
     
     try {
       // Format the data as needed
@@ -91,12 +100,28 @@ const NewClient = () => {
       };
       
       // Create the client
-      await createClient(clientData);
+      const result = await createClient(clientData);
+      
+      // Check for validation errors
+      if (result && 'category' in result && result.category === 'validation') {
+        setFormError(result.message);
+        if (result.details?.field) {
+          form.setError(result.details.field as any, {
+            type: 'manual',
+            message: result.message
+          });
+        }
+        return;
+      }
+      
+      // Show success message
+      toast.success("Client created successfully!");
       
       // Navigate to the client list
       navigate("/clients");
     } catch (error) {
       console.error("Error creating client:", error);
+      setFormError("An unexpected error occurred. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -133,6 +158,14 @@ const NewClient = () => {
           </Link>
         </Button>
       </div>
+
+      {formError && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{formError}</AlertDescription>
+        </Alert>
+      )}
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
