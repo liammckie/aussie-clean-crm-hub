@@ -16,6 +16,31 @@ Each change entry includes:
 
 ## Recent Changes
 
+### 2025-04-05: Contract Management Enhancement
+
+**Change Type**: Addition (Tables, Columns, Indexes, Triggers)
+
+**Affected Tables/Columns**:
+- `sites` table (added `access_instructions` and `emergency_instructions` columns)
+- New `billing_line` table
+- New `contract_budget` table
+- `contracts` table (added multiple fields for enhanced contract management)
+
+**Description**:
+Enhanced contract management capabilities with detailed billing, budget tracking, and automatic financial calculation features:
+1. Added detailed contract fields for better service agreement tracking
+2. Created billing line items to track individual billable services
+3. Added contract budget tracking for subcontractor management
+4. Implemented automatic contract value calculation based on billing lines
+5. Added access and emergency instructions to sites for better operational information
+
+**Migration Scripts**: Lovable migration executed on 2025-04-05
+
+**Backward Compatibility**:
+Fully compatible. Added columns use nullable fields or have appropriate defaults. The trigger for automatic calculation doesn't interfere with existing data or operations.
+
+**Developer**: Lovable AI
+
 ### 2025-04-05: Database Performance Optimization
 
 **Change Type**: Addition (Indexes)
@@ -199,6 +224,7 @@ Planning to add multi-currency support throughout the system:
 
 | Version | Date       | Major Changes                                 |
 |---------|------------|----------------------------------------------|
+| 3.1.0   | 2025-04-05 | Contract Management Enhancement              |
 | 3.1.0   | 2025-04-05 | Database performance optimization            |
 | 3.0.0   | 2025-03-01 | Site management overhaul, contract enhancements |
 | 2.5.0   | 2025-02-01 | Financial tracking system implementation      |

@@ -42,6 +42,69 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_line: {
+        Row: {
+          client_charge: number
+          contract_id: string | null
+          created_at: string | null
+          delivery_type: string | null
+          description: string
+          frequency: number
+          id: string
+          internal_cost: number | null
+          is_active: boolean | null
+          notes: string | null
+          site_id: string | null
+          unit: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_charge: number
+          contract_id?: string | null
+          created_at?: string | null
+          delivery_type?: string | null
+          description: string
+          frequency: number
+          id?: string
+          internal_cost?: number | null
+          is_active?: boolean | null
+          notes?: string | null
+          site_id?: string | null
+          unit: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_charge?: number
+          contract_id?: string | null
+          created_at?: string | null
+          delivery_type?: string | null
+          description?: string
+          frequency?: number
+          id?: string
+          internal_cost?: number | null
+          is_active?: boolean | null
+          notes?: string | null
+          site_id?: string | null
+          unit?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_line_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_line_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_addresses: {
         Row: {
           address_type: string
@@ -220,6 +283,44 @@ export type Database = {
         }
         Relationships: []
       }
+      contract_budget: {
+        Row: {
+          budget_amount: number
+          contract_id: string | null
+          contractor_id: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          budget_amount: number
+          contract_id?: string | null
+          contractor_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          budget_amount?: number
+          contract_id?: string | null
+          contractor_id?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contract_budget_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contract_financial_entries: {
         Row: {
           amount: number
@@ -303,17 +404,35 @@ export type Database = {
       contracts: {
         Row: {
           billing_cycle: string | null
+          billing_frequency: string | null
+          billing_type: string | null
           client_id: string
+          client_representative_contact: string | null
+          client_representative_name: string | null
           contract_code: string
           contract_name: string
+          contract_value: number | null
           created_at: string
+          delivery_mode: string | null
+          description: string | null
+          documents: Json | null
           end_date: string | null
+          hourly_rate: number | null
           id: string
+          is_ongoing: boolean | null
           notes: string | null
           payment_method: string | null
           payment_terms: string | null
+          primary_manager_id: string | null
+          rate_schedule: Json | null
+          renewal_notice_date: string | null
+          service_type: string | null
+          sla_requirements: string | null
           start_date: string
           status: string
+          total_annual_value: number | null
+          total_monthly_value: number | null
+          total_weekly_value: number | null
           updated_at: string
           value_annual: number | null
           value_monthly: number | null
@@ -322,17 +441,35 @@ export type Database = {
         }
         Insert: {
           billing_cycle?: string | null
+          billing_frequency?: string | null
+          billing_type?: string | null
           client_id: string
+          client_representative_contact?: string | null
+          client_representative_name?: string | null
           contract_code: string
           contract_name: string
+          contract_value?: number | null
           created_at?: string
+          delivery_mode?: string | null
+          description?: string | null
+          documents?: Json | null
           end_date?: string | null
+          hourly_rate?: number | null
           id?: string
+          is_ongoing?: boolean | null
           notes?: string | null
           payment_method?: string | null
           payment_terms?: string | null
+          primary_manager_id?: string | null
+          rate_schedule?: Json | null
+          renewal_notice_date?: string | null
+          service_type?: string | null
+          sla_requirements?: string | null
           start_date: string
           status?: string
+          total_annual_value?: number | null
+          total_monthly_value?: number | null
+          total_weekly_value?: number | null
           updated_at?: string
           value_annual?: number | null
           value_monthly?: number | null
@@ -341,17 +478,35 @@ export type Database = {
         }
         Update: {
           billing_cycle?: string | null
+          billing_frequency?: string | null
+          billing_type?: string | null
           client_id?: string
+          client_representative_contact?: string | null
+          client_representative_name?: string | null
           contract_code?: string
           contract_name?: string
+          contract_value?: number | null
           created_at?: string
+          delivery_mode?: string | null
+          description?: string | null
+          documents?: Json | null
           end_date?: string | null
+          hourly_rate?: number | null
           id?: string
+          is_ongoing?: boolean | null
           notes?: string | null
           payment_method?: string | null
           payment_terms?: string | null
+          primary_manager_id?: string | null
+          rate_schedule?: Json | null
+          renewal_notice_date?: string | null
+          service_type?: string | null
+          sla_requirements?: string | null
           start_date?: string
           status?: string
+          total_annual_value?: number | null
+          total_monthly_value?: number | null
+          total_weekly_value?: number | null
           updated_at?: string
           value_annual?: number | null
           value_monthly?: number | null
@@ -370,6 +525,7 @@ export type Database = {
       }
       sites: {
         Row: {
+          access_instructions: string | null
           address_line_1: string
           address_line_2: string | null
           area_manager_id: string | null
@@ -382,6 +538,7 @@ export type Database = {
           country: string
           created_at: string
           default_calendar_id: string | null
+          emergency_instructions: string | null
           id: string
           induction_required: boolean | null
           latitude: number | null
@@ -404,6 +561,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_instructions?: string | null
           address_line_1: string
           address_line_2?: string | null
           area_manager_id?: string | null
@@ -416,6 +574,7 @@ export type Database = {
           country?: string
           created_at?: string
           default_calendar_id?: string | null
+          emergency_instructions?: string | null
           id?: string
           induction_required?: boolean | null
           latitude?: number | null
@@ -438,6 +597,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_instructions?: string | null
           address_line_1?: string
           address_line_2?: string | null
           area_manager_id?: string | null
@@ -450,6 +610,7 @@ export type Database = {
           country?: string
           created_at?: string
           default_calendar_id?: string | null
+          emergency_instructions?: string | null
           id?: string
           induction_required?: boolean | null
           latitude?: number | null
