@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { ClientFormData, clientService } from '@/services/client';
+import { ClientFormData, clientService, ValidationErrorResponse } from '@/services/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -48,16 +48,17 @@ const NewClient = () => {
       const response = await clientService.createClient(preparedData);
 
       if ('category' in response && response.category === 'validation') {
-        // Set validation errors in the form
-        if (response.details?.field) {
-          // Type assertion to ensure TypeScript knows it's a valid key
-          const fieldName = response.details.field as keyof ClientFormData;
-          form.setError(fieldName, {
+        // Cast the response to ValidationErrorResponse to access its properties safely
+        const validationError = response as ValidationErrorResponse;
+        
+        // Now TypeScript knows this object has the expected properties
+        if (validationError.details && validationError.details.field) {
+          form.setError(validationError.details.field as keyof ClientFormData, {
             type: 'manual',
-            message: response.message,
+            message: validationError.message,
           });
         }
-        toast.error(response.message);
+        toast.error(validationError.message);
       } else if ('category' in response) {
         toast.error(response.message);
       } else {
