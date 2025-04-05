@@ -47,7 +47,6 @@ export const createQueryClient = () => {
       },
       mutations: {
         retry: false, // Don't retry mutations by default
-        // Move onError directly into the options object, not inside "callbacks"
         onError: (error: Error) => {
           // Log mutation error details
           AppLogger.error(
@@ -66,27 +65,28 @@ export const createQueryClient = () => {
   });
 
   // Set up event listeners for the query cache
-  queryClient.getQueryCache().subscribe((event) => {
-    // Only handle error events
-    if (event.type === 'error' && event.error instanceof Error) {
-      const error = event.error;
-      
-      // Log error details
-      AppLogger.error(
-        LogCategory.API, 
-        `React Query error: ${error.message}`, 
-        { error }
-      );
-      
-      // Report error to monitoring
-      ErrorReporting.captureException(error, { 
-        source: 'react-query',
-      });
-      
-      // Show toast notification for user-friendly errors
-      if (!error.message?.includes('timeout') && 
-          !error.message?.includes('network')) {
-        toast.error('Failed to load data. Please try again.');
+  queryClient.getQueryCache().subscribe(event => {
+    // In React Query v5, we need to check the event type and handle errors differently
+    if (event.type === 'updated' && event.query.state.status === 'error') {
+      const error = event.query.state.error;
+      if (error instanceof Error) {
+        // Log error details
+        AppLogger.error(
+          LogCategory.API, 
+          `React Query error: ${error.message}`, 
+          { error }
+        );
+        
+        // Report error to monitoring
+        ErrorReporting.captureException(error, { 
+          source: 'react-query',
+        });
+        
+        // Show toast notification for user-friendly errors
+        if (!error.message?.includes('timeout') && 
+            !error.message?.includes('network')) {
+          toast.error('Failed to load data. Please try again.');
+        }
       }
     }
   });
