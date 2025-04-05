@@ -23,7 +23,7 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/App";
+import { useAuth } from "@/contexts/AuthContext";
 import { ErrorReporting } from "@/utils/errorReporting";
 
 // Create a schema for login validation
