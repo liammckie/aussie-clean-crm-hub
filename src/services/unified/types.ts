@@ -1,4 +1,3 @@
-
 import { 
   AddressType,
   ContactType,
@@ -21,7 +20,7 @@ export interface UnifiedAddressRecord {
   postcode: string;
   country: string;
   address_type: AddressType;
-  is_primary: boolean; // Changed from optional to required
+  is_primary: boolean;
   latitude?: number;
   longitude?: number;
   created_at?: string;
@@ -43,15 +42,14 @@ export interface UnifiedContactRecord {
   contact_type: ContactType;
   preferred_communication?: PreferredCommunication;
   is_primary: boolean;
-  account_manager?: string;  // Added new field
-  state_manager?: string;    // Added new field
-  national_manager?: string; // Added new field
+  account_manager?: string;
+  state_manager?: string;
+  national_manager?: string;
   notes?: string;
   created_at?: string;
   updated_at?: string;
 }
 
-// Re-export the types from form-types.ts
 export type { UnifiedAddressFormData, UnifiedContactFormData };
 
 export type ValidationErrorResponse = {

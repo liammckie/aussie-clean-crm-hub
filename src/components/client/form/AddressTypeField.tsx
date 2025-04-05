@@ -21,13 +21,18 @@ interface AddressTypeFieldProps {
   form: UseFormReturn<UnifiedAddressFormData>;
 }
 
+// Updated to match all AddressType values defined in form-types.ts
 const addressTypeLabels: Record<AddressType, string> = {
-  'head_office': 'Head Office Address',
   'billing': 'Billing Address',
-  'site': 'Site Address',
-  'residential': 'Employee Residential',
+  'shipping': 'Shipping Address',
+  'physical': 'Physical Address',
   'postal': 'Postal Address',
-  'warehouse': 'Warehouse/Depot Address'
+  'head_office': 'Head Office Address',
+  'branch': 'Branch Address',
+  'residential': 'Employee Residential',
+  'commercial': 'Commercial Address',
+  'warehouse': 'Warehouse/Depot Address',
+  'site': 'Site Address'
 };
 
 export function AddressTypeField({ form }: AddressTypeFieldProps) {

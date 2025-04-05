@@ -22,15 +22,16 @@ interface ContactTypeFieldProps {
   contactTypes: ContactType[];
 }
 
+// Updated to match all ContactType values defined in form-types.ts
 const contactTypeLabels: Record<ContactType, string> = {
   'client_primary': 'Client Primary Contact',
   'client_site': 'Client Site Contact',
   'supplier': 'Supplier Contact',
-  'subcontractor': 'Subcontractor Contact',
   'employee': 'Employee Contact',
   'emergency': 'Emergency Contact',
   'hr_payroll': 'HR/Payroll Contact',
-  'sales_lead': 'Sales Contact (Lead)'
+  'sales_lead': 'Sales Contact (Lead)',
+  'subcontractor': 'Subcontractor Contact'
 };
 
 export function ContactTypeField({ form, contactTypes }: ContactTypeFieldProps) {

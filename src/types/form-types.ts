@@ -1,7 +1,11 @@
 import { z } from 'zod';
 
-export type AddressType = 'billing' | 'shipping' | 'physical' | 'postal' | 'head_office' | 'branch' | 'residential' | 'commercial';
-export type ContactType = 'client_primary' | 'client_site' | 'supplier' | 'employee' | 'hr_payroll' | 'emergency';
+// Updated AddressType to include all used types
+export type AddressType = 'billing' | 'shipping' | 'physical' | 'postal' | 'head_office' | 'branch' | 'residential' | 'commercial' | 'warehouse' | 'site';
+
+// Updated ContactType to include all used types
+export type ContactType = 'client_primary' | 'client_site' | 'supplier' | 'employee' | 'hr_payroll' | 'emergency' | 'subcontractor' | 'sales_lead';
+
 export type PreferredCommunication = 'phone' | 'email' | 'portal';
 
 // Unified Address Form Schema

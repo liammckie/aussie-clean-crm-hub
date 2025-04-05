@@ -3,12 +3,13 @@
 
 export type ClientStatus = 'Prospect' | 'Active' | 'On Hold' | 'Cancelled';
 
-export type AddressType = 'billing' | 'postal' | 'physical';
+// Import the AddressType from form-types instead of redefining it
+import { AddressType, ContactType as FormContactType } from '@/types/form-types';
 
 // Entity types for cross-referencing
 export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
 
-// Contact types
+// Use the same ContactType as defined in form-types or map to it
 export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary';
 
 export interface ClientRecord {
