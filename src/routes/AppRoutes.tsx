@@ -1,10 +1,9 @@
-
 import React, { lazy, Suspense, useEffect, useState } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { ErrorBoundaryWrapper } from '@/components/ErrorBoundaryWrapper';
-import Index from '@/pages/Index';
+import { Index } from '@/pages';
 
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const Clients = lazy(() => import('@/pages/Clients'));
@@ -38,9 +37,10 @@ const AppRoutes: React.FC = () => {
     if (adminSession) {
       try {
         const sessionData = JSON.parse(adminSession);
+        // Check if the session is still valid (e.g., within a certain time frame)
         const sessionTimestamp = new Date(sessionData.timestamp).getTime();
         const now = new Date().getTime();
-        const sessionDuration = 60 * 60 * 1000;
+        const sessionDuration = 60 * 60 * 1000; // 1 hour
         if (now - sessionTimestamp < sessionDuration) {
           setIsAdminSession(true);
         } else {
@@ -60,7 +60,7 @@ const AppRoutes: React.FC = () => {
   return (
     <Routes>
       <Route path="/" element={<Index />} />
-      <Route path="/login" element={<ErrorBoundaryWrapper><Suspense fallback={<div>Loading...</div>}><Login /></Suspense></ErrorBoundaryWrapper>} />
+      <Route path="/login" element={<ErrorBoundaryWrapper><Login /></ErrorBoundaryWrapper>} />
       
       <Route path="/dashboard" 
         element={
