@@ -1,6 +1,7 @@
 
 import * as React from "react"
-import { ChartConfig, THEMES } from "./types"
+import { THEMES } from "./types"
+import type { ChartConfig } from "./types"
 
 export const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
@@ -25,6 +26,7 @@ ${colorConfig
       itemConfig.color
     return color ? `  --color-${key}: ${color};` : null
   })
+  .filter(Boolean)
   .join("\n")}
 }
 `

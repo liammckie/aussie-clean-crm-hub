@@ -3,9 +3,15 @@ import { ChartConfig } from "./types"
 
 export function getPayloadConfigFromPayload(
   config: ChartConfig,
-  payload: Record<string, any>,
-  key: string
+  payload: { dataKey?: string | number; name?: string },
+  key?: string
 ) {
-  const configKey = payload?.dataKey || key || ""
-  return config[configKey as keyof typeof config]
+  const configKey =
+    key || (typeof payload.dataKey === "string" ? payload.dataKey : undefined)
+
+  if (!configKey) {
+    return undefined
+  }
+
+  return config[configKey] || config[payload.name || ""]
 }
