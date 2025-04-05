@@ -1,10 +1,10 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { ClientFormData, clientService, ClientStatus } from '@/services/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,12 +15,30 @@ import { toast } from 'sonner';
 import { prepareClientDataForSubmission, validateBusinessIdentifiers } from '@/utils/clientUtils';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { Link } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Plus, Users, Map } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ContactForm } from '@/components/client/ContactForm';
+import { ContactsList } from '@/components/client/ContactsList';
+import { SiteForm, SiteFormData } from '@/components/site/SiteForm';
+import { useClients } from '@/hooks/use-clients';
+import { useSites } from '@/hooks/use-sites';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 const EditClient = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [activeTab, setActiveTab] = useState('details');
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
+  const [isSiteDialogOpen, setIsSiteDialogOpen] = useState(false);
+  
+  const { useClientDetails, createClient: addContact } = useClients();
+  const { data: client, isLoading: isLoadingClient } = useClientDetails(id);
+  const { 
+    sites, 
+    isLoadingSites, 
+    createSite 
+  } = useSites(id);
 
   const form = useForm<ClientFormData>({
     defaultValues: {
@@ -106,8 +124,38 @@ const EditClient = () => {
         toast.error(`Failed to update client: ${error.message}`);
       });
   };
+  
+  // Handle contact submission
+  const handleContactSubmit = (data: any) => {
+    if (!id) return;
+    
+    // Add client_id to the contact data
+    const contactData = { ...data, client_id: id };
+    
+    clientService.createClientContact(id, data)
+      .then(response => {
+        if ('category' in response) {
+          toast.error(response.message);
+          return;
+        }
+        toast.success('Contact added successfully!');
+        setIsContactDialogOpen(false);
+      })
+      .catch(error => {
+        toast.error(`Failed to add contact: ${error.message}`);
+      });
+  };
+  
+  // Handle site submission
+  const handleSiteSubmit = (data: SiteFormData) => {
+    if (!id) return;
+    
+    // Add client_id to the site data
+    createSite({ ...data, client_id: id });
+    setIsSiteDialogOpen(false);
+  };
 
-  if (!isLoaded) {
+  if (!isLoaded || isLoadingClient) {
     return <div>Loading...</div>;
   }
 
@@ -138,207 +186,337 @@ const EditClient = () => {
           Back to Clients
         </Link>
       </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Edit Client</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-              <FormField
-                control={form.control}
-                name="business_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Business Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Business Name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="trading_name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Trading Name (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Trading Name" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="abn"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ABN (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ABN" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="acn"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>ACN (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="ACN" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="industry"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Industry (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Industry" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a status" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="Prospect">Prospect</SelectItem>
-                        <SelectItem value="Active">Active</SelectItem>
-                        <SelectItem value="On Hold">On Hold</SelectItem>
-                        <SelectItem value="Cancelled">Cancelled</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="onboarding_date"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Onboarding Date (Optional)</FormLabel>
-                    <FormControl>
-                      <DatePicker
-                        className={cn(
-                          "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-                          field.value ? "text-foreground" : "text-muted-foreground"
-                        )}
-                        onSelect={field.onChange}
-                        value={field.value ? new Date(field.value) : undefined}
-                      />
-                    </FormControl>
-                    <FormDescription>
-                      Date when the client was onboarded.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="source"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Source (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Source" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="billing_cycle"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Billing Cycle (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Billing Cycle" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="payment_terms"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment Terms (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Payment Terms" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="payment_method"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Payment Method (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Payment Method" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="tax_status"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tax Status (Optional)</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Tax Status" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="credit_limit"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Credit Limit (Optional)</FormLabel>
-                    <FormControl>
-                      <Input type="number" placeholder="Credit Limit" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit">Update Client</Button>
-            </form>
-          </Form>
-        </CardContent>
-      </Card>
+      
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">{client?.business_name || 'Edit Client'}</h1>
+      </div>
+      
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList>
+          <TabsTrigger value="details">Client Details</TabsTrigger>
+          <TabsTrigger value="contacts">
+            <Users className="h-4 w-4 mr-2" />
+            Contacts
+          </TabsTrigger>
+          <TabsTrigger value="sites">
+            <Map className="h-4 w-4 mr-2" />
+            Sites
+          </TabsTrigger>
+        </TabsList>
+        
+        {/* Client Details Tab */}
+        <TabsContent value="details">
+          <Card>
+            <CardHeader>
+              <CardTitle>Edit Client</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="business_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Business Name</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Business Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="trading_name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Trading Name (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Trading Name" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="abn"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ABN (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ABN" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="acn"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ACN (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="ACN" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="industry"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Industry (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Industry" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Status</FormLabel>
+                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a status" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="Prospect">Prospect</SelectItem>
+                            <SelectItem value="Active">Active</SelectItem>
+                            <SelectItem value="On Hold">On Hold</SelectItem>
+                            <SelectItem value="Cancelled">Cancelled</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="onboarding_date"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Onboarding Date (Optional)</FormLabel>
+                        <FormControl>
+                          <DatePicker
+                            className={cn(
+                              "w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                              field.value ? "text-foreground" : "text-muted-foreground"
+                            )}
+                            onSelect={field.onChange}
+                            value={field.value ? new Date(field.value) : undefined}
+                          />
+                        </FormControl>
+                        <FormDescription>
+                          Date when the client was onboarded.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="source"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Source (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Source" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="billing_cycle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Billing Cycle (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Billing Cycle" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="payment_terms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Terms (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Payment Terms" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="payment_method"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Method (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Payment Method" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="tax_status"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Tax Status (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Tax Status" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="credit_limit"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Credit Limit (Optional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Credit Limit" 
+                            {...field} 
+                            onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Update Client</Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Contacts Tab */}
+        <TabsContent value="contacts">
+          <Card>
+            <CardHeader className="flex flex-row justify-between items-center">
+              <CardTitle>Client Contacts</CardTitle>
+              <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="ml-2" size="sm">
+                    <Plus className="h-4 w-4 mr-1" /> Add Contact
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add New Contact</DialogTitle>
+                  </DialogHeader>
+                  <ContactForm onSubmit={handleContactSubmit} />
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              {client?.client_contacts && client.client_contacts.length > 0 ? (
+                <ContactsList contacts={client.client_contacts} />
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No contacts have been added yet.</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => setIsContactDialogOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add your first contact
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        
+        {/* Sites Tab */}
+        <TabsContent value="sites">
+          <Card>
+            <CardHeader className="flex flex-row justify-between items-center">
+              <CardTitle>Client Sites</CardTitle>
+              <Dialog open={isSiteDialogOpen} onOpenChange={setIsSiteDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="ml-2" size="sm">
+                    <Plus className="h-4 w-4 mr-1" /> Add Site
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Add New Site</DialogTitle>
+                  </DialogHeader>
+                  <div className="max-h-[80vh] overflow-y-auto py-4">
+                    <SiteForm onSubmit={handleSiteSubmit} />
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+            <CardContent>
+              {isLoadingSites ? (
+                <div className="text-center py-8">Loading sites...</div>
+              ) : sites && sites.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {sites.map((site) => (
+                    <Card key={site.id} className="overflow-hidden">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-lg">{site.site_name}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2 text-sm">
+                          <p className="text-muted-foreground">Site Code: <span className="text-foreground">{site.site_code}</span></p>
+                          <p className="text-muted-foreground">Address: <span className="text-foreground">
+                            {site.address_line_1}
+                            {site.address_line_2 && `, ${site.address_line_2}`}, 
+                            {site.suburb}, {site.state} {site.postcode}
+                          </span></p>
+                          {site.site_type && (
+                            <p className="text-muted-foreground">Type: <span className="text-foreground capitalize">{site.site_type}</span></p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No sites have been added yet.</p>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => setIsSiteDialogOpen(true)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add your first site
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

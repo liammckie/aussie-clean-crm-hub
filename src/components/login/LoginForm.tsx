@@ -36,10 +36,6 @@ const loginSchema = z.object({
 
 type LoginFormValues = z.infer<typeof loginSchema>;
 
-// Admin credentials for direct access
-const ADMIN_EMAIL = "liam.kingswood@gmail.com";
-const ADMIN_PASSWORD = "Dragon007!";
-
 export function LoginForm() {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -62,29 +58,7 @@ export function LoginForm() {
     setIsLoading(true);
     
     try {
-      // Check if using admin credentials
-      if (data.email === ADMIN_EMAIL && data.password === ADMIN_PASSWORD) {
-        // Show success message for admin
-        toast({
-          title: "Admin login successful",
-          description: "Redirecting to dashboard...",
-        });
-        
-        // Navigate to dashboard for admin
-        setTimeout(() => {
-          navigate("/dashboard");
-          // Store admin session in local storage to simulate login
-          localStorage.setItem("admin_session", JSON.stringify({
-            user: { email: ADMIN_EMAIL, role: "admin" },
-            timestamp: new Date().toISOString()
-          }));
-        }, 1000);
-        
-        setIsLoading(false);
-        return;
-      }
-      
-      // For non-admin users, proceed with regular login
+      // Log login attempt (with privacy protection)
       ErrorReporting.captureMessage(
         "Login attempt", 
         { email: data.email, hasPassword: !!data.password },
