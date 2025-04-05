@@ -13,53 +13,70 @@ import {
   matchRoutes,
 } from "react-router-dom";
 
+// Default Sentry DSN for development (this is a placeholder and should be replaced with a real development DSN)
+const DEFAULT_DEV_DSN = "https://9e9a7a40cb214a50a688f4cab47246ad@o4509086518411264.ingest.us.sentry.io/4509086689394688";
+
 // Initialize Sentry
 function initSentry() {
   // Define environment variable fallbacks
   const dsn = typeof import.meta !== 'undefined' && import.meta.env 
-    ? import.meta.env.VITE_SENTRY_DSN 
+    ? import.meta.env.VITE_SENTRY_DSN || (import.meta.env.DEV ? DEFAULT_DEV_DSN : '')
     : process.env.VITE_SENTRY_DSN;
+  
   const env = typeof import.meta !== 'undefined' && import.meta.env 
     ? import.meta.env.VITE_ENVIRONMENT 
-    : process.env.VITE_ENVIRONMENT;
+    : process.env.VITE_ENVIRONMENT || 'development';
+  
+  const isProd = typeof import.meta !== 'undefined' && import.meta.env 
+    ? import.meta.env.PROD 
+    : process.env.NODE_ENV === 'production';
 
-  // Only initialize if DSN is provided
+  // Only initialize if DSN is provided or we're in production
   if (!dsn) {
-    console.warn("Sentry DSN not provided. Error reporting disabled.");
+    console.info("Sentry DSN not provided. Error reporting is disabled. This is normal in development.");
     return;
   }
 
-  Sentry.init({
-    dsn,
-    integrations: [
-      new BrowserTracing({
-        routingInstrumentation: Sentry.reactRouterV6Instrumentation(
-          React.createElement,
-          useLocation,
-          useNavigationType,
-          createRoutesFromChildren,
-          matchRoutes,
-          // Fix: Replace empty object with required boolean parameter
-          true
-        ),
-      }),
-      new Replay({
-        maskAllText: true,
-        blockAllMedia: true,
-      }),
-    ],
-    environment: env || "development",
+  try {
+    Sentry.init({
+      dsn,
+      integrations: [
+        new BrowserTracing({
+          routingInstrumentation: Sentry.reactRouterV6Instrumentation(
+            React.createElement,
+            useLocation,
+            useNavigationType,
+            createRoutesFromChildren,
+            matchRoutes,
+            // Fix: Replace empty object with required boolean parameter
+            true
+          ),
+        }),
+        new Replay({
+          maskAllText: true,
+          blockAllMedia: true,
+        }),
+      ],
+      environment: env,
+      
+      // Adjust sampling rates based on environment
+      tracesSampleRate: isProd ? 1.0 : 0.5,
+      
+      // Session replay settings
+      replaysSessionSampleRate: isProd ? 0.1 : 0.0,  // Sample 10% of sessions in production
+      replaysOnErrorSampleRate: 1.0,                 // Always record sessions with errors
+      
+      // Set to true in development to see verbose logs
+      debug: typeof import.meta !== 'undefined' && import.meta.env && !import.meta.env.PROD,
+      
+      // Only send errors in production or if explicitly enabled
+      enabled: isProd || (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_ENABLE_SENTRY === 'true'),
+    });
     
-    // Capture 100% of transactions for performance monitoring
-    tracesSampleRate: 1.0, 
-
-    // Session replay for errors only
-    replaysSessionSampleRate: 0.0,
-    replaysOnErrorSampleRate: 1.0,
-    
-    // Set to true in development to see verbose logs
-    debug: typeof import.meta !== 'undefined' && import.meta.env && !import.meta.env.PROD,
-  });
+    console.info(`Sentry initialized in ${env} mode`);
+  } catch (error) {
+    console.error("Failed to initialize Sentry:", error);
+  }
 }
 
 // Call initialization
@@ -120,30 +137,44 @@ export function useSentryRouteError() {
 }
 
 // Create a Sentry wrapper for all API calls
-export const withSentryAPI = async <T,>(
+export function withSentryAPI<T>(
   apiCall: () => Promise<T>,
   options: {
     name: string;
     data?: Record<string, any>;
   }
-): Promise<T> => {
+): Promise<T> {
+  // Only create transaction if Sentry is initialized
+  if (!Sentry.getCurrentHub().getClient()) {
+    return apiCall();
+  }
+
   const transaction = Sentry.startTransaction({
     name: `API: ${options.name}`,
     data: options.data,
   });
   
   try {
-    const result = await apiCall();
-    transaction.setStatus("ok");
-    return result;
+    return apiCall().then(result => {
+      transaction.setStatus("ok");
+      return result;
+    }).catch(error => {
+      transaction.setStatus("internal_error");
+      Sentry.captureException(error, {
+        tags: { api: options.name },
+        extra: options.data,
+      });
+      throw error;
+    }).finally(() => {
+      transaction.finish();
+    });
   } catch (error) {
     transaction.setStatus("internal_error");
     Sentry.captureException(error, {
       tags: { api: options.name },
-      extra: options.data, // Changed from extras to extra - the correct property name
+      extra: options.data,
     });
-    throw error;
-  } finally {
     transaction.finish();
+    throw error;
   }
-};
+}

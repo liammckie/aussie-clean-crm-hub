@@ -6,6 +6,13 @@ import * as Sentry from "@sentry/react";
  */
 export class ErrorReporting {
   /**
+   * Check if Sentry is initialized and ready to capture errors
+   */
+  static isInitialized(): boolean {
+    return !!Sentry.getCurrentHub().getClient();
+  }
+
+  /**
    * Capture and report an error to Sentry
    * 
    * @param error The error to report
@@ -26,6 +33,12 @@ export class ErrorReporting {
     // Create the error object if a string was passed
     const errorObj = typeof error === "string" ? new Error(error) : error;
 
+    // Check if Sentry is initialized before attempting to capture
+    if (!ErrorReporting.isInitialized()) {
+      console.warn("Sentry not initialized, error not reported to monitoring service");
+      return;
+    }
+
     // Set the scope with additional context
     Sentry.withScope((scope) => {
       scope.setLevel(level);
@@ -36,7 +49,6 @@ export class ErrorReporting {
         });
       }
       
-      // Always capture to Sentry, even in development
       Sentry.captureException(errorObj);
     });
   }
@@ -59,6 +71,12 @@ export class ErrorReporting {
       if (context) console.log("Context:", context);
     }
 
+    // Check if Sentry is initialized before attempting to capture
+    if (!ErrorReporting.isInitialized()) {
+      console.warn("Sentry not initialized, message not reported to monitoring service");
+      return;
+    }
+
     Sentry.withScope((scope) => {
       scope.setLevel(level);
       
@@ -68,7 +86,6 @@ export class ErrorReporting {
         });
       }
       
-      // Always capture to Sentry, even in development
       Sentry.captureMessage(message);
     });
   }
@@ -79,7 +96,9 @@ export class ErrorReporting {
    * @param user User information including id, email, etc.
    */
   static setUser(user: Sentry.User | null) {
-    Sentry.setUser(user);
+    if (ErrorReporting.isInitialized()) {
+      Sentry.setUser(user);
+    }
   }
 
   /**
@@ -88,7 +107,9 @@ export class ErrorReporting {
    * @param breadcrumb The breadcrumb to add
    */
   static addBreadcrumb(breadcrumb: Sentry.Breadcrumb) {
-    Sentry.addBreadcrumb(breadcrumb);
+    if (ErrorReporting.isInitialized()) {
+      Sentry.addBreadcrumb(breadcrumb);
+    }
   }
 
   /**
@@ -97,9 +118,12 @@ export class ErrorReporting {
    * @param name The name of the transaction
    * @param op The operation type
    * @param data Additional data for the transaction
-   * @returns The transaction instance
+   * @returns The transaction instance or null if Sentry is not initialized
    */
   static startTransaction(name: string, op: string, data?: Record<string, any>) {
-    return Sentry.startTransaction({ name, op, data });
+    if (ErrorReporting.isInitialized()) {
+      return Sentry.startTransaction({ name, op, data });
+    }
+    return null;
   }
 }
