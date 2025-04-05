@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedContactFormData } from '@/components/client/UnifiedContactForm';
+import { UnifiedContactFormData } from '@/types/form-types';
 
 interface ContactTypeFieldProps {
   form: UseFormReturn<UnifiedContactFormData>;

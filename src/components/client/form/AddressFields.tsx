@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedAddressFormData } from '@/services/unified';
+import { UnifiedAddressFormData } from '@/types/form-types';
 import { StateField } from './StateField';
 
 interface AddressFieldsProps {

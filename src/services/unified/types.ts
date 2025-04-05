@@ -14,7 +14,7 @@ export interface UnifiedAddressRecord {
   postcode: string;
   country: string;
   address_type: AddressType;
-  is_primary?: boolean;
+  is_primary: boolean; // Changed from optional to required
   created_at?: string;
   updated_at?: string;
 }
@@ -35,32 +35,8 @@ export interface UnifiedContactRecord {
   updated_at?: string;
 }
 
-export interface UnifiedAddressFormData {
-  entity_type?: EntityType;
-  entity_id?: string;
-  name?: string;
-  address_line_1: string;
-  address_line_2?: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  country: string;
-  address_type: AddressType;
-  is_primary: boolean;
-}
-
-export interface UnifiedContactFormData {
-  entity_type?: EntityType;
-  entity_id?: string;
-  name: string;
-  email: string;
-  phone?: string;
-  mobile?: string;
-  position?: string;
-  company?: string;
-  contact_type: string;
-  is_primary: boolean;
-}
+// Using the types from the centralized form-types.ts
+export { UnifiedAddressFormData, UnifiedContactFormData } from '@/types/form-types';
 
 export type ValidationErrorResponse = {
   category: 'validation';

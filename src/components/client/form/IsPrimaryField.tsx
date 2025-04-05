@@ -10,6 +10,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
 
+// Updated interface that requires is_primary to be in the type
 interface IsPrimaryFieldProps<T extends { is_primary: boolean }> {
   form: UseFormReturn<T>;
   label?: string;
@@ -22,7 +23,7 @@ export function IsPrimaryField<T extends { is_primary: boolean }>({
   return (
     <FormField
       control={form.control}
-      name="is_primary"
+      name="is_primary" 
       render={({ field }) => (
         <FormItem className="flex flex-row items-center space-x-3 space-y-0">
           <FormControl>

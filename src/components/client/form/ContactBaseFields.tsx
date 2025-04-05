@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedContactFormData } from '@/components/client/UnifiedContactForm';
+import { UnifiedContactFormData } from '@/types/form-types';
 
 interface ContactBaseFieldsProps {
   form: UseFormReturn<UnifiedContactFormData>;

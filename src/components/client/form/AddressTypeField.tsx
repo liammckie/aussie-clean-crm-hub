@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedAddressFormData } from '@/services/unified';
+import { UnifiedAddressFormData } from '@/types/form-types';
 
 interface AddressTypeFieldProps {
   form: UseFormReturn<UnifiedAddressFormData>;

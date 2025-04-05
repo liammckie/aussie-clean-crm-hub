@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -9,19 +8,7 @@ import { ContactBaseFields } from './form/ContactBaseFields';
 import { ContactTypeField } from './form/ContactTypeField';
 import { ContactAdditionalFields } from './form/ContactAdditionalFields';
 import { IsPrimaryField } from './form/IsPrimaryField';
-
-const contactSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  position: z.string().optional(),
-  phone: z.string().optional(),
-  mobile: z.string().optional(),
-  company: z.string().optional(),
-  contact_type: z.string().min(1, { message: "Contact type is required" }),
-  is_primary: z.boolean().default(false),
-});
-
-export type UnifiedContactFormData = z.infer<typeof contactSchema>;
+import { unifiedContactSchema, UnifiedContactFormData, createDefaultContactValues } from '@/types/form-types';
 
 interface UnifiedContactFormProps {
   onSubmit: (data: UnifiedContactFormData) => void;
@@ -41,17 +28,8 @@ export function UnifiedContactForm({
   showIsPrimary = true
 }: UnifiedContactFormProps) {
   const form = useForm<UnifiedContactFormData>({
-    resolver: zodResolver(contactSchema),
-    defaultValues: {
-      name: initialData.name || '',
-      email: initialData.email || '',
-      position: initialData.position || '',
-      phone: initialData.phone || '',
-      mobile: initialData.mobile || '',
-      company: initialData.company || '',
-      contact_type: initialData.contact_type || contactTypes[0],
-      is_primary: initialData.is_primary || false,
-    }
+    resolver: zodResolver(unifiedContactSchema),
+    defaultValues: createDefaultContactValues(initialData, contactTypes[0])
   });
 
   return (
