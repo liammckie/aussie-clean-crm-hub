@@ -2,9 +2,9 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
 
-// Define types for site data
-export type SiteStatus = 'active' | 'inactive' | 'pending_activation';
-export type SiteType = 'residential' | 'industrial' | 'retail' | 'hospitality' | 'office' | 'warehouse' | 'educational' | 'medical' | 'commercial';
+// Define types for site data aligned with the database schema
+export type SiteStatus = 'active' | 'inactive' | 'pending_activation' | 'archived';
+export type SiteType = 'office' | 'retail' | 'warehouse' | 'industrial' | 'residential' | 'educational' | 'medical' | 'hospitality';
 
 export interface SiteData {
   id?: string;

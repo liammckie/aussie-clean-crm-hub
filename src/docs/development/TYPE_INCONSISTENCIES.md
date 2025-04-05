@@ -24,6 +24,29 @@ This document tracks known type inconsistencies, TypeScript issues, and type-rel
 
 ## Entity-Specific Type Issues
 
+### Site Entity
+
+#### SiteType Enum
+- **Database Definition**: Enum in database is restricted to specific values
+```sql
+CREATE TYPE site_type AS ENUM (
+  'office', 
+  'retail', 
+  'warehouse', 
+  'industrial', 
+  'residential', 
+  'educational', 
+  'medical', 
+  'hospitality'
+);
+```
+- **TypeScript Definition**: Must match database exactly
+```typescript
+export type SiteType = 'office' | 'retail' | 'warehouse' | 'industrial' | 'residential' | 'educational' | 'medical' | 'hospitality';
+```
+- **Fixed Issue**: Previous mismatch with 'commercial' type that existed in TypeScript but not in database schema
+- **Handling**: Strict type checking against database enums; update TypeScript types when database schema changes
+
 ### Client Entity
 
 #### ABN/ACN Format
@@ -31,6 +54,11 @@ This document tracks known type inconsistencies, TypeScript issues, and type-rel
 - **Validation**: Regex patterns for format validation
 - **Inconsistency**: Some legacy records may not conform to current validation
 - **Handling**: Validation function `isValidABN(abn: string): boolean`
+
+#### Address Formatting
+- **Type Challenge**: Consistent representation of addresses across client and site entities
+- **Current Solution**: AddressForm component used for both client and site addresses
+- **Standardization**: Australian state abbreviations handled consistently
 
 #### Contact Information
 - **Type Challenge**: Flexible contact structure vs. type safety
