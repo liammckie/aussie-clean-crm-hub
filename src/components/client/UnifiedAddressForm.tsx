@@ -4,15 +4,15 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { AddressType } from '@/services/unified';
+import { UnifiedAddressForm as AddressFormType } from '@/types/form-types';
 import { AddressTypeField } from './form/AddressTypeField';
 import { AddressFields } from './form/AddressFields';
 import { IsPrimaryField } from './form/IsPrimaryField';
-import { unifiedAddressSchema, UnifiedAddressFormData, createDefaultAddressValues } from '@/types/form-types';
+import { unifiedAddressSchema, createDefaultAddressValues } from '@/types/form-types';
 
 interface UnifiedAddressFormProps {
-  onSubmit: (data: UnifiedAddressFormData) => void;
-  initialData?: Partial<UnifiedAddressFormData>;
+  onSubmit: (data: AddressFormType) => void;
+  initialData?: Partial<AddressFormType>;
   isLoading?: boolean;
   buttonText?: string;
   showAddressType?: boolean;
@@ -27,13 +27,24 @@ export function UnifiedAddressForm({
   showAddressType = true,
   showIsPrimary = true,
 }: UnifiedAddressFormProps) {
-  const form = useForm<UnifiedAddressFormData>({
-    resolver: zodResolver(unifiedAddressSchema),
-    defaultValues: createDefaultAddressValues(initialData)
+  // Ensure is_primary is always set, defaulting to false if not provided
+  const formInitialData = createDefaultAddressValues({
+    ...initialData,
+    is_primary: initialData.is_primary ?? false
   });
 
-  const handleFormSubmit = (data: UnifiedAddressFormData) => {
-    onSubmit(data);
+  const form = useForm<AddressFormType>({
+    resolver: zodResolver(unifiedAddressSchema),
+    defaultValues: formInitialData
+  });
+
+  const handleFormSubmit = (data: AddressFormType) => {
+    // Ensure is_primary is always a boolean
+    const submissionData = {
+      ...data,
+      is_primary: data.is_primary ?? false
+    };
+    onSubmit(submissionData);
   };
 
   return (
@@ -43,7 +54,12 @@ export function UnifiedAddressForm({
         
         <AddressFields form={form} />
 
-        {showIsPrimary && <IsPrimaryField<UnifiedAddressFormData> form={form} label="Set as primary address" />}
+        {showIsPrimary && (
+          <IsPrimaryField<AddressFormType> 
+            form={form} 
+            label="Set as primary address" 
+          />
+        )}
 
         <Button type="submit" disabled={isLoading} className="mt-4">
           {isLoading ? "Saving..." : buttonText}

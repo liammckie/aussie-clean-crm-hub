@@ -8,12 +8,13 @@ import { ContactBaseFields } from './form/ContactBaseFields';
 import { ContactTypeField } from './form/ContactTypeField';
 import { ContactAdditionalFields } from './form/ContactAdditionalFields';
 import { IsPrimaryField } from './form/IsPrimaryField';
-import { unifiedContactSchema, UnifiedContactFormData, createDefaultContactValues } from '@/types/form-types';
+import { UnifiedContactForm as ContactFormType } from '@/types/form-types';
+import { unifiedContactSchema, createDefaultContactValues } from '@/types/form-types';
 
 interface UnifiedContactFormProps {
-  onSubmit: (data: UnifiedContactFormData) => void;
+  onSubmit: (data: ContactFormType) => void;
   isLoading?: boolean;
-  initialData?: Partial<UnifiedContactFormData>;
+  initialData?: Partial<ContactFormType>;
   contactTypes?: string[];
   buttonText?: string;
   showIsPrimary?: boolean;
@@ -27,14 +28,32 @@ export function UnifiedContactForm({
   buttonText = "Add Contact",
   showIsPrimary = true
 }: UnifiedContactFormProps) {
-  const form = useForm<UnifiedContactFormData>({
+  // Ensure is_primary is always set, defaulting to false if not provided
+  const formInitialData = createDefaultContactValues(
+    { 
+      ...initialData,
+      is_primary: initialData.is_primary ?? false 
+    }, 
+    contactTypes[0]
+  );
+
+  const form = useForm<ContactFormType>({
     resolver: zodResolver(unifiedContactSchema),
-    defaultValues: createDefaultContactValues(initialData, contactTypes[0])
+    defaultValues: formInitialData
   });
+
+  const handleFormSubmit = (data: ContactFormType) => {
+    // Ensure is_primary is always a boolean
+    const submissionData = {
+      ...data,
+      is_primary: data.is_primary ?? false
+    };
+    onSubmit(submissionData);
+  };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <ContactBaseFields form={form} />
           <ContactTypeField form={form} contactTypes={contactTypes} />
@@ -42,7 +61,10 @@ export function UnifiedContactForm({
         </div>
         
         {showIsPrimary && (
-          <IsPrimaryField<UnifiedContactFormData> form={form} label="Primary contact" />
+          <IsPrimaryField<ContactFormType> 
+            form={form} 
+            label="Primary contact" 
+          />
         )}
 
         <Button type="submit" disabled={isLoading}>
