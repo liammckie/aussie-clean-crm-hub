@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { ClientFormData, clientService, ValidationErrorResponse } from '@/services/client';
@@ -12,11 +12,39 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { ClientFormFields } from '@/components/client/ClientFormFields';
 import { loadSampleClientData } from '@/utils/clientUtils';
 import { LoadSampleButton } from '@/components/ui/load-sample-button';
+import { useAuth } from '@/contexts/AuthContext';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { isAuthenticated } from '@/integrations/supabase/client';
 
 const NewClient = () => {
   const navigate = useNavigate();
   const [isCreating, setIsCreating] = useState(false);
   const [isSampleLoaded, setIsSampleLoaded] = useState(false);
+  const [authChecked, setAuthChecked] = useState(false);
+  const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
+  const { isAuthenticated: contextAuth } = useAuth();
+
+  // Check authentication on component mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const auth = await isAuthenticated();
+        console.log('Authentication check result:', auth);
+        setIsUserAuthenticated(auth);
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    
+    checkAuth();
+  }, []);
+
+  // Monitor authentication from context
+  useEffect(() => {
+    console.log('Auth context changed:', contextAuth);
+  }, [contextAuth]);
 
   const form = useForm<ClientFormData>({
     defaultValues: {
@@ -44,6 +72,14 @@ const NewClient = () => {
   });
 
   const onSubmit = async (data: ClientFormData) => {
+    // Double-check authentication before submitting
+    const auth = await isAuthenticated();
+    if (!auth) {
+      toast.error('You need to be logged in to create clients');
+      navigate('/login', { state: { from: '/clients/new' } });
+      return;
+    }
+
     setIsCreating(true);
     try {
       // Prepare data to match database schema requirements
@@ -70,6 +106,11 @@ const NewClient = () => {
       } else if ('category' in response) {
         // Handle other error types
         toast.error(response.message || 'An error occurred');
+        
+        // If it's an authentication error, redirect to login
+        if (response.category === 'authentication') {
+          setTimeout(() => navigate('/login', { state: { from: '/clients/new' } }), 1500);
+        }
       } else {
         // Success case
         toast.success('Client created successfully!');
@@ -99,6 +140,23 @@ const NewClient = () => {
     setIsSampleLoaded(false);
     toast.info('Form cleared');
   };
+
+  // Display authentication warning if not authenticated
+  if (authChecked && !isUserAuthenticated && !contextAuth) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <Alert variant="destructive" className="mb-6">
+          <AlertTitle>Authentication Required</AlertTitle>
+          <AlertDescription>
+            You need to be logged in to create clients. Redirecting to login page...
+          </AlertDescription>
+        </Alert>
+        <Button onClick={() => navigate('/login', { state: { from: '/clients/new' } })}>
+          Go to Login
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -130,6 +188,14 @@ const NewClient = () => {
           isLoaded={isSampleLoaded}
         />
       </div>
+
+      {/* Authentication status indicator for debugging */}
+      {import.meta.env.DEV && (
+        <div className="mb-4 p-2 border rounded bg-slate-800 text-xs">
+          <p>Auth Status (Context): {contextAuth ? 'Authenticated' : 'Not Authenticated'}</p>
+          <p>Auth Status (Direct): {isUserAuthenticated ? 'Authenticated' : 'Not Authenticated'}</p>
+        </div>
+      )}
 
       <Card>
         <CardHeader>

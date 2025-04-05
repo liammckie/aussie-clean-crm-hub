@@ -12,6 +12,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true, // Detect session from URL query params
   },
 });
 
@@ -19,7 +20,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
 export const isSupabaseError = (error: unknown): boolean => {
   if (!error || typeof error !== 'object') return false;
   
-  // Check for common properties in Supabase error objects
+  // Safe type assertion
   const possibleError = error as Record<string, unknown>;
   
   // PostgreSQL error codes (e.g. "23505" for unique violation)
@@ -49,6 +50,24 @@ export const isSupabaseError = (error: unknown): boolean => {
   }
   
   return false;
+};
+
+/**
+ * Check if the current user is authenticated
+ * @returns Boolean indicating authentication status
+ */
+export const isAuthenticated = async (): Promise<boolean> => {
+  const { data } = await supabase.auth.getSession();
+  return !!data.session;
+};
+
+/**
+ * Get the current user's ID
+ * @returns User ID if authenticated, null otherwise
+ */
+export const getCurrentUserId = async (): Promise<string | null> => {
+  const { data } = await supabase.auth.getSession();
+  return data.session?.user?.id || null;
 };
 
 /**

@@ -1,5 +1,5 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, isAuthenticated } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
 import { 
   ClientFormData, 
@@ -18,6 +18,12 @@ export const clientApi = {
    */
   fetchAllClients: async () => {
     try {
+      // First check if the user is authenticated
+      const authenticated = await isAuthenticated();
+      if (!authenticated) {
+        throw new Error('Not authenticated. Please log in first.');
+      }
+
       const { data, error } = await supabase
         .from('clients')
         .select('*')
@@ -42,6 +48,12 @@ export const clientApi = {
    */
   fetchClientById: async (clientId: string) => {
     try {
+      // First check if the user is authenticated
+      const authenticated = await isAuthenticated();
+      if (!authenticated) {
+        throw new Error('Not authenticated. Please log in first.');
+      }
+
       const { data, error } = await supabase
         .from('clients')
         .select(`
@@ -71,6 +83,17 @@ export const clientApi = {
    */
   createClient: async (clientData: ClientFormData) => {
     try {
+      // First check if the user is authenticated
+      const authenticated = await isAuthenticated();
+      if (!authenticated) {
+        throw new Error('Not authenticated. Please log in first.');
+      }
+      
+      // Log authentication status and session for debugging
+      console.log('Authentication status:', authenticated);
+      const session = await supabase.auth.getSession();
+      console.log('Current session:', session);
+
       // Handle the date conversion safely if it's a string
       const processedData = { ...clientData };
       
@@ -87,11 +110,13 @@ export const clientApi = {
         .single();
 
       if (error) {
+        console.error('Supabase error during insert:', error);
         throw error;
       }
 
       return { data, error: null };
     } catch (error) {
+      console.error('Error in createClient:', error);
       return handleSupabaseError(
         error,
         'Failed to create client',

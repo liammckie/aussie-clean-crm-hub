@@ -1,206 +1,163 @@
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import * as Sentry from "@sentry/react";
-import { ErrorReporting } from "@/utils/errorReporting";
+import { Session, User } from '@supabase/supabase-js';
+import { ErrorReporting } from '@/utils/errorReporting';
+import { toast } from 'sonner';
 
-// Define auth context type
-type AuthContextType = {
+interface AuthContextType {
   isAuthenticated: boolean;
+  isLoading: boolean;
   user: User | null;
-  session: Session | null;
-  login: (email: string, password: string, rememberMe: boolean) => Promise<{ success: boolean; message?: string }>;
-  logout: () => Promise<void>;
-  loading: boolean;
-};
-
-const AuthContext = createContext<AuthContextType | null>(null);
-
-// Custom hook for using the auth context
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-};
-
-interface AuthProviderProps {
-  children: React.ReactNode;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  setAdminSession: () => void;
 }
 
-// Check if admin session exists in local storage
-const checkAdminSession = () => {
-  const adminSession = localStorage.getItem("admin_session");
-  if (!adminSession) return false;
-  
-  try {
-    const session = JSON.parse(adminSession);
-    // Add simple expiration check (24 hours)
-    const sessionTime = new Date(session.timestamp).getTime();
-    const now = new Date().getTime();
-    const hoursPassed = (now - sessionTime) / (1000 * 60 * 60);
-    
-    return hoursPassed < 24;
-  } catch (e) {
-    return false;
-  }
-};
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// AuthProvider component to wrap around components that need auth context
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-  
-  // Initialize auth state
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+
   useEffect(() => {
-    // Check for admin session first
-    if (checkAdminSession()) {
-      const adminData = JSON.parse(localStorage.getItem("admin_session") || "{}");
-      setIsAuthenticated(true);
-      setUser({
-        id: "admin-user",
-        email: adminData.user.email,
-        app_metadata: { provider: "custom" },
-        user_metadata: { role: "admin" },
-        aud: "authenticated",
-        created_at: adminData.timestamp
-      } as User);
-      setLoading(false);
-      return;
-    }
-    
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        console.log("Auth state changed:", event);
-        setSession(session);
-        setUser(session?.user ?? null);
+    // Function to set the user state from a session
+    const setUserFromSession = async () => {
+      setIsLoading(true);
+      try {
+        const { data, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          throw error;
+        }
+
+        // Update user and authentication state
+        setUser(data.session?.user || null);
+        setIsAuthenticated(!!data.session?.user);
+        console.log('Auth state initialized:', !!data.session?.user);
+        
+        // Send user info to error reporting
+        if (data.session?.user) {
+          ErrorReporting.setUser({
+            id: data.session.user.id,
+            email: data.session.user.email || undefined,
+          });
+        } else {
+          ErrorReporting.setUser(null);
+        }
+      } catch (error) {
+        console.error('Error retrieving session:', error);
+        ErrorReporting.captureException(error as Error);
+        setIsAuthenticated(false);
+        setUser(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    // Call the function to set initial state
+    setUserFromSession();
+
+    // Subscribe to auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        console.log('Auth state changed:', event, !!session);
+        
+        // Update user and authentication state
+        setUser(session?.user || null);
         setIsAuthenticated(!!session);
         
-        // Update Sentry user info
+        // Send user info to error reporting
         if (session?.user) {
           ErrorReporting.setUser({
             id: session.user.id,
             email: session.user.email || undefined,
-          });
-          
-          ErrorReporting.addBreadcrumb({
-            category: 'auth',
-            message: 'User authenticated',
-            level: 'info'
           });
         } else {
           ErrorReporting.setUser(null);
         }
       }
     );
-    
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsAuthenticated(!!session);
-      setLoading(false);
-      
-      if (session?.user) {
-        ErrorReporting.setUser({
-          id: session.user.id,
-          email: session.user.email || undefined,
-        });
-      }
-    });
-    
+
+    // Cleanup subscription
     return () => {
-      subscription.unsubscribe();
+      authListener?.subscription.unsubscribe();
     };
   }, []);
-  
-  const login = async (email: string, password: string, rememberMe: boolean) => {
+
+  // Sign in function
+  const signIn = async (email: string, password: string) => {
     try {
-      setLoading(true);
-      
-      // Handle admin login
-      if (email === "liam.kingswood@gmail.com" && password === "Dragon007!") {
-        // Store admin session
-        localStorage.setItem("admin_session", JSON.stringify({
-          user: { email, role: "admin" },
-          timestamp: new Date().toISOString()
-        }));
-        
-        // Set admin user in state
-        setIsAuthenticated(true);
-        setUser({
-          id: "admin-user",
-          email: email,
-          app_metadata: { provider: "custom" },
-          user_metadata: { role: "admin" },
-          aud: "authenticated",
-          created_at: new Date().toISOString()
-        } as User);
-        
-        return { success: true };
-      }
-      
-      // For all other users, use Supabase authentication
+      setIsLoading(true);
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
+
+      if (error) throw error;
+
+      // Log success and important info for debugging
+      console.log('Sign in successful:', data.session ? true : false);
+      console.log('JWT Token:', data.session?.access_token ? '[token set]' : '[no token]');
       
-      if (error) {
-        console.error("Login error:", error.message);
-        return { success: false, message: error.message };
-      }
-      
-      console.log("Login successful");
-      
-      // Session will be automatically set by the onAuthStateChange listener
-      return { success: true };
+      setIsAuthenticated(true);
+      setUser(data.user);
+      toast.success('Logged in successfully');
     } catch (error: any) {
-      console.error("Unexpected login error:", error);
-      ErrorReporting.captureException(error, {
-        email,
-        context: 'login',
-      });
-      return { success: false, message: error.message || 'An unexpected error occurred' };
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const logout = async () => {
-    try {
-      setLoading(true);
-      
-      // Clear admin session if exists
-      localStorage.removeItem("admin_session");
-      
-      // For regular users, use Supabase logout
-      await supabase.auth.signOut();
-      
-      // Reset auth state
+      console.error('Login error:', error);
+      ErrorReporting.captureException(error as Error);
+      toast.error(`Login failed: ${error.message}`);
       setIsAuthenticated(false);
-      setUser(null);
-      setSession(null);
-      
-      console.log("Logout successful");
-    } catch (error) {
-      console.error("Logout error:", error);
-      ErrorReporting.captureException(error as Error, {
-        context: 'logout',
-      });
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
+  // Sign out function
+  const signOut = async () => {
+    try {
+      setIsLoading(true);
+      await supabase.auth.signOut();
+      setIsAuthenticated(false);
+      setUser(null);
+      toast.success('Logged out successfully');
+    } catch (error) {
+      console.error('Sign out error:', error);
+      ErrorReporting.captureException(error as Error);
+      toast.error('Failed to log out');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Set admin session for development purposes
+  const setAdminSession = () => {
+    const timestamp = new Date().toISOString();
+    localStorage.setItem('admin_session', JSON.stringify({ timestamp }));
+    toast.success('Admin session set');
+  };
+
   return (
-    <AuthContext.Provider value={{ isAuthenticated, user, session, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{
+        isAuthenticated,
+        user,
+        isLoading,
+        signIn,
+        signOut,
+        setAdminSession,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
 };
