@@ -23,6 +23,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
+import { SiteType } from '@/services/site';
 
 // Define site form schema
 const siteSchema = z.object({
@@ -39,8 +40,8 @@ const siteSchema = z.object({
   notes: z.string().optional(),
   region: z.string().optional(),
   induction_required: z.boolean().default(false),
-  status: z.enum(['active', 'inactive', 'pending_activation']),
-  site_type: z.enum(['commercial', 'residential', 'industrial', 'retail', 'education', 'healthcare', 'hospitality']).optional(),
+  status: z.enum(['active', 'inactive', 'pending_activation']).default('pending_activation'),
+  site_type: z.enum(['residential', 'industrial', 'retail', 'hospitality', 'office', 'warehouse', 'educational', 'medical', 'commercial']).optional(),
   square_meters: z.number().optional(),
 });
 
@@ -81,14 +82,26 @@ export function SiteForm({
     }
   });
 
-  const siteTypes = [
+  const siteTypes: SiteType[] = [
     'commercial', 'residential', 'industrial', 'retail', 
-    'education', 'healthcare', 'hospitality'
+    'hospitality', 'office', 'warehouse', 'educational', 'medical'
   ];
 
-  const states = [
-    'ACT', 'NSW', 'NT', 'QLD', 'SA', 'TAS', 'VIC', 'WA'
+  const australianStates = [
+    'New South Wales', 'Victoria', 'Queensland', 'South Australia',
+    'Western Australia', 'Tasmania', 'Northern Territory', 'Australian Capital Territory'
   ];
+
+  const stateAbbreviations: Record<string, string> = {
+    'New South Wales': 'NSW',
+    'Victoria': 'VIC',
+    'Queensland': 'QLD',
+    'South Australia': 'SA',
+    'Western Australia': 'WA',
+    'Tasmania': 'TAS',
+    'Northern Territory': 'NT',
+    'Australian Capital Territory': 'ACT'
+  };
 
   return (
     <Form {...form}>
@@ -208,9 +221,9 @@ export function SiteForm({
             name="suburb"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Suburb</FormLabel>
+                <FormLabel>Suburb/City</FormLabel>
                 <FormControl>
-                  <Input placeholder="Suburb" {...field} />
+                  <Input placeholder="Suburb or City" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -224,8 +237,10 @@ export function SiteForm({
               <FormItem>
                 <FormLabel>State</FormLabel>
                 <Select 
-                  onValueChange={field.onChange} 
-                  defaultValue={field.value} 
+                  onValueChange={(value) => field.onChange(stateAbbreviations[value] || value)} 
+                  defaultValue={Object.keys(stateAbbreviations).find(
+                    key => stateAbbreviations[key] === field.value
+                  ) || field.value}
                 >
                   <FormControl>
                     <SelectTrigger>
@@ -233,7 +248,7 @@ export function SiteForm({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {states.map((state) => (
+                    {australianStates.map((state) => (
                       <SelectItem key={state} value={state}>{state}</SelectItem>
                     ))}
                   </SelectContent>

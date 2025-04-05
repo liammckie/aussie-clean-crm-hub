@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -150,8 +149,28 @@ const EditClient = () => {
   const handleSiteSubmit = (data: SiteFormData) => {
     if (!id) return;
     
-    // Add client_id to the site data
-    createSite({ ...data, client_id: id });
+    // Add client_id to the site data with all required fields
+    const siteData = {
+      client_id: id,
+      site_name: data.site_name,
+      site_code: data.site_code,
+      address_line_1: data.address_line_1,
+      address_line_2: data.address_line_2,
+      suburb: data.suburb,
+      state: data.state,
+      postcode: data.postcode,
+      site_contact_name: data.site_contact_name || null,
+      site_contact_email: data.site_contact_email || null,
+      site_contact_phone: data.site_contact_phone || null,
+      status: data.status,
+      site_type: data.site_type || null,
+      square_meters: data.square_meters || null,
+      region: data.region || null,
+      notes: data.notes || null,
+      induction_required: data.induction_required
+    };
+    
+    createSite(siteData);
     setIsSiteDialogOpen(false);
   };
 

@@ -4,7 +4,7 @@ import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
 
 // Define types for site data
 export type SiteStatus = 'active' | 'inactive' | 'pending_activation';
-export type SiteType = 'commercial' | 'residential' | 'industrial' | 'retail' | 'education' | 'healthcare' | 'hospitality';
+export type SiteType = 'residential' | 'industrial' | 'retail' | 'hospitality' | 'office' | 'warehouse' | 'educational' | 'medical' | 'commercial';
 
 export interface SiteData {
   id?: string;
@@ -79,12 +79,14 @@ export const siteService = {
   // Create a new site
   createSite: async (siteData: SiteData) => {
     try {
+      const siteToInsert = {
+        ...siteData,
+        country: siteData.country || 'Australia', // Default to Australia if not specified
+      };
+      
       const { data, error } = await supabase
         .from('sites')
-        .insert({
-          ...siteData,
-          country: siteData.country || 'Australia', // Default to Australia if not specified
-        })
+        .insert(siteToInsert)
         .select()
         .single();
 
