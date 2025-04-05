@@ -59,7 +59,7 @@ export function NewSidebar({ links = defaultLinks }: NewSidebarProps) {
   };
 
   return (
-    <Sidebar className="border-r border-white/10 bg-gradient-to-b from-slate-900/95 to-slate-950/95 pt-2 h-screen">
+    <Sidebar className="border-r border-white/10 bg-[#1A1F2C] h-screen">
       <SidebarHeader className="pb-2 px-4">
         <h2 className="text-lg font-bold text-white">ERP System</h2>
       </SidebarHeader>
@@ -77,7 +77,7 @@ export function NewSidebar({ links = defaultLinks }: NewSidebarProps) {
                     <SidebarMenuButton 
                       asChild 
                       tooltip={link.text}
-                      className={`${isActive ? 'bg-primary/10 text-primary' : 'text-white'} hover:bg-primary/5`}
+                      className={`${isActive ? 'bg-primary/10 text-primary' : 'text-white'} hover:bg-white/5`}
                     >
                       <Link to={link.href}>
                         <Icon className="w-4 h-4" />
@@ -96,7 +96,7 @@ export function NewSidebar({ links = defaultLinks }: NewSidebarProps) {
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip="Settings" className="text-white hover:bg-primary/5">
+                <SidebarMenuButton asChild tooltip="Settings" className="text-white hover:bg-white/5">
                   <Link to="/settings">
                     <Settings className="w-4 h-4" />
                     <span>Settings</span>
@@ -104,7 +104,7 @@ export function NewSidebar({ links = defaultLinks }: NewSidebarProps) {
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton onClick={handleSignOut} tooltip="Log out" className="text-white hover:bg-primary/5">
+                <SidebarMenuButton onClick={handleSignOut} tooltip="Log out" className="text-white hover:bg-white/5">
                   <LogOut className="w-4 h-4" />
                   <span>Log out</span>
                 </SidebarMenuButton>
