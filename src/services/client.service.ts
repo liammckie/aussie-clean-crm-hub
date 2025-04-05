@@ -100,7 +100,7 @@ export const clientService = {
   },
 
   // Create a new client
-  createClient: async (client: ClientFormData): Promise<{ data: Tables['clients'] | null; error: null } | ValidationErrorResponse | ErrorResponse> => {
+  createClient: async (client: ClientFormData): Promise<{ data: Tables<'clients'> | null; error: null } | ValidationErrorResponse | ErrorResponse> => {
     try {
       // Format and validate business identifiers
       const formattedClient = {
