@@ -3,140 +3,109 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { contractService } from '@/services/contract';
-import { toast } from 'sonner';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useContracts } from '@/hooks/use-contracts-table';
+import { Loader2 } from 'lucide-react';
 
 interface BulkManagerAssignProps {
   selectedContracts: any[];
-  onUpdate: () => void;
+  onUpdate?: () => void;
 }
 
 export function BulkManagerAssign({ selectedContracts, onUpdate }: BulkManagerAssignProps) {
-  const [accountManager, setAccountManager] = useState('');
-  const [stateManager, setStateManager] = useState('');
-  const [nationalManager, setNationalManager] = useState('');
-  const [activeTab, setActiveTab] = useState('account_manager');
-  const [isUpdating, setIsUpdating] = useState(false);
-
-  const handleAssign = async () => {
-    if (!selectedContracts.length) {
-      toast.error('No contracts selected');
-      return;
-    }
-
-    let updateValue = '';
-    let fieldName = '';
-
-    switch (activeTab) {
-      case 'account_manager':
-        updateValue = accountManager;
-        fieldName = 'account_manager';
-        break;
-      case 'state_manager':
-        updateValue = stateManager;
-        fieldName = 'state_manager';
-        break;
-      case 'national_manager':
-        updateValue = nationalManager;
-        fieldName = 'national_manager';
-        break;
-    }
-
-    if (!updateValue.trim()) {
-      toast.error('Please enter a manager name');
-      return;
-    }
-
-    setIsUpdating(true);
-
-    try {
-      // Update each selected contract
-      const updatePromises = selectedContracts.map(contract => 
-        contractService.updateContract(contract.id, { [fieldName]: updateValue })
-      );
-
-      await Promise.all(updatePromises);
-      toast.success(`Updated ${selectedContracts.length} contracts with new ${fieldName.replace('_', ' ')}`);
-      onUpdate();
-
-      // Reset form
-      setAccountManager('');
-      setStateManager('');
-      setNationalManager('');
-    } catch (error) {
-      console.error('Error updating contracts:', error);
-      toast.error('Failed to update contracts');
-    } finally {
-      setIsUpdating(false);
-    }
+  const [managerType, setManagerType] = useState<'account_manager' | 'state_manager' | 'national_manager'>('account_manager');
+  const [managerValue, setManagerValue] = useState('');
+  
+  const { bulkUpdateContractManagers, isBulkUpdating } = useContracts();
+  
+  // Format label from field name
+  const formatFieldLabel = (field: string) => {
+    return field
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
   };
 
+  // Get all contract IDs from selection
+  const getSelectedIds = () => {
+    return selectedContracts.map(contract => contract.id);
+  };
+
+  // Handle bulk update submission
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const contractIds = getSelectedIds();
+    
+    if (contractIds.length === 0) {
+      return;
+    }
+    
+    bulkUpdateContractManagers({
+      contractIds,
+      managerField: managerType,
+      value: managerValue
+    });
+    
+    // Reset the form after submission
+    setManagerValue('');
+    
+    // Call the onUpdate callback if provided
+    onUpdate?.();
+  };
+  
   return (
-    <Card className="border border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950/30">
-      <CardHeader className="pb-3">
-        <CardTitle className="text-lg">Bulk Assign Managers</CardTitle>
-        <CardDescription>
-          {selectedContracts.length} contract{selectedContracts.length !== 1 ? 's' : ''} selected
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="account_manager">Account Manager</TabsTrigger>
-            <TabsTrigger value="state_manager">State Manager</TabsTrigger>
-            <TabsTrigger value="national_manager">National Manager</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="account_manager" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="account-manager">Account Manager Name</Label>
-              <Input 
-                id="account-manager" 
-                value={accountManager} 
-                onChange={(e) => setAccountManager(e.target.value)} 
-                placeholder="Enter account manager name"
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="state_manager" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="state-manager">State Manager Name</Label>
-              <Input 
-                id="state-manager" 
-                value={stateManager} 
-                onChange={(e) => setStateManager(e.target.value)} 
-                placeholder="Enter state manager name"
-              />
-            </div>
-          </TabsContent>
-
-          <TabsContent value="national_manager" className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="national-manager">National Manager Name</Label>
-              <Input 
-                id="national-manager" 
-                value={nationalManager} 
-                onChange={(e) => setNationalManager(e.target.value)} 
-                placeholder="Enter national manager name"
-              />
-            </div>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-
-      <CardFooter>
+    <form onSubmit={handleSubmit} className="p-4 border rounded-md bg-muted/20">
+      <div className="mb-2 text-sm font-medium">
+        <span className="text-primary">{selectedContracts.length}</span> contracts selected
+      </div>
+      
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="manager-type">Manager Type</Label>
+            <Select 
+              value={managerType} 
+              onValueChange={(value) => setManagerType(value as any)}
+            >
+              <SelectTrigger id="manager-type">
+                <SelectValue placeholder="Select manager type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="account_manager">Account Manager</SelectItem>
+                <SelectItem value="state_manager">State Manager</SelectItem>
+                <SelectItem value="national_manager">National Manager</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="md:col-span-2">
+            <Label htmlFor="manager-value">Assign {formatFieldLabel(managerType)} To</Label>
+            <Input
+              id="manager-value"
+              value={managerValue}
+              onChange={(e) => setManagerValue(e.target.value)}
+              placeholder={`Enter ${formatFieldLabel(managerType)} name`}
+              required
+            />
+          </div>
+        </div>
+        
         <Button 
-          onClick={handleAssign} 
-          disabled={isUpdating}
-          className="ml-auto"
+          type="submit" 
+          disabled={isBulkUpdating || selectedContracts.length === 0 || !managerValue}
+          className="w-full md:w-auto"
         >
-          {isUpdating ? 'Updating...' : 'Apply to Selected Contracts'}
+          {isBulkUpdating ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Updating...
+            </>
+          ) : (
+            `Update ${formatFieldLabel(managerType)}`
+          )}
         </Button>
-      </CardFooter>
-    </Card>
+      </div>
+    </form>
   );
 }

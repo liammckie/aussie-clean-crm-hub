@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { contractService } from '@/services/contract';
 import { toast } from 'sonner';
+import { formatCurrency } from '@/utils/formatters';
 
 // Import Tabulator styles and create the component
 import "tabulator-tables/dist/css/tabulator_semanticui.min.css";
@@ -18,10 +19,10 @@ export function TabulatorTable({ contracts, onSelectionChange }: TabulatorTableP
   const tabulatorRef = useRef<any>(null);
   const [isClient, setIsClient] = useState(false);
 
-  // Format financial values to currency
-  const formatMoney = (cell: any) => {
+  // Format financial values to currency using our utility function
+  const formatMoneyColumn = (cell: any) => {
     const value = cell.getValue();
-    return value ? `$${parseFloat(value).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ",")}` : "$0.00";
+    return formatCurrency(value);
   };
 
   // Handle row selection changes
@@ -71,7 +72,7 @@ export function TabulatorTable({ contracts, onSelectionChange }: TabulatorTableP
               totalAnnual += parseFloat(row.total_annual_value || 0);
             });
 
-            return `${value || 'Not Specified'} | Contracts: ${count} | Weekly: $${totalWeekly.toFixed(2)} | Monthly: $${totalMonthly.toFixed(2)} | Annual: $${totalAnnual.toFixed(2)}`;
+            return `${value || 'Not Specified'} | Contracts: ${count} | Weekly: ${formatCurrency(totalWeekly)} | Monthly: ${formatCurrency(totalMonthly)} | Annual: ${formatCurrency(totalAnnual)}`;
           },
 
           columns: [
@@ -147,27 +148,27 @@ export function TabulatorTable({ contracts, onSelectionChange }: TabulatorTableP
             {
               title: "Weekly Value",
               field: "total_weekly_value", 
-              formatter: formatMoney,
+              formatter: formatMoneyColumn,
               bottomCalc: "sum",
-              bottomCalcFormatter: formatMoney,
+              bottomCalcFormatter: formatMoneyColumn,
               hozAlign: "right",
               resizable: true
             },
             {
               title: "Monthly Value",
               field: "total_monthly_value",
-              formatter: formatMoney,
+              formatter: formatMoneyColumn,
               bottomCalc: "sum",
-              bottomCalcFormatter: formatMoney,
+              bottomCalcFormatter: formatMoneyColumn,
               hozAlign: "right",
               resizable: true
             },
             {
               title: "Annual Value",
               field: "total_annual_value",
-              formatter: formatMoney,
+              formatter: formatMoneyColumn,
               bottomCalc: "sum",
-              bottomCalcFormatter: formatMoney,
+              bottomCalcFormatter: formatMoneyColumn,
               hozAlign: "right",
               resizable: true
             }
