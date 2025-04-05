@@ -4,7 +4,7 @@
 export type ClientStatus = 'Prospect' | 'Active' | 'On Hold' | 'Cancelled';
 
 // Import the AddressType from form-types instead of redefining it
-import { AddressType, ContactType as FormContactType } from '@/types/form-types';
+import type { AddressType, ContactType as FormContactType } from '@/types/form-types';
 
 // Entity types for cross-referencing
 export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';

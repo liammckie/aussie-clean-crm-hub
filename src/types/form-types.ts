@@ -94,7 +94,18 @@ export function createDefaultContactValues(
 
 // --- Address Types ---
 
-export type AddressType = 'billing' | 'shipping' | 'site' | 'warehouse' | 'other';
+// Updated to include all address types used in the application
+export type AddressType = 
+  | 'billing' 
+  | 'shipping' 
+  | 'site' 
+  | 'warehouse' 
+  | 'postal' 
+  | 'physical' 
+  | 'head_office' 
+  | 'branch' 
+  | 'residential' 
+  | 'commercial';
 
 export const unifiedAddressSchema = z.object({
   entity_type: z.string(),
@@ -107,7 +118,10 @@ export const unifiedAddressSchema = z.object({
   postcode: z.string().min(1, { message: 'Postcode is required' }),
   country: z.string().default('Australia'),
   address_type: z.string(),
-  is_primary: z.boolean().default(false)
+  is_primary: z.boolean().default(false),
+  // Adding optional latitude and longitude fields
+  latitude: z.number().optional(),
+  longitude: z.number().optional()
 });
 
 export type UnifiedAddressFormData = z.infer<typeof unifiedAddressSchema>;
@@ -128,6 +142,8 @@ export function createDefaultAddressValues(
     postcode: initialValues.postcode || '',
     country: initialValues.country || 'Australia',
     address_type: initialValues.address_type || defaultAddressType,
-    is_primary: Boolean(initialValues.is_primary)
+    is_primary: Boolean(initialValues.is_primary),
+    latitude: initialValues.latitude,
+    longitude: initialValues.longitude
   };
 }

@@ -10,6 +10,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,7 +23,7 @@ import {
 } from '@/components/ui/select';
 import { AddressType } from '@/types/form-types';
 
-// Address schema for validation
+// Address schema for validation - updated to match form-types.ts
 const addressSchema = z.object({
   street: z.string().min(1, { message: 'Street address is required' }),
   street_2: z.string().optional(),
@@ -30,7 +31,18 @@ const addressSchema = z.object({
   state: z.string().min(1, { message: 'State is required' }),
   postcode: z.string().min(4, { message: 'Postcode must be at least 4 characters' }),
   country: z.string().default('Australia'),
-  address_type: z.enum(['billing', 'postal', 'physical', 'shipping', 'head_office', 'branch', 'residential', 'commercial', 'warehouse', 'site']),
+  address_type: z.enum([
+    'billing', 
+    'shipping', 
+    'site', 
+    'warehouse', 
+    'postal', 
+    'physical', 
+    'head_office', 
+    'branch', 
+    'residential', 
+    'commercial'
+  ]),
 });
 
 export type AddressFormData = z.infer<typeof addressSchema>;

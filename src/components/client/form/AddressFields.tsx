@@ -91,9 +91,10 @@ export function AddressFields({ form }: AddressFieldsProps) {
         )}
       />
 
+      {/* Use type assertion to safely use latitude field */}
       <FormField
         control={form.control}
-        name="latitude"
+        name={"latitude" as keyof UnifiedAddressFormData}
         render={({ field: { onChange, value, ...rest } }) => (
           <FormItem>
             <FormLabel>Latitude (Optional)</FormLabel>
@@ -112,9 +113,10 @@ export function AddressFields({ form }: AddressFieldsProps) {
         )}
       />
 
+      {/* Use type assertion to safely use longitude field */}
       <FormField
         control={form.control}
-        name="longitude"
+        name={"longitude" as keyof UnifiedAddressFormData}
         render={({ field: { onChange, value, ...rest } }) => (
           <FormItem>
             <FormLabel>Longitude (Optional)</FormLabel>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Table,
@@ -72,15 +71,15 @@ const AddressTable: React.FC<AddressTableProps> = ({
   const getAddressTypeLabel = (type: AddressType): string => {
     const typeMap: Record<AddressType, string> = {
       'billing': 'Billing',
+      'shipping': 'Shipping',
+      'site': 'Site',
+      'warehouse': 'Warehouse',
       'postal': 'Postal',
       'physical': 'Physical',
-      'shipping': 'Shipping',
       'head_office': 'Head Office',
       'branch': 'Branch',
       'residential': 'Residential',
-      'commercial': 'Commercial',
-      'warehouse': 'Warehouse',
-      'site': 'Site'
+      'commercial': 'Commercial'
     };
     return typeMap[type] || type;
   };
