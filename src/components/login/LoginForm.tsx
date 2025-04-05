@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Card, 
   CardHeader, 
@@ -30,6 +31,7 @@ import { ErrorReporting } from "@/utils/errorReporting";
 const loginSchema = z.object({
   email: z.string().email({ message: "Please enter a valid email address" }),
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
+  rememberMe: z.boolean().default(true)
 });
 
 type LoginFormValues = z.infer<typeof loginSchema>;
@@ -46,6 +48,7 @@ export function LoginForm() {
     defaultValues: {
       email: "",
       password: "",
+      rememberMe: true, // Default to remember me
     },
     mode: "onChange", // Enable validation as the user types
   });
@@ -62,23 +65,27 @@ export function LoginForm() {
         "info"
       );
       
-      // This is a mock authentication - in a real application, this would call an API
-      // For demo purposes, we'll simulate a successful login after a short delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Show success message
-      toast({
-        title: "Login successful",
-        description: "Redirecting to dashboard...",
-      });
-      
       // Call the login function from auth context
-      login();
+      const result = await login(data.email, data.password, data.rememberMe);
       
-      // Navigate to dashboard after successful login
-      setTimeout(() => {
-        navigate("/dashboard");
-      }, 1500);
+      if (result.success) {
+        // Show success message
+        toast({
+          title: "Login successful",
+          description: "Redirecting to dashboard...",
+        });
+        
+        // Navigate to dashboard after successful login
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1000);
+      } else {
+        toast({
+          title: "Login failed",
+          description: result.message || "Please check your credentials and try again",
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       // Report the error to Sentry (password filtered out for privacy)
       ErrorReporting.captureException(
@@ -98,9 +105,9 @@ export function LoginForm() {
   };
 
   return (
-    <div className="w-full md:w-1/2 flex items-center justify-center p-4 md:p-8 relative">
+    <div className="w-full max-w-md">
       {/* Glass form card with enhanced effects */}
-      <Card className="w-full max-w-md bg-white/[0.02] backdrop-blur-xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative z-10 overflow-hidden rounded-2xl">
+      <Card className="w-full bg-white/[0.02] backdrop-blur-xl border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.2)] relative z-10 overflow-hidden rounded-2xl">
         {/* Subtle light reflection effect */}
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-gradient-to-b from-white/10 to-transparent rounded-full blur-md transform rotate-45"></div>
         <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-gradient-to-t from-white/5 to-transparent rounded-full blur-md"></div>
@@ -157,7 +164,27 @@ export function LoginForm() {
                   </FormItem>
                 )}
               />
-              <div className="flex justify-end">
+              <div className="flex items-center justify-between">
+                <FormField
+                  control={form.control}
+                  name="rememberMe"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center space-x-2 space-y-0">
+                      <FormControl>
+                        <Checkbox 
+                          checked={field.value} 
+                          onCheckedChange={field.onChange}
+                          className="data-[state=checked]:bg-purple-500 data-[state=checked]:border-purple-500" 
+                        />
+                      </FormControl>
+                      <div className="space-y-0 leading-none">
+                        <FormLabel className="text-xs text-slate-300 cursor-pointer">
+                          Remember me
+                        </FormLabel>
+                      </div>
+                    </FormItem>
+                  )}
+                />
                 <Button variant="link" className="p-0 h-auto text-xs text-purple-400 hover:text-purple-300">
                   Forgot password?
                 </Button>
