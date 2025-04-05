@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { TopNavbar } from "./TopNavbar";
 import { NewSidebar } from "./NewSidebar";
 import { MobileSidebar } from "./MobileSidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -23,34 +24,30 @@ export function MainLayout({ children }: MainLayoutProps) {
   const toggleSidebar = () => setSidebarExpanded(prev => !prev);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 text-white">
-      {/* Desktop Sidebar */}
-      <div className="hidden md:block">
-        <NewSidebar 
-          expanded={sidebarExpanded} 
-          onToggle={toggleSidebar} 
-        />
-      </div>
-      
-      {/* Mobile Sidebar */}
-      <MobileSidebar 
-        expanded={sidebarExpanded}
-        onToggle={toggleSidebar}
-      />
-      
-      {/* Main Content - Fixed the transition and margin classes */}
-      <main 
-        className={`transition-all duration-300 ${
-          sidebarExpanded 
-            ? 'md:ml-64' // When sidebar is expanded
-            : 'md:ml-20' // When sidebar is collapsed
-        }`}
-      >
-        <TopNavbar />
-        <div className="px-4 py-6 md:px-6">
-          {children}
+    <SidebarProvider defaultOpen={sidebarExpanded} onOpenChange={(open) => setSidebarExpanded(open)}>
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 text-white">
+        {/* Desktop Sidebar */}
+        <div className="hidden md:block">
+          <NewSidebar />
         </div>
-      </main>
-    </div>
+        
+        {/* Mobile Sidebar */}
+        <MobileSidebar />
+        
+        {/* Main Content */}
+        <main 
+          className={`transition-all duration-300 ${
+            sidebarExpanded 
+              ? 'md:ml-64' // When sidebar is expanded
+              : 'md:ml-20' // When sidebar is collapsed
+          }`}
+        >
+          <TopNavbar />
+          <div className="px-4 py-6 md:px-6">
+            {children}
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
   );
 }
