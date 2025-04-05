@@ -13,6 +13,16 @@ export interface ValidationResult<T> {
 }
 
 /**
+ * Type guard to check if an object is a field error with _errors array
+ */
+function isFieldError(obj: any): obj is { _errors: string[] } {
+  return obj && 
+    typeof obj === 'object' && 
+    '_errors' in obj && 
+    Array.isArray(obj._errors);
+}
+
+/**
  * Validates data against a given schema
  */
 export function validateFormData<T>(
@@ -65,6 +75,32 @@ export function applyValidationErrorsToForm(
       console.error(`Error setting form error for field ${field}:`, e);
     }
   });
+}
+
+/**
+ * Extracts the first validation error from formatted Zod error
+ */
+export function extractFirstZodError(formattedErrors: any): string {
+  try {
+    // Try to find the first field with errors
+    for (const [key, value] of Object.entries(formattedErrors)) {
+      if (key !== '_errors' && typeof value === 'object' && value !== null) {
+        if (isFieldError(value) && value._errors.length > 0) {
+          return `${key}: ${value._errors[0]}`;
+        }
+      }
+    }
+    
+    // Check for root errors
+    if ('_errors' in formattedErrors && Array.isArray(formattedErrors._errors) && formattedErrors._errors.length > 0) {
+      return formattedErrors._errors[0];
+    }
+    
+    return 'Validation failed. Please check your input.';
+  } catch (e) {
+    console.error('Error extracting Zod error:', e);
+    return 'Validation error occurred';
+  }
 }
 
 /**

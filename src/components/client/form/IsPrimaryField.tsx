@@ -3,41 +3,47 @@ import React from 'react';
 import {
   FormField,
   FormItem,
-  FormLabel,
   FormControl,
+  FormDescription,
   FormMessage,
 } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
-import { Path } from 'react-hook-form';
 
-// Update the interface to make constraint more flexible with optional is_primary
-interface IsPrimaryFieldProps<T extends { is_primary?: boolean | null | undefined }> {
+interface IsPrimaryFieldProps<T> {
   form: UseFormReturn<T>;
   label?: string;
+  description?: string;
+  name?: string;
 }
 
-export function IsPrimaryField<T extends { is_primary?: boolean | null | undefined }>({ 
+export function IsPrimaryField<T>({ 
   form, 
-  label = "Set as primary" 
+  label = "Primary", 
+  description,
+  name = "is_primary" 
 }: IsPrimaryFieldProps<T>) {
   return (
     <FormField
       control={form.control}
-      // Cast to Path<T> to ensure TypeScript understands this is a valid field path
-      name={"is_primary" as Path<T>}
+      name={name as any}
       render={({ field }) => (
-        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+        <FormItem className="flex flex-row items-start space-x-3 space-y-0 mt-2">
           <FormControl>
             <Checkbox 
-              checked={field.value || false} 
+              checked={field.value as boolean} 
               onCheckedChange={field.onChange}
             />
           </FormControl>
-          <FormLabel className="font-normal cursor-pointer">
-            {label}
-          </FormLabel>
-          <FormMessage />
+          <div className="space-y-1 leading-none">
+            <FormItem className="font-normal cursor-pointer">{label}</FormItem>
+            {description && (
+              <FormDescription>
+                {description}
+              </FormDescription>
+            )}
+            <FormMessage />
+          </div>
         </FormItem>
       )}
     />

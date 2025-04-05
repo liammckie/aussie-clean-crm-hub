@@ -55,24 +55,40 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     // Validate the data before submission
     const validationResult = validateContact(formData);
     if (!validationResult.success) {
-      // Fix: Safely extract the first error message
+      // Fixed error extraction logic to properly handle Zod error formats
       const errors = validationResult.error.format();
       let firstError = "Please check your form data";
       
-      // Safely get the first error by finding an entry with _errors array
-      const errorEntry = Object.entries(errors)
-        .find(([key, value]) => {
+      // Type-safe approach to extract the first field error
+      try {
+        // Find the first field with errors (skipping the root _errors)
+        const fieldWithError = Object.entries(errors).find(([key, value]) => {
+          // Check if this is a field with errors (not the root _errors)
           return key !== '_errors' && 
             typeof value === 'object' && 
-            '_errors' in value && 
-            Array.isArray(value._errors) && 
-            value._errors.length > 0;
+            value !== null &&
+            '_errors' in value &&
+            Array.isArray((value as any)._errors) && 
+            (value as any)._errors.length > 0;
         });
         
-      if (errorEntry) {
-        const [key, value] = errorEntry;
-        // We know _errors exists and is an array based on our find condition
-        firstError = `${key}: ${(value as {_errors: string[]})._errors[0]}`;
+        if (fieldWithError) {
+          const [fieldName, fieldErrors] = fieldWithError;
+          // Safely access _errors with proper type assertion
+          const errorMessage = (fieldErrors as { _errors: string[] })._errors[0];
+          firstError = `${fieldName}: ${errorMessage}`;
+        } else if (
+          '_errors' in errors && 
+          Array.isArray(errors._errors) && 
+          errors._errors.length > 0
+        ) {
+          // Fallback to global errors if no field errors
+          firstError = errors._errors[0];
+        }
+      } catch (e) {
+        console.error("Error processing validation errors:", e);
+        // Fallback error message
+        firstError = "Validation failed, please check your input";
       }
       
       toast.error(`Validation failed: ${firstError}`);
@@ -145,8 +161,6 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
   const handleAddClick = () => {
     setIsContactDialogOpen(true);
   };
-
-  const contactTypes = ['Primary', 'Billing', 'Operations', 'Emergency', 'Technical', 'Support', 'Sales'];
 
   return (
     <Card>

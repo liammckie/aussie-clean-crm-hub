@@ -5,6 +5,7 @@ import {
   addressValidationSchema,
   loginValidationSchema
 } from './form-validation';
+import { ZodError } from 'zod';
 
 /**
  * Validate entity access 
@@ -51,28 +52,36 @@ export function validateEntityAccess(
 }
 
 /**
+ * Type guard to check if an object is a field error with _errors array
+ */
+function isFieldError(obj: any): obj is { _errors: string[] } {
+  return obj && 
+    typeof obj === 'object' && 
+    '_errors' in obj && 
+    Array.isArray(obj._errors);
+}
+
+/**
  * Safely extracts the first field error from a Zod validation error object
  */
 function extractFirstValidationError(formattedErrors: any): { field: string | null, message: string } {
   try {
     // Find first field with errors that's not the root _errors
-    const firstErrorField = Object.keys(formattedErrors).find(
-      key => key !== '_errors' && 
-        typeof formattedErrors[key] === 'object' &&
-        '_errors' in formattedErrors[key] &&
-        Array.isArray(formattedErrors[key]._errors) &&
-        formattedErrors[key]._errors.length > 0
-    );
-    
-    if (firstErrorField && typeof formattedErrors[firstErrorField] === 'object') {
-      return {
-        field: firstErrorField,
-        message: formattedErrors[firstErrorField]._errors[0] || 'Invalid data'
-      };
+    for (const [key, value] of Object.entries(formattedErrors)) {
+      if (key !== '_errors' && typeof value === 'object' && value !== null) {
+        if (isFieldError(value) && value._errors.length > 0) {
+          return {
+            field: key,
+            message: value._errors[0]
+          };
+        }
+      }
     }
     
     // Fallback to global _errors if available
-    if (formattedErrors._errors && formattedErrors._errors.length) {
+    if ('_errors' in formattedErrors && 
+        Array.isArray(formattedErrors._errors) && 
+        formattedErrors._errors.length > 0) {
       return {
         field: null,
         message: formattedErrors._errors[0]
@@ -84,6 +93,7 @@ function extractFirstValidationError(formattedErrors: any): { field: string | nu
       message: 'Invalid data format'
     };
   } catch (err) {
+    console.error("Error extracting validation error:", err);
     return {
       field: null,
       message: 'Validation error occurred'
