@@ -66,8 +66,11 @@ export const createQueryClient = () => {
   });
 
   // Set up event listeners for the query cache
-  queryClient.getQueryCache().subscribe({
-    onError: (error: Error) => {
+  queryClient.getQueryCache().subscribe((event) => {
+    // Only handle error events
+    if (event.type === 'error' && event.error instanceof Error) {
+      const error = event.error;
+      
       // Log error details
       AppLogger.error(
         LogCategory.API, 
