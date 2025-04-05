@@ -1,14 +1,17 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
-  ResponsiveContainer,
   LineChart,
   Line,
   CartesianGrid,
-  Tooltip,
   Legend
 } from "recharts";
 import { XAxis, YAxis } from "@/components/ui/sidebar/components/chart-wrappers";
+import { 
+  ChartContainer, 
+  ChartTooltip, 
+  ChartTooltipContent 
+} from "@/components/ui/chart";
 
 const data = [
   { name: "Jan", target: 4000, actual: 2400 },
@@ -19,6 +22,17 @@ const data = [
   { name: "Jun", target: 2390, actual: 3800 },
 ];
 
+const chartConfig = {
+  target: {
+    label: "Target",
+    color: "#8884d8"
+  },
+  actual: {
+    label: "Actual",
+    color: "#22c55e"
+  }
+};
+
 export function SalesTargetCard() {
   return (
     <Card className="bg-card/50 border-border/50">
@@ -27,24 +41,20 @@ export function SalesTargetCard() {
       </CardHeader>
       <CardContent>
         <div className="h-[240px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+          <ChartContainer config={chartConfig}>
             <LineChart
               data={data}
               margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
             >
-              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
-              <XAxis dataKey="name" stroke="#888" fontSize={12} />
-              <YAxis stroke="#888" fontSize={12} />
-              <Tooltip 
-                contentStyle={{ backgroundColor: "#1e293b", border: "1px solid #475569", borderRadius: "8px" }}
-                itemStyle={{ color: "#e2e8f0" }}
-                labelStyle={{ color: "#94a3b8" }}
-              />
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <ChartTooltip content={<ChartTooltipContent />} />
               <Legend />
               <Line 
                 type="monotone" 
                 dataKey="target" 
-                stroke="#8884d8" 
+                stroke="var(--color-target, #8884d8)" 
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
@@ -52,13 +62,13 @@ export function SalesTargetCard() {
               <Line 
                 type="monotone" 
                 dataKey="actual" 
-                stroke="#22c55e" 
+                stroke="var(--color-actual, #22c55e)" 
                 strokeWidth={2}
                 dot={{ r: 4 }}
                 activeDot={{ r: 6 }}
               />
             </LineChart>
-          </ResponsiveContainer>
+          </ChartContainer>
         </div>
       </CardContent>
     </Card>
