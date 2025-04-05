@@ -1,143 +1,140 @@
 
 import * as Sentry from "@sentry/react";
-import { BrowserTracing, Replay } from "@sentry/react";
-import React from 'react';
+import { BrowserTracing } from "@sentry/react";
+import { Replay } from "@sentry/react";
+import React from "react";
+
 import {
+  Route,
   useLocation,
   useNavigationType,
   createRoutesFromChildren,
-  matchRoutes
+  matchRoutes,
+  useRouteError,
 } from "react-router-dom";
 
-/**
- * Environment-specific Sentry configuration
- */
-export const SENTRY_CONFIG = {
-  dsn: "https://be220d948a04a4afeeb7911a4638165d@o4509086518411264.ingest.us.sentry.io/4509086689394688",
-  environment: import.meta.env.MODE,
-  enabled: import.meta.env.PROD, // Only enable in production by default
-  tracePropagationTargets: ["localhost", /^https:\/\/aussie-clean\.com/],
-  tracesSampleRate: 1.0, // Capture 100% of the transactions in development, adjust for production
-  replaysSessionSampleRate: 0.1, // Sample rate for all sessions (10%)
-  replaysOnErrorSampleRate: 1.0, // Sample rate for sessions with errors (100%)
-  release: import.meta.env.VITE_APP_VERSION || "development", // Should be populated in production builds
-};
+// Initialize Sentry
+function initSentry() {
+  // Define environment variable fallbacks
+  const dsn = typeof import.meta !== 'undefined' && import.meta.env 
+    ? import.meta.env.VITE_SENTRY_DSN 
+    : process.env.VITE_SENTRY_DSN;
+  const env = typeof import.meta !== 'undefined' && import.meta.env 
+    ? import.meta.env.VITE_ENVIRONMENT 
+    : process.env.VITE_ENVIRONMENT;
 
-/**
- * Initialize Sentry with all required integrations
- */
-export function initializeSentry(): void {
+  // Only initialize if DSN is provided
+  if (!dsn) {
+    console.warn("Sentry DSN not provided. Error reporting disabled.");
+    return;
+  }
+
   Sentry.init({
-    dsn: SENTRY_CONFIG.dsn,
+    dsn,
     integrations: [
       new BrowserTracing({
-        tracePropagationTargets: SENTRY_CONFIG.tracePropagationTargets,
-      }),
-      Sentry.reactRouterV6BrowserTracingIntegration({
-        useEffect: React.useEffect,
-        useLocation,
-        useNavigationType,
-        createRoutesFromChildren,
-        matchRoutes,
+        routingInstrumentation: Sentry.reactRouterV6Instrumentation(
+          useLocation,
+          useNavigationType,
+          createRoutesFromChildren,
+          matchRoutes
+        ),
       }),
       new Replay({
-        maskAllText: false,
-        blockAllMedia: false,
+        maskAllText: true,
+        blockAllMedia: true,
       }),
     ],
-    // Performance Monitoring
-    tracesSampleRate: SENTRY_CONFIG.tracesSampleRate,
-    // Session Replay
-    replaysSessionSampleRate: SENTRY_CONFIG.replaysSessionSampleRate,
-    replaysOnErrorSampleRate: SENTRY_CONFIG.replaysOnErrorSampleRate,
-    enabled: SENTRY_CONFIG.enabled,
-    environment: SENTRY_CONFIG.environment,
-    release: SENTRY_CONFIG.release,
-    beforeSend(event) {
-      // Add additional context to all events
-      if (!event.tags) {
-        event.tags = {};
-      }
-      event.tags['app_version'] = import.meta.env.VITE_APP_VERSION || "development";
-      return event;
-    },
+    environment: env || "development",
+    
+    // Capture 100% of transactions for performance monitoring
+    tracesSampleRate: 1.0, 
+
+    // Session replay for errors only
+    replaysSessionSampleRate: 0.0,
+    replaysOnErrorSampleRate: 1.0,
+    
+    // Set to true in development to see verbose logs
+    debug: typeof import.meta !== 'undefined' && import.meta.env && !import.meta.env.PROD,
   });
 }
 
-/**
- * SentryErrorBoundary component with standardized fallback UI
- */
-export const SentryErrorBoundary = ({ children }: { children: React.ReactNode }) => {
+// Call initialization
+initSentry();
+
+// Error boundary component wrapper
+export const SentryErrorBoundary: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
-    <Sentry.ErrorBoundary 
-      fallback={({ error, componentStack, eventId, resetError }) => (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-          <div className="w-full max-w-md space-y-4 bg-slate-900 p-6 rounded-lg border border-red-500/20">
-            <h2 className="text-xl font-semibold text-red-500">Something went wrong</h2>
-            <p className="text-slate-300 text-sm">{error.message || "An unexpected error occurred"}</p>
-            <div className="pt-2 flex gap-2">
-              <button
-                onClick={resetError}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded text-sm"
-              >
-                Try again
-              </button>
-              <button
-                onClick={() => window.location.href = '/'}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded text-sm"
-              >
-                Go Home
-              </button>
-            </div>
-            <p className="text-slate-500 text-xs">
-              Error ID: {eventId}
-            </p>
-          </div>
-        </div>
-      )}
-    >
+    <Sentry.ErrorBoundary fallback={<ErrorFallback />}>
       {children}
     </Sentry.ErrorBoundary>
   );
 };
 
-/**
- * Higher-order component to enhance a route component with Sentry profiling and error boundaries
- */
-export function withSentryMonitoring<P extends object>(
-  Component: React.ComponentType<P>,
-  options: { name?: string } = {}
-): React.ComponentType<P> {
-  const componentName = options.name || Component.displayName || Component.name || "UnnamedComponent";
+// Generic error fallback UI
+function ErrorFallback() {
+  const error = useRouteError();
   
-  return Sentry.withProfiler(
-    Sentry.withErrorBoundary(Component, {
-      fallback: ({ error, componentStack, eventId, resetError }) => (
-        <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4">
-          <div className="w-full max-w-md space-y-4 bg-slate-900 p-6 rounded-lg border border-red-500/20">
-            <h2 className="text-xl font-semibold text-red-500">Component Error</h2>
-            <p className="text-slate-300 text-sm">{error.message || "An unexpected error occurred"}</p>
-            <div className="pt-2 flex gap-2">
-              <button
-                onClick={resetError}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded text-sm"
-              >
-                Try again
-              </button>
-              <button
-                onClick={() => window.location.href = '/'}
-                className="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded text-sm"
-              >
-                Go Home
-              </button>
-            </div>
-            <p className="text-slate-500 text-xs">
-              Error ID: {eventId}
-            </p>
-          </div>
-        </div>
-      ),
-    }),
-    { name: componentName }
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-gray-900 text-white">
+      <div className="p-8 text-center">
+        <h1 className="mb-4 text-2xl font-bold">Something went wrong</h1>
+        <p className="mb-6 text-gray-300">
+          We're sorry, but an unexpected error has occurred. Our team has been notified.
+        </p>
+        <button
+          className="rounded bg-blue-600 px-4 py-2 hover:bg-blue-700"
+          onClick={() => window.location.href = '/'}
+        >
+          Return to home page
+        </button>
+      </div>
+    </div>
   );
 }
+
+// Custom hook to report route errors to Sentry
+export function useSentryRouteError() {
+  const error = useRouteError();
+  
+  React.useEffect(() => {
+    if (error) {
+      Sentry.captureException(error, {
+        tags: {
+          mechanism: "route-error",
+        },
+      });
+    }
+  }, [error]);
+  
+  return error;
+}
+
+// Create a Sentry wrapper for all API calls
+export const withSentryAPI = async <T,>(
+  apiCall: () => Promise<T>,
+  options: {
+    name: string;
+    data?: Record<string, any>;
+  }
+): Promise<T> => {
+  const transaction = Sentry.startTransaction({
+    name: `API: ${options.name}`,
+    data: options.data,
+  });
+  
+  try {
+    const result = await apiCall();
+    transaction.setStatus("ok");
+    return result;
+  } catch (error) {
+    transaction.setStatus("internal_error");
+    Sentry.captureException(error, {
+      tags: { api: options.name },
+      extras: options.data,
+    });
+    throw error;
+  } finally {
+    transaction.finish();
+  }
+};

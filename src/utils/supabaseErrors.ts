@@ -1,3 +1,4 @@
+
 import { isSupabaseError } from '@/integrations/supabase/client';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
@@ -143,7 +144,7 @@ export function logSuccess(
   });
 
   // Optional debug logging in development
-  if (!import.meta.env.PROD) {
+  if (typeof import.meta !== 'undefined' && import.meta.env && !import.meta.env.PROD) {
     console.log(`${operation} ${entity} successful:`, data);
   }
 }

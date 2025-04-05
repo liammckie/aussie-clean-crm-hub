@@ -18,7 +18,7 @@ export class ErrorReporting {
     level: Sentry.SeverityLevel = "error"
   ) {
     // Log in development mode
-    if (!import.meta.env.PROD) {
+    if (typeof import.meta !== 'undefined' && import.meta.env && !import.meta.env.PROD) {
       console.error("Error:", error);
       if (context) console.error("Context:", context);
     }
@@ -54,7 +54,7 @@ export class ErrorReporting {
     level: Sentry.SeverityLevel = "info"
   ) {
     // Log in development mode
-    if (!import.meta.env.PROD) {
+    if (typeof import.meta !== 'undefined' && import.meta.env && !import.meta.env.PROD) {
       console.log("Message:", message);
       if (context) console.log("Context:", context);
     }

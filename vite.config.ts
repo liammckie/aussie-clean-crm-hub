@@ -1,3 +1,4 @@
+
 import * as dotenv from "dotenv";
 dotenv.config({ path: ".env.sentry-build-plugin" });
 import { defineConfig } from "vite";
@@ -6,7 +7,7 @@ import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(({ mode }: { mode: string }) => ({
   server: {
     host: "::",
     port: 8080,
@@ -34,4 +35,9 @@ export default defineConfig(({ mode }) => ({
   build: {
     sourcemap: true,
   },
+  define: {
+    // Provide environment variables to client code
+    'import.meta.env.PROD': mode === 'production',
+    'import.meta.env': JSON.stringify(process.env)
+  }
 }));
