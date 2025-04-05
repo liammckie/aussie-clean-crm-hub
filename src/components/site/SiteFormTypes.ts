@@ -23,3 +23,29 @@ export const siteSchema = z.object({
 });
 
 export type SiteFormData = z.infer<typeof siteSchema>;
+
+// Client schema for validation
+export const clientSchema = z.object({
+  business_name: z.string().min(1, { message: "Business name is required" }),
+  trading_name: z.string().optional(),
+  abn: z.string().optional(),
+  acn: z.string().optional(),
+  industry: z.string().optional(),
+  status: z.string().default('Prospect'),
+  onboarding_date: z.date().optional(),
+  source: z.string().optional(),
+  billing_cycle: z.string().optional(),
+  payment_terms: z.string().optional(),
+  payment_method: z.string().optional(),
+  tax_status: z.string().optional(),
+  credit_limit: z.number().optional(),
+  // Address fields
+  address_line_1: z.string().optional(),
+  address_line_2: z.string().optional(),
+  suburb: z.string().optional(),
+  state: z.string().optional(),
+  postcode: z.string().optional(),
+  country: z.string().optional().default('Australia'),
+});
+
+export type ClientFormData = z.infer<typeof clientSchema>;

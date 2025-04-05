@@ -11,15 +11,17 @@ export function isValidABN(abn: string): boolean {
     return false;
   }
 
-  // ABN validation algorithm
+  // ABN validation algorithm - weights used for the check
   const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
   
   // Subtract 1 from first digit
-  let sum = (parseInt(cleanABN[0]) - 1) * weights[0];
+  const digits = cleanABN.split('').map(Number);
+  const first = digits[0] - 1;
   
-  // Add the products of the remaining digits
+  // Calculate the weighted sum
+  let sum = first * weights[0];
   for (let i = 1; i < 11; i++) {
-    sum += parseInt(cleanABN[i]) * weights[i];
+    sum += digits[i] * weights[i];
   }
 
   // Valid if the sum is divisible by 89
