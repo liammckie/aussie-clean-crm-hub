@@ -66,7 +66,7 @@ export function UnifiedAddressForm({
         
         <AddressFields form={form} />
 
-        {showIsPrimary && <IsPrimaryField form={form} label="Set as primary address" />}
+        {showIsPrimary && <IsPrimaryField<UnifiedAddressFormData> form={form} label="Set as primary address" />}
 
         <Button type="submit" disabled={isLoading} className="mt-4">
           {isLoading ? "Saving..." : buttonText}

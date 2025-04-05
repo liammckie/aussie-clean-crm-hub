@@ -64,7 +64,7 @@ export function UnifiedContactForm({
         </div>
         
         {showIsPrimary && (
-          <IsPrimaryField form={form} label="Primary contact" />
+          <IsPrimaryField<UnifiedContactFormData> form={form} label="Primary contact" />
         )}
 
         <Button type="submit" disabled={isLoading}>
