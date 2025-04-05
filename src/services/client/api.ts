@@ -1,4 +1,3 @@
-
 import { supabase, isAuthenticated } from '@/integrations/supabase/client';
 import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
 import { 
@@ -289,6 +288,30 @@ export const clientApi = {
         error,
         'Failed to create client address',
         { operation: 'createClientAddress', addressData }
+      );
+    }
+  },
+
+  /**
+   * Delete a client address
+   */
+  deleteClientAddress: async (addressId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('client_addresses')
+        .delete()
+        .eq('id', addressId);
+
+      if (error) {
+        throw error;
+      }
+
+      return { success: true, error: null };
+    } catch (error) {
+      return handleSupabaseError(
+        error,
+        'Failed to delete client address',
+        { operation: 'deleteClientAddress', addressId }
       );
     }
   }

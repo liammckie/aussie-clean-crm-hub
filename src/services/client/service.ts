@@ -1,4 +1,3 @@
-
 import { clientApi } from './api';
 import { ClientFormData, ValidationErrorResponse, ContactFormData, AddressFormData } from './types';
 import { validationService } from '@/services/validation.service';
@@ -275,5 +274,17 @@ export const clientService = {
 
     logSuccess('create', 'client_address', response.data);
     return { data: response.data, error: null };
+  },
+
+  // Delete a client address
+  deleteClientAddress: async (addressId: string) => {
+    const response = await clientApi.deleteClientAddress(addressId);
+    
+    if ('category' in response) {
+      return response;
+    }
+
+    logSuccess('delete', 'client_address', { addressId });
+    return { success: true, error: null };
   }
 };

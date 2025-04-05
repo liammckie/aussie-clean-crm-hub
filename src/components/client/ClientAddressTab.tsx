@@ -14,8 +14,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import AddressTable from '@/components/shared/AddressTable';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface ClientAddressTabProps {
   clientId: string;
@@ -26,8 +37,10 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
   const [openDialog, setOpenDialog] = useState(false);
   const [selectedAddressType, setSelectedAddressType] = useState<AddressType>('billing');
   const [unifiedAddresses, setUnifiedAddresses] = useState<UnifiedAddressRecord[]>([]);
+  const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
+  const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   
-  const { useClientAddresses, createAddress, isCreatingAddress } = useClients();
+  const { useClientAddresses, createAddress, isCreatingAddress, deleteAddress, isDeletingAddress } = useClients();
   const { data: addresses, isLoading, error, refetch } = useClientAddresses(clientId);
 
   // Convert client addresses to unified format for the table
@@ -82,8 +95,29 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
   };
 
   const handleDeleteAddress = (addressId: string) => {
-    // Implementation for deleting an address
-    toast.info("Delete functionality will be implemented in future sprint");
+    setAddressToDelete(addressId);
+    setDeleteAlertOpen(true);
+  };
+
+  const confirmDeleteAddress = async () => {
+    if (!addressToDelete) return;
+    
+    deleteAddress(
+      { addressId: addressToDelete },
+      {
+        onSuccess: () => {
+          toast.success("Address deleted successfully");
+          refetch();
+          setDeleteAlertOpen(false);
+          setAddressToDelete(null);
+        },
+        onError: (error: any) => {
+          toast.error(`Failed to delete address: ${error.message}`);
+          setDeleteAlertOpen(false);
+          setAddressToDelete(null);
+        }
+      }
+    );
   };
 
   const handleAddClick = () => {
@@ -112,6 +146,7 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
             onDelete={handleDeleteAddress}
             onAdd={handleAddClick}
             showEntityType={false}
+            isLoading={isLoading || isDeletingAddress}
           />
         )}
 
@@ -131,6 +166,27 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
             />
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to delete this address?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. This will permanently delete the address from the client record.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction 
+                onClick={confirmDeleteAddress}
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                disabled={isDeletingAddress}
+              >
+                {isDeletingAddress ? "Deleting..." : "Delete"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </CardContent>
     </Card>
   );

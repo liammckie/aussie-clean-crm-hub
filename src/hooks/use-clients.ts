@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ClientFormData, ValidationErrorResponse, clientService, AddressFormData, ContactFormData } from '@/services/client';
 import { ErrorReporting } from '@/utils/errorReporting';
@@ -9,7 +8,7 @@ import { ErrorResponse } from '@/utils/supabaseErrors';
 /**
  * Hook for accessing client data and operations
  */
-export const useClients = () => {
+export function useClients() {
   const queryClient = useQueryClient();
   
   // Enable real-time sync for clients
@@ -61,7 +60,7 @@ export const useClients = () => {
   };
 
   // Mutation to create a new client
-  const createClientMutation = useMutation({
+  const { mutate: createClient, isPending: isCreatingClient } = useMutation({
     mutationFn: async (clientData: ClientFormData) => {
       console.log('Creating new client with data:', clientData);
       const response = await clientService.createClient(clientData);
@@ -284,6 +283,23 @@ export const useClients = () => {
     }
   });
 
+  // Mutation to delete a client address
+  const { mutate: deleteAddress, isPending: isDeletingAddress } = useMutation({
+    mutationFn: async ({ addressId }: { addressId: string }) => {
+      try {
+        const { data, success, error } = await clientService.deleteClientAddress(addressId);
+        if (error) throw error;
+        return { data, success };
+      } catch (error: any) {
+        console.error('Error deleting address:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clientAddresses'] });
+    },
+  });
+
   return {
     // Data queries
     clients,
@@ -295,9 +311,9 @@ export const useClients = () => {
     useClientAddresses,
     
     // Mutations
-    createClient: createClientMutation.mutate,
-    isCreatingClient: createClientMutation.isPending,
-    createClientError: createClientMutation.error,
+    createClient: createClient.mutate,
+    isCreatingClient: isCreatingClient,
+    createClientError: createClient.error,
     
     updateClient: updateClientMutation.mutate,
     isUpdatingClient: updateClientMutation.isPending,
@@ -311,6 +327,9 @@ export const useClients = () => {
     isCreatingContact: createContactMutation.isPending,
     
     createAddress: createAddressMutation.mutate,
-    isCreatingAddress: createAddressMutation.isPending
+    isCreatingAddress: createAddressMutation.isPending,
+    
+    deleteAddress: deleteAddress.mutate,
+    isDeletingAddress: isDeletingAddress
   };
-};
+}
