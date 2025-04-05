@@ -6,10 +6,11 @@ import { YAxis as RechartYAxis, YAxisProps } from 'recharts';
 // Create wrapper components with default parameters instead of defaultProps
 
 export function XAxis(props: XAxisProps) {
+  // Define orientation as a literal "bottom" | "top" type
   const defaultProps: Partial<XAxisProps> = {
     allowDecimals: true,
     hide: false,
-    orientation: "bottom" as const, // Use "as const" to specify the literal type
+    orientation: "bottom", // Recharts expects "bottom" | "top" only
     width: 0,
     height: 30,
     mirror: false,
@@ -22,10 +23,11 @@ export function XAxis(props: XAxisProps) {
 }
 
 export function YAxis(props: YAxisProps) {
+  // Define orientation as a literal "left" | "right" type
   const defaultProps: Partial<YAxisProps> = {
     allowDecimals: true,
     hide: false,
-    orientation: "left" as const, // Use "as const" to specify the literal type
+    orientation: "left", // Recharts expects "left" | "right" only
     width: 60,
     height: 0,
     mirror: false,

@@ -4,12 +4,11 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  XAxis,
-  YAxis,
   CartesianGrid,
   Tooltip,
   Legend
 } from "recharts";
+import { XAxis, YAxis } from "@/components/ui/sidebar/components/chart-wrappers";
 
 const data = [
   { name: "Jan", target: 4000, actual: 2400 },

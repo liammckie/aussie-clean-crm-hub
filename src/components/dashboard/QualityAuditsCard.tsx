@@ -4,12 +4,11 @@ import {
   ResponsiveContainer, 
   BarChart, 
   Bar, 
-  XAxis, 
-  YAxis, 
   CartesianGrid, 
   Tooltip, 
   Legend
 } from "recharts";
+import { XAxis, YAxis } from "@/components/ui/sidebar/components/chart-wrappers";
 
 const data = [
   { name: "Jan", delivered: 65, promised: 78 },

@@ -4,11 +4,10 @@ import {
   ResponsiveContainer,
   AreaChart,
   Area,
-  XAxis,
-  YAxis,
   CartesianGrid,
   Tooltip
 } from "recharts";
+import { XAxis, YAxis } from "@/components/ui/sidebar/components/chart-wrappers";
 
 const data = [
   { name: "Jan", john: 4000, sarah: 2400, tom: 1600 },
