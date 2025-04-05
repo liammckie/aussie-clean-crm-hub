@@ -33,6 +33,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -60,6 +66,9 @@ import {
 } from "@/components/ui/table";
 import { useClients } from "@/hooks/use-clients";
 import { useClientRealtimeSync } from "@/hooks/use-realtime-sync";
+import { useUnifiedEntities } from "@/hooks/use-unified-entities";
+import { UnifiedContactForm } from "@/components/client/UnifiedContactForm";
+import { toast } from "sonner";
 
 const getStatusColor = (status: string | null | undefined) => {
   switch (status) {
@@ -81,11 +90,17 @@ const ClientDetail = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("overview");
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   
   useClientRealtimeSync(id);
   
   const { useClientDetails, deleteClient, isDeletingClient } = useClients();
-  const { data: client, isLoading, error } = useClientDetails(id);
+  const { data: client, isLoading, error, refetch } = useClientDetails(id);
+  
+  const { 
+    createContact, 
+    isCreatingContact,
+  } = useUnifiedEntities();
   
   const handleDeleteClient = async () => {
     if (!id) return;
@@ -371,7 +386,7 @@ const ClientDetail = () => {
                   <CardTitle>Primary Contact</CardTitle>
                   <CardDescription>Main point of contact for this client</CardDescription>
                 </div>
-                <Button size="sm" variant="outline">
+                <Button size="sm" variant="outline" onClick={() => setIsContactDialogOpen(true)}>
                   <User className="mr-2 h-4 w-4" /> Add Contact
                 </Button>
               </CardHeader>
@@ -410,7 +425,7 @@ const ClientDetail = () => {
                     <User className="h-8 w-8 text-muted-foreground mb-2" />
                     <h3 className="font-medium mb-1">No primary contact</h3>
                     <p className="text-sm text-muted-foreground mb-4">Add contact information for this client</p>
-                    <Button size="sm" variant="outline">Add Contact</Button>
+                    <Button size="sm" variant="outline" onClick={() => setIsContactDialogOpen(true)}>Add Contact</Button>
                   </div>
                 )}
               </CardContent>
@@ -458,7 +473,7 @@ const ClientDetail = () => {
                 <CardTitle>Client Contacts</CardTitle>
                 <CardDescription>Manage all contacts associated with this client</CardDescription>
               </div>
-              <Button size="sm">
+              <Button size="sm" onClick={() => setIsContactDialogOpen(true)}>
                 <User className="mr-2 h-4 w-4" /> Add Contact
               </Button>
             </CardHeader>
@@ -669,6 +684,20 @@ const ClientDetail = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Contact</DialogTitle>
+          </DialogHeader>
+          <UnifiedContactForm 
+            onSubmit={handleContactSubmit}
+            isLoading={isCreatingContact}
+            contactTypes={['Primary', 'Billing', 'Operations', 'Emergency']}
+            buttonText="Add Contact"
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

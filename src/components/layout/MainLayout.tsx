@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { TopNavbar } from "./TopNavbar";
 import { NewSidebar } from "./NewSidebar";
 import { MobileSidebar } from "./MobileSidebar";
+import { useSidebar } from "@/components/ui/sidebar";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -14,31 +15,37 @@ export function MainLayout({ children }: MainLayoutProps) {
     const saved = localStorage.getItem("sidebar-expanded");
     return saved !== null ? JSON.parse(saved) : true;
   });
+  
+  // Access the sidebar context
+  const { toggleSidebar } = useSidebar();
 
   // Save sidebar state to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem("sidebar-expanded", JSON.stringify(sidebarExpanded));
   }, [sidebarExpanded]);
 
-  const toggleSidebar = () => setSidebarExpanded(prev => !prev);
+  const handleToggleSidebar = () => {
+    setSidebarExpanded(prev => !prev);
+    toggleSidebar(); // Also toggle the context sidebar
+  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 text-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 text-white w-full">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <NewSidebar 
           expanded={sidebarExpanded} 
-          onToggle={toggleSidebar} 
+          onToggle={handleToggleSidebar} 
         />
       </div>
       
       {/* Mobile Sidebar */}
       <MobileSidebar 
         expanded={sidebarExpanded}
-        onToggle={toggleSidebar}
+        onToggle={handleToggleSidebar}
       />
       
-      {/* Main Content - Fixed the transition and margin classes */}
+      {/* Main Content */}
       <main 
         className={`transition-all duration-300 ${
           sidebarExpanded 

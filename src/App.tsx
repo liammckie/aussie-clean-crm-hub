@@ -10,6 +10,7 @@ import { ErrorReporting } from "@/utils/errorReporting";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AppRoutes } from "@/routes/AppRoutes";
 import * as Sentry from "@sentry/react";
+import { SidebarProvider } from "@/components/ui/sidebar";
 
 // Create query client with error reporting
 const queryClient = new QueryClient({
@@ -43,19 +44,21 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          {/* Only use Sonner toast provider, removing the shadcn/ui one */}
-          <Sonner />
-          <BrowserRouter>
-            {showLoading ? (
-              <LoadingScreen 
-                onLoadingComplete={() => setShowLoading(false)} 
-              />
-            ) : (
-              <SentryErrorBoundary>
-                <AppRoutes />
-              </SentryErrorBoundary>
-            )}
-          </BrowserRouter>
+          <SidebarProvider>
+            {/* Only use Sonner toast provider, removing the shadcn/ui one */}
+            <Sonner />
+            <BrowserRouter>
+              {showLoading ? (
+                <LoadingScreen 
+                  onLoadingComplete={() => setShowLoading(false)} 
+                />
+              ) : (
+                <SentryErrorBoundary>
+                  <AppRoutes />
+                </SentryErrorBoundary>
+              )}
+            </BrowserRouter>
+          </SidebarProvider>
         </TooltipProvider>
       </AuthProvider>
     </QueryClientProvider>
