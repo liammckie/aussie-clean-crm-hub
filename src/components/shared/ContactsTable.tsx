@@ -22,10 +22,12 @@ import {
   Trash2, 
   Users, 
   Mail, 
-  Phone 
+  Phone,
+  UserCog 
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityType } from '@/services/client/types';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Define the unified contact record structure
 export interface UnifiedContactRecord {
@@ -40,6 +42,9 @@ export interface UnifiedContactRecord {
   company?: string;
   contact_type: string;
   is_primary: boolean;
+  account_manager?: string;
+  state_manager?: string;
+  national_manager?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -109,6 +114,7 @@ const ContactsTable: React.FC<ContactsTableProps> = ({
                 <TableHead>Contact Type</TableHead>
                 <TableHead>Email</TableHead>
                 <TableHead>Phone</TableHead>
+                <TableHead>Managers</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -158,6 +164,41 @@ const ContactsTable: React.FC<ContactsTableProps> = ({
                         <span>{contact.mobile}</span>
                       </a>
                     )}
+                  </TableCell>
+                  <TableCell>
+                    <TooltipProvider>
+                      {contact.account_manager || contact.state_manager || contact.national_manager ? (
+                        <div className="flex items-center gap-2">
+                          <UserCog className="h-4 w-4 text-muted-foreground" />
+                          <Tooltip>
+                            <TooltipTrigger>
+                              <div className="text-sm text-primary hover:underline cursor-pointer">View managers</div>
+                            </TooltipTrigger>
+                            <TooltipContent className="w-64 p-2">
+                              <div className="space-y-1">
+                                {contact.account_manager && (
+                                  <div className="text-xs">
+                                    <span className="font-medium">Account:</span> {contact.account_manager}
+                                  </div>
+                                )}
+                                {contact.state_manager && (
+                                  <div className="text-xs">
+                                    <span className="font-medium">State:</span> {contact.state_manager}
+                                  </div>
+                                )}
+                                {contact.national_manager && (
+                                  <div className="text-xs">
+                                    <span className="font-medium">National:</span> {contact.national_manager}
+                                  </div>
+                                )}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">None assigned</span>
+                      )}
+                    </TooltipProvider>
                   </TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>

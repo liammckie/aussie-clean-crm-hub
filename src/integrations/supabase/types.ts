@@ -819,6 +819,7 @@ export type Database = {
       }
       unified_contacts: {
         Row: {
+          account_manager: string | null
           company: string | null
           contact_type: string
           created_at: string
@@ -829,11 +830,14 @@ export type Database = {
           is_primary: boolean
           mobile: string | null
           name: string
+          national_manager: string | null
           phone: string | null
           position: string | null
+          state_manager: string | null
           updated_at: string
         }
         Insert: {
+          account_manager?: string | null
           company?: string | null
           contact_type: string
           created_at?: string
@@ -844,11 +848,14 @@ export type Database = {
           is_primary?: boolean
           mobile?: string | null
           name: string
+          national_manager?: string | null
           phone?: string | null
           position?: string | null
+          state_manager?: string | null
           updated_at?: string
         }
         Update: {
+          account_manager?: string | null
           company?: string | null
           contact_type?: string
           created_at?: string
@@ -859,8 +866,10 @@ export type Database = {
           is_primary?: boolean
           mobile?: string | null
           name?: string
+          national_manager?: string | null
           phone?: string | null
           position?: string | null
+          state_manager?: string | null
           updated_at?: string
         }
         Relationships: []

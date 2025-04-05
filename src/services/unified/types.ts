@@ -43,6 +43,9 @@ export interface UnifiedContactRecord {
   contact_type: ContactType;
   preferred_communication?: PreferredCommunication;
   is_primary: boolean;
+  account_manager?: string;  // Added new field
+  state_manager?: string;    // Added new field
+  national_manager?: string; // Added new field
   notes?: string;
   created_at?: string;
   updated_at?: string;

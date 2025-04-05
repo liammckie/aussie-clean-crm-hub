@@ -96,6 +96,49 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
         )}
       />
       
+      {/* Added new fields for managers */}
+      <FormField
+        control={form.control}
+        name="account_manager"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Account Manager (Optional)</FormLabel>
+            <FormControl>
+              <Input placeholder="Account manager name" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="state_manager"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>State Manager (Optional)</FormLabel>
+            <FormControl>
+              <Input placeholder="State manager name" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="national_manager"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>National Manager (Optional)</FormLabel>
+            <FormControl>
+              <Input placeholder="National manager name" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
       <FormField
         control={form.control}
         name="preferred_communication"
