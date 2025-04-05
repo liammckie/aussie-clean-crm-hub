@@ -82,10 +82,16 @@ export type AddressType = z.infer<typeof addressTypeEnum>;
 export type PreferredCommunication = z.infer<typeof preferredCommunicationEnum>;
 
 /**
+ * Entity type enum for addresses and contacts
+ */
+export const entityTypeEnum = z.enum(['client', 'supplier', 'employee', 'site', 'internal']);
+export type EntityTypeValue = z.infer<typeof entityTypeEnum>;
+
+/**
  * Unified address form data with entity information
  */
 export const unifiedAddressSchema = addressBaseSchema.extend({
-  entity_type: z.enum(['client', 'supplier', 'employee', 'site', 'internal']).optional(),
+  entity_type: entityTypeEnum.optional(),
   entity_id: z.string().optional(),
   name: z.string().optional(),
 });
@@ -94,7 +100,7 @@ export const unifiedAddressSchema = addressBaseSchema.extend({
  * Unified contact form data with entity information
  */
 export const unifiedContactSchema = contactBaseSchema.extend({
-  entity_type: z.enum(['client', 'supplier', 'employee', 'site', 'internal']).optional(),
+  entity_type: entityTypeEnum.optional(),
   entity_id: z.string().optional(),
 });
 
@@ -143,7 +149,7 @@ export const createDefaultContactValues = (
   contact_type: initialData.contact_type || defaultContactType,
   preferred_communication: initialData.preferred_communication || 'email',
   is_primary: Boolean(initialData.is_primary ?? false),  // Ensure it's always a boolean
-  entity_type: initialData.entity_id,
+  entity_type: initialData.entity_type,  // Fixed: using the correct field
   entity_id: initialData.entity_id,
   notes: initialData.notes || '',
 });
