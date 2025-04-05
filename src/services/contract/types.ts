@@ -33,6 +33,10 @@ export interface ContractData {
   total_annual_value?: number;
   created_at: string;
   updated_at: string;
+  // New manager fields
+  account_manager?: string;
+  state_manager?: string;
+  national_manager?: string;
 }
 
 export type DeliveryType = 'employee' | 'contractor';

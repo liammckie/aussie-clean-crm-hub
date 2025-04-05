@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import * as Sentry from "@sentry/react";
@@ -16,6 +15,7 @@ const SentryNewClient = Sentry.withProfiler(React.lazy(() => import("@/pages/New
 const SentryEditClient = Sentry.withProfiler(React.lazy(() => import("@/pages/EditClient")), { name: "EditClient" });
 const SentryLogin = Sentry.withProfiler(React.lazy(() => import("@/pages/Login")), { name: "Login" });
 const SentryNotFound = Sentry.withProfiler(React.lazy(() => import("@/pages/NotFound")), { name: "NotFound" });
+const SentryContracts = Sentry.withProfiler(React.lazy(() => import("@/pages/Contracts")), { name: "Contracts" });
 
 // Check for admin session
 const isAdminSession = () => {
@@ -138,6 +138,17 @@ export const AppRoutes = () => {
             <ErrorBoundaryWrapper>
               <ProtectedRoute>
                 <SentryEditClient />
+              </ProtectedRoute>
+            </ErrorBoundaryWrapper>
+          }
+        />
+        {/* Contract Routes */}
+        <Route 
+          path="/contracts" 
+          element={
+            <ErrorBoundaryWrapper>
+              <ProtectedRoute>
+                <SentryContracts />
               </ProtectedRoute>
             </ErrorBoundaryWrapper>
           }
