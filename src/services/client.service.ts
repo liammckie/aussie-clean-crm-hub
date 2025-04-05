@@ -1,407 +1,261 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
 import { ErrorReporting } from '@/utils/errorReporting';
-import { handleSupabaseError, logSuccess } from '@/utils/supabaseErrors';
+import { handleSupabaseError, logSuccess, ErrorCategory } from '@/utils/supabaseErrors';
 import { validationService } from './validation.service';
-import { toast } from '@/components/ui/use-toast';
 
-// Type definitions for Client data
-export type Client = Database['public']['Tables']['clients']['Row'];
-export type ClientInsert = Database['public']['Tables']['clients']['Insert'];
-export type ClientUpdate = Database['public']['Tables']['clients']['Update'];
-
-// Type definition for ClientWithContacts
-export type ClientWithContacts = Client & {
-  contacts: Database['public']['Tables']['client_contacts']['Row'][];
-};
-
-/**
- * Client Service - Handles all client-related operations with Supabase
- */
+// Client service for handling client data operations
 export const clientService = {
   /**
-   * Get all clients
-   * @returns Promise resolving to array of clients or null on error
+   * Fetches all clients from the database
    */
-  async getClients(): Promise<Client[] | null> {
-    const transaction = ErrorReporting.startTransaction(
-      'getClients', 
-      'db.query'
-    );
-    
+  async getAllClients() {
     try {
-      transaction?.setData({ operation: 'getClients' });
-      
       const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .order('business_name');
-      
-      if (error) throw error;
-      
+        .order('name');
+
+      if (error) {
+        return handleSupabaseError(
+          error,
+          'Failed to fetch clients',
+          { operation: 'getAllClients' }
+        );
+      }
+
       logSuccess('fetch', 'clients', { count: data.length });
-      transaction?.setStatus('ok');
-      
-      return data;
+      return { data, error: null };
     } catch (error) {
-      transaction?.setStatus('failed');
-      return handleSupabaseError(error, 'Failed to fetch clients', { operation: 'getClients' }).details as null;
-    } finally {
-      transaction?.finish();
+      return handleSupabaseError(
+        error,
+        'Unexpected error fetching clients',
+        { operation: 'getAllClients' }
+      );
     }
   },
 
   /**
-   * Get client by ID with contacts
-   * @param id The client ID
-   * @returns Promise resolving to client with contacts or null if not found/error
+   * Fetches a client by ID
+   * @param clientId The ID of the client to fetch
    */
-  async getClientById(id: string): Promise<ClientWithContacts | null> {
-    const transaction = ErrorReporting.startTransaction(
-      'getClientById', 
-      'db.query'
-    );
-    
+  async getClientById(clientId: string) {
     try {
-      transaction?.setData({ operation: 'getClientById', clientId: id });
-      
-      // Get the client
-      const { data: client, error: clientError } = await supabase
+      // Validate the input
+      if (!clientId) {
+        return {
+          error: {
+            message: 'Client ID is required',
+            category: ErrorCategory.VALIDATION
+          },
+          data: null
+        };
+      }
+
+      const { data, error } = await supabase
         .from('clients')
         .select('*')
-        .eq('id', id)
+        .eq('id', clientId)
         .single();
-      
-      if (clientError) throw clientError;
 
-      // Get the client contacts
-      const { data: contacts, error: contactsError } = await supabase
-        .from('client_contacts')
-        .select('*')
-        .eq('client_id', id);
-      
-      if (contactsError) throw contactsError;
-      
-      const clientWithContacts: ClientWithContacts = { 
-        ...client, 
-        contacts: contacts || [] 
-      };
-      
-      logSuccess('fetch', 'client', { 
-        clientId: id, 
-        businessName: client.business_name,
-        contactCount: contacts?.length 
-      });
-      
-      transaction?.setStatus('ok');
-      return clientWithContacts;
+      if (error) {
+        return handleSupabaseError(
+          error,
+          `Failed to fetch client ${clientId}`,
+          { operation: 'getClientById', clientId }
+        );
+      }
+
+      logSuccess('fetch', 'client', { clientId });
+      return { data, error: null };
     } catch (error) {
-      transaction?.setStatus('failed');
-      return handleSupabaseError(error, 'Failed to fetch client details', { 
-        operation: 'getClientById', 
-        clientId: id 
-      }).details as null;
-    } finally {
-      transaction?.finish();
+      return handleSupabaseError(
+        error,
+        `Unexpected error fetching client ${clientId}`,
+        { operation: 'getClientById', clientId }
+      );
     }
   },
 
   /**
-   * Create a new client with validation
-   * @param client The client data to insert
-   * @returns Promise resolving to created client or null on error
+   * Creates a new client
+   * @param clientData The client data to create
    */
-  async createClient(client: ClientInsert): Promise<Client | null> {
-    const transaction = ErrorReporting.startTransaction(
-      'createClient', 
-      'db.mutation'
-    );
-    
+  async createClient(clientData: any) {
     try {
-      transaction?.setData({ 
-        operation: 'createClient', 
-        businessName: client.business_name 
-      });
-      
-      // Validate ABN/ACN
-      const abnValidation = validationService.validateABN(client.abn);
+      // Validate business identifiers
+      const abnValidation = validationService.validateABN(clientData.abn);
       if (!abnValidation.valid) {
-        toast({
-          title: 'Validation Error',
-          description: abnValidation.error,
-          variant: 'destructive',
-        });
-        return null;
+        return {
+          error: {
+            message: abnValidation.error || 'Invalid ABN',
+            category: ErrorCategory.VALIDATION
+          },
+          data: null
+        };
       }
-      
-      const acnValidation = validationService.validateACN(client.acn);
+
+      const acnValidation = validationService.validateACN(clientData.acn);
       if (!acnValidation.valid) {
-        toast({
-          title: 'Validation Error',
-          description: acnValidation.error,
-          variant: 'destructive',
-        });
-        return null;
+        return {
+          error: {
+            message: acnValidation.error || 'Invalid ACN',
+            category: ErrorCategory.VALIDATION
+          },
+          data: null
+        };
       }
-      
-      // Format business identifiers
-      const formattedClient = {
-        ...client,
-        ...validationService.formatBusinessIdentifiers(client)
-      };
-      
-      // Insert the client
+
+      // Format business identifiers for storage
+      const formattedData = validationService.formatBusinessIdentifiers(clientData);
+
+      // Create the client in the database
       const { data, error } = await supabase
         .from('clients')
-        .insert(formattedClient)
+        .insert(formattedData)
         .select()
         .single();
-      
-      if (error) throw error;
-      
-      toast({
-        title: 'Success',
-        description: 'Client created successfully',
+
+      if (error) {
+        return handleSupabaseError(
+          error,
+          'Failed to create client',
+          { operation: 'createClient', clientData }
+        );
+      }
+
+      // Report successful operation
+      logSuccess('create', 'client', { clientId: data.id });
+      ErrorReporting.addBreadcrumb({
+        category: 'client',
+        message: 'Client created successfully',
+        level: 'info',
+        data: { clientId: data.id, name: data.name }
       });
-      
-      logSuccess('create', 'client', { 
-        clientId: data.id, 
-        businessName: data.business_name 
-      });
-      
-      transaction?.setStatus('ok');
-      return data;
+
+      return { data, error: null };
     } catch (error) {
-      transaction?.setStatus('failed');
-      return handleSupabaseError(error, 'Failed to create client', { 
-        operation: 'createClient',
-        clientData: client
-      }).details as null;
-    } finally {
-      transaction?.finish();
+      return handleSupabaseError(
+        error,
+        'Unexpected error creating client',
+        { operation: 'createClient', clientData }
+      );
     }
   },
 
   /**
-   * Update an existing client with validation
-   * @param id The client ID
-   * @param updates The client data to update
-   * @returns Promise resolving to updated client or null on error
+   * Updates an existing client
+   * @param clientId The ID of the client to update
+   * @param clientData The updated client data
    */
-  async updateClient(id: string, updates: ClientUpdate): Promise<Client | null> {
-    const transaction = ErrorReporting.startTransaction(
-      'updateClient', 
-      'db.mutation'
-    );
-    
+  async updateClient(clientId: string, clientData: any) {
     try {
-      transaction?.setData({ 
-        operation: 'updateClient', 
-        clientId: id,
-        updateFields: Object.keys(updates)
-      });
-      
-      // Validate ABN/ACN if provided
-      if ('abn' in updates) {
-        const abnValidation = validationService.validateABN(updates.abn);
-        if (!abnValidation.valid) {
-          toast({
-            title: 'Validation Error',
-            description: abnValidation.error,
-            variant: 'destructive',
-          });
-          return null;
-        }
+      // Validate the input
+      if (!clientId) {
+        return {
+          error: {
+            message: 'Client ID is required',
+            category: ErrorCategory.VALIDATION
+          },
+          data: null
+        };
       }
-      
-      if ('acn' in updates) {
-        const acnValidation = validationService.validateACN(updates.acn);
-        if (!acnValidation.valid) {
-          toast({
-            title: 'Validation Error',
-            description: acnValidation.error,
-            variant: 'destructive',
-          });
-          return null;
-        }
+
+      // Validate business identifiers
+      const abnValidation = validationService.validateABN(clientData.abn);
+      if (!abnValidation.valid) {
+        return {
+          error: {
+            message: abnValidation.error || 'Invalid ABN',
+            category: ErrorCategory.VALIDATION
+          },
+          data: null
+        };
       }
-      
-      // Format business identifiers
-      const formattedUpdates = {
-        ...updates,
-        ...validationService.formatBusinessIdentifiers(updates)
-      };
-      
-      // Update the client
+
+      const acnValidation = validationService.validateACN(clientData.acn);
+      if (!acnValidation.valid) {
+        return {
+          error: {
+            message: acnValidation.error || 'Invalid ACN',
+            category: ErrorCategory.VALIDATION
+          },
+          data: null
+        };
+      }
+
+      // Format business identifiers for storage
+      const formattedData = validationService.formatBusinessIdentifiers(clientData);
+
+      // Update the client in the database
       const { data, error } = await supabase
         .from('clients')
-        .update(formattedUpdates)
-        .eq('id', id)
+        .update(formattedData)
+        .eq('id', clientId)
         .select()
         .single();
+
+      if (error) {
+        return handleSupabaseError(
+          error,
+          `Failed to update client ${clientId}`,
+          { operation: 'updateClient', clientId, clientData }
+        );
+      }
+
+      // Report successful operation
+      logSuccess('update', 'client', { clientId });
       
-      if (error) throw error;
-      
-      toast({
-        title: 'Success',
-        description: 'Client updated successfully',
-      });
-      
-      logSuccess('update', 'client', { 
-        clientId: id, 
-        businessName: data.business_name,
-        updatedFields: Object.keys(updates)
-      });
-      
-      transaction?.setStatus('ok');
-      return data;
+      return { data, error: null };
     } catch (error) {
-      transaction?.setStatus('failed');
-      return handleSupabaseError(error, 'Failed to update client', { 
-        operation: 'updateClient',
-        clientId: id,
-        updateData: updates
-      }).details as null;
-    } finally {
-      transaction?.finish();
+      return handleSupabaseError(
+        error,
+        `Unexpected error updating client ${clientId}`,
+        { operation: 'updateClient', clientId, clientData }
+      );
     }
   },
 
   /**
-   * Delete a client
-   * @param id The client ID to delete
-   * @returns Promise resolving to true if successful, false on error
+   * Deletes a client by ID
+   * @param clientId The ID of the client to delete
    */
-  async deleteClient(id: string): Promise<boolean> {
-    const transaction = ErrorReporting.startTransaction(
-      'deleteClient', 
-      'db.mutation'
-    );
-    
+  async deleteClient(clientId: string) {
     try {
-      transaction?.setData({ operation: 'deleteClient', clientId: id });
-      
-      // Check if client has associated records
-      const { data: sites } = await supabase
-        .from('sites')
-        .select('id')
-        .eq('client_id', id)
-        .limit(1);
-        
-      if (sites && sites.length > 0) {
-        toast({
-          title: 'Cannot delete client',
-          description: 'This client has associated sites. Please delete them first.',
-          variant: 'destructive',
-        });
-        return false;
+      // Validate the input
+      if (!clientId) {
+        return {
+          error: {
+            message: 'Client ID is required',
+            category: ErrorCategory.VALIDATION
+          },
+          data: null
+        };
       }
-      
-      const { data: contracts } = await supabase
-        .from('contracts')
-        .select('id')
-        .eq('client_id', id)
-        .limit(1);
-        
-      if (contracts && contracts.length > 0) {
-        toast({
-          title: 'Cannot delete client',
-          description: 'This client has associated contracts. Please delete them first.',
-          variant: 'destructive',
-        });
-        return false;
-      }
-      
-      // Delete client contacts first (cascade doesn't work with RLS)
-      const { error: contactsError } = await supabase
-        .from('client_contacts')
-        .delete()
-        .eq('client_id', id);
-      
-      if (contactsError) throw contactsError;
-      
-      // Delete the client
+
       const { error } = await supabase
         .from('clients')
         .delete()
-        .eq('id', id);
-      
-      if (error) throw error;
-      
-      toast({
-        title: 'Success',
-        description: 'Client deleted successfully',
-      });
-      
-      logSuccess('delete', 'client', { clientId: id });
-      
-      transaction?.setStatus('ok');
-      return true;
-    } catch (error) {
-      transaction?.setStatus('failed');
-      return handleSupabaseError(error, 'Failed to delete client', { 
-        operation: 'deleteClient',
-        clientId: id
-      }).details === null;
-    } finally {
-      transaction?.finish();
-    }
-  },
+        .eq('id', clientId);
 
-  /**
-   * Get client sites
-   * @param clientId The client ID
-   * @returns Promise resolving to array of sites or null on error
-   */
-  async getClientSites(clientId: string) {
-    try {
-      const { data, error } = await supabase
-        .from('sites')
-        .select('*')
-        .eq('client_id', clientId);
-      
-      if (error) throw error;
-      
-      logSuccess('fetch', 'client sites', { 
-        clientId, 
-        siteCount: data.length 
-      });
-      
-      return data;
-    } catch (error) {
-      return handleSupabaseError(error, 'Failed to fetch client sites', { 
-        operation: 'getClientSites',
-        clientId
-      }).details as null;
-    }
-  },
+      if (error) {
+        return handleSupabaseError(
+          error,
+          `Failed to delete client ${clientId}`,
+          { operation: 'deleteClient', clientId }
+        );
+      }
 
-  /**
-   * Get client contracts
-   * @param clientId The client ID
-   * @returns Promise resolving to array of contracts or null on error
-   */
-  async getClientContracts(clientId: string) {
-    try {
-      const { data, error } = await supabase
-        .from('contracts')
-        .select('*')
-        .eq('client_id', clientId);
+      // Report successful operation
+      logSuccess('delete', 'client', { clientId });
       
-      if (error) throw error;
-      
-      logSuccess('fetch', 'client contracts', { 
-        clientId, 
-        contractCount: data.length 
-      });
-      
-      return data;
+      return { error: null };
     } catch (error) {
-      return handleSupabaseError(error, 'Failed to fetch client contracts', { 
-        operation: 'getClientContracts',
-        clientId
-      }).details as null;
+      return handleSupabaseError(
+        error,
+        `Unexpected error deleting client ${clientId}`,
+        { operation: 'deleteClient', clientId }
+      );
     }
-  },
+  }
 };
