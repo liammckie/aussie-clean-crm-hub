@@ -16,6 +16,53 @@ Each change entry includes:
 
 ## Recent Changes
 
+### 2025-04-08: Supplier-Contract Relationship Implementation
+
+**Change Type**: Addition (Tables, Relationships)
+
+**Affected Tables/Columns**:
+- New `supplier_contract` table with complete relationship data
+- Added audit trigger for `supplier_contract` table
+
+**Description**:
+Created `supplier_contract` table to formalize relationships between suppliers and contracts:
+1. Implemented link_id as primary key
+2. Added supplier_id and contract_id as foreign keys
+3. Added role, status, services and other relationship metadata
+4. Added audit logging for tracking changes to relationships
+5. Implemented unique constraint on supplier-contract combination
+
+**Migration Scripts**: Lovable migration executed on 2025-04-08
+
+**Backward Compatibility**:
+Fully compatible. This is a new table that enables functionality previously not available.
+
+**Developer**: Lovable AI
+
+### 2025-04-06: Work Order Management Implementation
+
+**Change Type**: Addition (Tables, Relationships)
+
+**Affected Tables/Columns**:
+- New `work_orders` table
+- New `workbills` table 
+- New `work_order_tasks` table
+
+**Description**:
+Implemented comprehensive work order management system:
+1. Added `work_orders` table for tracking operational tasks
+2. Created `workbills` table for financial tracking of work orders
+3. Added `work_order_tasks` table to break down work into manageable parts
+4. Established proper relationships between contracts, clients, suppliers and sites
+5. Added Row Level Security (RLS) to all new tables
+
+**Migration Scripts**: Lovable migration executed on 2025-04-06
+
+**Backward Compatibility**:
+Fully compatible. These are new tables that enable functionality previously not available.
+
+**Developer**: Lovable AI
+
 ### 2025-04-05: Contract Management Enhancement
 
 **Change Type**: Addition (Tables, Columns, Indexes, Triggers)
@@ -224,6 +271,7 @@ Planning to add multi-currency support throughout the system:
 
 | Version | Date       | Major Changes                                 |
 |---------|------------|----------------------------------------------|
+| 3.2.0   | 2025-04-08 | Work order management, supplier contracts    |
 | 3.1.0   | 2025-04-05 | Contract Management Enhancement              |
 | 3.1.0   | 2025-04-05 | Database performance optimization            |
 | 3.0.0   | 2025-03-01 | Site management overhaul, contract enhancements |

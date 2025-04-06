@@ -707,6 +707,66 @@ export type Database = {
           },
         ]
       }
+      supplier_contract: {
+        Row: {
+          assigned_at: string | null
+          assigned_by: string | null
+          contract_id: string
+          created_at: string | null
+          link_id: string
+          notes: string | null
+          percentage: number | null
+          role: string
+          services: string | null
+          status: string
+          supplier_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          contract_id: string
+          created_at?: string | null
+          link_id?: string
+          notes?: string | null
+          percentage?: number | null
+          role: string
+          services?: string | null
+          status?: string
+          supplier_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          assigned_at?: string | null
+          assigned_by?: string | null
+          contract_id?: string
+          created_at?: string | null
+          link_id?: string
+          notes?: string | null
+          percentage?: number | null
+          role?: string
+          services?: string | null
+          status?: string
+          supplier_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "supplier_contract_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "supplier_contract_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       supplier_services: {
         Row: {
           created_at: string
@@ -888,6 +948,229 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      work_order_tasks: {
+        Row: {
+          actual_time: number | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string | null
+          description: string | null
+          estimated_time: number | null
+          id: string
+          status: string
+          task_name: string
+          updated_at: string | null
+          work_order_id: string
+        }
+        Insert: {
+          actual_time?: number | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_time?: number | null
+          id?: string
+          status?: string
+          task_name: string
+          updated_at?: string | null
+          work_order_id: string
+        }
+        Update: {
+          actual_time?: number | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string | null
+          description?: string | null
+          estimated_time?: number | null
+          id?: string
+          status?: string
+          task_name?: string
+          updated_at?: string | null
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_order_tasks_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      work_orders: {
+        Row: {
+          actual_cost: number | null
+          actual_end: string | null
+          actual_start: string | null
+          billing_method: string | null
+          client_id: string
+          contract_id: string
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          estimated_cost: number | null
+          id: string
+          priority: string
+          scheduled_end: string | null
+          scheduled_start: string | null
+          service_type: string
+          site_id: string
+          special_instructions: string | null
+          status: string
+          supplier_id: string | null
+          title: string
+          updated_at: string | null
+          updated_by: string | null
+          work_order_number: string
+        }
+        Insert: {
+          actual_cost?: number | null
+          actual_end?: string | null
+          actual_start?: string | null
+          billing_method?: string | null
+          client_id: string
+          contract_id: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          estimated_cost?: number | null
+          id?: string
+          priority?: string
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          service_type: string
+          site_id: string
+          special_instructions?: string | null
+          status?: string
+          supplier_id?: string | null
+          title: string
+          updated_at?: string | null
+          updated_by?: string | null
+          work_order_number: string
+        }
+        Update: {
+          actual_cost?: number | null
+          actual_end?: string | null
+          actual_start?: string | null
+          billing_method?: string | null
+          client_id?: string
+          contract_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          estimated_cost?: number | null
+          id?: string
+          priority?: string
+          scheduled_end?: string | null
+          scheduled_start?: string | null
+          service_type?: string
+          site_id?: string
+          special_instructions?: string | null
+          status?: string
+          supplier_id?: string | null
+          title?: string
+          updated_at?: string | null
+          updated_by?: string | null
+          work_order_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "work_orders_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_contract_id_fkey"
+            columns: ["contract_id"]
+            isOneToOne: false
+            referencedRelation: "contracts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "work_orders_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workbills: {
+        Row: {
+          amount: number
+          created_at: string | null
+          hours_worked: number | null
+          id: string
+          invoice_date: string | null
+          invoice_number: string | null
+          notes: string | null
+          pay_rate: number | null
+          payment_date: string | null
+          payment_reference: string | null
+          status: string
+          supplier_id: string | null
+          updated_at: string | null
+          work_order_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string | null
+          hours_worked?: number | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          notes?: string | null
+          pay_rate?: number | null
+          payment_date?: string | null
+          payment_reference?: string | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string | null
+          work_order_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string | null
+          hours_worked?: number | null
+          id?: string
+          invoice_date?: string | null
+          invoice_number?: string | null
+          notes?: string | null
+          pay_rate?: number | null
+          payment_date?: string | null
+          payment_reference?: string | null
+          status?: string
+          supplier_id?: string | null
+          updated_at?: string | null
+          work_order_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workbills_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workbills_work_order_id_fkey"
+            columns: ["work_order_id"]
+            isOneToOne: false
+            referencedRelation: "work_orders"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
