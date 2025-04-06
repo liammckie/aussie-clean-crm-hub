@@ -57,31 +57,40 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
   const { data: supplierLinks, isLoading } = useQuery({
     queryKey: ['contract', contractId, 'suppliers'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('supplier_contract')
-        .select(`
-          link_id,
-          role,
-          status,
-          services,
-          percentage,
-          assigned_at,
-          suppliers:supplier_id (
-            supplier_id,
-            supplier_name,
-            supplier_type,
+      try {
+        const { data, error } = await supabase
+          .from('supplier_contract')
+          .select(`
+            link_id,
+            role,
             status,
-            abn
-          )
-        `)
-        .eq('contract_id', contractId);
+            services,
+            percentage,
+            assigned_at,
+            suppliers:supplier_id (
+              supplier_id,
+              supplier_name,
+              supplier_type,
+              status,
+              abn
+            )
+          `)
+          .eq('contract_id', contractId);
 
-      if (error) {
-        AppLogger.error(LogCategory.CONTRACT, 'Failed to fetch contract suppliers', { error });
-        throw error;
+        if (error) {
+          AppLogger.error(LogCategory.CONTRACT, 'Failed to fetch contract suppliers', { error });
+          throw error;
+        }
+        
+        // Transform data to match SupplierWithContract type
+        return data.map(item => ({
+          ...item,
+          suppliers: item.suppliers // Supplier data is already in the expected format
+        })) as SupplierWithContract[];
+      } catch (error) {
+        AppLogger.error(LogCategory.CONTRACT, 'Exception in contract suppliers query', { error });
+        throw new Error('Failed to load suppliers for this contract');
       }
-      
-      return data as SupplierWithContract[];
     }
   });
 
@@ -89,38 +98,52 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
   const { data: suppliers, isLoading: isSuppliersLoading } = useQuery({
     queryKey: ['suppliers', 'active'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('suppliers')
-        .select('id:supplier_id, supplier_name, supplier_type, status, abn')
-        .eq('status', 'active');
+      try {
+        const { data, error } = await supabase
+          .from('suppliers')
+          .select('id:supplier_id, supplier_name, supplier_type, status, abn')
+          .eq('status', 'active');
 
-      if (error) {
-        AppLogger.error(LogCategory.SUPPLIER, 'Failed to fetch suppliers', { error });
-        throw error;
+        if (error) {
+          AppLogger.error(LogCategory.SUPPLIER, 'Failed to fetch suppliers', { error });
+          throw error;
+        }
+        
+        return data;
+      } catch (error) {
+        AppLogger.error(LogCategory.SUPPLIER, 'Exception in suppliers query', { error });
+        throw new Error('Failed to load supplier options');
       }
-      
-      return data;
     }
   });
 
   // Mutation for assigning a supplier
   const assignSupplier = useMutation({
     mutationFn: async (data: AssignSupplierToContractData) => {
-      const { error } = await supabase
-        .from('supplier_contract')
-        .insert({
-          supplier_id: data.supplier_id,
-          contract_id: data.contract_id,
-          role: data.role,
-          status: data.status,
-          services: data.services,
-          percentage: data.percentage,
-          notes: data.notes
+      try {
+        AppLogger.info(LogCategory.SUPPLIER_CONTRACT, 'Assigning supplier to contract', { 
+          supplierId: data.supplier_id, contractId: data.contract_id 
         });
+        
+        const { error } = await supabase
+          .from('supplier_contract')
+          .insert({
+            supplier_id: data.supplier_id,
+            contract_id: data.contract_id,
+            role: data.role,
+            status: data.status,
+            services: data.services,
+            percentage: data.percentage,
+            notes: data.notes
+          });
 
-      if (error) {
-        AppLogger.error(LogCategory.SUPPLIER_CONTRACT, 'Failed to assign supplier to contract', { error });
-        throw error;
+        if (error) {
+          AppLogger.error(LogCategory.SUPPLIER_CONTRACT, 'Failed to assign supplier to contract', { error });
+          throw error;
+        }
+      } catch (error) {
+        AppLogger.error(LogCategory.SUPPLIER_CONTRACT, 'Exception in assign supplier mutation', { error });
+        throw new Error('Failed to assign supplier to contract');
       }
     },
     onSuccess: () => {
@@ -281,8 +304,8 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
                 />
                 
                 <div className="flex justify-end">
-                  <Button type="submit" disabled={assignSupplier.isLoading}>
-                    {assignSupplier.isLoading ? 'Assigning...' : 'Assign Supplier'}
+                  <Button type="submit" disabled={assignSupplier.isPending}>
+                    {assignSupplier.isPending ? 'Assigning...' : 'Assign Supplier'}
                   </Button>
                 </div>
               </form>
@@ -320,8 +343,10 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
                   </TableCell>
                   <TableCell>
                     <Badge 
-                      variant={link.status === 'active' ? 'success' : 
-                              link.status === 'terminated' ? 'destructive' : 'outline'}
+                      variant={
+                        link.status === 'active' ? 'success' : 
+                        link.status === 'terminated' ? 'destructive' : 'outline'
+                      }
                     >
                       {link.status}
                     </Badge>
