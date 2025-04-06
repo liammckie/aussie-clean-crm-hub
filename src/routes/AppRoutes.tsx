@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 // Import route groups
@@ -27,12 +27,12 @@ export function AppRoutes() {
 
   return (
     <Routes>
-      <AuthRoutes />
-      <ClientRoutes />
-      <ContractRoutes />
-      <SupplierRoutes />
-      <WorkOrderRoutes />
-      <MiscRoutes />
+      <Route path="/*" element={<AuthRoutes />} />
+      <Route path="/clients/*" element={<ClientRoutes />} />
+      <Route path="/contracts/*" element={<ContractRoutes />} />
+      <Route path="/suppliers/*" element={<SupplierRoutes />} />
+      <Route path="/work-orders/*" element={<WorkOrderRoutes />} />
+      <Route path="/*" element={<MiscRoutes />} />
     </Routes>
   );
 }

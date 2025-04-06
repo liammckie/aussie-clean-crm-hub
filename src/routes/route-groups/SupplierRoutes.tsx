@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Route } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import {
   Suppliers,
@@ -11,28 +11,28 @@ import {
 
 export const SupplierRoutes = () => {
   return (
-    <>
+    <Routes>
       {/* Supplier Routes */}
-      <Route path="/suppliers" element={
+      <Route path="/" element={
         <ProtectedRoute>
           <Suppliers />
         </ProtectedRoute>
       } />
-      <Route path="/suppliers/new" element={
+      <Route path="new" element={
         <ProtectedRoute>
           <NewSupplier />
         </ProtectedRoute>
       } />
-      <Route path="/suppliers/:supplierId" element={
+      <Route path=":supplierId" element={
         <ProtectedRoute>
           <SupplierDetail />
         </ProtectedRoute>
       } />
-      <Route path="/suppliers/:supplierId/edit" element={
+      <Route path=":supplierId/edit" element={
         <ProtectedRoute>
           <EditSupplier />
         </ProtectedRoute>
       } />
-    </>
+    </Routes>
   );
 };

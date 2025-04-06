@@ -1,6 +1,7 @@
 
 import React from 'react';
-import { renderHook, act, waitFor } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
+import { waitFor } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSites, useClientSites, useCreateSite, useUpdateSite, useDeleteSite } from '@/hooks/use-sites';
 import { siteService } from '@/services/site';

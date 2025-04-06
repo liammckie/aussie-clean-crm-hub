@@ -3,27 +3,29 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { createMockSupabaseClient } from '../mocks/supabaseMock';
 import { ClientStatus } from '@/types/database-schema';
 
-// Define the return types for the clientService mock functions
-type ClientSuccessResponse<T = any> = { data: T; error: null };
-type ClientErrorResponse = { 
+// Define return types for clientService mock functions
+type SuccessResponse<T = any> = { data: T; error: null };
+type ErrorResponse = { 
   category: string; 
   message: string; 
   details?: any;
 };
 
-// Union type for all possible responses
-type ApiResponse<T = any> = ClientSuccessResponse<T> | ClientErrorResponse;
+// Define the return type for the mock functions
+type ApiResponse<T = any> = SuccessResponse<T> | ErrorResponse;
 
 // Mock the client service module
-jest.mock('@/services/client/service', () => ({
-  clientService: {
-    getAllClients: jest.fn(),
-    getClientById: jest.fn(),
-    createClient: jest.fn(),
-    updateClient: jest.fn(),
-    deleteClient: jest.fn(),
-  }
-}));
+jest.mock('@/services/client/service', () => {
+  return {
+    clientService: {
+      getAllClients: jest.fn(),
+      getClientById: jest.fn(),
+      createClient: jest.fn(),
+      updateClient: jest.fn(),
+      deleteClient: jest.fn(),
+    }
+  };
+});
 
 // Import the mocked functions
 import { clientService } from '@/services/client/service';
@@ -50,7 +52,7 @@ describe('Client Service', () => {
       { id: '2', business_name: 'Company B' }
     ];
     
-    const mockResponse: ClientSuccessResponse<any[]> = { 
+    const mockResponse: SuccessResponse<any[]> = { 
       data: mockClients, 
       error: null 
     };
@@ -67,7 +69,7 @@ describe('Client Service', () => {
   });
 
   it('handles error when getting all clients', async () => {
-    const mockError: ClientErrorResponse = { 
+    const mockError: ErrorResponse = { 
       category: 'server', 
       message: 'Database error' 
     };
@@ -86,7 +88,7 @@ describe('Client Service', () => {
   it('gets client by ID', async () => {
     const mockClient = { id: '123', business_name: 'Test Company' };
     
-    const mockResponse: ClientSuccessResponse = {
+    const mockResponse: SuccessResponse = {
       data: mockClient,
       error: null
     };
@@ -103,7 +105,7 @@ describe('Client Service', () => {
   });
 
   it('handles error when getting client by ID', async () => {
-    const mockError: ClientErrorResponse = { 
+    const mockError: ErrorResponse = { 
       category: 'not_found', 
       message: 'Client not found' 
     };
@@ -120,7 +122,7 @@ describe('Client Service', () => {
   });
 
   it('creates a new client', async () => {
-    const mockResponse: ClientSuccessResponse = {
+    const mockResponse: SuccessResponse = {
       data: {
         id: 'new-id',
         business_name: 'New Company',
@@ -146,7 +148,7 @@ describe('Client Service', () => {
   });
 
   it('handles error when creating client', async () => {
-    const mockError: ClientErrorResponse = { 
+    const mockError: ErrorResponse = { 
       category: 'validation', 
       message: 'Failed to create client' 
     };
@@ -168,7 +170,7 @@ describe('Client Service', () => {
   });
 
   it('updates a client', async () => {
-    const mockResponse: ClientSuccessResponse = {
+    const mockResponse: SuccessResponse = {
       data: {
         id: '123',
         business_name: 'Updated Company',
