@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedContactFormData } from '@/types/form-types';
+import { UnifiedContactFormData, PreferredCommunication } from '@/types/form-types';
 import {
   Select,
   SelectContent,
@@ -33,7 +33,7 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
           <FormItem>
             <FormLabel>Phone (Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="Office phone" {...field} />
+              <Input placeholder="Office phone" {...field} value={field.value || ''} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -47,7 +47,7 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
           <FormItem>
             <FormLabel>Landline (Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="Landline phone" {...field} />
+              <Input placeholder="Landline phone" {...field} value={field.value || ''} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -61,7 +61,7 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
           <FormItem>
             <FormLabel>Mobile (Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="Mobile phone" {...field} />
+              <Input placeholder="Mobile phone" {...field} value={field.value || ''} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -75,7 +75,7 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
           <FormItem>
             <FormLabel>Job Title (Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="Job title" {...field} />
+              <Input placeholder="Job title" {...field} value={field.value || ''} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -89,7 +89,7 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
           <FormItem>
             <FormLabel>Company (Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="Company name" {...field} />
+              <Input placeholder="Company name" {...field} value={field.value || ''} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -102,7 +102,10 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
         render={({ field }) => (
           <FormItem>
             <FormLabel>Preferred Communication</FormLabel>
-            <Select onValueChange={field.onChange} defaultValue={field.value}>
+            <Select 
+              onValueChange={(value: PreferredCommunication) => field.onChange(value)} 
+              value={field.value || undefined}
+            >
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select preferred method" />
@@ -130,6 +133,7 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
                 placeholder="Additional notes about this contact"
                 className="min-h-[80px]" 
                 {...field} 
+                value={field.value || ''}
               />
             </FormControl>
             <FormMessage />

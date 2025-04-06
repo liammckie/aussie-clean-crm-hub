@@ -50,13 +50,13 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     refetch 
   } = useEntityContacts('client', clientId);
 
-  // Define client-specific contact types - make sure to include 'employee'
+  // Define client-specific contact types
   const clientContactTypes: ContactType[] = [
-    'client_primary', 
-    'client_site', 
-    'hr_payroll',
-    'emergency',
-    'employee' // Added employee for internal staff
+    'Primary', 
+    'Billing', 
+    'Operations', 
+    'Emergency',
+    'Technical'
   ];
 
   const handleContactSubmit = (formData: any) => {

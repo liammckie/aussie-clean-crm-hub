@@ -4,11 +4,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { UnifiedAddressFormData } from '@/types/form-types';
+import { 
+  UnifiedAddressFormData, 
+  unifiedAddressSchema, 
+  createDefaultAddressValues 
+} from '@/types/form-types';
 import { AddressTypeField } from './form/AddressTypeField';
 import { AddressFields } from './form/AddressFields';
 import { IsPrimaryField } from './form/IsPrimaryField';
-import { unifiedAddressSchema, createDefaultAddressValues } from '@/types/form-types';
 
 interface UnifiedAddressFormProps {
   onSubmit: (data: UnifiedAddressFormData) => void;

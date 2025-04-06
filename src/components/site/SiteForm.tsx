@@ -13,6 +13,7 @@ import { SiteStatusField } from './form/SiteStatusField';
 import { SiteBasicFields } from './form/SiteBasicFields';
 import { SiteAdditionalFields } from './form/SiteAdditionalFields';
 import { siteSchema, SiteFormData } from './SiteFormTypes';
+import { SiteStatus } from '@/types/database-schema';
 
 interface SiteFormProps {
   onSubmit: (data: SiteFormData) => void;
@@ -43,7 +44,7 @@ export function SiteForm({
       notes: initialData.notes || '',
       region: initialData.region || '',
       induction_required: initialData.induction_required || false,
-      status: initialData.status || 'pending_activation',
+      status: initialData.status || SiteStatus.PENDING_ACTIVATION,
       site_type: initialData.site_type || undefined,
       square_meters: initialData.square_meters || undefined,
     }

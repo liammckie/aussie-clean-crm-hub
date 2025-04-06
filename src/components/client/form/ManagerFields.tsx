@@ -25,7 +25,11 @@ export function ManagerFields({ form }: ManagerFieldsProps) {
           <FormItem>
             <FormLabel>Account Manager</FormLabel>
             <FormControl>
-              <Input placeholder="Account manager name" {...field} />
+              <Input 
+                placeholder="Account manager name" 
+                {...field} 
+                value={field.value || ''} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -39,7 +43,11 @@ export function ManagerFields({ form }: ManagerFieldsProps) {
           <FormItem>
             <FormLabel>State Manager</FormLabel>
             <FormControl>
-              <Input placeholder="State manager name" {...field} />
+              <Input 
+                placeholder="State manager name" 
+                {...field}
+                value={field.value || ''} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -53,7 +61,11 @@ export function ManagerFields({ form }: ManagerFieldsProps) {
           <FormItem>
             <FormLabel>National Manager</FormLabel>
             <FormControl>
-              <Input placeholder="National manager name" {...field} />
+              <Input 
+                placeholder="National manager name" 
+                {...field}
+                value={field.value || ''} 
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

@@ -11,8 +11,8 @@ import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SiteForm, SiteFormData } from '@/components/site/SiteForm';
 import { toast } from 'sonner';
-import { useClientSites, useCreateSite } from '@/hooks/use-sites';
-import { SiteData, SiteInsertData } from '@/services/site';
+import { useSites, useCreateSite } from '@/hooks/use-sites';
+import { SiteInsertData } from '@/services/site/types';
 
 interface ClientSitesTabProps {
   clientId: string;
@@ -21,13 +21,8 @@ interface ClientSitesTabProps {
 export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
   const [isSiteDialogOpen, setIsSiteDialogOpen] = useState(false);
   
-  const {
-    sites,
-    isLoadingSites,
-    refetchSites,
-    createSite,
-    isCreatingSite
-  } = useClientSites(clientId);
+  const { data: sites, isLoading: isLoadingSites, refetch: refetchSites } = useSites();
+  const createSiteMutation = useCreateSite();
 
   const handleSiteSubmit = async (data: SiteFormData) => {
     if (!clientId) return;
@@ -52,9 +47,16 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
       induction_required: data.induction_required
     };
     
-    createSite(siteData);
-    setIsSiteDialogOpen(false);
+    createSiteMutation.mutate(siteData, {
+      onSuccess: () => {
+        setIsSiteDialogOpen(false);
+        refetchSites();
+      }
+    });
   };
+
+  // Filter sites to only show those for the current client
+  const clientSites = sites ? sites.filter(site => site.client_id === clientId) : [];
 
   return (
     <Card>
@@ -71,7 +73,10 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
               <DialogTitle>Add New Site</DialogTitle>
             </DialogHeader>
             <div className="max-h-[80vh] overflow-y-auto py-4">
-              <SiteForm onSubmit={handleSiteSubmit} isLoading={isCreatingSite} />
+              <SiteForm 
+                onSubmit={handleSiteSubmit} 
+                isLoading={createSiteMutation.isPending} 
+              />
             </div>
           </DialogContent>
         </Dialog>
@@ -79,9 +84,9 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
       <CardContent>
         {isLoadingSites ? (
           <div className="text-center py-8">Loading sites...</div>
-        ) : sites && sites.length > 0 ? (
+        ) : clientSites && clientSites.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {sites.map((site) => (
+            {clientSites.map((site) => (
               <Card key={site.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">{site.site_name}</CardTitle>

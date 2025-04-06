@@ -2,6 +2,7 @@
 import { ClientFormData, ContactFormData } from '@/services/client';
 import { SiteFormData } from '@/components/site/SiteFormTypes';
 import { generateRandomId } from '@/utils/idGenerator';
+import { SiteStatus, SiteType } from '@/types/database-schema';
 
 /**
  * Generates sample client data for testing purposes
@@ -74,8 +75,8 @@ export function generateSampleSite(clientId: string, overrides: Partial<SiteForm
     notes: 'This is a test site for development',
     region: 'Metro',
     induction_required: false,
-    status: 'active',
-    site_type: 'office',
+    status: SiteStatus.ACTIVE,
+    site_type: SiteType.OFFICE,
     square_meters: 500,
   };
 

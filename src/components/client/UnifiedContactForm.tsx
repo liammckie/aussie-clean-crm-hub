@@ -9,8 +9,12 @@ import { ContactTypeField } from './form/ContactTypeField';
 import { ContactAdditionalFields } from './form/ContactAdditionalFields';
 import { IsPrimaryField } from './form/IsPrimaryField';
 import { ManagerFields } from './form/ManagerFields';
-import { UnifiedContactFormData, ContactType } from '@/types/form-types';
-import { unifiedContactSchema, createDefaultContactValues } from '@/types/form-types';
+import { 
+  UnifiedContactFormData, 
+  ContactType,
+  unifiedContactSchema,
+  createDefaultContactValues
+} from '@/types/form-types';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface UnifiedContactFormProps {
@@ -26,7 +30,7 @@ export function UnifiedContactForm({
   onSubmit, 
   isLoading = false, 
   initialData = {}, 
-  contactTypes = ['client_primary', 'client_site', 'supplier', 'employee'],
+  contactTypes = ['Primary', 'Billing', 'Operations', 'client_primary'],
   buttonText = "Add Contact",
   showIsPrimary = true
 }: UnifiedContactFormProps) {
@@ -46,15 +50,15 @@ export function UnifiedContactForm({
   });
 
   // State to track the current contact type
-  const [currentContactType, setCurrentContactType] = useState<ContactType>(
-    formInitialData.contact_type as ContactType
+  const [currentContactType, setCurrentContactType] = useState<string>(
+    formInitialData.contact_type as string
   );
 
   // Watch for contact type changes
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
       if (name === 'contact_type') {
-        setCurrentContactType(value.contact_type as ContactType);
+        setCurrentContactType(value.contact_type as string);
       }
     });
     return () => subscription.unsubscribe();

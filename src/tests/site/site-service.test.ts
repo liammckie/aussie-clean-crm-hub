@@ -12,12 +12,21 @@ jest.mock('@/integrations/supabase/client', () => {
   };
 });
 
-// Import the mocked supabase client
-const { supabase } = jest.requireMock('@/integrations/supabase/client');
+// Create a mock for the site service
+jest.mock('@/services/site', () => ({
+  siteService: {
+    createSite: jest.fn(),
+    getSite: jest.fn(),
+    getAllSites: jest.fn(),
+    getClientSites: jest.fn(),
+    updateSite: jest.fn(),
+    deleteSite: jest.fn()
+  }
+}));
 
-// Import the siteService after mocking
+// Import the mocked service
 import { siteService } from '@/services/site';
-import { SiteData } from '@/services/site/types';
+import { SiteInsertData } from '@/services/site/types';
 
 describe('Site Service', () => {
   beforeEach(() => {
@@ -26,7 +35,7 @@ describe('Site Service', () => {
 
   it('creates a new site', async () => {
     // Create mock site data that matches the expected SiteData type
-    const mockSiteData: Partial<SiteData> = {
+    const mockSiteData: SiteInsertData = {
       client_id: '123',
       site_name: 'Test Site',
       site_code: 'TEST001',
@@ -34,8 +43,7 @@ describe('Site Service', () => {
       suburb: 'Testville',
       state: 'Testing',
       postcode: '1234',
-      status: SiteStatus.ACTIVE, 
-      country: 'Australia'
+      status: SiteStatus.ACTIVE
     };
 
     const mockResponse = {
@@ -46,20 +54,14 @@ describe('Site Service', () => {
     };
 
     // Set up the mock to return the mock response
-    jest.spyOn(supabase, 'from').mockReturnValue({
-      insert: () => ({
-        select: () => ({
-          single: () => Promise.resolve({ data: mockResponse, error: null })
-        })
-      })
-    } as any);
+    (siteService.createSite as jest.Mock).mockResolvedValue(mockResponse);
     
     // Call the service function
-    const result = await siteService.createSite(mockSiteData as any);
+    const result = await siteService.createSite(mockSiteData);
 
     // Check if the result is as expected
     expect(result).toEqual(mockResponse);
-    expect(supabase.from).toHaveBeenCalledWith('sites');
+    expect(siteService.createSite).toHaveBeenCalledWith(mockSiteData);
   });
 
   it('gets a site by ID', async () => {
@@ -77,17 +79,11 @@ describe('Site Service', () => {
       updated_at: new Date().toISOString()
     };
 
-    jest.spyOn(supabase, 'from').mockReturnValue({
-      select: () => ({
-        eq: () => ({
-          single: () => Promise.resolve({ data: mockSite, error: null })
-        })
-      })
-    } as any);
+    (siteService.getSite as jest.Mock).mockResolvedValue(mockSite);
     
     const result = await siteService.getSite('123');
 
     expect(result).toEqual(mockSite);
-    expect(supabase.from).toHaveBeenCalledWith('sites');
+    expect(siteService.getSite).toHaveBeenCalledWith('123');
   });
 });

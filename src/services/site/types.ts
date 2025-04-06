@@ -1,23 +1,10 @@
 
 import { Tables } from '@/types/supabase';
+import { SiteStatus as DbSiteStatus, SiteType as DbSiteType } from '@/types/database-schema';
 
-// Define site type and status as enums to ensure consistency
-export enum SiteType {
-  RESIDENTIAL = 'residential',
-  INDUSTRIAL = 'industrial',
-  RETAIL = 'retail',
-  HOSPITALITY = 'hospitality',
-  OFFICE = 'office',
-  WAREHOUSE = 'warehouse',
-  EDUCATIONAL = 'educational',
-  MEDICAL = 'medical'
-}
-
-export enum SiteStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  PENDING_ACTIVATION = 'pending_activation'
-}
+// Use database schema enums for site type and status
+export type SiteStatus = DbSiteStatus;
+export type SiteType = DbSiteType;
 
 // Site entity data types
 export type SiteData = Tables<'sites'>;
@@ -50,5 +37,5 @@ export interface SiteErrorResponse {
 export type SiteApiResponse = SiteSuccessResponse | SiteErrorResponse;
 export type SitesApiResponse = SiteSuccessResponse[] | SiteErrorResponse;
 
-// Re-export enums to avoid importing from multiple places
-export { SiteStatus, SiteType };
+// Re-export database schema enums to avoid importing from multiple places
+export { DbSiteStatus as SiteStatus, DbSiteType as SiteType };

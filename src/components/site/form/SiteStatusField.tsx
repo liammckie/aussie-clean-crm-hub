@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
 import { SiteFormData } from '../SiteFormTypes';
-import { SiteStatus } from '@/services/site';
+import { SiteStatus } from '@/types/database-schema';
 
 interface SiteStatusFieldProps {
   form: UseFormReturn<SiteFormData>;

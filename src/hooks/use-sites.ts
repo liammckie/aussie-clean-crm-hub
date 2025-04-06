@@ -11,15 +11,14 @@ export const useSites = () => {
   return useQuery({
     queryKey: ['sites'],
     queryFn: async () => {
-      return siteService.getAllSites();
+      const sites = await siteService.getAllSites();
+      return sites;
     },
   });
 };
 
 /**
  * Hook to fetch sites for a specific client
- * 
- * This hook returns the sites data along with useful derived state
  */
 export const useClientSites = (clientId: string) => {
   const queryClient = useQueryClient();

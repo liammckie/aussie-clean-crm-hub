@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { SiteType } from '@/services/site';
+import { SiteType } from '@/types/database-schema';
 import { UseFormReturn } from 'react-hook-form';
 import { SiteFormData } from '../SiteFormTypes';
 

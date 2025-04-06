@@ -1,46 +1,31 @@
 
-import { SupabaseClient } from '@supabase/supabase-js';
-
 /**
- * Creates a mock Supabase client for testing
- * This implements the methods used in our tests with proper TypeScript structure
+ * Creates a mock Supabase client for testing purposes
  */
-export const createMockSupabaseClient = () => {
-  const mockClient = {
-    from: jest.fn(() => mockClient),
-    select: jest.fn(() => mockClient),
-    single: jest.fn(() => mockClient),
-    eq: jest.fn(() => mockClient),
-    insert: jest.fn(() => mockClient),
-    update: jest.fn(() => mockClient),
-    delete: jest.fn(() => mockClient),
-    match: jest.fn(() => mockClient),
-    maybeSingle: jest.fn(() => mockClient),
-    then: jest.fn(callback => {
-      callback(mockClient.data);
-      return mockClient;
+export function createMockSupabaseClient() {
+  return {
+    auth: {
+      getSession: jest.fn().mockResolvedValue({
+        data: { session: { access_token: 'mock-token' } },
+        error: null
+      }),
+      signOut: jest.fn().mockResolvedValue({ error: null })
+    },
+    from: jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnThis(),
+      insert: jest.fn().mockReturnThis(),
+      update: jest.fn().mockReturnThis(),
+      delete: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({ data: {}, error: null }),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis()
     }),
-    data: null,
-    error: null,
-    count: jest.fn(() => mockClient),
-    order: jest.fn(() => mockClient),
-    limit: jest.fn(() => mockClient),
-    range: jest.fn(() => mockClient),
-    in: jest.fn(() => mockClient),
-    not: jest.fn(() => mockClient),
-    like: jest.fn(() => mockClient),
-    ilike: jest.fn(() => mockClient),
-    or: jest.fn(() => mockClient),
-    and: jest.fn(() => mockClient),
-    contains: jest.fn(() => mockClient),
-    containedBy: jest.fn(() => mockClient),
-    gt: jest.fn(() => mockClient),
-    gte: jest.fn(() => mockClient),
-    lt: jest.fn(() => mockClient),
-    lte: jest.fn(() => mockClient),
-    neq: jest.fn(() => mockClient),
-    success: true,
+    storage: {
+      from: jest.fn().mockReturnValue({
+        upload: jest.fn().mockResolvedValue({ data: {}, error: null }),
+        getPublicUrl: jest.fn().mockReturnValue({ publicURL: 'https://example.com/image.png' })
+      })
+    }
   };
-
-  return mockClient as unknown as SupabaseClient;
-};
+}
