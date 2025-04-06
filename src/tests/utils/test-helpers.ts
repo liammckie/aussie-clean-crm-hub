@@ -1,44 +1,25 @@
 
-import { ErrorCategory } from '@/utils/supabaseErrors';
+import { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from '@/types/api-response';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
- * Types for API responses used in tests
+ * Re-export the centralized API response types for tests
  */
-export interface SuccessResponse<T> {
-  data: T;
-  error: null;
-}
-
-export interface ErrorResponse {
-  category: ErrorCategory;
-  message: string;
-  details?: {
-    field?: string;
-    error?: string;
-  };
-}
-
-// Union type for API responses
-export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
+export type {
+  ApiResponse,
+  ApiSuccessResponse as SuccessResponse,
+  ApiErrorResponse as ErrorResponse
+};
 
 /**
- * Type guard to check if a response is an ErrorResponse
+ * Re-export the type guards from the centralized types
  */
-export function isErrorResponse(response: ApiResponse<any>): response is ErrorResponse {
-  return 'category' in response && 'message' in response;
-}
-
-/**
- * Type guard to check if a response is a SuccessResponse
- */
-export function isSuccessResponse<T>(response: ApiResponse<T>): response is SuccessResponse<T> {
-  return 'data' in response && 'error' in response && response.error === null;
-}
+export { isApiError as isErrorResponse, isApiSuccess as isSuccessResponse } from '@/types/api-response';
 
 /**
  * Helper to create a success response for tests
  */
-export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
+export function createSuccessResponse<T>(data: T): ApiSuccessResponse<T> {
   return {
     data,
     error: null
@@ -52,7 +33,7 @@ export function createErrorResponse(
   category: ErrorCategory,
   message: string,
   details?: { field?: string; error?: string }
-): ErrorResponse {
+): ApiErrorResponse {
   return {
     category,
     message,

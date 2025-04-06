@@ -2,29 +2,16 @@
 import { isSupabaseError } from '@/integrations/supabase/client';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
+import { ErrorCategory } from '@/utils/logging/error-types';
+import { ApiErrorResponse } from '@/types/api-response';
 
-/**
- * Error categories for better error handling
- */
-export enum ErrorCategory {
-  VALIDATION = 'validation',
-  AUTHENTICATION = 'authentication',
-  PERMISSION = 'permission',
-  NETWORK = 'network',
-  DATABASE = 'database',
-  SERVER = 'server',
-  UNKNOWN = 'unknown'
-}
+// Re-export ErrorCategory to maintain backwards compatibility
+export { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
  * Structured error response for API operations
  */
-export interface ErrorResponse {
-  message: string;
-  category: ErrorCategory;
-  code?: string;
-  details?: unknown;
-}
+export type ErrorResponse = ApiErrorResponse;
 
 // Define a more specific type for Supabase errors
 interface SupabaseErrorWithCode {

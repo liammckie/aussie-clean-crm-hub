@@ -6,13 +6,14 @@ import { logSuccess } from '@/utils/supabaseErrors';
 import { prepareClientDataForSubmission } from '@/utils/clientUtils';
 import { ClientStatus } from '@/types/database-schema';
 import { clientSchema, validateWithZod } from '../validation';
+import { ApiResponse, createSuccessResponse } from '@/types/api-response';
 
 /**
  * Client CRUD operations service
  */
 export const clientCrudService = {
   // Get all clients with formatting
-  getAllClients: async () => {
+  getAllClients: async (): Promise<ApiResponse<any>> => {
     const response = await clientApi.fetchAllClients();
     
     // If there's an error, return as is
@@ -28,11 +29,11 @@ export const clientCrudService = {
     }));
 
     logSuccess('fetch', 'clients', formattedData);
-    return { data: formattedData, error: null };
+    return createSuccessResponse(formattedData);
   },
 
   // Get client by ID with contacts
-  getClientById: async (clientId: string) => {
+  getClientById: async (clientId: string): Promise<ApiResponse<any>> => {
     const response = await clientApi.fetchClientById(clientId);
     
     // If there's an error, return as is
@@ -48,11 +49,11 @@ export const clientCrudService = {
     };
     
     logSuccess('fetch', 'client', formattedData);
-    return { data: formattedData, error: null };
+    return createSuccessResponse(formattedData);
   },
 
   // Create a new client
-  createClient: async (client: ClientFormData) => {
+  createClient: async (client: ClientFormData): Promise<ApiResponse<any>> => {
     try {
       // Validate client data using our Zod schema
       const validationResult = validateWithZod(clientSchema, client);
@@ -81,7 +82,7 @@ export const clientCrudService = {
       }
 
       logSuccess('create', 'client', response.data);
-      return { data: response.data, error: null };
+      return createSuccessResponse(response.data);
     } catch (error) {
       console.error('Error in createClient:', error);
       if (typeof error === 'object' && error !== null && 'category' in error) {
@@ -92,7 +93,7 @@ export const clientCrudService = {
   },
 
   // Update an existing client
-  updateClient: async (clientId: string, clientData: Partial<ClientFormData>) => {
+  updateClient: async (clientId: string, clientData: Partial<ClientFormData>): Promise<ApiResponse<any>> => {
     // Validate partial client data
     const validationResult = validateWithZod(clientSchema.partial(), clientData);
     if ('category' in validationResult) {
@@ -109,11 +110,11 @@ export const clientCrudService = {
     }
 
     logSuccess('update', 'client', response.data);
-    return { data: response.data, error: null };
+    return createSuccessResponse(response.data);
   },
 
   // Delete a client by ID
-  deleteClient: async (clientId: string) => {
+  deleteClient: async (clientId: string): Promise<ApiResponse<any>> => {
     const response = await clientApi.deleteClient(clientId);
     
     if ('category' in response) {
@@ -121,6 +122,6 @@ export const clientCrudService = {
     }
 
     logSuccess('delete', 'client', { clientId });
-    return { success: true, error: null };
+    return createSuccessResponse({ success: true });
   }
 };

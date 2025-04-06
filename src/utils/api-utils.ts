@@ -3,101 +3,28 @@ import { AppLogger, LogCategory } from '@/utils/logging';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { isSupabaseError } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { ErrorCategory } from '@/utils/logging/error-types';
+import { 
+  ApiErrorResponse, 
+  ApiSuccessResponse, 
+  ApiResponse, 
+  isApiError, 
+  isApiSuccess, 
+  createSuccessResponse, 
+  createErrorResponse 
+} from '@/types/api-response';
 
-/**
- * Error categories for better error handling
- */
-export enum ErrorCategory {
-  VALIDATION = 'validation',
-  AUTHENTICATION = 'authentication',
-  PERMISSION = 'permission',
-  NOT_FOUND = 'not_found',
-  DATABASE = 'database',
-  SERVER = 'server',
-  UNKNOWN = 'unknown'
-}
-
-/**
- * Standard API error response shape
- */
-export interface ApiErrorResponse {
-  category: ErrorCategory;
-  message: string;
-  details?: any;
-  code?: string;
-}
-
-/**
- * Standard API success response shape
- */
-export interface ApiSuccessResponse<T> {
-  data: T;
-  message: string;
-  count?: number; // Optional count for paginated responses
-}
-
-/**
- * Union type for API responses
- */
-export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
-
-/**
- * Type guard to check if a response is an error
- */
-export function isApiError<T>(response: ApiResponse<T>): response is ApiErrorResponse {
-  return 'category' in response;
-}
-
-/**
- * Type guard to check if a response is a success
- */
-export function isApiSuccess<T>(response: ApiResponse<T>): response is ApiSuccessResponse<T> {
-  return 'data' in response;
-}
-
-/**
- * Helper for formatting errors into a standard API error response
- */
-export function formatError(
-  category: ErrorCategory | string, 
-  message: string, 
-  details?: any
-): ApiErrorResponse {
-  // Convert string categories to enum values
-  let errorCategory: ErrorCategory;
-  if (typeof category === 'string') {
-    switch (category.toLowerCase()) {
-      case 'validation':
-        errorCategory = ErrorCategory.VALIDATION;
-        break;
-      case 'authentication':
-        errorCategory = ErrorCategory.AUTHENTICATION;
-        break;
-      case 'permission':
-        errorCategory = ErrorCategory.PERMISSION;
-        break;
-      case 'not_found':
-        errorCategory = ErrorCategory.NOT_FOUND;
-        break;
-      case 'database':
-        errorCategory = ErrorCategory.DATABASE;
-        break;
-      case 'server':
-        errorCategory = ErrorCategory.SERVER;
-        break;
-      default:
-        errorCategory = ErrorCategory.UNKNOWN;
-    }
-  } else {
-    errorCategory = category;
-  }
-  
-  return {
-    category: errorCategory,
-    message,
-    details
-  };
-}
+// Re-export types and utilities from centralized file
+export {
+  ErrorCategory,
+  ApiErrorResponse,
+  ApiSuccessResponse,
+  ApiResponse,
+  isApiError,
+  isApiSuccess,
+  createSuccessResponse,
+  createErrorResponse
+};
 
 /**
  * Helper for categorizing Supabase errors
@@ -211,25 +138,5 @@ export function handleApiError(
   }
   
   // Return standardized error response
-  return {
-    category: errorCategory,
-    message: errorMessage,
-    details: error,
-    code: errorCode
-  };
-}
-
-/**
- * Helper for creating a consistent success response
- */
-export function createSuccessResponse<T>(
-  data: T, 
-  message: string,
-  count?: number
-): ApiSuccessResponse<T> {
-  return {
-    data,
-    message,
-    count
-  };
+  return createErrorResponse(errorCategory, errorMessage, error);
 }

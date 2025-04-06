@@ -1,7 +1,7 @@
 
 import { z } from 'zod';
 import { ClientStatus } from '@/types/database-schema';
-import { AddressType, ContactType } from '@/types/form-types';
+import { AddressType } from '@/types/form-types';
 
 /**
  * Client validation schemas using Zod
@@ -67,8 +67,7 @@ export const clientAddressSchema = z.object({
   postcode: z.string().trim().min(1, { message: "Postcode is required" }),
   country: z.string().trim().default("Australia"),
   address_type: z.enum(["billing", "physical", "postal", "shipping", 
-    "head_office", "branch", "residential", "commercial", "warehouse", "site"]
-    as [AddressType, ...AddressType[]]),
+    "head_office", "branch", "residential", "commercial", "warehouse", "site"] as [AddressType, ...AddressType[]]),
   client_id: z.string().uuid({ message: "Valid client ID is required" }),
 });
 

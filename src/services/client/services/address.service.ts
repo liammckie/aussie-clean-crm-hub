@@ -3,13 +3,14 @@ import { clientApi } from '../api';
 import { AddressFormData } from '../types';
 import { logSuccess } from '@/utils/supabaseErrors';
 import { clientAddressSchema, validateWithZod } from '../validation';
+import { ApiResponse, createSuccessResponse } from '@/types/api-response';
 
 /**
  * Client address management service
  */
 export const clientAddressService = {
   // Get client addresses by client ID
-  getClientAddresses: async (clientId: string) => {
+  getClientAddresses: async (clientId: string): Promise<ApiResponse<any>> => {
     const response = await clientApi.fetchClientAddresses(clientId);
     
     if ('category' in response) {
@@ -17,11 +18,11 @@ export const clientAddressService = {
     }
 
     logSuccess('fetch', 'client_addresses', response.data);
-    return { data: response.data, error: null };
+    return createSuccessResponse(response.data);
   },
 
   // Create a new client address
-  createClientAddress: async (clientId: string, addressData: Omit<AddressFormData, 'client_id'>) => {
+  createClientAddress: async (clientId: string, addressData: Omit<AddressFormData, 'client_id'>): Promise<ApiResponse<any>> => {
     // Add client ID to address data
     const address: AddressFormData = {
       ...addressData,
@@ -41,11 +42,11 @@ export const clientAddressService = {
     }
 
     logSuccess('create', 'client_address', response.data);
-    return { data: response.data, error: null };
+    return createSuccessResponse(response.data);
   },
 
   // Delete a client address
-  deleteClientAddress: async (addressId: string) => {
+  deleteClientAddress: async (addressId: string): Promise<ApiResponse<any>> => {
     const response = await clientApi.deleteClientAddress(addressId);
     
     if ('category' in response) {
@@ -53,6 +54,6 @@ export const clientAddressService = {
     }
 
     logSuccess('delete', 'client_address', { addressId });
-    return { success: true, error: null };
+    return createSuccessResponse({ success: true });
   }
 };
