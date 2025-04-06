@@ -1,14 +1,30 @@
 
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { ErrorReporting } from '@/utils/errorReporting';
+import { isSupabaseError } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+/**
+ * Error categories for better error handling
+ */
+export enum ErrorCategory {
+  VALIDATION = 'validation',
+  AUTHENTICATION = 'authentication',
+  PERMISSION = 'permission',
+  NOT_FOUND = 'not_found',
+  DATABASE = 'database',
+  SERVER = 'server',
+  UNKNOWN = 'unknown'
+}
 
 /**
  * Standard API error response shape
  */
 export interface ApiErrorResponse {
-  category: 'validation' | 'permission' | 'not_found' | 'server';
+  category: ErrorCategory;
   message: string;
   details?: any;
+  code?: string;
 }
 
 /**
@@ -39,7 +55,63 @@ export function isApiSuccess<T>(response: ApiResponse<T>): response is ApiSucces
 }
 
 /**
- * Helper for handling Supabase errors in a consistent manner
+ * Helper for categorizing Supabase errors
+ */
+function categorizeError(error: any): ErrorCategory {
+  if (!error) return ErrorCategory.UNKNOWN;
+  
+  // Handle Supabase-specific errors
+  if (isSupabaseError(error)) {
+    const code = error?.code || '';
+    const message = error?.message || '';
+    
+    // Authentication errors
+    if (code.includes('auth/') || message.includes('JWT') || message.includes('token')) {
+      return ErrorCategory.AUTHENTICATION;
+    }
+    
+    // Permission errors
+    if (code === 'PGRST116' || code === '42501' || message.includes('permission')) {
+      return ErrorCategory.PERMISSION;
+    }
+    
+    // Not found errors
+    if (code === '42P01' || message.includes('does not exist')) {
+      return ErrorCategory.NOT_FOUND;
+    }
+    
+    // Validation errors
+    if (code.startsWith('22') || code.startsWith('23')) {
+      return ErrorCategory.VALIDATION;
+    }
+    
+    // Database errors
+    if (code.startsWith('P') || code.startsWith('42')) {
+      return ErrorCategory.DATABASE;
+    }
+    
+    return ErrorCategory.SERVER;
+  }
+  
+  // Handle standard Error objects
+  if (error instanceof Error) {
+    const message = error.message.toLowerCase();
+    if (message.includes('not authenticated') || message.includes('jwt') || message.includes('token')) {
+      return ErrorCategory.AUTHENTICATION;
+    }
+    if (message.includes('not found') || message.includes('404')) {
+      return ErrorCategory.NOT_FOUND;
+    }
+    if (message.includes('permission') || message.includes('forbidden') || message.includes('403')) {
+      return ErrorCategory.PERMISSION;
+    }
+  }
+  
+  return ErrorCategory.UNKNOWN;
+}
+
+/**
+ * Helper for handling API errors in a consistent manner
  * 
  * @param error The error object from Supabase or other source
  * @param message A user-friendly error message
@@ -60,21 +132,57 @@ export function handleApiError(
   ErrorReporting.captureException(error);
   
   // Determine error category based on the error object
-  let errorCategory: ApiErrorResponse['category'] = 'server';
+  const errorCategory = categorizeError(error);
   
-  // Handle Supabase-specific error codes
-  if (error?.code) {
-    if (error.code === '42P01') {
-      errorCategory = 'permission';
-    } else if (error.code === 'PGRST116') {
-      errorCategory = 'not_found';
+  let errorMessage = message;
+  let errorCode: string | undefined;
+  
+  // Extract more specific information from error if available
+  if (isSupabaseError(error)) {
+    errorCode = error.code;
+    
+    // Add more specific details to error message when available
+    if (error.message) {
+      errorMessage = `${message}: ${error.message}`;
+    } else if (error.error) {
+      errorMessage = `${message}: ${error.error}`;
     }
+  } else if (error instanceof Error) {
+    errorMessage = `${message}: ${error.message}`;
+  }
+  
+  // Show toast for critical errors
+  if (errorCategory === ErrorCategory.AUTHENTICATION) {
+    toast.error("Authentication error", {
+      description: "Please log in to continue"
+    });
+    
+    // Could add auto-redirect to login page after delay
+    // setTimeout(() => window.location.href = '/login', 2000);
+  } else if (errorCategory === ErrorCategory.PERMISSION) {
+    toast.error("Permission denied", {
+      description: "You don't have permission to perform this action"
+    });
   }
   
   // Return standardized error response
   return {
     category: errorCategory,
-    message: message,
-    details: error
+    message: errorMessage,
+    details: error,
+    code: errorCode
+  };
+}
+
+/**
+ * Helper for creating a consistent success response
+ */
+export function createSuccessResponse<T>(
+  data: T, 
+  message: string
+): ApiSuccessResponse<T> {
+  return {
+    data,
+    message
   };
 }

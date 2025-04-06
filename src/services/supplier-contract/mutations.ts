@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { SupplierContractLink, AssignSupplierToContractData } from '@/types/supplier-contract-types';
-import { ApiResponse, handleApiError } from '@/utils/api-utils';
+import { ApiResponse, handleApiError, createSuccessResponse, ErrorCategory } from '@/utils/api-utils';
 
 /**
  * Link a supplier to a contract
@@ -13,6 +13,34 @@ export async function assignSupplierToContract(linkData: AssignSupplierToContrac
       supplierId: linkData.supplier_id,
       contractId: linkData.contract_id
     });
+    
+    // Check for existing link to prevent duplicates
+    const { data: existingLink, error: checkError } = await supabase
+      .from('supplier_contract_links')
+      .select()
+      .eq('supplier_id', linkData.supplier_id)
+      .eq('contract_id', linkData.contract_id)
+      .single();
+    
+    if (existingLink) {
+      return {
+        category: ErrorCategory.VALIDATION,
+        message: 'This supplier is already assigned to the contract',
+        details: existingLink
+      };
+    }
+    
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 = not found, which is expected
+      return handleApiError(
+        checkError,
+        'Error checking for existing supplier-contract link',
+        {
+          supplierId: linkData.supplier_id,
+          contractId: linkData.contract_id
+        },
+        LogCategory.CONTRACT
+      );
+    }
     
     const link: Partial<SupplierContractLink> = {
       supplier_id: linkData.supplier_id,
@@ -34,7 +62,7 @@ export async function assignSupplierToContract(linkData: AssignSupplierToContrac
     if (error) {
       return handleApiError(
         error, 
-        `Failed to assign supplier to contract: ${error.message}`,
+        'Failed to assign supplier to contract',
         {
           supplierId: linkData.supplier_id,
           contractId: linkData.contract_id
@@ -43,10 +71,10 @@ export async function assignSupplierToContract(linkData: AssignSupplierToContrac
       );
     }
     
-    return {
-      data,
-      message: 'Supplier assigned to contract successfully'
-    };
+    return createSuccessResponse(
+      data, 
+      'Supplier assigned to contract successfully'
+    );
   } catch (error) {
     return handleApiError(
       error, 
@@ -67,6 +95,31 @@ export async function removeSupplierFromContract(supplierId: string, contractId:
   try {
     AppLogger.info(LogCategory.CONTRACT, 'Removing supplier from contract', { supplierId, contractId });
     
+    // Check if link exists before attempting to delete
+    const { data: existingLink, error: checkError } = await supabase
+      .from('supplier_contract_links')
+      .select()
+      .eq('supplier_id', supplierId)
+      .eq('contract_id', contractId)
+      .single();
+      
+    if (checkError) {
+      if (checkError.code === 'PGRST116') { // Not found
+        return {
+          category: ErrorCategory.NOT_FOUND,
+          message: 'Supplier is not assigned to this contract',
+          details: { supplierId, contractId }
+        };
+      }
+      
+      return handleApiError(
+        checkError, 
+        'Error checking supplier-contract link',
+        { supplierId, contractId },
+        LogCategory.CONTRACT
+      );
+    }
+    
     const { data, error } = await supabase
       .from('supplier_contract_links')
       .delete()
@@ -78,16 +131,16 @@ export async function removeSupplierFromContract(supplierId: string, contractId:
     if (error) {
       return handleApiError(
         error, 
-        `Failed to remove supplier from contract: ${error.message}`,
+        'Failed to remove supplier from contract',
         { supplierId, contractId },
         LogCategory.CONTRACT
       );
     }
     
-    return {
+    return createSuccessResponse(
       data,
-      message: 'Supplier removed from contract successfully'
-    };
+      'Supplier removed from contract successfully'
+    );
   } catch (error) {
     return handleApiError(
       error, 

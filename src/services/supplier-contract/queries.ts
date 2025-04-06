@@ -2,7 +2,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { ContractWithSupplier } from '@/types/supplier-contract-types';
-import { ApiResponse, handleApiError } from '@/utils/api-utils';
+import { ApiResponse, handleApiError, createSuccessResponse } from '@/utils/api-utils';
 
 /**
  * Get contracts associated with a specific supplier
@@ -30,7 +30,7 @@ export async function getContractsBySupplier(supplierId: string): Promise<ApiRes
     if (error) {
       return handleApiError(
         error, 
-        `Failed to fetch supplier contracts: ${error.message}`,
+        'Failed to fetch supplier contracts',
         { supplierId },
         LogCategory.CONTRACT
       );
@@ -49,10 +49,10 @@ export async function getContractsBySupplier(supplierId: string): Promise<ApiRes
       } as ContractWithSupplier;
     });
     
-    return {
-      data: contracts,
-      message: 'Supplier contracts fetched successfully'
-    };
+    return createSuccessResponse(
+      contracts,
+      'Supplier contracts fetched successfully'
+    );
   } catch (error) {
     return handleApiError(
       error, 
@@ -86,16 +86,16 @@ export async function getSuppliersByContract(contractId: string): Promise<ApiRes
     if (error) {
       return handleApiError(
         error, 
-        `Failed to fetch contract suppliers: ${error.message}`,
+        'Failed to fetch contract suppliers',
         { contractId },
         LogCategory.CONTRACT
       );
     }
     
-    return {
+    return createSuccessResponse(
       data,
-      message: 'Contract suppliers fetched successfully'
-    };
+      'Contract suppliers fetched successfully'
+    );
   } catch (error) {
     return handleApiError(
       error, 

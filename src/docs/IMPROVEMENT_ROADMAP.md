@@ -77,14 +77,15 @@ This document outlines the planned improvements for the Aussie Clean ERP system,
 - Missing standardized error categorization
 
 **Action Items:**
-- [ ] Create standardized error handling patterns
-- [ ] Implement consistent error categorization
-- [ ] Enhance error reporting with more context
-- [ ] Improve user feedback for different error types
+- ✅ Create standardized error handling patterns
+- ✅ Implement consistent error categorization
+- ✅ Enhance error reporting with more context
+- ✅ Improve user feedback for different error types
 - [ ] Add error recovery patterns for common scenarios
 
 **Key Files:**
-- `src/utils/errorReporting.ts`
+- `src/utils/api-utils.ts` ✅
+- `src/utils/supabaseErrorHandler.ts` ✅
 - `src/services/*/service.ts` (all service files)
 
 ### 2. Performance Optimization
@@ -226,7 +227,8 @@ This document outlines the planned improvements for the Aussie Clean ERP system,
 | Type System | Create type documentation | 🔄 In Progress | 2025-04-15 | Draft created |
 | Component | Refactor AddressForm | ⏱️ Planned | 2025-04-20 | |
 | Documentation | System overview | ✅ Complete | 2025-04-05 | Created new document |
-| Error Handling | Standardize error patterns | ⏱️ Planned | 2025-05-15 | |
+| Error Handling | Standardize error patterns | ✅ Complete | 2025-04-08 | Implemented in api-utils.ts |
+| Error Handling | Create Supabase error handler | ✅ Complete | 2025-04-08 | Created supabaseErrorHandler.ts |
 | Performance | React Query optimization | ⏱️ Planned | 2025-05-30 | |
 | Testing | Service test implementation | ⏱️ Planned | 2025-06-15 | |
 
