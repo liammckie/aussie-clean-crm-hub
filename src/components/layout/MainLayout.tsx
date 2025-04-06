@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { Outlet } from "react-router-dom";
 import { TopNavbar } from "./TopNavbar";
 import { NewSidebar } from "./NewSidebar";
 import { MobileSidebar } from "./MobileSidebar";
@@ -7,7 +8,7 @@ import { useSidebar } from "@/components/ui/sidebar";
 import { AlertCircle } from "lucide-react";
 
 interface MainLayoutProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   showDevBanner?: boolean;
 }
 
@@ -65,7 +66,7 @@ export function MainLayout({ children, showDevBanner = false }: MainLayoutProps)
       >
         <TopNavbar />
         <div className="px-4 py-6 md:px-6">
-          {children}
+          {children || <Outlet />}
         </div>
       </main>
     </div>

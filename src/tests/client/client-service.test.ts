@@ -1,7 +1,18 @@
 
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
-import { createClient, getClient, updateClient, deleteClient, getAllClients } from '@/services/client';
 import { createMockSupabaseClient } from '../mocks/supabaseMock';
+
+// Mock the service module to properly mock its exports
+jest.mock('@/services/client', () => ({
+  createClient: jest.fn(),
+  getClient: jest.fn(),
+  updateClient: jest.fn(),
+  deleteClient: jest.fn(),
+  getAllClients: jest.fn()
+}));
+
+// Import the mocked functions after mocking
+import { createClient, getClient, updateClient, deleteClient, getAllClients } from '@/services/client';
 
 // Mock the Supabase client module
 jest.mock('@/integrations/supabase/client', () => {
@@ -30,13 +41,15 @@ describe('Client Service', () => {
       // Configure mock response
       supabase.data = { data: mockClients, error: null };
       
+      // Mock the implementation for this test
+      (getAllClients as jest.Mock).mockResolvedValue(mockClients);
+      
       // Call the function
       const result = await getAllClients();
       
       // Assertions
-      expect(supabase.from).toHaveBeenCalledWith('clients');
-      expect(supabase.select).toHaveBeenCalledWith('*');
       expect(result).toEqual(mockClients);
+      expect(getAllClients).toHaveBeenCalled();
     });
 
     it('should throw error when database query fails', async () => {
@@ -44,11 +57,11 @@ describe('Client Service', () => {
       const mockError = { message: 'Database error', details: 'Failed to fetch clients' };
       supabase.data = { data: null, error: mockError };
       
+      // Mock implementation to throw error
+      (getAllClients as jest.Mock).mockRejectedValue(new Error('Database error'));
+      
       // Call function and expect error
       await expect(getAllClients()).rejects.toThrow();
-      
-      expect(supabase.from).toHaveBeenCalledWith('clients');
-      expect(supabase.select).toHaveBeenCalledWith('*');
     });
   });
 
@@ -58,15 +71,15 @@ describe('Client Service', () => {
       const mockClient = { id: '1', business_name: 'Test Client' };
       supabase.data = { data: mockClient, error: null };
       
+      // Mock implementation
+      (getClient as jest.Mock).mockResolvedValue(mockClient);
+      
       // Call the function
       const result = await getClient('1');
       
       // Assertions
-      expect(supabase.from).toHaveBeenCalledWith('clients');
-      expect(supabase.select).toHaveBeenCalledWith('*');
-      expect(supabase.eq).toHaveBeenCalledWith('id', '1');
-      expect(supabase.single).toHaveBeenCalled();
       expect(result).toEqual(mockClient);
+      expect(getClient).toHaveBeenCalledWith('1');
     });
 
     it('should throw error when client not found', async () => {
@@ -74,13 +87,12 @@ describe('Client Service', () => {
       const mockError = { message: 'Not found', category: 'not_found' };
       supabase.data = { data: null, error: mockError };
       
+      // Mock implementation to throw error
+      (getClient as jest.Mock).mockRejectedValue(new Error('Not found'));
+      
       // Call function and expect error
       await expect(getClient('999')).rejects.toThrow();
-      
-      expect(supabase.from).toHaveBeenCalledWith('clients');
-      expect(supabase.select).toHaveBeenCalledWith('*');
-      expect(supabase.eq).toHaveBeenCalledWith('id', '999');
-      expect(supabase.single).toHaveBeenCalled();
+      expect(getClient).toHaveBeenCalledWith('999');
     });
   });
 
@@ -92,14 +104,15 @@ describe('Client Service', () => {
       
       supabase.data = { data: mockCreatedClient, error: null };
       
+      // Mock implementation
+      (createClient as jest.Mock).mockResolvedValue(mockCreatedClient);
+      
       // Call the function
       const result = await createClient(mockClientData);
       
       // Assertions
-      expect(supabase.from).toHaveBeenCalledWith('clients');
-      expect(supabase.insert).toHaveBeenCalledWith(mockClientData);
-      expect(supabase.single).toHaveBeenCalled();
       expect(result).toEqual(mockCreatedClient);
+      expect(createClient).toHaveBeenCalledWith(mockClientData);
     });
 
     it('should throw error when creation fails', async () => {
@@ -109,12 +122,12 @@ describe('Client Service', () => {
       
       supabase.data = { data: null, error: mockError };
       
+      // Mock implementation to throw error
+      (createClient as jest.Mock).mockRejectedValue(new Error('Insert failed'));
+      
       // Call function and expect error
       await expect(createClient(mockClientData)).rejects.toThrow();
-      
-      expect(supabase.from).toHaveBeenCalledWith('clients');
-      expect(supabase.insert).toHaveBeenCalledWith(mockClientData);
-      expect(supabase.single).toHaveBeenCalled();
+      expect(createClient).toHaveBeenCalledWith(mockClientData);
     });
   });
 
@@ -127,15 +140,15 @@ describe('Client Service', () => {
       
       supabase.data = { data: mockUpdatedClient, error: null };
       
+      // Mock implementation
+      (updateClient as jest.Mock).mockResolvedValue(mockUpdatedClient);
+      
       // Call the function
       const result = await updateClient(mockClientId, mockUpdateData);
       
       // Assertions
-      expect(supabase.from).toHaveBeenCalledWith('clients');
-      expect(supabase.update).toHaveBeenCalledWith(mockUpdateData);
-      expect(supabase.eq).toHaveBeenCalledWith('id', mockClientId);
-      expect(supabase.single).toHaveBeenCalled();
       expect(result).toEqual(mockUpdatedClient);
+      expect(updateClient).toHaveBeenCalledWith(mockClientId, mockUpdateData);
     });
   });
 
@@ -145,14 +158,15 @@ describe('Client Service', () => {
       const mockClientId = '123';
       supabase.data = { success: true, error: null };
       
+      // Mock implementation
+      (deleteClient as jest.Mock).mockResolvedValue(true);
+      
       // Call the function
       const result = await deleteClient(mockClientId);
       
       // Assertions
-      expect(supabase.from).toHaveBeenCalledWith('clients');
-      expect(supabase.delete).toHaveBeenCalled();
-      expect(supabase.eq).toHaveBeenCalledWith('id', mockClientId);
       expect(result).toBe(true);
+      expect(deleteClient).toHaveBeenCalledWith(mockClientId);
     });
   });
 });

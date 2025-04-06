@@ -3,6 +3,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SidebarProvider } from './components/ui/sidebar';
 
 // Import immediately needed components
 import { MainLayout as Layout } from './components/layout/MainLayout';
@@ -50,92 +51,94 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="clients" element={
+        <SidebarProvider>
+          <Routes>
+            <Route path="/" element={<Layout children={undefined} />}>
+              <Route index element={<Dashboard />} />
+              <Route path="clients" element={
+                <Suspense fallback={<Loading />}>
+                  <Clients />
+                </Suspense>
+              } />
+              <Route path="clients/new" element={
+                <Suspense fallback={<Loading />}>
+                  <NewClient />
+                </Suspense>
+              } />
+              <Route path="clients/:id" element={
+                <Suspense fallback={<Loading />}>
+                  <ClientDetails />
+                </Suspense>
+              } />
+              <Route path="sites" element={
+                <Suspense fallback={<Loading />}>
+                  <Sites />
+                </Suspense>
+              } />
+              <Route path="sites/new" element={
+                <Suspense fallback={<Loading />}>
+                  <NewSite />
+                </Suspense>
+              } />
+              <Route path="sites/:id" element={
+                <Suspense fallback={<Loading />}>
+                  <SiteDetails />
+                </Suspense>
+              } />
+              <Route path="contracts" element={
+                <Suspense fallback={<Loading />}>
+                  <Contracts />
+                </Suspense>
+              } />
+              <Route path="contracts/new" element={
+                <Suspense fallback={<Loading />}>
+                  <NewContract />
+                </Suspense>
+              } />
+              <Route path="contracts/:id" element={
+                <Suspense fallback={<Loading />}>
+                  <ContractDetails />
+                </Suspense>
+              } />
+              <Route path="suppliers" element={
+                <Suspense fallback={<Loading />}>
+                  <Suppliers />
+                </Suspense>
+              } />
+              <Route path="suppliers/new" element={
+                <Suspense fallback={<Loading />}>
+                  <NewSupplier />
+                </Suspense>
+              } />
+              <Route path="suppliers/:id" element={
+                <Suspense fallback={<Loading />}>
+                  <SupplierDetails />
+                </Suspense>
+              } />
+              <Route path="settings" element={
+                <Suspense fallback={<Loading />}>
+                  <Settings />
+                </Suspense>
+              } />
+              <Route path="*" element={
+                <Suspense fallback={<Loading />}>
+                  <NotFound />
+                </Suspense>
+              } />
+            </Route>
+            <Route path="/login" element={
               <Suspense fallback={<Loading />}>
-                <Clients />
+                <Login />
               </Suspense>
             } />
-            <Route path="clients/new" element={
+            <Route path="/register" element={
               <Suspense fallback={<Loading />}>
-                <NewClient />
+                <Register />
               </Suspense>
             } />
-            <Route path="clients/:id" element={
-              <Suspense fallback={<Loading />}>
-                <ClientDetails />
-              </Suspense>
-            } />
-            <Route path="sites" element={
-              <Suspense fallback={<Loading />}>
-                <Sites />
-              </Suspense>
-            } />
-            <Route path="sites/new" element={
-              <Suspense fallback={<Loading />}>
-                <NewSite />
-              </Suspense>
-            } />
-            <Route path="sites/:id" element={
-              <Suspense fallback={<Loading />}>
-                <SiteDetails />
-              </Suspense>
-            } />
-            <Route path="contracts" element={
-              <Suspense fallback={<Loading />}>
-                <Contracts />
-              </Suspense>
-            } />
-            <Route path="contracts/new" element={
-              <Suspense fallback={<Loading />}>
-                <NewContract />
-              </Suspense>
-            } />
-            <Route path="contracts/:id" element={
-              <Suspense fallback={<Loading />}>
-                <ContractDetails />
-              </Suspense>
-            } />
-            <Route path="suppliers" element={
-              <Suspense fallback={<Loading />}>
-                <Suppliers />
-              </Suspense>
-            } />
-            <Route path="suppliers/new" element={
-              <Suspense fallback={<Loading />}>
-                <NewSupplier />
-              </Suspense>
-            } />
-            <Route path="suppliers/:id" element={
-              <Suspense fallback={<Loading />}>
-                <SupplierDetails />
-              </Suspense>
-            } />
-            <Route path="settings" element={
-              <Suspense fallback={<Loading />}>
-                <Settings />
-              </Suspense>
-            } />
-            <Route path="*" element={
-              <Suspense fallback={<Loading />}>
-                <NotFound />
-              </Suspense>
-            } />
-          </Route>
-          <Route path="/login" element={
-            <Suspense fallback={<Loading />}>
-              <Login />
-            </Suspense>
-          } />
-          <Route path="/register" element={
-            <Suspense fallback={<Loading />}>
-              <Register />
-            </Suspense>
-          } />
-        </Routes>
-        <Toaster position="top-right" />
+          </Routes>
+          <Toaster position="top-right" />
+        </SidebarProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

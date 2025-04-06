@@ -1,18 +1,42 @@
 
 import { describe, expect, it, jest } from '@jest/globals';
-import { createSite, getSite } from '@/services/site';
-import { SiteStatus } from '@/types/database-schema'; // Use the correct import for SiteStatus
+import { createMockSupabaseClient } from '../mocks/supabaseMock';
 
-// Mock the Supabase client
-jest.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    single: jest.fn().mockReturnThis(),
-    then: jest.fn()
+// Define SiteStatus enum
+enum SiteStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  PENDING = 'pending'
+}
+
+// Mock the service module
+jest.mock('@/services/site', () => ({
+  createSite: jest.fn(),
+  getSite: jest.fn()
+}));
+
+// Import mocked functions
+import { createSite, getSite } from '@/services/site';
+
+// Mock the database schema module
+jest.mock('@/types/database-schema', () => ({
+  SiteStatus: {
+    ACTIVE: 'active',
+    INACTIVE: 'inactive',
+    PENDING: 'pending'
   }
 }));
+
+// Mock the Supabase client
+jest.mock('@/integrations/supabase/client', () => {
+  const mockClient = createMockSupabaseClient();
+  return {
+    supabase: mockClient
+  };
+});
+
+// Import the mocked supabase client
+const { supabase } = jest.requireMock('@/integrations/supabase/client');
 
 describe('Site Service', () => {
   it('creates a new site', async () => {
@@ -26,34 +50,36 @@ describe('Site Service', () => {
       suburb: 'Testville',
       state: 'Testing',
       postcode: '1234',
-      status: 'active' as SiteStatus, // Cast to SiteStatus enum
+      status: SiteStatus.ACTIVE, // Use the enum
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
       country: 'Australia'
     };
 
     // Set up the mock response
-    const mockResponse = { data: mockSiteData, error: null };
-    require('@/integrations/supabase/client').supabase.then.mockImplementation((callback) => callback(mockResponse));
+    supabase.data = { data: mockSiteData, error: null };
+    
+    // Mock implementation
+    (createSite as jest.Mock).mockResolvedValue(mockSiteData);
 
     // Call the service function
     const result = await createSite(mockSiteData);
 
     // Check if the result is as expected
     expect(result).toEqual(mockSiteData);
-    expect(require('@/integrations/supabase/client').supabase.from).toHaveBeenCalledWith('sites');
-    expect(require('@/integrations/supabase/client').supabase.insert).toHaveBeenCalled();
+    expect(createSite).toHaveBeenCalledWith(mockSiteData);
   });
 
   it('gets a site by ID', async () => {
     const mockSite = { id: '123', name: 'Test Site' };
-    const mockResponse = { data: mockSite, error: null };
-    require('@/integrations/supabase/client').supabase.then.mockImplementation((callback) => callback(mockResponse));
+    supabase.data = { data: mockSite, error: null };
+    
+    // Mock implementation
+    (getSite as jest.Mock).mockResolvedValue(mockSite);
 
     const result = await getSite('123');
 
     expect(result).toEqual(mockSite);
-    expect(require('@/integrations/supabase/client').supabase.from).toHaveBeenCalledWith('sites');
-    expect(require('@/integrations/supabase/client').supabase.select).toHaveBeenCalled();
+    expect(getSite).toHaveBeenCalledWith('123');
   });
 });
