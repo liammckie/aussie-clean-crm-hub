@@ -81,3 +81,69 @@ export const dbDateSchema = z.preprocess(
 export function mapDbResponse<T>(data: any): T {
   return data as T;
 }
+
+/**
+ * Map snake_case database field names to camelCase for frontend use
+ * @param obj The database object with snake_case keys
+ * @returns A new object with camelCase keys
+ */
+export function snakeToCamel<T extends Record<string, any>>(obj: Record<string, any>): T {
+  const result: Record<string, any> = {};
+  
+  for (const [key, value] of Object.entries(obj)) {
+    // Convert key from snake_case to camelCase
+    const camelKey = key.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase());
+    
+    // Handle nested objects
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      result[camelKey] = snakeToCamel(value);
+      continue;
+    }
+    
+    // Handle arrays of objects
+    if (Array.isArray(value)) {
+      result[camelKey] = value.map(item => 
+        item && typeof item === 'object' ? snakeToCamel(item) : item
+      );
+      continue;
+    }
+    
+    // Pass primitive values as-is
+    result[camelKey] = value;
+  }
+  
+  return result as T;
+}
+
+/**
+ * Map camelCase frontend field names to snake_case for database use
+ * @param obj The frontend object with camelCase keys
+ * @returns A new object with snake_case keys
+ */
+export function camelToSnake<T extends Record<string, any>>(obj: Record<string, any>): T {
+  const result: Record<string, any> = {};
+  
+  for (const [key, value] of Object.entries(obj)) {
+    // Convert key from camelCase to snake_case
+    const snakeKey = key.replace(/([A-Z])/g, '_$1').toLowerCase();
+    
+    // Handle nested objects
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      result[snakeKey] = camelToSnake(value);
+      continue;
+    }
+    
+    // Handle arrays of objects
+    if (Array.isArray(value)) {
+      result[snakeKey] = value.map(item => 
+        item && typeof item === 'object' ? camelToSnake(item) : item
+      );
+      continue;
+    }
+    
+    // Pass primitive values as-is
+    result[snakeKey] = value;
+  }
+  
+  return result as T;
+}

@@ -18,7 +18,7 @@ export const supplierContractLinkSchema = z.object({
 });
 
 /**
- * Type definition for the supplier-contract link
+ * Type definition for the supplier-contract link directly mapped from database schema
  */
 export type SupplierContractLink = z.infer<typeof supplierContractLinkSchema> & {
   created_at?: string;
@@ -81,3 +81,22 @@ export const assignSupplierToContractSchema = z.object({
 });
 
 export type AssignSupplierToContractData = z.infer<typeof assignSupplierToContractSchema>;
+
+/**
+ * Database schema for supplier_contract table
+ * Maps directly to the database structure
+ */
+export interface SupplierContract {
+  link_id: string;         // uuid PRIMARY KEY
+  supplier_id: string;     // uuid REFERENCES suppliers(id)
+  contract_id: string;     // uuid REFERENCES contracts(id)
+  role: string;            // text
+  status: string;          // text
+  services?: string;       // text
+  percentage?: number;     // integer
+  assigned_at?: string;    // timestamp with time zone
+  assigned_by?: string;    // uuid
+  notes?: string;          // text
+  created_at?: string;     // timestamp with time zone 
+  updated_at?: string;     // timestamp with time zone
+}
