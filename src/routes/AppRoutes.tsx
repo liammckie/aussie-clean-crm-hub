@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { default as MainLayout } from '@/layouts/MainLayout';
+import { MainLayout } from '@/components/layout/MainLayout';
 
 // Import lazy-loaded components directly from the lazyRoutes file
 import {

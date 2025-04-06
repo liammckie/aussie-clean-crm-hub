@@ -8,6 +8,7 @@ import { AppLogger, LogLevel, LogCategory } from '../logging';
 describe('Contract Utilities', () => {
   beforeEach(() => {
     // Clear logs before each test
+    jest.spyOn(AppLogger, 'clearLogs');
     AppLogger.clearLogs();
     
     // Spy on logger methods for assertions
