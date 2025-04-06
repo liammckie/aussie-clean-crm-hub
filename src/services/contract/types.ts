@@ -28,7 +28,7 @@ export interface ContractData {
   client_representative_name?: string;
   client_representative_contact?: string;
   notes?: string;
-  // New fields for supplier costs tracking
+  // Supplier costs tracking fields
   supplier_cost_weekly?: number;
   supplier_cost_monthly?: number;
   supplier_cost_annual?: number;
@@ -49,7 +49,7 @@ export interface BillingLineData {
   notes?: string;
   created_at?: string;
   updated_at?: string;
-  // New field for supplier cost
+  // Supplier cost field
   supplier_cost?: number;
 }
 

@@ -55,6 +55,7 @@ export type Database = {
           is_active: boolean | null
           notes: string | null
           site_id: string | null
+          supplier_cost: number | null
           unit: string
           updated_at: string | null
         }
@@ -70,6 +71,7 @@ export type Database = {
           is_active?: boolean | null
           notes?: string | null
           site_id?: string | null
+          supplier_cost?: number | null
           unit: string
           updated_at?: string | null
         }
@@ -85,6 +87,7 @@ export type Database = {
           is_active?: boolean | null
           notes?: string | null
           site_id?: string | null
+          supplier_cost?: number | null
           unit?: string
           updated_at?: string | null
         }
@@ -426,6 +429,7 @@ export type Database = {
           payment_method: string | null
           payment_terms: string | null
           primary_manager_id: string | null
+          profit_margin_percentage: number | null
           rate_schedule: Json | null
           renewal_notice_date: string | null
           service_type: string | null
@@ -433,6 +437,9 @@ export type Database = {
           start_date: string
           state_manager: string | null
           status: string
+          supplier_cost_annual: number | null
+          supplier_cost_monthly: number | null
+          supplier_cost_weekly: number | null
           total_annual_value: number | null
           total_monthly_value: number | null
           total_weekly_value: number | null
@@ -466,6 +473,7 @@ export type Database = {
           payment_method?: string | null
           payment_terms?: string | null
           primary_manager_id?: string | null
+          profit_margin_percentage?: number | null
           rate_schedule?: Json | null
           renewal_notice_date?: string | null
           service_type?: string | null
@@ -473,6 +481,9 @@ export type Database = {
           start_date: string
           state_manager?: string | null
           status?: string
+          supplier_cost_annual?: number | null
+          supplier_cost_monthly?: number | null
+          supplier_cost_weekly?: number | null
           total_annual_value?: number | null
           total_monthly_value?: number | null
           total_weekly_value?: number | null
@@ -506,6 +517,7 @@ export type Database = {
           payment_method?: string | null
           payment_terms?: string | null
           primary_manager_id?: string | null
+          profit_margin_percentage?: number | null
           rate_schedule?: Json | null
           renewal_notice_date?: string | null
           service_type?: string | null
@@ -513,6 +525,9 @@ export type Database = {
           start_date?: string
           state_manager?: string | null
           status?: string
+          supplier_cost_annual?: number | null
+          supplier_cost_monthly?: number | null
+          supplier_cost_weekly?: number | null
           total_annual_value?: number | null
           total_monthly_value?: number | null
           total_weekly_value?: number | null
