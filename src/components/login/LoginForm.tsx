@@ -46,20 +46,15 @@ export function LoginForm() {
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     try {
       await signIn(values.email, values.password);
-      toast.success("Logged in successfully!");
-      navigate('/'); // Navigate to root which will show dashboard
+      navigate('/'); // Navigate to dashboard after successful login
     } catch (error) {
       console.error("Login error:", error);
-      toast.error("Failed to login. Please check your credentials.");
     }
   }
 
   const handleDevMode = () => {
     setAdminSession();
-    toast.success("Development mode activated", {
-      description: "You now have admin access for testing purposes"
-    });
-    navigate('/'); // Navigate to root which will show dashboard
+    navigate('/'); // Navigate to dashboard after setting admin session
   };
 
   return (

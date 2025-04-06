@@ -25,7 +25,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" />;
+    return <Navigate to="/login" replace />;
   }
   
   // Render children within the main layout if authenticated

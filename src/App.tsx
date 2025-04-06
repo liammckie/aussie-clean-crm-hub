@@ -1,5 +1,5 @@
 
-import React, { Suspense, useEffect } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -30,7 +30,7 @@ const SuspenseFallback = () => (
 
 const App = () => {
   // State for loading screen
-  const [showLoading, setShowLoading] = React.useState(true);
+  const [showLoading, setShowLoading] = useState(true);
 
   // Log app initialization
   useEffect(() => {

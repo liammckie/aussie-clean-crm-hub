@@ -26,21 +26,24 @@ import {
 export function AppRoutes() {
   const { isAuthenticated } = useAuth();
 
-  // Redirect to dashboard if logged in and trying to access login page
-  if (isAuthenticated && window.location.pathname === '/login') {
-    return <Navigate to="/" />;
-  }
-
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
-      
-      {/* Protected Routes */}
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
+      {/* Public Routes */}
+      <Route path="/login" element={
+        isAuthenticated ? <Navigate to="/" /> : <Login />
       } />
+      
+      {/* Root path - redirect based on auth status */}
+      <Route path="/" element={
+        isAuthenticated ? (
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        ) : (
+          <Navigate to="/login" />
+        )
+      } />
+
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
@@ -115,9 +118,13 @@ export function AppRoutes() {
       
       {/* Catch all for 404 */}
       <Route path="*" element={
-        <ProtectedRoute>
-          <NotFound />
-        </ProtectedRoute>
+        isAuthenticated ? (
+          <ProtectedRoute>
+            <NotFound />
+          </ProtectedRoute>
+        ) : (
+          <Navigate to="/login" />
+        )
       } />
     </Routes>
   );

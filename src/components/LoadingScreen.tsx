@@ -1,6 +1,5 @@
 
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface LoadingScreenProps {
@@ -14,7 +13,6 @@ export function LoadingScreen({
 }: LoadingScreenProps) {
   const [loadingStage, setLoadingStage] = useState<'initial' | 'assets' | 'complete'>('initial');
   const [isFading, setIsFading] = useState(false);
-  const navigate = useNavigate();
   
   useEffect(() => {
     console.log("Starting asset loading simulation");
@@ -29,7 +27,6 @@ export function LoadingScreen({
           console.log("Loading complete");
           setLoadingStage('complete');
           onLoadingComplete();
-          navigate("/login");
         }, 1000);
       }, duration - 1000);
     }, 500);
@@ -37,7 +34,7 @@ export function LoadingScreen({
     return () => {
       console.log("Cleaning up loading timers");
     };
-  }, [duration, navigate, onLoadingComplete]);
+  }, [duration, onLoadingComplete]);
 
   if (loadingStage === 'complete') return null;
 

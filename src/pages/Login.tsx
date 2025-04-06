@@ -1,11 +1,23 @@
 
-import React from "react";
+import React, { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { LoginBackground } from "@/components/login/LoginBackground";
 import { BrandSection } from "@/components/login/BrandSection";
 import { LoginForm } from "@/components/login/LoginForm";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Login() {
+  const { isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  
+  // Redirect to dashboard if already authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
+
   return (
     <AuthLayout>
       <div className="min-h-screen flex flex-col md:flex-row items-stretch bg-slate-950 relative">
