@@ -1,4 +1,3 @@
-
 # TypeScript Error Resolution Guide
 
 ## Common Type Errors
@@ -141,6 +140,63 @@ const addressLabels = ensureComplete({
 }, Object.values(AddressType));
 ```
 
+### 4. Mock Function Return Type Errors
+
+#### Error Pattern: `error TS2345: Argument of type 'X' is not assignable to parameter of type 'never'`
+
+Example:
+```
+error TS2345: Argument of type 'SuccessResponse<{ id: string; business_name: string; }>' is not assignable to parameter of type 'never'.
+```
+
+**Root Causes:**
+- The mock function's return type is not properly defined
+- Type definitions for mock functions don't match actual implementation
+- Union types are not properly handled in mock setup
+
+**Solutions:**
+
+1. Create helper functions for mock responses:
+```typescript
+// Create helper functions for consistent mock response types
+export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
+  return { data, error: null };
+}
+
+export function createErrorResponse(
+  category: string, 
+  message: string, 
+  details?: any
+): ErrorResponse {
+  return { category, message, details };
+}
+```
+
+2. Use type guards for handling union types:
+```typescript
+// Create a type guard for checking response types
+export function isSuccessResponse<T>(
+  response: ApiResponse<T>
+): response is SuccessResponse<T> {
+  return 'data' in response && response.error === null;
+}
+
+// Usage in tests
+if (isSuccessResponse(result)) {
+  expect(result.data).toEqual(mockData);
+} else {
+  throw new Error('Expected success response');
+}
+```
+
+3. Ensure mock implementations match the expected types:
+```typescript
+// Properly type the mock function implementation
+(serviceFunction as jest.Mock).mockResolvedValue(
+  createSuccessResponse(mockData)
+);
+```
+
 ## Recent Errors and Solutions
 
 ### Error 1: AddressType Import Error
@@ -175,73 +231,31 @@ export { AddressType };
 export type { AddressType };
 ```
 
-### Error 3: AddressType Compatibility Error
+### Error 3: Mock Function Return Type Errors
 
 **Error:**
 ```
-src/components/client/AddressForm.tsx(62,7): error TS2322: Type 'AddressType' is not assignable to type '"billing" | "physical" | "postal"'.
-  Type '"site"' is not assignable to type '"billing" | "physical" | "postal"'.
+src/tests/client/client-service.test.ts(65,66): error TS2345: Argument of type 'SuccessResponse<{ id: string; business_name: string; }[]>' is not assignable to parameter of type 'never'.
 ```
 
 **Solution:**
 ```typescript
-// Update the Zod schema to include all possible address types
-const addressSchema = z.object({
-  // other fields...
-  address_type: z.enum([
-    'billing', 'postal', 'physical', 'shipping', 'head_office', 'branch',
-    'residential', 'commercial', 'warehouse', 'site'
-  ]),
-});
-```
-
-### Error 4: Record Completeness Error
-
-**Error:**
-```
-src/components/shared/AddressTable.tsx(73,11): error TS2740: Type '{ billing: string; postal: string; physical: string; }' is missing the following properties from type 'Record<AddressType, string>': site, shipping, head_office, branch, and 3 more.
-```
-
-**Solution:**
-```typescript
-// Update the typeMap in AddressTable.tsx to include all address types
-const typeMap: Record<AddressType, string> = {
-  'billing': 'Billing',
-  'postal': 'Postal',
-  'physical': 'Physical',
-  'shipping': 'Shipping',
-  'head_office': 'Head Office',
-  'branch': 'Branch',
-  'residential': 'Residential',
-  'commercial': 'Commercial',
-  'warehouse': 'Warehouse',
-  'site': 'Site'
-};
-```
-
-### Error 5: Contract API Error Handling
-
-**Error:**
-Sample contract loading fails silently with no clear error message
-
-**Solution:**
-```typescript
-// Enhanced error handling in contract API calls
-try {
-  const response = await contractService.createContract(contractData);
-  if ('category' in response) {
-    console.error(`Contract creation failed: ${response.message}`);
-    throw new Error(response.message);
-  }
-  return response.data;
-} catch (error) {
-  console.error('Contract creation error:', error);
-  ErrorReporting.captureException(error, { 
-    contractData: JSON.stringify(contractData),
-    operation: 'createContract' 
-  });
-  throw error;
+// Create a test utilities file with proper type definitions
+// src/tests/utils/test-helpers.ts
+export interface SuccessResponse<T = any> {
+  data: T;
+  error: null;
 }
+
+export type ApiResponse<T = any> = SuccessResponse<T> | ErrorResponse;
+
+export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
+  return { data, error: null };
+}
+
+// Use in tests:
+const mockResponse = createSuccessResponse(mockData);
+(clientService.getClientById as jest.Mock).mockResolvedValue(mockResponse);
 ```
 
 ## Preventing Future Errors
@@ -250,32 +264,28 @@ try {
    - Define each type in exactly one location
    - Import from canonical sources
 
-2. **Validate Type Changes**
-   - When modifying a type, search the codebase for all usages
-   - Update all dependent code when adding new enum values
+2. **Create Test Utilities for Common Patterns**
+   - Create helper functions for mocks and assertions
+   - Ensure consistent typing across all tests
 
-3. **Use TypeScript Strict Mode**
-   - Enable strict type checking in tsconfig.json
-   - Don't use type assertions unnecessarily
+3. **Use Type Guards for Union Types**
+   - Implement proper type checking for discriminated unions
+   - Create reusable type guards for response types
 
-4. **Test Type Changes**
-   - Add TypeScript-specific tests for critical types
-   - Verify type compatibility across modules
-
-5. **Document Type Dependencies**
+4. **Document Type Dependencies**
    - Create and maintain documentation for type relationships
    - Document the expected values for enums and their uses
 
-6. **Use IDE Tools**
+5. **Use IDE Tools**
    - Leverage IDE features to find type references
    - Use the TypeScript Language Server to verify type compatibility
 
-7. **Implement Comprehensive Error Logging**
+6. **Implement Comprehensive Error Logging**
    - Add detailed error context to all API calls
    - Log both client and server-side errors consistently
    - Use structured error objects with categorization
 
-8. **Add Testing Framework**
+7. **Add Testing Framework**
    - Create unit tests for core business logic
    - Implement integration tests for critical workflows
    - Add contract test fixtures for reliable testing
@@ -284,4 +294,6 @@ try {
 
 - [Official TypeScript Documentation](https://www.typescriptlang.org/docs/)
 - [TypeScript Error Reference](https://www.typescriptlang.org/docs/handbook/error-reference/)
+- [Jest Testing Documentation](https://jestjs.io/docs/getting-started)
+- [Testing Library Documentation](https://testing-library.com/docs/)
 - [Zod Schema Validation](https://zod.dev/)

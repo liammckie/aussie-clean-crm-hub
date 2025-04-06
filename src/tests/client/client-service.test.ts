@@ -2,21 +2,15 @@
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { createMockSupabaseClient } from '../mocks/supabaseMock';
 import { ClientStatus } from '@/types/database-schema';
-
-// Define return types for API responses
-interface SuccessResponse<T = any> { 
-  data: T; 
-  error: null;
-}
-
-interface ErrorResponse { 
-  category: string; 
-  message: string; 
-  details?: any;
-}
-
-// Define the union type for API responses
-type ApiResponse<T = any> = SuccessResponse<T> | ErrorResponse;
+import { 
+  ApiResponse, 
+  SuccessResponse, 
+  ErrorResponse, 
+  isSuccessResponse, 
+  createSuccessResponse, 
+  createErrorResponse 
+} from '../utils/test-helpers';
+import { ClientFormData } from '@/services/client/types';
 
 // Mock the client service module
 jest.mock('@/services/client/service', () => {
@@ -33,7 +27,6 @@ jest.mock('@/services/client/service', () => {
 
 // Import the mocked functions
 import { clientService } from '@/services/client/service';
-import { ClientFormData } from '@/services/client/types';
 
 // Mock the Supabase client
 jest.mock('@/integrations/supabase/client', () => {
@@ -56,19 +49,17 @@ describe('Client Service', () => {
       { id: '2', business_name: 'Company B' }
     ];
     
-    const mockResponse: SuccessResponse<typeof mockClients> = { 
-      data: mockClients, 
-      error: null 
-    };
+    // Create typed success response
+    const mockResponse = createSuccessResponse(mockClients);
     
-    // Set up the mock implementation
+    // Set up the mock implementation with correct typing
     (clientService.getAllClients as jest.Mock).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.getAllClients();
 
     // Type guard to check if it's a success response
-    if ('data' in result) {
+    if (isSuccessResponse(result)) {
       // Verify the results
       expect(result.data).toEqual(mockClients);
     } else {
@@ -80,10 +71,10 @@ describe('Client Service', () => {
   });
 
   it('handles error when getting all clients', async () => {
-    const mockError: ErrorResponse = { 
-      category: 'server', 
-      message: 'Database error' 
-    };
+    const mockError: ErrorResponse = createErrorResponse(
+      'server', 
+      'Database error'
+    );
     
     // Set up the mock implementation to return an error
     (clientService.getAllClients as jest.Mock).mockResolvedValue(mockError);
@@ -99,10 +90,8 @@ describe('Client Service', () => {
   it('gets client by ID', async () => {
     const mockClient = { id: '123', business_name: 'Test Company' };
     
-    const mockResponse: SuccessResponse<typeof mockClient> = {
-      data: mockClient,
-      error: null
-    };
+    // Create typed success response
+    const mockResponse = createSuccessResponse(mockClient);
     
     // Set up the mock implementation
     (clientService.getClientById as jest.Mock).mockResolvedValue(mockResponse);
@@ -111,7 +100,7 @@ describe('Client Service', () => {
     const result = await clientService.getClientById('123');
 
     // Type guard for success response
-    if ('data' in result) {
+    if (isSuccessResponse(result)) {
       // Verify the results
       expect(result.data).toEqual(mockClient);
     } else {
@@ -122,10 +111,10 @@ describe('Client Service', () => {
   });
 
   it('handles error when getting client by ID', async () => {
-    const mockError: ErrorResponse = { 
-      category: 'not_found', 
-      message: 'Client not found' 
-    };
+    const mockError: ErrorResponse = createErrorResponse(
+      'not_found', 
+      'Client not found'
+    );
     
     // Set up the mock implementation to return an error
     (clientService.getClientById as jest.Mock).mockResolvedValue(mockError);
@@ -145,10 +134,8 @@ describe('Client Service', () => {
       created_at: '2023-04-01T12:00:00Z',
     };
 
-    const mockResponse: SuccessResponse<typeof newClientData> = {
-      data: newClientData,
-      error: null
-    };
+    // Create typed success response
+    const mockResponse = createSuccessResponse(newClientData);
     
     // Set up the mock implementation
     (clientService.createClient as jest.Mock).mockResolvedValue(mockResponse);
@@ -162,9 +149,9 @@ describe('Client Service', () => {
     const result = await clientService.createClient(newClient);
 
     // Type guard for success response
-    if ('data' in result) {
+    if (isSuccessResponse(result)) {
       // Verify the results
-      expect(result.data).toEqual(mockResponse.data);
+      expect(result.data).toEqual(newClientData);
     } else {
       throw new Error('Expected success response but got error');
     }
@@ -173,10 +160,10 @@ describe('Client Service', () => {
   });
 
   it('handles error when creating client', async () => {
-    const mockError: ErrorResponse = { 
-      category: 'validation', 
-      message: 'Failed to create client' 
-    };
+    const mockError: ErrorResponse = createErrorResponse(
+      'validation', 
+      'Failed to create client'
+    );
     
     // Set up the mock implementation to return an error
     (clientService.createClient as jest.Mock).mockResolvedValue(mockError);
@@ -201,10 +188,8 @@ describe('Client Service', () => {
       updated_at: '2023-04-01T14:00:00Z'
     };
 
-    const mockResponse: SuccessResponse<typeof updatedClientData> = {
-      data: updatedClientData,
-      error: null
-    };
+    // Create typed success response
+    const mockResponse = createSuccessResponse(updatedClientData);
     
     // Set up the mock implementation
     (clientService.updateClient as jest.Mock).mockResolvedValue(mockResponse);
@@ -215,9 +200,9 @@ describe('Client Service', () => {
     const result = await clientService.updateClient('123', updates);
 
     // Type guard for success response
-    if ('data' in result) {
+    if (isSuccessResponse(result)) {
       // Verify the results
-      expect(result.data).toEqual(mockResponse.data);
+      expect(result.data).toEqual(updatedClientData);
     } else {
       throw new Error('Expected success response but got error');
     }
@@ -226,10 +211,8 @@ describe('Client Service', () => {
   });
 
   it('deletes a client', async () => {
-    const mockResponse: SuccessResponse<{ success: boolean }> = {
-      data: { success: true },
-      error: null
-    };
+    // Create typed success response
+    const mockResponse = createSuccessResponse({ success: true });
     
     // Set up the mock implementation
     (clientService.deleteClient as jest.Mock).mockResolvedValue(mockResponse);

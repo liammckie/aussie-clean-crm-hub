@@ -2,11 +2,11 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
-import { 
-  Clients, 
-  NewClient, 
-  ClientDetail, 
-  EditClient 
+import {
+  Clients,
+  NewClient,
+  ClientDetail,
+  EditClient
 } from '../lazyRoutes';
 
 export const ClientRoutes = () => {
