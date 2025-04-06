@@ -33,6 +33,7 @@ export interface ApiErrorResponse {
 export interface ApiSuccessResponse<T> {
   data: T;
   message: string;
+  count?: number; // Optional count for paginated responses
 }
 
 /**
@@ -52,6 +53,50 @@ export function isApiError<T>(response: ApiResponse<T>): response is ApiErrorRes
  */
 export function isApiSuccess<T>(response: ApiResponse<T>): response is ApiSuccessResponse<T> {
   return 'data' in response;
+}
+
+/**
+ * Helper for formatting errors into a standard API error response
+ */
+export function formatError(
+  category: ErrorCategory | string, 
+  message: string, 
+  details?: any
+): ApiErrorResponse {
+  // Convert string categories to enum values
+  let errorCategory: ErrorCategory;
+  if (typeof category === 'string') {
+    switch (category.toLowerCase()) {
+      case 'validation':
+        errorCategory = ErrorCategory.VALIDATION;
+        break;
+      case 'authentication':
+        errorCategory = ErrorCategory.AUTHENTICATION;
+        break;
+      case 'permission':
+        errorCategory = ErrorCategory.PERMISSION;
+        break;
+      case 'not_found':
+        errorCategory = ErrorCategory.NOT_FOUND;
+        break;
+      case 'database':
+        errorCategory = ErrorCategory.DATABASE;
+        break;
+      case 'server':
+        errorCategory = ErrorCategory.SERVER;
+        break;
+      default:
+        errorCategory = ErrorCategory.UNKNOWN;
+    }
+  } else {
+    errorCategory = category;
+  }
+  
+  return {
+    category: errorCategory,
+    message,
+    details
+  };
 }
 
 /**
@@ -179,10 +224,12 @@ export function handleApiError(
  */
 export function createSuccessResponse<T>(
   data: T, 
-  message: string
+  message: string,
+  count?: number
 ): ApiSuccessResponse<T> {
   return {
     data,
-    message
+    message,
+    count
   };
 }

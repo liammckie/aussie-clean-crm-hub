@@ -40,8 +40,10 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
     if (!searchQuery.trim()) return true;
     
     const query = searchQuery.toLowerCase();
+    const businessName = supplier.business_name || supplier.supplier_name || '';
+    
     return (
-      supplier.business_name?.toLowerCase().includes(query) ||
+      businessName.toLowerCase().includes(query) ||
       supplier.abn?.toLowerCase().includes(query)
     );
   });
@@ -58,9 +60,9 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
     
     try {
       await assignSupplier({
-        supplier_id: selectedSupplier.supplier_id || selectedSupplier.id,
+        supplier_id: selectedSupplier.supplier_id || selectedSupplier.id || '',
         contract_id: contractId,
-        role: selectedRole,
+        role: selectedRole as any, // Type conversion for compatibility
         status: 'active',
         notes: ''
       });
@@ -127,35 +129,43 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contractSuppliers.map((supplier) => (
-                  <TableRow key={supplier.supplier_id}>
-                    <TableCell className="font-medium">{supplier.suppliers?.business_name || 'Unknown'}</TableCell>
-                    <TableCell>{supplier.role || 'Subcontractor'}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        className={
-                          supplier.status === 'active'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-amber-100 text-amber-800'
-                        }
-                      >
-                        {supplier.status || 'Active'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{supplier.suppliers?.abn || 'Not specified'}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveSupplier(supplier.supplier_id)}
-                        disabled={isRemoving}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Remove</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {contractSuppliers.map((supplier) => {
+                  // Handle potentially nested supplier data
+                  const supplierData = supplier.suppliers || supplier;
+                  const supplierId = supplier.supplier_id || supplier.link_id;
+                  
+                  return (
+                    <TableRow key={supplierId}>
+                      <TableCell className="font-medium">
+                        {supplierData?.business_name || supplierData?.supplier_name || 'Unknown'}
+                      </TableCell>
+                      <TableCell>{supplier.role || 'Subcontractor'}</TableCell>
+                      <TableCell>
+                        <Badge 
+                          className={
+                            supplier.status === 'active'
+                              ? 'bg-green-100 text-green-800'
+                              : 'bg-amber-100 text-amber-800'
+                          }
+                        >
+                          {supplier.status || 'Active'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>{supplierData?.abn || 'Not specified'}</TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveSupplier(supplierId)}
+                          disabled={isRemoving}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Remove</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>
@@ -187,18 +197,25 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
                   <div className="p-4 text-center text-muted-foreground">No suppliers found</div>
                 ) : (
                   <div className="divide-y">
-                    {filteredSuppliers.map((supplier) => (
-                      <div
-                        key={supplier.id}
-                        className={`p-2 cursor-pointer hover:bg-secondary ${
-                          selectedSupplier?.id === supplier.id ? 'bg-secondary' : ''
-                        }`}
-                        onClick={() => handleSelectSupplier(supplier)}
-                      >
-                        <div className="font-medium">{supplier.business_name}</div>
-                        {supplier.abn && <div className="text-sm text-muted-foreground">ABN: {supplier.abn}</div>}
-                      </div>
-                    ))}
+                    {filteredSuppliers.map((supplier) => {
+                      const supplierId = supplier.id || supplier.supplier_id;
+                      const businessName = supplier.business_name || supplier.supplier_name;
+                      
+                      return (
+                        <div
+                          key={supplierId}
+                          className={`p-2 cursor-pointer hover:bg-secondary ${
+                            selectedSupplier?.id === supplierId || selectedSupplier?.supplier_id === supplierId
+                              ? 'bg-secondary' 
+                              : ''
+                          }`}
+                          onClick={() => handleSelectSupplier(supplier)}
+                        >
+                          <div className="font-medium">{businessName}</div>
+                          {supplier.abn && <div className="text-sm text-muted-foreground">ABN: {supplier.abn}</div>}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -219,7 +236,9 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
               {selectedSupplier && (
                 <div className="flex items-center p-2 bg-secondary rounded-md">
                   <div className="flex-1">
-                    <div className="font-medium">{selectedSupplier.business_name}</div>
+                    <div className="font-medium">
+                      {selectedSupplier.business_name || selectedSupplier.supplier_name}
+                    </div>
                     <div className="text-sm text-muted-foreground">
                       ABN: {selectedSupplier.abn || 'Not provided'}
                     </div>

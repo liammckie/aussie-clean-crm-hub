@@ -20,7 +20,9 @@ export enum LogCategory {
   UI = 'ui',
   DATABASE = 'database',
   STORAGE = 'storage',
-  CACHE = 'cache'
+  CACHE = 'cache',
+  WORK_ORDER = 'work_order',
+  FINANCIAL = 'financial'
 }
 
 /**

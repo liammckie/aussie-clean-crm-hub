@@ -34,6 +34,7 @@ export type BankDetails = z.infer<typeof bankDetailsSchema>;
 // Base supplier schema that matches the database table structure
 export const supplierFormSchema = z.object({
   supplier_name: z.string().min(1, "Supplier name is required"),
+  business_name: z.string().optional(), // Added for compatibility
   supplier_type: z.string(),
   status: z.string(),
   date_onboarded: z.string().optional().nullable(),
@@ -58,8 +59,10 @@ export const supplierFormSchema = z.object({
 
 // Define the SupplierData type based on the Zod schema
 export type SupplierData = {
-  supplier_id: string; // Database PK
-  supplier_name: string;
+  supplier_id?: string; // Database PK
+  id?: string; // Alternative key for compatibility
+  supplier_name: string; 
+  business_name?: string; // Added for compatibility
   supplier_type: string;
   status: string;
   date_onboarded?: string | null;
@@ -85,7 +88,7 @@ export type SupplierData = {
 };
 
 // Type for creating a new supplier (omits id and timestamps)
-export type SupplierCreateData = Omit<SupplierData, 'supplier_id' | 'created_at' | 'updated_at'>;
+export type SupplierCreateData = Omit<SupplierData, 'supplier_id' | 'id' | 'created_at' | 'updated_at'>;
 
 // Supplier with compliance documents
 export type SupplierWithCompliance = SupplierData & {

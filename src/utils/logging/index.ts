@@ -1,4 +1,5 @@
 
+// Re-export all logging functionality
 export * from './types';
 export * from './logger';
 export * from './performance';

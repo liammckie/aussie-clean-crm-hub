@@ -15,36 +15,48 @@ import {
 } from "@/components/ui/popover"
 
 export interface DatePickerProps {
-  value?: Date | string
-  onSelect?: (date: Date | undefined) => void
-  className?: string
-  placeholder?: string
+  value?: Date | string;
+  onSelect?: (date: Date | undefined) => void;
+  date?: Date | null; // For backward compatibility
+  setDate?: (date: Date | null) => void; // For backward compatibility
+  className?: string;
+  placeholder?: string;
 }
 
 export function DatePicker({
   value,
   onSelect,
+  date, // Support the older API
+  setDate, // Support the older API
   className,
   placeholder = "Pick a date",
 }: DatePickerProps) {
-  const [date, setDate] = React.useState<Date | undefined>(
-    value ? (typeof value === 'string' ? new Date(value) : value) : undefined
+  // Determine which value to use based on which prop is provided
+  const actualValue = value !== undefined ? value : date;
+  
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(
+    actualValue ? (typeof actualValue === 'string' ? new Date(actualValue) : actualValue) : undefined
   )
 
-  // Update internal state when value prop changes
+  // Update internal state when value or date prop changes
   React.useEffect(() => {
-    if (value) {
-      setDate(typeof value === 'string' ? new Date(value) : value)
+    if (actualValue) {
+      setSelectedDate(typeof actualValue === 'string' ? new Date(actualValue) : actualValue)
     } else {
-      setDate(undefined)
+      setSelectedDate(undefined)
     }
-  }, [value])
+  }, [actualValue])
 
   // Handle date selection
   const handleSelect = (newDate: Date | undefined) => {
-    setDate(newDate)
+    setSelectedDate(newDate)
+    
+    // Support both old and new APIs
     if (onSelect) {
       onSelect(newDate)
+    }
+    if (setDate) {
+      setDate(newDate || null)
     }
   }
 
@@ -56,17 +68,17 @@ export function DatePicker({
             variant={"outline"}
             className={cn(
               "w-full justify-start text-left font-normal",
-              !date && "text-muted-foreground"
+              !selectedDate && "text-muted-foreground"
             )}
           >
             <CalendarIcon className="mr-2 h-4 w-4" />
-            {date ? format(date, "PPP") : <span>{placeholder}</span>}
+            {selectedDate ? format(selectedDate, "PPP") : <span>{placeholder}</span>}
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"
-            selected={date}
+            selected={selectedDate}
             onSelect={handleSelect}
             initialFocus
             className="p-3 pointer-events-auto"
