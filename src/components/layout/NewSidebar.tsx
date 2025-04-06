@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
@@ -23,13 +22,13 @@ const menuItems = [
   { icon: Home, label: "Dashboard", path: "/dashboard" },
   { icon: Users, label: "Clients", path: "/clients" },
   { icon: FileCheck, label: "Contracts", path: "/contracts" },
+  { icon: Truck, label: "Suppliers", path: "/suppliers" },
   { icon: TrendingUp, label: "Sales", path: "/sales" },
   { icon: Briefcase, label: "Work Orders", path: "/work-orders" },
   { icon: Calendar, label: "Activities", path: "/activities" },
   { icon: DollarSign, label: "Finance", path: "/finance" },
   { icon: Settings, label: "Settings", path: "/settings" },
   { icon: FileText, label: "Quick Forms", path: "/forms" },
-  { icon: Truck, label: "Suppliers", path: "/suppliers" },
   { icon: Activity, label: "Activity Log", path: "/logs" },
 ];
 

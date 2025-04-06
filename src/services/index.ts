@@ -4,3 +4,4 @@ export * from './client';
 export * from './validation.service';
 export * from './site';
 export * from './contract';
+export * from './supplier';
