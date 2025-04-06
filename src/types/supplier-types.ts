@@ -1,96 +1,91 @@
 
-import { z } from 'zod';
+import { z } from "zod";
 
-// Enums for supplier types and statuses
-export enum SupplierType {
-  CONSUMABLE = 'Consumable',
-  SERVICE = 'Service',
-  DELIVERY = 'Delivery',
-  EQUIPMENT = 'Equipment',
-  SUBCONTRACTOR = 'Subcontractor',
-  STAFFING = 'Staffing',
-  TRAINING = 'Training',
-  INSURANCE = 'Insurance',
-  OTHER = 'Other'
-}
-
+// Supplier status enum
 export enum SupplierStatus {
-  ACTIVE = 'Active',
-  ON_HOLD = 'On Hold',
-  SUSPENDED = 'Suspended',
-  TERMINATED = 'Terminated'
+  ACTIVE = "active",
+  INACTIVE = "inactive",
+  PENDING = "pending",
+  TERMINATED = "terminated"
 }
 
-export const AustralianStates = ['VIC', 'NSW', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'] as const;
-export type AustralianState = typeof AustralianStates[number];
+// Supplier type enum
+export enum SupplierType {
+  SERVICE = "service",
+  PRODUCT = "product",
+  BOTH = "both"
+}
 
-// Zod schema for supplier validation
+// Australian states
+export const AustralianStates = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"];
+
+// Base supplier schema that matches the database table structure
 export const supplierFormSchema = z.object({
-  supplier_name: z.string().min(1, 'Supplier name is required'),
-  supplier_type: z.nativeEnum(SupplierType),
-  status: z.nativeEnum(SupplierStatus).default(SupplierStatus.ACTIVE),
-  date_onboarded: z.string().optional(),
-  date_terminated: z.string().nullable().optional(),
-  abn: z.string().optional(),
-  acn: z.string().optional(),
-  supplier_code: z.string().optional(),
-  address_line: z.string().optional(),
-  suburb: z.string().optional(),
-  state: z.enum(AustralianStates).optional(),
-  postcode: z.string().regex(/^\d{4}$/, 'Must be a valid 4-digit Australian postcode').optional(),
-  country: z.string().default('Australia'),
-  contact_person: z.string().optional(),
-  phone: z.string().optional(),
-  email: z.string().email('Invalid email address').optional(),
-  billing_email: z.string().email('Invalid email address').optional(),
-  invoice_email: z.string().email('Invalid email address').optional(),
-  services_provided: z.string().optional(),
-  bank_details: z.object({
-    bsb: z.string().optional(),
-    account_number: z.string().optional(),
-    account_name: z.string().optional()
-  }).optional(),
-  notes: z.string().optional()
+  supplier_name: z.string().min(1, "Supplier name is required"),
+  supplier_type: z.string(),
+  status: z.string(),
+  date_onboarded: z.string().optional().nullable(),
+  date_terminated: z.string().optional().nullable(),
+  abn: z.string().optional().nullable(),
+  acn: z.string().optional().nullable(),
+  supplier_code: z.string().optional().nullable(),
+  address_line: z.string().optional().nullable(),
+  suburb: z.string().optional().nullable(),
+  state: z.string().optional().nullable(),
+  postcode: z.string().optional().nullable(),
+  country: z.string().optional().nullable(),
+  contact_person: z.string().optional().nullable(),
+  phone: z.string().optional().nullable(),
+  email: z.string().optional().nullable(),
+  billing_email: z.string().optional().nullable(),
+  invoice_email: z.string().optional().nullable(),
+  services_provided: z.string().optional().nullable(),
+  notes: z.string().optional().nullable(),
 });
 
-// Type for supplier data
-export type SupplierData = z.infer<typeof supplierFormSchema> & {
-  supplier_id: string;
+// Define the SupplierData type based on the Zod schema
+export type SupplierData = {
+  supplier_id: string; // Database PK
+  supplier_name: string;
+  supplier_type: string;
+  status: string;
+  date_onboarded?: string | null;
+  date_terminated?: string | null;
+  abn?: string | null;
+  acn?: string | null;
+  supplier_code?: string | null;
+  address_line?: string | null;
+  suburb?: string | null;
+  state?: string | null;
+  postcode?: string | null;
+  country?: string | null;
+  contact_person?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  billing_email?: string | null;
+  invoice_email?: string | null;
+  services_provided?: string | null;
+  notes?: string | null;
   created_at?: string;
   updated_at?: string;
-  compliance_documents?: ComplianceDocument[];
-  cumulative_spend?: number;
-  unpaid_balance?: number;
-  sites_count?: number;
-  qa_scores?: QAScore[];
 };
 
-// Type for supplier creation
-export type SupplierCreateData = Omit<SupplierData, 'supplier_id'>;
+// Type for creating a new supplier (omits id and timestamps)
+export type SupplierCreateData = Omit<SupplierData, 'supplier_id' | 'created_at' | 'updated_at'>;
 
-// Types for compliance documents
-export interface ComplianceDocument {
-  document_id: string;
+// Supplier with compliance documents
+export type SupplierWithCompliance = SupplierData & {
+  compliance_documents: ComplianceDocument[];
+};
+
+// Compliance document type
+export type ComplianceDocument = {
+  id: string;
   supplier_id: string;
-  document_type: string;
   document_name: string;
-  document_number?: string;
-  issue_date?: string;
-  expiry_date?: string;
-  status?: string;
-  document_url?: string;
-  amount_covered?: number;
-  issuer_name?: string;
-  verified_by?: string;
-  verified_at?: string;
-}
-
-// Types for QA scores
-export interface QAScore {
-  score_id: string;
-  supplier_id: string;
-  score: number;
-  date: string;
-  notes?: string;
-  reviewer?: string;
-}
+  document_type: string;
+  expiry_date?: string | null;
+  file_url?: string | null;
+  created_at: string;
+  updated_at: string;
+};

@@ -20,7 +20,8 @@ import {
   NewSupplier,
   SupplierDetail,
   EditSupplier,
-  NotFound 
+  NotFound,
+  Sites  // Added Sites page
 } from './lazyRoutes';
 
 export function AppRoutes() {
@@ -72,7 +73,7 @@ export function AppRoutes() {
           <ClientDetail />
         </ProtectedRoute>
       } />
-      <Route path="/clients/:clientId/edit" element={
+      <Route path="/clients/edit/:clientId" element={
         <ProtectedRoute>
           <EditClient />
         </ProtectedRoute>
@@ -122,15 +123,15 @@ export function AppRoutes() {
         </ProtectedRoute>
       } />
 
-      {/* Task routes (placeholder) */}
-      <Route path="/tasks" element={
+      {/* Sites route */}
+      <Route path="/sites" element={
         <ProtectedRoute>
-          <NotFound />
+          <Sites />
         </ProtectedRoute>
       } />
 
-      {/* Sites routes (placeholder) */}
-      <Route path="/sites" element={
+      {/* Task routes (placeholder) */}
+      <Route path="/tasks" element={
         <ProtectedRoute>
           <NotFound />
         </ProtectedRoute>

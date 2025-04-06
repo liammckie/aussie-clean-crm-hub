@@ -19,7 +19,17 @@ export async function createSupplier(supplierData: SupplierCreateData): Promise<
     
     const { data, error } = await supabase
       .from('suppliers')
-      .insert(supplierData)
+      .insert({
+        supplier_name: supplierData.supplier_name,
+        supplier_type: supplierData.supplier_type,
+        status: supplierData.status,
+        abn: supplierData.abn,
+        business_name: supplierData.supplier_name,
+        notes: supplierData.notes,
+        primary_contact_name: supplierData.contact_person,
+        primary_contact_phone: supplierData.phone,
+        primary_contact_email: supplierData.email
+      })
       .select()
       .single();
       

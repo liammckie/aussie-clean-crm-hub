@@ -1,16 +1,5 @@
 
-import type { SupplierData, SupplierCreateData, ComplianceDocument, QAScore } from '@/types/supplier-types';
-
-// Response types
-export type SupplierResponse = {
-  data: SupplierData;
-  message: string;
-};
-
-export type SuppliersResponse = {
-  data: SupplierData[];
-  message: string;
-};
+import { SupplierData, ComplianceDocument } from '@/types/supplier-types';
 
 // Error response type
 export type SupplierErrorResponse = {
@@ -19,21 +8,38 @@ export type SupplierErrorResponse = {
   details?: any;
 };
 
-// Combined response types
-export type SupplierApiResponse = SupplierResponse | SupplierErrorResponse;
-export type SuppliersApiResponse = SuppliersResponse | SupplierErrorResponse;
-
-// Document response types
-export type ComplianceDocumentResponse = {
-  data: ComplianceDocument;
+// Success response type for a single supplier
+export type SupplierSuccessResponse = {
+  data: SupplierData;
   message: string;
 };
 
-export type ComplianceDocumentsResponse = {
+// Success response type for multiple suppliers
+export type SuppliersSuccessResponse = {
+  data: SupplierData[];
+  message: string;
+};
+
+// Combined response type for a single supplier
+export type SupplierApiResponse = SupplierSuccessResponse | SupplierErrorResponse;
+
+// Combined response type for multiple suppliers
+export type SuppliersApiResponse = SuppliersSuccessResponse | SupplierErrorResponse;
+
+// Success response type for compliance documents
+export type ComplianceDocumentsSuccessResponse = {
   data: ComplianceDocument[];
   message: string;
 };
 
-// Combined document response types
-export type ComplianceDocumentApiResponse = ComplianceDocumentResponse | SupplierErrorResponse;
-export type ComplianceDocumentsApiResponse = ComplianceDocumentsResponse | SupplierErrorResponse;
+// Success response type for a single compliance document
+export type ComplianceDocumentSuccessResponse = {
+  data: ComplianceDocument;
+  message: string;
+};
+
+// Combined response type for compliance documents
+export type ComplianceDocumentsApiResponse = ComplianceDocumentsSuccessResponse | SupplierErrorResponse;
+
+// Combined response type for a single compliance document
+export type ComplianceDocumentApiResponse = ComplianceDocumentSuccessResponse | SupplierErrorResponse;

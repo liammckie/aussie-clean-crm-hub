@@ -14,7 +14,7 @@ import { ClientSitesTab } from '@/components/client/ClientSitesTab';
 import { ClientContractsTab } from '@/components/client/ClientContractsTab';
 
 const EditClient = () => {
-  const { id } = useParams<{ id: string }>();
+  const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
   const [activeTab, setActiveTab] = useState('details');
@@ -42,11 +42,11 @@ const EditClient = () => {
   });
   
   const { useClientDetails } = useClients();
-  const { data: client, isLoading: isLoadingClient, refetch: refetchClient } = useClientDetails(id);
+  const { data: client, isLoading: isLoadingClient, refetch: refetchClient } = useClientDetails(clientId);
 
   useEffect(() => {
-    if (id && !isLoaded) {
-      clientService.getClientById(id)
+    if (clientId && !isLoaded) {
+      clientService.getClientById(clientId)
         .then(response => {
           if (!response || 'category' in response || !response.data) {
             const errorMessage = 'category' in response ? response.message || 'Unknown error' : 'Unknown error';
@@ -108,7 +108,7 @@ const EditClient = () => {
       });
       setIsLoaded(true);
     }
-  }, [id, client, isLoaded]);
+  }, [clientId, client, isLoaded]);
 
   if (!isLoaded && isLoadingClient) {
     return (
@@ -120,13 +120,19 @@ const EditClient = () => {
     );
   }
 
-  if (!id) {
+  if (!clientId) {
     toast.error('Client ID is missing.');
     return (
       <div className="container mx-auto px-4 py-8">
         <div className="p-4 border rounded bg-red-50 text-red-800">
           Error: Client ID is missing
         </div>
+        <button 
+          className="mt-4 px-4 py-2 bg-primary text-white rounded hover:bg-primary/90"
+          onClick={() => navigate('/clients')}
+        >
+          Return to Clients
+        </button>
       </div>
     );
   }
@@ -185,7 +191,7 @@ const EditClient = () => {
         
         <TabsContent value="details">
           <ClientDetailsTab 
-            clientId={id} 
+            clientId={clientId} 
             initialData={clientData}
             onSaveSuccess={() => navigate('/clients')} 
           />
@@ -193,17 +199,17 @@ const EditClient = () => {
         
         <TabsContent value="contacts">
           <ClientContactsTab 
-            clientId={id} 
+            clientId={clientId} 
             onContactAdded={() => refetchClient()} 
           />
         </TabsContent>
         
         <TabsContent value="sites">
-          <ClientSitesTab clientId={id} />
+          <ClientSitesTab clientId={clientId} />
         </TabsContent>
         
         <TabsContent value="contracts">
-          <ClientContractsTab clientId={id} />
+          <ClientContractsTab clientId={clientId} />
         </TabsContent>
       </Tabs>
     </div>

@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useContracts } from "@/hooks/use-contracts-table";
 import { ContractsTable } from "@/components/contracts/ContractsTable";
 import { BulkManagerAssign } from "@/components/contracts/BulkManagerAssign";
@@ -10,7 +11,7 @@ import { Separator } from "@/components/ui/separator";
 import { contractService } from "@/services/contract";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
 import { TabulatorTable } from "@/components/contracts/TabulatorTable";
 import { LoadSampleContracts } from "@/components/contracts/LoadSampleContracts";
 import { getMockContractData } from "@/utils/contractTestData";
@@ -21,6 +22,7 @@ export default function Contracts() {
   const [activeTab, setActiveTab] = useState<string>("tabulator");
   const [useMockData, setUseMockData] = useState(false);
   const [mockContracts, setMockContracts] = useState<any[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // If there's a permission error, load mock data for visualization
@@ -34,6 +36,10 @@ export default function Contracts() {
 
   const handleContractsSelected = (contracts: any[]) => {
     setSelectedContracts(contracts);
+  };
+
+  const handleCreateContract = () => {
+    navigate("/contracts/new");
   };
 
   if (isLoadingContracts) {
@@ -83,9 +89,20 @@ export default function Contracts() {
           <Separator className="my-4" />
         </div>
         
-        {!hasContracts && (
-          <LoadSampleContracts onContractsLoaded={refetchContracts} />
-        )}
+        <div className="flex space-x-2">
+          <Button 
+            variant="default" 
+            onClick={handleCreateContract}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Contract
+          </Button>
+          
+          {!hasContracts && (
+            <LoadSampleContracts onContractsLoaded={refetchContracts} />
+          )}
+        </div>
 
         {useMockData && (
           <div className="flex items-center">
@@ -110,7 +127,7 @@ export default function Contracts() {
           <div className="py-12">
             <h3 className="text-xl font-medium mb-2">No Contracts Found</h3>
             <p className="text-muted-foreground mb-6">
-              There are no contracts in the system yet. Click the button above to generate sample contracts.
+              There are no contracts in the system yet. Click the button above to create a new contract or generate sample contracts.
             </p>
           </div>
         </Card>
