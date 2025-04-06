@@ -3,15 +3,19 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { createMockSupabaseClient } from '../mocks/supabaseMock';
 import { ClientStatus } from '@/types/database-schema';
 
-// Define return types for clientService mock functions
-type SuccessResponse<T = any> = { data: T; error: null };
-type ErrorResponse = { 
+// Define return types for API responses
+interface SuccessResponse<T = any> { 
+  data: T; 
+  error: null;
+}
+
+interface ErrorResponse { 
   category: string; 
   message: string; 
   details?: any;
-};
+}
 
-// Define the return type for the mock functions
+// Define the union type for API responses
 type ApiResponse<T = any> = SuccessResponse<T> | ErrorResponse;
 
 // Mock the client service module
@@ -52,7 +56,7 @@ describe('Client Service', () => {
       { id: '2', business_name: 'Company B' }
     ];
     
-    const mockResponse: ApiResponse<typeof mockClients> = { 
+    const mockResponse: SuccessResponse<typeof mockClients> = { 
       data: mockClients, 
       error: null 
     };
@@ -95,7 +99,7 @@ describe('Client Service', () => {
   it('gets client by ID', async () => {
     const mockClient = { id: '123', business_name: 'Test Company' };
     
-    const mockResponse: ApiResponse<typeof mockClient> = {
+    const mockResponse: SuccessResponse<typeof mockClient> = {
       data: mockClient,
       error: null
     };
@@ -141,7 +145,7 @@ describe('Client Service', () => {
       created_at: '2023-04-01T12:00:00Z',
     };
 
-    const mockResponse: ApiResponse<typeof newClientData> = {
+    const mockResponse: SuccessResponse<typeof newClientData> = {
       data: newClientData,
       error: null
     };
@@ -197,7 +201,7 @@ describe('Client Service', () => {
       updated_at: '2023-04-01T14:00:00Z'
     };
 
-    const mockResponse: ApiResponse<typeof updatedClientData> = {
+    const mockResponse: SuccessResponse<typeof updatedClientData> = {
       data: updatedClientData,
       error: null
     };
@@ -222,7 +226,7 @@ describe('Client Service', () => {
   });
 
   it('deletes a client', async () => {
-    const mockResponse: ApiResponse<{ success: boolean }> = {
+    const mockResponse: SuccessResponse<{ success: boolean }> = {
       data: { success: true },
       error: null
     };
