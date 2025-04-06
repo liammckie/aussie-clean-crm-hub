@@ -1,34 +1,42 @@
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Heading } from '@/components/ui/heading';
-import { Separator } from '@/components/ui/separator';
 import { SupplierForm } from '@/components/suppliers/SupplierForm';
-import { useSuppliers } from '@/hooks/use-suppliers';
-import { AppLogger, LogCategory } from '@/utils/logging';
-import { SupplierCreateData } from '@/services/supplier/types';
+import { useCreateSupplier } from '@/hooks/use-suppliers';
+import { SupplierCreateData } from '@/types/supplier-types';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft } from 'lucide-react';
 
-const NewSupplier = () => {
-  const { createSupplier, isCreatingSupplier } = useSuppliers();
-  
-  const handleCreateSupplier = async (data: SupplierCreateData) => {
-    AppLogger.info(LogCategory.SUPPLIER, 'Creating new supplier', data);
-    return await createSupplier(data);
+export default function NewSupplier() {
+  const navigate = useNavigate();
+  const { mutateAsync: createSupplier, isPending } = useCreateSupplier();
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (data: SupplierCreateData) => {
+    try {
+      setError(null);
+      const supplier = await createSupplier(data);
+      navigate(`/suppliers/${supplier.supplier_id}`);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred while creating the supplier');
+    }
   };
-  
+
   return (
-    <div className="container mx-auto p-6">
-      <Heading
-        title="Create New Supplier"
-        description="Add a new supplier or subcontractor to the system"
-      />
-      <Separator className="my-4" />
+    <div className="container py-6 space-y-6">
+      <div className="flex items-center space-x-2">
+        <Button variant="ghost" size="icon" onClick={() => navigate('/suppliers')}>
+          <ChevronLeft className="h-4 w-4" />
+        </Button>
+        <Heading>New Supplier</Heading>
+      </div>
       
-      <SupplierForm
-        onSubmit={handleCreateSupplier}
-        isSubmitting={isCreatingSupplier}
+      <SupplierForm 
+        onSubmit={handleSubmit}
+        isSubmitting={isPending}
+        error={error}
       />
     </div>
   );
-};
-
-export default NewSupplier;
+}

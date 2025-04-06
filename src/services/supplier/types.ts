@@ -1,80 +1,39 @@
 
-/**
- * Type definitions for the supplier management system
- */
+import type { SupplierData, SupplierCreateData, ComplianceDocument, QAScore } from '@/types/supplier-types';
 
-// Main supplier data type
-export interface SupplierData {
-  id: string;
-  business_name: string;
-  abn?: string;
-  acn?: string;
-  status: 'active' | 'on_hold' | 'suspended' | 'terminated';
-  supplier_code?: string;
-  primary_contact_name?: string;
-  primary_contact_phone?: string;
-  primary_contact_email?: string;
-  billing_email?: string;
-  invoice_email?: string;
-  services_provided?: string;
-  supplier_type?: string;
-  date_onboarded?: string;
-  date_terminated?: string | null;
-  compliance_status?: string;
-  last_review_date?: string | null;
-  notes?: string;
-  bank_details?: SupplierBankDetails;
-  cumulative_spend?: number;
-  unpaid_balance?: number;
-  sites_count?: number;
-  created_at?: string;
-  updated_at?: string;
-}
+// Response types
+export type SupplierResponse = {
+  data: SupplierData;
+  message: string;
+};
 
-// Bank details stored as a nested object
-export interface SupplierBankDetails {
-  account_name?: string;
-  bsb?: string;
-  account_number?: string;
-  bank_name?: string;
-  payment_reference?: string;
-}
+export type SuppliersResponse = {
+  data: SupplierData[];
+  message: string;
+};
 
-// Supplier compliance document
-export interface SupplierDocumentData {
-  id: string;
-  supplier_id: string;
-  document_name: string;
-  document_type: string;
-  expiry_date?: string;
-  file_url?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+// Error response type
+export type SupplierErrorResponse = {
+  category: 'validation' | 'permission' | 'not_found' | 'server';
+  message: string;
+  details?: any;
+};
 
-// Supplier create data for new suppliers
-export interface SupplierCreateData {
-  business_name: string;
-  abn?: string;
-  acn?: string;
-  status: 'active' | 'on_hold' | 'suspended' | 'terminated';
-  supplier_code?: string;
-  primary_contact_name?: string;
-  primary_contact_phone?: string;
-  primary_contact_email?: string;
-  billing_email?: string;
-  invoice_email?: string;
-  services_provided?: string;
-  supplier_type?: string;
-  date_onboarded?: string;
-  notes?: string;
-  bank_details?: SupplierBankDetails;
-}
+// Combined response types
+export type SupplierApiResponse = SupplierResponse | SupplierErrorResponse;
+export type SuppliersApiResponse = SuppliersResponse | SupplierErrorResponse;
 
-// Service that a supplier provides
-export interface SupplierServiceData {
-  id: string;
-  supplier_id: string;
-  service_type: string;
-  created_at?: string;
-}
+// Document response types
+export type ComplianceDocumentResponse = {
+  data: ComplianceDocument;
+  message: string;
+};
+
+export type ComplianceDocumentsResponse = {
+  data: ComplianceDocument[];
+  message: string;
+};
+
+// Combined document response types
+export type ComplianceDocumentApiResponse = ComplianceDocumentResponse | SupplierErrorResponse;
+export type ComplianceDocumentsApiResponse = ComplianceDocumentsResponse | SupplierErrorResponse;

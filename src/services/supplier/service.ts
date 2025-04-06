@@ -1,104 +1,56 @@
 
-import * as supplierApi from './api';
-import { 
-  SupplierData, 
-  SupplierDocumentData, 
-  SupplierServiceData, 
-  SupplierCreateData 
+import * as api from './api';
+import type { 
+  SupplierApiResponse, 
+  SuppliersApiResponse,
+  ComplianceDocumentsApiResponse,
+  ComplianceDocumentApiResponse
 } from './types';
+import type { SupplierCreateData, SupplierData } from '@/types/supplier-types';
 
 /**
- * Service wrapper for supplier-related operations
+ * Supplier service for interacting with the supplier API
  */
 export const supplierService = {
   /**
-   * Get all suppliers
-   */
-  getAllSuppliers: async () => {
-    return supplierApi.getAllSuppliers();
-  },
-
-  /**
-   * Get a supplier by ID
-   */
-  getSupplierById: async (supplierId: string) => {
-    return supplierApi.getSupplierById(supplierId);
-  },
-
-  /**
    * Create a new supplier
    */
-  createSupplier: async (supplierData: SupplierCreateData) => {
-    return supplierApi.createSupplier(supplierData);
+  createSupplier: (supplierData: SupplierCreateData): Promise<SupplierApiResponse> => {
+    return api.createSupplier(supplierData);
   },
-
+  
   /**
-   * Update an existing supplier
+   * Get all suppliers
    */
-  updateSupplier: async (supplierId: string, supplierData: Partial<SupplierData>) => {
-    return supplierApi.updateSupplier(supplierId, supplierData);
+  getAllSuppliers: (): Promise<SuppliersApiResponse> => {
+    return api.getAllSuppliers();
   },
-
+  
   /**
-   * Delete a supplier
+   * Get supplier by ID
    */
-  deleteSupplier: async (supplierId: string) => {
-    return supplierApi.deleteSupplier(supplierId);
+  getSupplierById: (supplierId: string): Promise<SupplierApiResponse> => {
+    return api.getSupplierById(supplierId);
   },
-
+  
   /**
-   * Get compliance documents for a supplier
+   * Update supplier
    */
-  getSupplierDocuments: async (supplierId: string) => {
-    return supplierApi.getSupplierDocuments(supplierId);
+  updateSupplier: (supplierId: string, supplierData: Partial<SupplierData>): Promise<SupplierApiResponse> => {
+    return api.updateSupplier(supplierId, supplierData);
   },
-
+  
   /**
-   * Create a new supplier document
+   * Delete supplier
    */
-  createSupplierDocument: async (documentData: Omit<SupplierDocumentData, 'id' | 'created_at' | 'updated_at'>) => {
-    return supplierApi.createSupplierDocument(documentData);
+  deleteSupplier: (supplierId: string): Promise<SupplierApiResponse> => {
+    return api.deleteSupplier(supplierId);
   },
-
+  
   /**
-   * Update an existing supplier document
+   * Get compliance documents for supplier
    */
-  updateSupplierDocument: async (documentId: string, documentData: Partial<SupplierDocumentData>) => {
-    return supplierApi.updateSupplierDocument(documentId, documentData);
-  },
-
-  /**
-   * Delete a supplier document
-   */
-  deleteSupplierDocument: async (documentId: string) => {
-    return supplierApi.deleteSupplierDocument(documentId);
-  },
-
-  /**
-   * Get services provided by a supplier
-   */
-  getSupplierServices: async (supplierId: string) => {
-    return supplierApi.getSupplierServices(supplierId);
-  },
-
-  /**
-   * Create a new supplier service
-   */
-  createSupplierService: async (serviceData: Omit<SupplierServiceData, 'id' | 'created_at'>) => {
-    return supplierApi.createSupplierService(serviceData);
-  },
-
-  /**
-   * Delete a supplier service
-   */
-  deleteSupplierService: async (serviceId: string) => {
-    return supplierApi.deleteSupplierService(serviceId);
-  },
-
-  /**
-   * Get all contracts associated with a supplier
-   */
-  getSupplierContracts: async (supplierId: string) => {
-    return supplierApi.getSupplierContracts(supplierId);
+  getComplianceDocuments: (supplierId: string): Promise<ComplianceDocumentsApiResponse> => {
+    return api.getComplianceDocuments(supplierId);
   }
 };
