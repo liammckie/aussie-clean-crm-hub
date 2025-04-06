@@ -1,13 +1,18 @@
 
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { createTypedSupabaseClient, TypedSupabaseClient } from './typedClient';
+import type { Database } from '@/types/supabase';
 
 // Define the Supabase project URL and anon key
 // Using the project ID from the project information
 const SUPABASE_URL = 'https://fzrhweggxusfwrohtvpb.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cmh3ZWdneHVzZndyb2h0dnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MDU4MjQsImV4cCI6MjA1OTI4MTgyNH0.W0ocOlTW9Oc4nRytpYByg49B_4pA4lgWoxeSUM0tqdc';
 
-// Create the Supabase client
+// Create the typed Supabase client
+export const typedSupabase: TypedSupabaseClient = createTypedSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Create the Supabase client for legacy code compatibility
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
@@ -105,3 +110,6 @@ export function setupSupabaseInterceptor(client: SupabaseClient) {
 
 // Setup debug interceptor in development
 setupSupabaseInterceptor(supabase);
+
+// Export Database types for convenience
+export type { Database } from '@/types/supabase';

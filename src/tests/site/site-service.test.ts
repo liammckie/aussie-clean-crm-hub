@@ -1,4 +1,3 @@
-
 import { siteService } from '@/services/site/service';
 import * as siteApi from '@/services/site/api';
 import { SiteData, SiteStatus } from '@/services/site/types';
@@ -19,9 +18,7 @@ describe('Site Service', () => {
     suburb: 'Testville',
     state: 'NSW',
     postcode: '2000',
-    status: 'active' as SiteStatus,
-    // Add description property as it's needed according to the error
-    description: 'Test site description'
+    status: 'active' as SiteStatus
   };
 
   const mockSiteResponse = {

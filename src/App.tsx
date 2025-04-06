@@ -1,119 +1,144 @@
 
-import React, { Suspense } from "react";
-import { Toaster as Sonner } from "@/components/ui/sonner";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter } from "react-router-dom";
-import { LoadingScreen } from "./components/LoadingScreen";
-import { SentryErrorBoundary } from "@/utils/sentry";
-import { ErrorReporting } from "@/utils/errorReporting";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { AppRoutes } from "@/routes/AppRoutes";
-import * as Sentry from "@sentry/react";
-import { SidebarProvider } from "@/components/ui/sidebar";
-import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
-import { createQueryClient } from "@/utils/query/queryConfig";
-import { AppLogger, LogCategory } from "@/utils/logging";
-import { useState, useEffect } from "react";
+import React, { Suspense, lazy } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Toaster } from 'sonner';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
-// Create query client with optimized configuration
-const queryClient = createQueryClient();
+// Import immediately needed components
+import Layout from './components/layout/Layout';
+import Dashboard from './pages/Dashboard';
 
-// Fallback for suspended components
-const SuspenseFallback = () => (
-  <div className="flex items-center justify-center min-h-[50vh]" aria-busy="true" aria-live="polite">
-    <div className="animate-pulse flex flex-col items-center gap-2">
-      <div className="h-8 w-8 rounded-full bg-slate-700"></div>
-      <div className="h-4 w-32 rounded bg-slate-700"></div>
+// Lazy load component pages
+const Clients = lazy(() => import('./pages/Clients'));
+const NewClient = lazy(() => import('./pages/NewClient'));
+const ClientDetails = lazy(() => import('./pages/ClientDetails'));
+const Sites = lazy(() => import('./pages/Sites'));
+const SiteDetails = lazy(() => import('./pages/SiteDetails'));
+const NewSite = lazy(() => import('./pages/NewSite'));
+const Contracts = lazy(() => import('./pages/Contracts'));
+const ContractDetails = lazy(() => import('./pages/ContractDetails'));
+const NewContract = lazy(() => import('./pages/NewContract'));
+const Suppliers = lazy(() => import('./pages/Suppliers'));
+const SupplierDetails = lazy(() => import('./pages/SupplierDetails'));
+const NewSupplier = lazy(() => import('./pages/NewSupplier'));
+const Login = lazy(() => import('./pages/Auth/Login'));
+const Register = lazy(() => import('./pages/Auth/Register'));
+const Settings = lazy(() => import('./pages/Settings'));
+const NotFound = lazy(() => import('./pages/NotFound'));
+
+// Loading component for suspense fallback
+const Loading = () => (
+  <div className="flex h-screen w-full items-center justify-center">
+    <div className="flex flex-col items-center space-y-4">
+      <div className="h-12 w-12 animate-spin rounded-full border-b-2 border-t-2 border-primary"></div>
+      <p className="text-xl font-medium text-muted-foreground">Loading...</p>
     </div>
   </div>
 );
 
-const App = () => {
-  // State for loading screen
-  const [showLoading, setShowLoading] = useState(true);
+// Create Query Client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
-  // Log app initialization
-  useEffect(() => {
-    AppLogger.info(LogCategory.APPLICATION, "Application initialized", {
-      environment: import.meta.env.MODE,
-      version: import.meta.env.VITE_APP_VERSION || 'development'
-    });
-    
-    // Setup global error handler
-    const originalOnError = window.onerror;
-    window.onerror = function(message, source, lineno, colno, error) {
-      AppLogger.error(
-        LogCategory.APPLICATION,
-        `Global error: ${String(message)}`,
-        { source, lineno, colno, error }
-      );
-      
-      ErrorReporting.captureException(error || String(message), {
-        source: 'window.onerror',
-        location: source,
-        lineNumber: lineno,
-        columnNumber: colno
-      });
-      
-      // Call original handler if exists
-      if (originalOnError) {
-        return originalOnError.call(this, message, source, lineno, colno, error);
-      }
-      
-      return false;
-    };
-    
-    // Setup unhandled promise rejection handler
-    const originalOnUnhandledRejection = window.onunhandledrejection;
-    window.onunhandledrejection = function(event) {
-      AppLogger.error(
-        LogCategory.APPLICATION,
-        `Unhandled promise rejection: ${String(event.reason)}`,
-        { reason: event.reason }
-      );
-      
-      ErrorReporting.captureException(event.reason, {
-        source: 'unhandledrejection'
-      });
-      
-      // Call original handler if exists
-      if (originalOnUnhandledRejection) {
-        originalOnUnhandledRejection.call(this, event);
-      }
-    };
-    
-    return () => {
-      // Restore original handlers
-      window.onerror = originalOnError;
-      window.onunhandledrejection = originalOnUnhandledRejection;
-    };
-  }, []);
-
+function App() {
   return (
-    <GlobalErrorBoundary maxRetries={3}>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider>
-          <SidebarProvider>
-            <Sonner />
-            <AuthProvider>
-              <BrowserRouter>
-                {showLoading ? (
-                  <LoadingScreen 
-                    onLoadingComplete={() => setShowLoading(false)} 
-                  />
-                ) : (
-                  <Suspense fallback={<SuspenseFallback />}>
-                    <AppRoutes />
-                  </Suspense>
-                )}
-              </BrowserRouter>
-            </AuthProvider>
-          </SidebarProvider>
-        </TooltipProvider>
-      </QueryClientProvider>
-    </GlobalErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Layout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="clients" element={
+              <Suspense fallback={<Loading />}>
+                <Clients />
+              </Suspense>
+            } />
+            <Route path="clients/new" element={
+              <Suspense fallback={<Loading />}>
+                <NewClient />
+              </Suspense>
+            } />
+            <Route path="clients/:id" element={
+              <Suspense fallback={<Loading />}>
+                <ClientDetails />
+              </Suspense>
+            } />
+            <Route path="sites" element={
+              <Suspense fallback={<Loading />}>
+                <Sites />
+              </Suspense>
+            } />
+            <Route path="sites/new" element={
+              <Suspense fallback={<Loading />}>
+                <NewSite />
+              </Suspense>
+            } />
+            <Route path="sites/:id" element={
+              <Suspense fallback={<Loading />}>
+                <SiteDetails />
+              </Suspense>
+            } />
+            <Route path="contracts" element={
+              <Suspense fallback={<Loading />}>
+                <Contracts />
+              </Suspense>
+            } />
+            <Route path="contracts/new" element={
+              <Suspense fallback={<Loading />}>
+                <NewContract />
+              </Suspense>
+            } />
+            <Route path="contracts/:id" element={
+              <Suspense fallback={<Loading />}>
+                <ContractDetails />
+              </Suspense>
+            } />
+            <Route path="suppliers" element={
+              <Suspense fallback={<Loading />}>
+                <Suppliers />
+              </Suspense>
+            } />
+            <Route path="suppliers/new" element={
+              <Suspense fallback={<Loading />}>
+                <NewSupplier />
+              </Suspense>
+            } />
+            <Route path="suppliers/:id" element={
+              <Suspense fallback={<Loading />}>
+                <SupplierDetails />
+              </Suspense>
+            } />
+            <Route path="settings" element={
+              <Suspense fallback={<Loading />}>
+                <Settings />
+              </Suspense>
+            } />
+            <Route path="*" element={
+              <Suspense fallback={<Loading />}>
+                <NotFound />
+              </Suspense>
+            } />
+          </Route>
+          <Route path="/login" element={
+            <Suspense fallback={<Loading />}>
+              <Login />
+            </Suspense>
+          } />
+          <Route path="/register" element={
+            <Suspense fallback={<Loading />}>
+              <Register />
+            </Suspense>
+          } />
+        </Routes>
+        <Toaster position="top-right" />
+      </BrowserRouter>
+    </QueryClientProvider>
   );
-};
+}
 
-export default Sentry.withProfiler(App);
+export default App;
