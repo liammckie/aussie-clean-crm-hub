@@ -1,24 +1,36 @@
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
+import { Plus, Trash2 } from 'lucide-react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Plus, Search, Trash2, X } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useSuppliers } from '@/hooks/use-suppliers';
-import { useContractSuppliers, useAssignSupplierToContract, useRemoveSupplierFromContract } from '@/hooks/use-supplier-contracts';
-import { SupplierData } from '@/types/supplier-types';
-import { toast } from 'sonner';
+
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { formatCurrency } from '@/utils/formatters';
+import { 
+  assignSupplierToContractSchema, 
+  AssignSupplierToContractData,
+  SupplierWithContract
+} from '@/types/supplier-contract-types';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ContractSuppliersTabProps {
   contractId: string;
@@ -26,250 +38,312 @@ interface ContractSuppliersTabProps {
 
 export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedSupplier, setSelectedSupplier] = useState<SupplierData | null>(null);
-  const [selectedRole, setSelectedRole] = useState('subcontractor');
-  
-  const { data: suppliers = [], isLoading: loadingSuppliers } = useSuppliers();
-  const { data: contractSuppliers = [], isLoading: loadingContractSuppliers } = useContractSuppliers(contractId);
-  
-  const { mutateAsync: assignSupplier, isPending: isAssigning } = useAssignSupplierToContract();
-  const { mutateAsync: removeSupplier, isPending: isRemoving } = useRemoveSupplierFromContract();
-  
-  const filteredSuppliers = suppliers.filter(supplier => {
-    if (!searchQuery.trim()) return true;
-    
-    const query = searchQuery.toLowerCase();
-    const businessName = supplier.business_name || supplier.supplier_name || '';
-    
-    return (
-      businessName.toLowerCase().includes(query) ||
-      supplier.abn?.toLowerCase().includes(query)
-    );
+  const queryClient = useQueryClient();
+
+  // Form setup
+  const form = useForm<AssignSupplierToContractData>({
+    resolver: zodResolver(assignSupplierToContractSchema),
+    defaultValues: {
+      contract_id: contractId,
+      role: 'subcontractor',
+      status: 'active',
+      services: '',
+      percentage: undefined,
+      notes: '',
+    }
   });
-  
-  const handleSelectSupplier = (supplier: SupplierData) => {
-    setSelectedSupplier(supplier);
-  };
-  
-  const handleAssignSupplier = async () => {
-    if (!selectedSupplier) {
-      toast.error('Please select a supplier first');
-      return;
-    }
-    
-    try {
-      await assignSupplier({
-        supplier_id: selectedSupplier.supplier_id || selectedSupplier.id || '',
-        contract_id: contractId,
-        role: selectedRole as any, // Type conversion for compatibility
-        status: 'active',
-        notes: ''
-      });
+
+  // Query suppliers linked to this contract
+  const { data: supplierLinks, isLoading } = useQuery({
+    queryKey: ['contract', contractId, 'suppliers'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('supplier_contract')
+        .select(`
+          link_id,
+          role,
+          status,
+          services,
+          percentage,
+          assigned_at,
+          suppliers:supplier_id (
+            supplier_id,
+            supplier_name,
+            supplier_type,
+            status,
+            abn
+          )
+        `)
+        .eq('contract_id', contractId);
+
+      if (error) {
+        AppLogger.error(LogCategory.CONTRACT, 'Failed to fetch contract suppliers', { error });
+        throw error;
+      }
       
-      toast.success('Supplier assigned successfully');
+      return data as SupplierWithContract[];
+    }
+  });
+
+  // Query all active suppliers for the dropdown
+  const { data: suppliers, isLoading: isSuppliersLoading } = useQuery({
+    queryKey: ['suppliers', 'active'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('suppliers')
+        .select('id:supplier_id, supplier_name, supplier_type, status, abn')
+        .eq('status', 'active');
+
+      if (error) {
+        AppLogger.error(LogCategory.SUPPLIER, 'Failed to fetch suppliers', { error });
+        throw error;
+      }
+      
+      return data;
+    }
+  });
+
+  // Mutation for assigning a supplier
+  const assignSupplier = useMutation({
+    mutationFn: async (data: AssignSupplierToContractData) => {
+      const { error } = await supabase
+        .from('supplier_contract')
+        .insert({
+          supplier_id: data.supplier_id,
+          contract_id: data.contract_id,
+          role: data.role,
+          status: data.status,
+          services: data.services,
+          percentage: data.percentage,
+          notes: data.notes
+        });
+
+      if (error) {
+        AppLogger.error(LogCategory.SUPPLIER_CONTRACT, 'Failed to assign supplier to contract', { error });
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contract', contractId, 'suppliers'] });
+      toast.success('Supplier assigned to contract successfully');
+      form.reset();
       setIsDialogOpen(false);
-      setSelectedSupplier(null);
-    } catch (error) {
-      toast.error('Failed to assign supplier');
-      AppLogger.error(LogCategory.SUPPLIER, 'Error assigning supplier to contract', { error });
+    },
+    onError: (error) => {
+      toast.error('Failed to assign supplier', {
+        description: error instanceof Error ? error.message : 'Please try again'
+      });
     }
+  });
+
+  // Handle form submission
+  const onSubmit = (data: AssignSupplierToContractData) => {
+    assignSupplier.mutate(data);
   };
-  
-  const handleRemoveSupplier = async (supplierId: string) => {
-    try {
-      await removeSupplier({ supplierId, contractId });
-      toast.success('Supplier removed from contract');
-    } catch (error) {
-      toast.error('Failed to remove supplier');
-      AppLogger.error(LogCategory.SUPPLIER, 'Error removing supplier from contract', { error });
-    }
-  };
-  
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-  };
-  
-  const handleReset = () => {
-    setSelectedSupplier(null);
-    setSearchQuery('');
-    setSelectedRole('subcontractor');
-  };
-  
+
   return (
     <Card>
-      <CardHeader className="flex flex-row justify-between items-center">
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Contract Suppliers</CardTitle>
-        <Button onClick={() => setIsDialogOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Assign Supplier
-        </Button>
-      </CardHeader>
-      <CardContent>
-        {loadingContractSuppliers ? (
-          <div className="text-center py-4">Loading suppliers...</div>
-        ) : contractSuppliers.length === 0 ? (
-          <div className="text-center py-8 border rounded-md">
-            <p className="text-muted-foreground mb-4">No suppliers assigned to this contract</p>
-            <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
-              <Plus className="mr-2 h-4 w-4" />
-              Assign First Supplier
-            </Button>
-          </div>
-        ) : (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>ABN</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {contractSuppliers.map((supplier) => {
-                  // Handle potentially nested supplier data
-                  const supplierData = supplier.suppliers || supplier;
-                  const supplierId = supplier.supplier_id || supplier.link_id;
-                  
-                  return (
-                    <TableRow key={supplierId}>
-                      <TableCell className="font-medium">
-                        {supplierData?.business_name || supplierData?.supplier_name || 'Unknown'}
-                      </TableCell>
-                      <TableCell>{supplier.role || 'Subcontractor'}</TableCell>
-                      <TableCell>
-                        <Badge 
-                          className={
-                            supplier.status === 'active'
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }
-                        >
-                          {supplier.status || 'Active'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{supplierData?.abn || 'Not specified'}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleRemoveSupplier(supplierId)}
-                          disabled={isRemoving}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                          <span className="sr-only">Remove</span>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogContent className="sm:max-w-md">
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Supplier
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
             <DialogHeader>
               <DialogTitle>Assign Supplier to Contract</DialogTitle>
-              <DialogDescription>
-                Select a supplier to assign to this contract.
-              </DialogDescription>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search suppliers..."
-                  className="pl-8"
-                  value={searchQuery}
-                  onChange={handleSearchChange}
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="supplier_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Supplier</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select supplier" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {suppliers?.map((supplier) => (
+                            <SelectItem key={supplier.id} value={supplier.id}>
+                              {supplier.supplier_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </div>
-              
-              <div className="h-[250px] overflow-y-auto border rounded-md">
-                {loadingSuppliers ? (
-                  <div className="p-4 text-center">Loading suppliers...</div>
-                ) : filteredSuppliers.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground">No suppliers found</div>
-                ) : (
-                  <div className="divide-y">
-                    {filteredSuppliers.map((supplier) => {
-                      const supplierId = supplier.id || supplier.supplier_id;
-                      const businessName = supplier.business_name || supplier.supplier_name;
-                      
-                      return (
-                        <div
-                          key={supplierId}
-                          className={`p-2 cursor-pointer hover:bg-secondary ${
-                            selectedSupplier?.id === supplierId || selectedSupplier?.supplier_id === supplierId
-                              ? 'bg-secondary' 
-                              : ''
-                          }`}
-                          onClick={() => handleSelectSupplier(supplier)}
-                        >
-                          <div className="font-medium">{businessName}</div>
-                          {supplier.abn && <div className="text-sm text-muted-foreground">ABN: {supplier.abn}</div>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Supplier Role</label>
-                <select
-                  className="w-full p-2 border rounded-md"
-                  value={selectedRole}
-                  onChange={(e) => setSelectedRole(e.target.value)}
-                >
-                  <option value="subcontractor">Subcontractor</option>
-                  <option value="service_provider">Service Provider</option>
-                  <option value="consultant">Consultant</option>
-                </select>
-              </div>
-              
-              {selectedSupplier && (
-                <div className="flex items-center p-2 bg-secondary rounded-md">
-                  <div className="flex-1">
-                    <div className="font-medium">
-                      {selectedSupplier.business_name || selectedSupplier.supplier_name}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      ABN: {selectedSupplier.abn || 'Not provided'}
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0"
-                    onClick={() => setSelectedSupplier(null)}
-                  >
-                    <X className="h-4 w-4" />
-                    <span className="sr-only">Clear Selection</span>
+
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="primary">Primary</SelectItem>
+                          <SelectItem value="secondary">Secondary</SelectItem>
+                          <SelectItem value="subcontractor">Subcontractor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="terminated">Terminated</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="services"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Services Provided</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Cleaning, Maintenance" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="percentage"
+                  render={({ field: { value, onChange, ...field } }) => (
+                    <FormItem>
+                      <FormLabel>Percentage Allocation (%)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="e.g., 75" 
+                          min={0}
+                          max={100}
+                          value={value ?? ''}
+                          onChange={e => onChange(e.target.value === '' ? undefined : Number(e.target.value))}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Additional information..." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={assignSupplier.isLoading}>
+                    {assignSupplier.isLoading ? 'Assigning...' : 'Assign Supplier'}
                   </Button>
                 </div>
-              )}
-            </div>
-            <DialogFooter className="sm:justify-start">
-              <div className="flex items-center justify-end space-x-2 w-full">
-                <Button variant="outline" onClick={handleReset}>
-                  Reset
-                </Button>
-                <Button
-                  onClick={handleAssignSupplier}
-                  disabled={!selectedSupplier || isAssigning}
-                >
-                  {isAssigning ? 'Assigning...' : 'Assign Supplier'}
-                </Button>
-              </div>
-            </DialogFooter>
+              </form>
+            </Form>
           </DialogContent>
         </Dialog>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <div className="flex justify-center py-4">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary"></div>
+          </div>
+        ) : supplierLinks?.length ? (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Supplier</TableHead>
+                <TableHead>Role</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Services</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {supplierLinks.map((link) => (
+                <TableRow key={link.link_id}>
+                  <TableCell>
+                    <div className="font-medium">{link.suppliers.supplier_name}</div>
+                    <div className="text-xs text-muted-foreground">{link.suppliers.abn}</div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={link.role === 'primary' ? 'default' : 'outline'}>
+                      {link.role}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge 
+                      variant={link.status === 'active' ? 'success' : 
+                              link.status === 'terminated' ? 'destructive' : 'outline'}
+                    >
+                      {link.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {link.services || '-'}
+                    {link.percentage && <div className="text-xs">{link.percentage}%</div>}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="ghost" size="sm">
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        ) : (
+          <div className="text-center py-6 text-muted-foreground">
+            No suppliers assigned to this contract yet.
+          </div>
+        )}
       </CardContent>
     </Card>
   );

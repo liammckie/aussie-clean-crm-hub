@@ -71,6 +71,7 @@ export const assignSupplierToContractSchema = z.object({
   supplier_id: z.string(),
   contract_id: z.string(),
   role: z.enum(['primary', 'secondary', 'subcontractor']),
+  status: z.enum(['active', 'inactive', 'pending', 'terminated']),
   services: z.string().optional(),
   percentage: z.number().min(0).max(100).optional(),
   notes: z.string().optional()
