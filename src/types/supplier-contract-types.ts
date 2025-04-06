@@ -48,8 +48,8 @@ export interface ContractWithSupplier {
 /**
  * Type for supplier information returned with contract
  * 
- * Note: The suppliers field is an object representing a single supplier,
- * not an array of suppliers - this matches what the Supabase join query returns
+ * Note: The `suppliers` field is an array because the Supabase join query 
+ * returns supplier data as an array of objects, even when there's just one supplier
  */
 export interface SupplierWithContract {
   link_id: string;
@@ -58,13 +58,13 @@ export interface SupplierWithContract {
   services?: string;
   percentage?: number;
   assigned_at?: string;
-  suppliers: {
+  suppliers: Array<{
     supplier_id: string;
     supplier_name: string;
     supplier_type: string;
     status: string;
     abn?: string;
-  };
+  }>;
 }
 
 /**

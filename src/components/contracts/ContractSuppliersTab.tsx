@@ -82,7 +82,7 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
           throw error;
         }
         
-        // Each row already contains the expected structure for SupplierWithContract
+        // The data structure matches our updated SupplierWithContract interface
         return data as SupplierWithContract[];
       } catch (error) {
         AppLogger.error(LogCategory.CONTRACT, 'Exception in contract suppliers query', { error });
@@ -330,8 +330,8 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
               {supplierLinks.map((link) => (
                 <TableRow key={link.link_id}>
                   <TableCell>
-                    <div className="font-medium">{link.suppliers.supplier_name}</div>
-                    <div className="text-xs text-muted-foreground">{link.suppliers.abn}</div>
+                    <div className="font-medium">{link.suppliers[0]?.supplier_name}</div>
+                    <div className="text-xs text-muted-foreground">{link.suppliers[0]?.abn}</div>
                   </TableCell>
                   <TableCell>
                     <Badge variant={link.role === 'primary' ? 'default' : 'outline'}>

@@ -15,12 +15,12 @@ error TS2352: Conversion of type '{ link_id: any; role: any; status: any; servic
 ```
 
 **Root Cause:**
-- The `SupplierWithContract` interface expected a single supplier object in the `suppliers` property, but the Supabase query was returning an array of supplier objects.
+- The `SupplierWithContract` interface incorrectly defined the `suppliers` property as a single object when the Supabase query was returning an array of supplier objects.
 - Type mismatch between the interface definition and the actual data structure returned from the database.
 
 **Solution:**
-1. Updated the `SupplierWithContract` interface to correctly reflect that the `suppliers` property contains a single supplier object (not an array)
-2. Added proper type casting in the ContractSuppliersTab component to handle the data structure correctly
+1. Updated the `SupplierWithContract` interface to correctly define the `suppliers` property as an array
+2. Modified the ContractSuppliersTab component to access supplier data using array indexing (suppliers[0])
 3. Documented the expected data shape in comments to prevent future mismatches
 
 **Files Modified:**
@@ -118,15 +118,16 @@ error TS2352: Conversion of type '{ suppliers: { supplier_id: any; supplier_name
 
 **Root Cause:**
 - The shape of the data returned by Supabase's foreign table joins didn't match our TypeScript interface expectations
-- The `suppliers` property in the data returned from Supabase contained a single supplier object, not an array, but our TypeScript interface was incorrect
+- The `suppliers` property in the data returned from Supabase contained an array of supplier objects, not a single object as our TypeScript interface incorrectly defined
 
 **Solution:**
 1. Analyzed the actual data structure returned by Supabase
-2. Updated the `SupplierWithContract` interface to correctly match the expected structure
-3. Used proper type assertions in the data fetching function
+2. Updated the `SupplierWithContract` interface to correctly match the expected structure with suppliers as an array
+3. Updated the component to reference supplier data using array indexing (suppliers[0])
 4. Added descriptive comments to the interface definition to clarify the expected data shape
 
 **Prevention Measures:**
 - Add schema validation checks (using Zod) to validate database responses match expected shapes
 - Create unit tests that verify the structure of mock responses matches interface definitions
 - Document join query patterns and their return types for easier reference
+- Generate TypeScript types from database schema to ensure consistency
