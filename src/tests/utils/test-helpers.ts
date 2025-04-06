@@ -1,61 +1,61 @@
 
-import { ErrorCategory, ErrorResponse } from '@/utils/supabaseErrors';
+import { ErrorCategory } from '@/utils/supabaseErrors';
 
 /**
- * Type definitions for API responses in tests
+ * Types for API responses used in tests
  */
-export interface SuccessResponse<T = any> { 
-  data: T; 
+export interface SuccessResponse<T> {
+  data: T;
   error: null;
 }
 
-/**
- * Union type for API responses
- */
-export type ApiResponse<T = any> = SuccessResponse<T> | ErrorResponse;
-
-/**
- * Type guard to check if a response is a success response
- */
-export function isSuccessResponse<T>(response: ApiResponse<T>): response is SuccessResponse<T> {
-  return 'data' in response && response.error === null;
+export interface ErrorResponse {
+  category: ErrorCategory;
+  message: string;
+  details?: {
+    field?: string;
+    error?: string;
+  };
 }
 
+// Union type for API responses
+export type ApiResponse<T> = SuccessResponse<T> | ErrorResponse;
+
 /**
- * Type guard to check if a response is an error response
+ * Type guard to check if a response is an ErrorResponse
  */
 export function isErrorResponse(response: ApiResponse<any>): response is ErrorResponse {
   return 'category' in response && 'message' in response;
 }
 
 /**
- * Creates a success response with the given data
+ * Type guard to check if a response is a SuccessResponse
  */
-export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
-  return { data, error: null };
+export function isSuccessResponse<T>(response: ApiResponse<T>): response is SuccessResponse<T> {
+  return 'data' in response && 'error' in response && response.error === null;
 }
 
 /**
- * Creates an error response with the given details
+ * Helper to create a success response for tests
+ */
+export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
+  return {
+    data,
+    error: null
+  };
+}
+
+/**
+ * Helper to create an error response for tests
  */
 export function createErrorResponse(
   category: ErrorCategory,
   message: string,
-  details?: any
+  details?: { field?: string; error?: string }
 ): ErrorResponse {
-  return { category, message, details };
-}
-
-/**
- * Helper to create a mock function that returns a success response
- */
-export function createMockSuccessFunction<T>(data: T) {
-  return jest.fn().mockResolvedValue(createSuccessResponse(data));
-}
-
-/**
- * Helper to create a mock function that returns an error response
- */
-export function createMockErrorFunction(category: ErrorCategory, message: string, details?: any) {
-  return jest.fn().mockResolvedValue(createErrorResponse(category, message, details));
+  return {
+    category,
+    message,
+    details
+  };
 }

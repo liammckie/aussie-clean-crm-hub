@@ -2,6 +2,7 @@
 import { clientApi } from '../api';
 import { ContactFormData } from '../types';
 import { logSuccess } from '@/utils/supabaseErrors';
+import { clientContactSchema, validateWithZod } from '../validation';
 
 /**
  * Client contact management service
@@ -27,24 +28,13 @@ export const clientContactService = {
       client_id: clientId
     };
 
-    // Validate required fields
-    if (!contact.name?.trim()) {
-      return {
-        category: 'validation' as const,
-        message: 'Contact name is required',
-        details: { field: 'name' }
-      };
+    // Validate the contact data using Zod schema
+    const validationResult = validateWithZod(clientContactSchema, contact);
+    if ('category' in validationResult) {
+      return validationResult;
     }
 
-    if (!contact.email?.trim()) {
-      return {
-        category: 'validation' as const,
-        message: 'Contact email is required',
-        details: { field: 'email' }
-      };
-    }
-
-    const response = await clientApi.createClientContact(contact);
+    const response = await clientApi.createClientContact(validationResult.data);
     
     if ('category' in response) {
       return response;

@@ -2,6 +2,7 @@
 import { clientApi } from '../api';
 import { AddressFormData } from '../types';
 import { logSuccess } from '@/utils/supabaseErrors';
+import { clientAddressSchema, validateWithZod } from '../validation';
 
 /**
  * Client address management service
@@ -27,40 +28,13 @@ export const clientAddressService = {
       client_id: clientId
     };
 
-    // Validate required fields
-    if (!address.street?.trim()) {
-      return {
-        category: 'validation' as const,
-        message: 'Street address is required',
-        details: { field: 'street' }
-      };
+    // Validate the address data using Zod schema
+    const validationResult = validateWithZod(clientAddressSchema, address);
+    if ('category' in validationResult) {
+      return validationResult;
     }
 
-    if (!address.suburb?.trim()) {
-      return {
-        category: 'validation' as const,
-        message: 'Suburb is required',
-        details: { field: 'suburb' }
-      };
-    }
-
-    if (!address.state?.trim()) {
-      return {
-        category: 'validation' as const,
-        message: 'State is required',
-        details: { field: 'state' }
-      };
-    }
-
-    if (!address.postcode?.trim()) {
-      return {
-        category: 'validation' as const,
-        message: 'Postcode is required',
-        details: { field: 'postcode' }
-      };
-    }
-
-    const response = await clientApi.createClientAddress(address);
+    const response = await clientApi.createClientAddress(validationResult.data);
     
     if ('category' in response) {
       return response;

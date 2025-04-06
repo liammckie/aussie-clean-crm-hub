@@ -9,13 +9,11 @@ import {
   createSuccessResponse, 
   createErrorResponse 
 } from '../utils/test-helpers';
-import { ErrorCategory, ErrorResponse } from '@/utils/supabaseErrors';
+import { ErrorCategory } from '@/utils/supabaseErrors';
 import { ClientFormData } from '@/services/client/types';
 
 // Mock the client service module
 jest.mock('@/services/client/service', () => {
-  const originalModule = jest.requireActual('@/services/client/service');
-  
   return {
     clientService: {
       getAllClients: jest.fn(),
@@ -54,9 +52,8 @@ describe('Client Service', () => {
     // Create typed success response
     const mockResponse = createSuccessResponse(mockClients);
     
-    // Set up the mock implementation with correct typing
-    (clientService.getAllClients as jest.Mock<Promise<ApiResponse<typeof mockClients>>>)
-      .mockResolvedValue(mockResponse);
+    // Set up the mock implementation
+    (clientService.getAllClients as jest.Mock).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.getAllClients();
@@ -80,8 +77,7 @@ describe('Client Service', () => {
     );
     
     // Set up the mock implementation to return an error
-    (clientService.getAllClients as jest.Mock<Promise<ApiResponse<any>>>)
-      .mockResolvedValue(mockError);
+    (clientService.getAllClients as jest.Mock).mockResolvedValue(mockError);
 
     // Call the service function
     const result = await clientService.getAllClients();
@@ -98,8 +94,7 @@ describe('Client Service', () => {
     const mockResponse = createSuccessResponse(mockClient);
     
     // Set up the mock implementation
-    (clientService.getClientById as jest.Mock<Promise<ApiResponse<typeof mockClient>>>)
-      .mockResolvedValue(mockResponse);
+    (clientService.getClientById as jest.Mock).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.getClientById('123');
@@ -122,8 +117,7 @@ describe('Client Service', () => {
     );
     
     // Set up the mock implementation to return an error
-    (clientService.getClientById as jest.Mock<Promise<ApiResponse<any>>>)
-      .mockResolvedValue(mockError);
+    (clientService.getClientById as jest.Mock).mockResolvedValue(mockError);
 
     // Call the service function
     const result = await clientService.getClientById('invalid-id');
@@ -144,8 +138,7 @@ describe('Client Service', () => {
     const mockResponse = createSuccessResponse(newClientData);
     
     // Set up the mock implementation
-    (clientService.createClient as jest.Mock<Promise<ApiResponse<typeof newClientData>>>)
-      .mockResolvedValue(mockResponse);
+    (clientService.createClient as jest.Mock).mockResolvedValue(mockResponse);
 
     const newClient: ClientFormData = {
       business_name: 'New Company',
@@ -173,8 +166,7 @@ describe('Client Service', () => {
     );
     
     // Set up the mock implementation to return an error
-    (clientService.createClient as jest.Mock<Promise<ApiResponse<any>>>)
-      .mockResolvedValue(mockError);
+    (clientService.createClient as jest.Mock).mockResolvedValue(mockError);
 
     const newClient: ClientFormData = {
       business_name: 'New Company',
@@ -200,8 +192,7 @@ describe('Client Service', () => {
     const mockResponse = createSuccessResponse(updatedClientData);
     
     // Set up the mock implementation
-    (clientService.updateClient as jest.Mock<Promise<ApiResponse<typeof updatedClientData>>>)
-      .mockResolvedValue(mockResponse);
+    (clientService.updateClient as jest.Mock).mockResolvedValue(mockResponse);
 
     const updates = { business_name: 'Updated Company' };
 
@@ -224,8 +215,7 @@ describe('Client Service', () => {
     const mockResponse = createSuccessResponse({ success: true });
     
     // Set up the mock implementation
-    (clientService.deleteClient as jest.Mock<Promise<ApiResponse<{success: boolean}>>>)
-      .mockResolvedValue(mockResponse);
+    (clientService.deleteClient as jest.Mock).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.deleteClient('123');

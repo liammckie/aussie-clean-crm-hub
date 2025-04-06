@@ -3,8 +3,9 @@ import { validationService } from '@/services/validation.service';
 import { clientApi } from '../api';
 import { ClientFormData } from '../types';
 import { logSuccess } from '@/utils/supabaseErrors';
-import { prepareClientDataForSubmission, validateBusinessIdentifiers } from '@/utils/clientUtils';
+import { prepareClientDataForSubmission } from '@/utils/clientUtils';
 import { ClientStatus } from '@/types/database-schema';
+import { clientSchema, validateWithZod } from '../validation';
 
 /**
  * Client CRUD operations service
@@ -53,29 +54,15 @@ export const clientCrudService = {
   // Create a new client
   createClient: async (client: ClientFormData) => {
     try {
+      // Validate client data using our Zod schema
+      const validationResult = validateWithZod(clientSchema, client);
+      if ('category' in validationResult) {
+        return validationResult;
+      }
+
       // Format and validate business identifiers
-      const formattedClient = prepareClientDataForSubmission(client);
+      const formattedClient = prepareClientDataForSubmission(validationResult.data);
       
-      // Validate business identifiers
-      const validationError = validateBusinessIdentifiers({
-        abn: formattedClient.abn as string | undefined,
-        acn: formattedClient.acn as string | undefined
-      });
-      
-      // Return validation error if found
-      if (validationError) {
-        return validationError;
-      }
-
-      // Validate required fields
-      if (!formattedClient.business_name?.trim()) {
-        return {
-          category: 'validation' as const,
-          message: 'Business name is required',
-          details: { field: 'business_name' }
-        };
-      }
-
       // Ensure required fields that have database constraints are set
       if (!formattedClient.status) {
         formattedClient.status = ClientStatus.PROSPECT;
@@ -106,45 +93,14 @@ export const clientCrudService = {
 
   // Update an existing client
   updateClient: async (clientId: string, clientData: Partial<ClientFormData>) => {
-    // Format and validate business identifiers
-    const formattedData = {
-      ...clientData,
-      abn: clientData.abn ? validationService.cleanBusinessIdentifier(clientData.abn) : undefined,
-      acn: clientData.acn ? validationService.cleanBusinessIdentifier(clientData.acn) : undefined
-    };
-    
-    // Validate business identifiers
-    const validationError = validateBusinessIdentifiers({
-      abn: formattedData.abn as string | undefined,
-      acn: formattedData.acn as string | undefined
-    });
-    
-    // Return validation error if found
-    if (validationError) {
-      return validationError;
+    // Validate partial client data
+    const validationResult = validateWithZod(clientSchema.partial(), clientData);
+    if ('category' in validationResult) {
+      return validationResult;
     }
 
-    // Validate date format if present
-    if (formattedData.onboarding_date) {
-      try {
-        const date = new Date(formattedData.onboarding_date);
-        if (isNaN(date.getTime())) {
-          return {
-            category: 'validation' as const,
-            message: 'Invalid date format for onboarding date',
-            details: { field: 'onboarding_date' }
-          };
-        }
-        // Ensure consistent date format YYYY-MM-DD
-        formattedData.onboarding_date = date.toISOString().split('T')[0];
-      } catch (e) {
-        return {
-          category: 'validation' as const,
-          message: 'Invalid date format for onboarding date',
-          details: { field: 'onboarding_date' }
-        };
-      }
-    }
+    // Format and prepare the data
+    const formattedData = prepareClientDataForSubmission(validationResult.data);
 
     const response = await clientApi.updateClient(clientId, formattedData);
     
