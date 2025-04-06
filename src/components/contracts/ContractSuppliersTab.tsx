@@ -136,7 +136,7 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
                   {suppliers?.map((item) => (
                     <TableRow key={item.link_id}>
                       <TableCell className="font-medium">
-                        {item.suppliers?.supplier_name}
+                        {item.suppliers.supplier_name}
                       </TableCell>
                       <TableCell>
                         <Badge variant={getRoleBadgeVariant(item.role)}>
@@ -154,14 +154,14 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => item.suppliers && handleViewSupplier(item.suppliers.supplier_id)}
+                            onClick={() => handleViewSupplier(item.suppliers.supplier_id)}
                           >
                             View
                           </Button>
                           <Button
                             variant="destructive"
                             size="sm"
-                            onClick={() => item.suppliers && confirmRemoveSupplier(item.suppliers.supplier_id)}
+                            onClick={() => confirmRemoveSupplier(item.suppliers.supplier_id)}
                           >
                             <UserX className="h-4 w-4" />
                           </Button>

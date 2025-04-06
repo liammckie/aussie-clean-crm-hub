@@ -35,14 +35,14 @@ export interface ContractWithSupplier {
   services?: string;
   percentage?: number;
   assigned_at?: string;
-  contracts: Array<{
+  contracts: {
     id: string;
     contract_name: string;
     contract_code: string;
     status: string;
     total_annual_value: number;
     client_id?: string;
-  }>;
+  };
 }
 
 /**
