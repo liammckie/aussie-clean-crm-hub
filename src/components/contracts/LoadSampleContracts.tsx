@@ -7,7 +7,7 @@ import { toast } from 'sonner';
 import { Loader2, AlertCircle, Info } from 'lucide-react';
 import { contractService } from '@/services/contract';
 import { ErrorReporting } from '@/utils/errorReporting';
-import { AppLogger, LogCategory, Cache, withCache } from '@/utils/logging';
+import { AppLogger, LogCategory, Cache } from '@/utils/logging';
 
 interface LoadSampleContractsProps {
   onContractsLoaded: () => void;
@@ -25,40 +25,50 @@ export function LoadSampleContracts({ onContractsLoaded }: LoadSampleContractsPr
       AppLogger.info(LogCategory.CLIENT, 'Fetching clients for sample contracts');
       
       // Try to get clients from cache first
-      return await withCache('basic-clients', async () => {
-        try {
-          // This is a simplified version - in a real app, you'd use a dedicated endpoint
-          const response = await fetch('/api/clients/basic');
-          
-          if (!response.ok) {
-            AppLogger.warn(LogCategory.CLIENT, 'Client API returned non-OK response, falling back to mock data');
-            // For our demo, we'll use mock client IDs if we can't fetch real ones
-            return [
-              { id: 'c1f0f1a0-5f1a-4f1a-8f1a-1f1a0f1a0f1a', name: 'Mock Client 1' },
-              { id: 'c2f0f2a0-5f2a-4f2a-8f2a-2f2a0f2a0f2a', name: 'Mock Client 2' },
-              { id: 'c3f0f3a0-5f3a-4f3a-8f3a-3f3a0f3a0f3a', name: 'Mock Client 3' }
-            ];
-          }
-          
-          const clientData = await response.json();
-          AppLogger.info(LogCategory.CLIENT, `Retrieved ${clientData.length} clients from API`);
-          return clientData;
-        } catch (error) {
-          AppLogger.error(LogCategory.CLIENT, 'Error fetching clients:', error);
-          ErrorReporting.captureException(error instanceof Error ? error : new Error('Client fetch failed'), {
-            component: 'LoadSampleContracts',
-            operation: 'fetchClients'
-          });
-          
-          // Return mock client IDs for the demo
-          AppLogger.info(LogCategory.CLIENT, 'Using mock client data due to error');
-          return [
+      const cachedClients = Cache.get<any[]>('basic-clients');
+      if (cachedClients) {
+        return cachedClients;
+      }
+      
+      try {
+        // This is a simplified version - in a real app, you'd use a dedicated endpoint
+        const response = await fetch('/api/clients/basic');
+        
+        if (!response.ok) {
+          AppLogger.warn(LogCategory.CLIENT, 'Client API returned non-OK response, falling back to mock data');
+          // For our demo, we'll use mock client IDs if we can't fetch real ones
+          const mockData = [
             { id: 'c1f0f1a0-5f1a-4f1a-8f1a-1f1a0f1a0f1a', name: 'Mock Client 1' },
             { id: 'c2f0f2a0-5f2a-4f2a-8f2a-2f2a0f2a0f2a', name: 'Mock Client 2' },
             { id: 'c3f0f3a0-5f3a-4f3a-8f3a-3f3a0f3a0f3a', name: 'Mock Client 3' }
           ];
+          
+          Cache.set('basic-clients', mockData, 5 * 60 * 1000, 'clients');
+          return mockData;
         }
-      }, { ttl: 5 * 60 * 1000, tag: 'clients' }); // Cache for 5 minutes
+        
+        const clientData = await response.json();
+        AppLogger.info(LogCategory.CLIENT, `Retrieved ${clientData.length} clients from API`);
+        Cache.set('basic-clients', clientData, 5 * 60 * 1000, 'clients');
+        return clientData;
+      } catch (error) {
+        AppLogger.error(LogCategory.CLIENT, 'Error fetching clients:', error);
+        ErrorReporting.captureException(error instanceof Error ? error : new Error('Client fetch failed'), {
+          component: 'LoadSampleContracts',
+          operation: 'fetchClients'
+        });
+        
+        // Return mock client IDs for the demo
+        AppLogger.info(LogCategory.CLIENT, 'Using mock client data due to error');
+        const mockData = [
+          { id: 'c1f0f1a0-5f1a-4f1a-8f1a-1f1a0f1a0f1a', name: 'Mock Client 1' },
+          { id: 'c2f0f2a0-5f2a-4f2a-8f2a-2f2a0f2a0f2a', name: 'Mock Client 2' },
+          { id: 'c3f0f3a0-5f3a-4f3a-8f3a-3f3a0f3a0f3a', name: 'Mock Client 3' }
+        ];
+        
+        Cache.set('basic-clients', mockData, 5 * 60 * 1000, 'clients');
+        return mockData;
+      }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: 1
@@ -71,20 +81,25 @@ export function LoadSampleContracts({ onContractsLoaded }: LoadSampleContractsPr
       try {
         AppLogger.info(LogCategory.CONTRACT, 'Checking for existing contracts');
         
-        return await withCache('existing-contracts-check', async () => {
-          const response = await contractService.getAllContracts();
-          
-          if ('category' in response) {
-            if (response.category === 'permission') {
-              console.log('Permission issue detected when checking contracts');
-              return [];
-            }
-            throw new Error(response.message);
+        // Try to get from cache first
+        const cachedContracts = Cache.get<any[]>('existing-contracts-check');
+        if (cachedContracts) {
+          return cachedContracts;
+        }
+        
+        const response = await contractService.getAllContracts();
+        
+        if ('category' in response) {
+          if (response.category === 'permission') {
+            console.log('Permission issue detected when checking contracts');
+            return [];
           }
-          
-          AppLogger.info(LogCategory.CONTRACT, `Found ${response.data.length} existing contracts`);
-          return response.data;
-        }, { ttl: 60 * 1000, tag: 'contracts' }); // Cache for 1 minute
+          throw new Error(response.message);
+        }
+        
+        AppLogger.info(LogCategory.CONTRACT, `Found ${response.data.length} existing contracts`);
+        Cache.set('existing-contracts-check', response.data, 60 * 1000, 'contracts');
+        return response.data;
       } catch (error) {
         AppLogger.error(LogCategory.CONTRACT, 'Error checking for existing contracts:', error);
         // Don't block the UI for this check

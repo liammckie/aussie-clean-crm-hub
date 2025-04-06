@@ -45,6 +45,7 @@ export function useOptimizedQuery<TQueryFnData = unknown, TError = Error, TData 
       return queryFn();
     }
     
+    // Use PerformanceTracker.trackAsync
     return PerformanceTracker.trackAsync(
       operationName,
       queryFn,
@@ -92,6 +93,7 @@ export function useOptimizedMutation<TData = unknown, TError = Error, TVariables
       return mutationFn(variables);
     }
     
+    // Use PerformanceTracker.trackAsync
     return PerformanceTracker.trackAsync(
       operationName,
       () => mutationFn(variables),

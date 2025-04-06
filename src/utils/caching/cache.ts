@@ -1,151 +1,63 @@
 
-import { AppLogger } from '../logging/logger';
-import { LogCategory } from '../logging/types';
-
-interface CacheOptions {
-  /** Time-to-live in milliseconds */
-  ttl?: number;
-  /** Cache tag for grouping related items */
-  tag?: string;
-}
-
-interface CacheItem<T> {
-  value: T;
-  expiry: number | null;
-  tag?: string;
-}
-
 /**
- * Memory-based cache implementation with TTL and tag-based invalidation
+ * Cache utility for storing data with TTL
  */
-export class MemoryCache {
-  private cache: Map<string, CacheItem<any>> = new Map();
-  private static instance: MemoryCache;
-  
-  private constructor() {}
-  
+
+type CachedItem<T> = {
+  data: T;
+  expiry: number;
+  tag?: string;
+};
+
+export class Cache {
+  private static cache = new Map<string, CachedItem<any>>();
+
   /**
-   * Get singleton instance of cache
+   * Get an item from the cache
    */
-  public static getInstance(): MemoryCache {
-    if (!MemoryCache.instance) {
-      MemoryCache.instance = new MemoryCache();
-    }
-    return MemoryCache.instance;
-  }
-  
-  /**
-   * Set a value in the cache
-   */
-  set<T>(key: string, value: T, options: CacheOptions = {}): void {
-    const { ttl, tag } = options;
-    
-    const expiry = ttl ? Date.now() + ttl : null;
-    
-    this.cache.set(key, {
-      value,
-      expiry,
-      tag
-    });
-    
-    AppLogger.debug(LogCategory.CACHE, `Cache set: ${key}`, { 
-      ttl, 
-      tag, 
-      expiryTime: expiry ? new Date(expiry).toISOString() : 'none' 
-    });
-  }
-  
-  /**
-   * Get a value from the cache
-   */
-  get<T>(key: string): T | undefined {
+  static get<T>(key: string): T | null {
     const item = this.cache.get(key);
+    if (!item) return null;
     
-    // If item doesn't exist
-    if (!item) {
-      AppLogger.debug(LogCategory.CACHE, `Cache miss: ${key}`);
-      return undefined;
-    }
-    
-    // If item is expired
-    if (item.expiry !== null && item.expiry < Date.now()) {
-      AppLogger.debug(LogCategory.CACHE, `Cache expired: ${key}`, { 
-        expiredAt: new Date(item.expiry).toISOString() 
-      });
+    // Return null if expired
+    if (item.expiry < Date.now()) {
       this.cache.delete(key);
-      return undefined;
+      return null;
     }
     
-    // Return valid item
-    AppLogger.debug(LogCategory.CACHE, `Cache hit: ${key}`);
-    return item.value as T;
+    return item.data as T;
   }
-  
+
   /**
-   * Delete a specific item from cache
+   * Set an item in the cache
    */
-  delete(key: string): boolean {
-    AppLogger.debug(LogCategory.CACHE, `Cache delete: ${key}`);
-    return this.cache.delete(key);
+  static set<T>(key: string, data: T, ttl: number, tag?: string): void {
+    const expiry = Date.now() + ttl;
+    this.cache.set(key, { data, expiry, tag });
   }
-  
-  /**
-   * Clear all items from cache
-   */
-  clear(): void {
-    AppLogger.info(LogCategory.CACHE, `Cache cleared: ${this.cache.size} items removed`);
-    this.cache.clear();
-  }
-  
+
   /**
    * Clear all items with a specific tag
    */
-  clearByTag(tag: string): number {
-    let count = 0;
-    
-    for (const [key, item] of this.cache.entries()) {
-      if (item.tag === tag) {
+  static clearByTag(tag: string): void {
+    this.cache.forEach((value, key) => {
+      if (value.tag === tag) {
         this.cache.delete(key);
-        count++;
       }
-    }
-    
-    AppLogger.info(LogCategory.CACHE, `Cache tag cleared: ${tag}`, { itemsRemoved: count });
-    return count;
+    });
   }
-  
+
   /**
-   * Get cache stats
+   * Clear a specific item from the cache
    */
-  stats(): { size: number; keys: string[] } {
-    return {
-      size: this.cache.size,
-      keys: Array.from(this.cache.keys())
-    };
+  static clear(key: string): void {
+    this.cache.delete(key);
+  }
+
+  /**
+   * Clear all items from the cache
+   */
+  static clearAll(): void {
+    this.cache.clear();
   }
 }
-
-/**
- * Helper function to wrap an async operation with caching
- */
-export async function withCache<T>(
-  key: string,
-  fn: () => Promise<T>,
-  options: CacheOptions = {}
-): Promise<T> {
-  const cache = MemoryCache.getInstance();
-  const cachedValue = cache.get<T>(key);
-  
-  if (cachedValue !== undefined) {
-    return cachedValue;
-  }
-  
-  const value = await fn();
-  cache.set(key, value, options);
-  return value;
-}
-
-/**
- * Export singleton cache instance
- */
-export const Cache = MemoryCache.getInstance();
