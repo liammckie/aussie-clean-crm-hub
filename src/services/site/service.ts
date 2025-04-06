@@ -1,179 +1,126 @@
 
-import { supabase, isAuthenticated } from '@/integrations/supabase/client';
-import { Tables } from '@/types/supabase';
-import { SiteStatus, SiteType } from '@/types/database-schema';
-import { SiteData, SiteInsertData, SiteUpdateData, SiteResponse, SitesResponse } from './types';
+import { supabase } from '@/integrations/supabase/client';
+import { SiteData, SiteInsertData, SiteUpdateData, SiteResponse, SitesResponse, SiteApiResponse, SitesApiResponse } from './types';
+import { prepareForDb } from '@/utils/db-type-helpers';
 
 export const siteService = {
   /**
-   * Creates a new site
-   * @param siteData The site data to create
-   * @returns The created site or error
+   * Create a new site
    */
   createSite: async (siteData: SiteInsertData): Promise<SiteData> => {
-    try {
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
-      }
-
-      const { data, error } = await supabase
-        .from('sites')
-        .insert(siteData)
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return data as SiteData;
-    } catch (error) {
+    // Prepare the data for insertion
+    const preparedData = prepareForDb(siteData);
+    
+    const { data, error } = await supabase
+      .from('sites')
+      .insert(preparedData)
+      .select()
+      .single();
+    
+    if (error) {
       console.error('Error creating site:', error);
-      throw error;
+      throw new Error(`Failed to create site: ${error.message}`);
     }
+    
+    return data as SiteData;
   },
 
   /**
-   * Gets a site by ID
-   * @param siteId The ID of the site to get
-   * @returns The site or error
+   * Get a site by ID - legacy method, use getSiteById instead
    */
   getSite: async (siteId: string): Promise<SiteData> => {
-    try {
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
-      }
-
-      const { data, error } = await supabase
-        .from('sites')
-        .select('*')
-        .eq('id', siteId)
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return data as SiteData;
-    } catch (error) {
-      console.error('Error getting site:', error);
-      throw error;
-    }
+    return siteService.getSiteById(siteId);
   },
-  
+
   /**
-   * Gets a site by ID (alias for getSite)
-   * @param siteId The ID of the site to get
-   * @returns The site or error
+   * Get a site by ID
    */
   getSiteById: async (siteId: string): Promise<SiteData> => {
-    return siteService.getSite(siteId);
+    const { data, error } = await supabase
+      .from('sites')
+      .select()
+      .eq('id', siteId)
+      .single();
+    
+    if (error) {
+      console.error('Error fetching site:', error);
+      throw new Error(`Site not found: ${error.message}`);
+    }
+    
+    return data as SiteData;
   },
 
   /**
-   * Gets all sites
-   * @returns All sites or error
+   * Get all sites
    */
   getAllSites: async (): Promise<SiteData[]> => {
-    try {
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
-      }
-
-      const { data, error } = await supabase
-        .from('sites')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      return data as SiteData[];
-    } catch (error) {
-      console.error('Error getting sites:', error);
-      throw error;
+    const { data, error } = await supabase
+      .from('sites')
+      .select()
+      .order('site_name');
+    
+    if (error) {
+      console.error('Error fetching sites:', error);
+      throw new Error(`Failed to fetch sites: ${error.message}`);
     }
+    
+    return data as SiteData[];
   },
-  
+
   /**
-   * Gets all sites for a specific client
-   * @param clientId The ID of the client to get sites for
-   * @returns All sites for the client or error
+   * Get sites for a specific client
    */
   getClientSites: async (clientId: string): Promise<SiteData[]> => {
-    try {
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
-      }
-
-      const { data, error } = await supabase
-        .from('sites')
-        .select('*')
-        .eq('client_id', clientId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      return data as SiteData[];
-    } catch (error) {
-      console.error('Error getting client sites:', error);
-      throw error;
+    const { data, error } = await supabase
+      .from('sites')
+      .select()
+      .eq('client_id', clientId)
+      .order('site_name');
+    
+    if (error) {
+      console.error('Error fetching client sites:', error);
+      throw new Error(`Failed to fetch client sites: ${error.message}`);
     }
+    
+    return data as SiteData[];
   },
 
   /**
-   * Updates a site
-   * @param siteId The ID of the site to update
-   * @param siteData The site data to update
-   * @returns The updated site or error
+   * Update a site
    */
   updateSite: async (siteId: string, siteData: SiteUpdateData): Promise<SiteData> => {
-    try {
-      const { data, error } = await supabase
-        .from('sites')
-        .update(siteData)
-        .eq('id', siteId)
-        .select()
-        .single();
-
-      if (error) {
-        throw error;
-      }
-
-      return data as SiteData;
-    } catch (error) {
+    // Prepare the data for update
+    const preparedData = prepareForDb(siteData);
+    
+    const { data, error } = await supabase
+      .from('sites')
+      .update(preparedData)
+      .eq('id', siteId)
+      .select()
+      .single();
+    
+    if (error) {
       console.error('Error updating site:', error);
-      throw error;
+      throw new Error(`Failed to update site: ${error.message}`);
     }
+    
+    return data as SiteData;
   },
 
   /**
-   * Deletes a site
-   * @param siteId The ID of the site to delete
-   * @returns True if successful, otherwise throws an error
+   * Delete a site
    */
   deleteSite: async (siteId: string): Promise<boolean> => {
-    try {
-      const { error } = await supabase
-        .from('sites')
-        .delete()
-        .eq('id', siteId);
-
-      if (error) {
-        throw error;
-      }
-
-      return true;
-    } catch (error) {
+    const { error } = await supabase
+      .from('sites')
+      .delete()
+      .eq('id', siteId);
+    
+    if (error) {
       console.error('Error deleting site:', error);
-      throw error;
+      throw new Error(`Failed to delete site: ${error.message}`);
     }
+    
+    return true;
   }
 };

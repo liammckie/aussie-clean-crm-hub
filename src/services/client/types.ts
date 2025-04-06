@@ -1,10 +1,8 @@
-
 // If this file doesn't exist yet, we'll create it with the address types needed
-
-export type ClientStatus = 'Prospect' | 'Active' | 'On Hold' | 'Cancelled';
+import { ClientStatus } from '@/types/database-schema';
 
 // Import the AddressType from form-types instead of redefining it
-import type { AddressType, ContactType as FormContactType } from '@/types/form-types';
+import type { AddressType } from '@/types/form-types';
 
 // Entity types for cross-referencing
 export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
@@ -55,12 +53,12 @@ export interface ClientRecord {
 }
 
 export interface ClientFormData {
-  business_name: string;
+  business_name: string; // Required field
   trading_name?: string;
   abn?: string;
   acn?: string;
   industry?: string;
-  status: ClientStatus;
+  status: ClientStatus;  // Required field
   onboarding_date?: string;
   source?: string;
   
@@ -71,10 +69,10 @@ export interface ClientFormData {
   state?: string;
   postcode?: string;
   country?: string;
-  address?: string; // Added new field
+  address?: string;
   
   // Contact fields
-  phone?: string; // Added new field
+  phone?: string;
   
   // Financial fields
   billing_cycle?: string;

@@ -1,17 +1,18 @@
 
 import React from 'react';
-import { renderHook, act } from '@testing-library/react-hooks';
+import { renderHook, act, waitFor } from '@testing-library/react-hooks';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSites, useClientSites, useCreateSite, useUpdateSite, useDeleteSite } from '@/hooks/use-sites';
 import { siteService } from '@/services/site';
 import { SiteStatus, SiteType } from '@/types/database-schema';
-import { SiteData } from '@/services/site/types';
+import { SiteData, SiteInsertData } from '@/services/site/types';
 
 // Mock the site service methods
 jest.mock('@/services/site', () => ({
   siteService: {
     getAllSites: jest.fn(),
     getClientSites: jest.fn(),
+    getSiteById: jest.fn(),
     createSite: jest.fn(),
     updateSite: jest.fn(),
     deleteSite: jest.fn()
@@ -121,7 +122,7 @@ describe('Site Hooks', () => {
 
   describe('useCreateSite', () => {
     it('creates a new site', async () => {
-      const newSite = {
+      const newSite: SiteInsertData = {
         client_id: '123',
         site_name: 'New Test Site',
         site_code: 'NEW001',
@@ -131,7 +132,7 @@ describe('Site Hooks', () => {
         postcode: '2000',
         status: SiteStatus.ACTIVE,
         site_type: SiteType.OFFICE
-      } as any;
+      };
 
       const mockCreatedSite = {
         id: 'new-site-id',
