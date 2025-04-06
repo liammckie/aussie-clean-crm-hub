@@ -1,113 +1,162 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
+
+import React from 'react';
+import { NavLink } from 'react-router-dom';
+import { cn } from '@/lib/utils';
 import { 
-  Home, 
+  LayoutDashboard, 
   Users, 
-  FileCheck, 
-  TrendingUp, 
-  Briefcase, 
-  Calendar, 
-  DollarSign, 
-  Settings, 
   FileText, 
-  Truck, 
-  Activity,
-  ChevronLeft
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
+  Settings, 
+  ChevronRight,
+  ChevronLeft,
+  Truck,
+  Package,
+  Calendar,
+  Building,
+  ClipboardList,
+  BarChart4
+} from 'lucide-react';
 
-// Define menu items in a single location for easy management
-const menuItems = [
-  { icon: Home, label: "Dashboard", path: "/dashboard" },
-  { icon: Users, label: "Clients", path: "/clients" },
-  { icon: FileCheck, label: "Contracts", path: "/contracts" },
-  { icon: Truck, label: "Suppliers", path: "/suppliers" },
-  { icon: TrendingUp, label: "Sales", path: "/sales" },
-  { icon: Briefcase, label: "Work Orders", path: "/work-orders" },
-  { icon: Calendar, label: "Activities", path: "/activities" },
-  { icon: DollarSign, label: "Finance", path: "/finance" },
-  { icon: Settings, label: "Settings", path: "/settings" },
-  { icon: FileText, label: "Quick Forms", path: "/forms" },
-  { icon: Activity, label: "Activity Log", path: "/logs" },
-];
+// Define the navigation item type
+interface NavItemProps {
+  to: string;
+  icon: React.ReactNode;
+  label: string;
+  expanded: boolean;
+  badge?: string | number;
+}
 
-interface SidebarProps {
+// NavItem component for cleaner sidebar code
+const NavItem = ({ to, icon, label, expanded, badge }: NavItemProps) => (
+  <NavLink
+    to={to}
+    className={({ isActive }) =>
+      cn(
+        "flex items-center p-2 my-1 transition-colors duration-200 rounded-md hover:bg-slate-800",
+        isActive ? "bg-slate-800 text-primary" : "text-slate-300",
+        expanded ? "justify-start" : "justify-center"
+      )
+    }
+  >
+    <div className={cn("flex items-center", expanded ? "justify-start" : "justify-center", "w-full")}>
+      <span className="flex-shrink-0">{icon}</span>
+      {expanded && (
+        <span className="ml-3 text-sm font-medium flex-grow">{label}</span>
+      )}
+      {expanded && badge && (
+        <div className="ml-auto bg-slate-700 text-xs px-2 py-0.5 rounded-full">
+          {badge}
+        </div>
+      )}
+    </div>
+  </NavLink>
+);
+
+interface NewSidebarProps {
   expanded: boolean;
   onToggle: () => void;
 }
 
-export function NewSidebar({ expanded, onToggle }: SidebarProps) {
-  const location = useLocation();
-  
+export const NewSidebar: React.FC<NewSidebarProps> = ({ 
+  expanded,
+  onToggle
+}) => {
   return (
-    <aside 
+    <div
       className={cn(
-        "fixed inset-y-0 left-0 z-20 flex flex-col transition-all duration-300 ease-in-out",
-        expanded ? "w-64" : "w-20",
-        "sidebar-glass"
+        "fixed top-0 left-0 h-screen z-40 transition-all duration-300",
+        expanded ? "w-64" : "w-20"
       )}
     >
-      {/* Sidebar Header */}
-      <div className="flex items-center justify-between h-16 px-4 border-b border-white/10">
-        <h2 className={cn(
-          "text-xl font-bold text-white transition-opacity duration-200",
-          expanded ? "opacity-100" : "opacity-0"
-        )}>
-          SCSERP
-        </h2>
-        <Button 
-          variant="ghost" 
-          size="icon" 
-          onClick={onToggle}
-          className="text-white hover:bg-white/10"
-        >
-          <ChevronLeft className={cn(
-            "h-5 w-5 transition-transform duration-300",
-            !expanded && "rotate-180"
-          )} />
-        </Button>
+      <div className="flex flex-col h-full p-3 bg-slate-900 shadow-lg">
+        {/* Sidebar header */}
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center">
+            <span className={cn(
+              "font-semibold text-white transition-opacity duration-300",
+              expanded ? "opacity-100" : "opacity-0 w-0 hidden"
+            )}>
+              Aussie Clean ERP
+            </span>
+          </div>
+          <button 
+            onClick={onToggle}
+            className="p-2 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors duration-200"
+          >
+            {expanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
+          </button>
+        </div>
+
+        {/* Navigation links */}
+        <div className="flex flex-col justify-between flex-1">
+          <nav className="flex-1">
+            <NavItem 
+              to="/" 
+              icon={<LayoutDashboard size={20} />} 
+              label="Dashboard" 
+              expanded={expanded} 
+            />
+            <NavItem 
+              to="/clients" 
+              icon={<Users size={20} />} 
+              label="Clients" 
+              expanded={expanded} 
+              badge={4}
+            />
+            <NavItem 
+              to="/contracts" 
+              icon={<FileText size={20} />} 
+              label="Contracts" 
+              expanded={expanded} 
+            />
+            <NavItem 
+              to="/suppliers" 
+              icon={<Truck size={20} />} 
+              label="Suppliers" 
+              expanded={expanded} 
+            />
+            <NavItem 
+              to="/sites" 
+              icon={<Building size={20} />} 
+              label="Sites" 
+              expanded={expanded} 
+            />
+            <NavItem 
+              to="/inventory" 
+              icon={<Package size={20} />} 
+              label="Inventory" 
+              expanded={expanded} 
+            />
+            <NavItem 
+              to="/schedule" 
+              icon={<Calendar size={20} />} 
+              label="Schedule" 
+              expanded={expanded} 
+            />
+            <NavItem 
+              to="/tasks" 
+              icon={<ClipboardList size={20} />} 
+              label="Tasks" 
+              expanded={expanded} 
+              badge={12}
+            />
+            <NavItem 
+              to="/reports" 
+              icon={<BarChart4 size={20} />} 
+              label="Reports" 
+              expanded={expanded} 
+            />
+          </nav>
+          
+          {/* Bottom settings link */}
+          <NavItem 
+            to="/settings" 
+            icon={<Settings size={20} />} 
+            label="Settings" 
+            expanded={expanded} 
+          />
+        </div>
       </div>
-      
-      {/* Sidebar Navigation */}
-      <nav className="flex-1 px-2 py-4 overflow-y-auto scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const isActive = location.pathname === item.path;
-            
-            return (
-              <li key={item.label}>
-                <Link
-                  to={item.path}
-                  className={cn(
-                    "flex items-center px-4 py-3 rounded-md sidebar-item",
-                    isActive && "bg-white/10 font-medium"
-                  )}
-                >
-                  <item.icon className="flex-shrink-0 w-5 h-5" />
-                  <span className={cn(
-                    "ml-3 transition-all duration-200",
-                    !expanded && "opacity-0 w-0 overflow-hidden"
-                  )}>
-                    {item.label}
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-      </nav>
-      
-      {/* Sidebar Footer */}
-      <div className="p-4 border-t border-white/10">
-        <Button 
-          onClick={onToggle}
-          variant="outline" 
-          className="w-full text-white bg-black/20 border-white/10 hover:bg-white/10 hover:text-white"
-        >
-          {expanded ? "Collapse Sidebar" : ""}
-        </Button>
-      </div>
-    </aside>
+    </div>
   );
-}
+};

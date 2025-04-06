@@ -17,6 +17,8 @@ import {
   EditContract,
   Suppliers,
   NewSupplier,
+  SupplierDetail,
+  EditSupplier,
   NotFound 
 } from './lazyRoutes';
 
@@ -44,7 +46,9 @@ export function AppRoutes() {
             <Route path="contracts/new" element={<NewContract />} />
             <Route path="contracts/:contractId/edit" element={<EditContract />} />
             <Route path="suppliers" element={<Suppliers />} />
-            <Route path="new-supplier" element={<NewSupplier />} />
+            <Route path="suppliers/new" element={<NewSupplier />} />
+            <Route path="suppliers/:supplierId" element={<SupplierDetail />} />
+            <Route path="suppliers/:supplierId/edit" element={<EditSupplier />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </MainLayout>
