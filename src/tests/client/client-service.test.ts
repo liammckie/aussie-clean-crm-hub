@@ -3,19 +3,16 @@ import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { createMockSupabaseClient } from '../mocks/supabaseMock';
 import { ClientStatus } from '@/types/database-schema';
 
-// Define proper return types for the clientService mock
-interface ClientResponse {
-  data: any;
-  error: null;
-}
-
-interface ClientErrorResponse {
-  category: string;
-  message: string;
+// Define the return types for the clientService mock functions
+type ClientSuccessResponse<T = any> = { data: T; error: null };
+type ClientErrorResponse = { 
+  category: string; 
+  message: string; 
   details?: any;
-}
+};
 
-type ApiResponse<T = any> = { data: T; error: null } | ClientErrorResponse;
+// Union type for all possible responses
+type ApiResponse<T = any> = ClientSuccessResponse<T> | ClientErrorResponse;
 
 // Mock the client service module
 jest.mock('@/services/client/service', () => ({
@@ -53,7 +50,7 @@ describe('Client Service', () => {
       { id: '2', business_name: 'Company B' }
     ];
     
-    const mockResponse: ApiResponse<any[]> = { 
+    const mockResponse: ClientSuccessResponse<any[]> = { 
       data: mockClients, 
       error: null 
     };
@@ -89,7 +86,7 @@ describe('Client Service', () => {
   it('gets client by ID', async () => {
     const mockClient = { id: '123', business_name: 'Test Company' };
     
-    const mockResponse: ApiResponse = {
+    const mockResponse: ClientSuccessResponse = {
       data: mockClient,
       error: null
     };
@@ -123,7 +120,7 @@ describe('Client Service', () => {
   });
 
   it('creates a new client', async () => {
-    const mockResponse: ApiResponse = {
+    const mockResponse: ClientSuccessResponse = {
       data: {
         id: 'new-id',
         business_name: 'New Company',
@@ -171,7 +168,7 @@ describe('Client Service', () => {
   });
 
   it('updates a client', async () => {
-    const mockResponse: ApiResponse = {
+    const mockResponse: ClientSuccessResponse = {
       data: {
         id: '123',
         business_name: 'Updated Company',
