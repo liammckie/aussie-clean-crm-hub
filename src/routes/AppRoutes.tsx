@@ -21,7 +21,11 @@ import {
   SupplierDetail,
   EditSupplier,
   NotFound,
-  Sites  // Added Sites page
+  Sites,
+  // Work Order routes
+  WorkOrders,
+  WorkOrderDetail,
+  NewWorkOrder
 } from './lazyRoutes';
 
 export function AppRoutes() {
@@ -127,6 +131,23 @@ export function AppRoutes() {
       <Route path="/sites" element={
         <ProtectedRoute>
           <Sites />
+        </ProtectedRoute>
+      } />
+
+      {/* Work Order Routes */}
+      <Route path="/work-orders" element={
+        <ProtectedRoute>
+          <WorkOrders />
+        </ProtectedRoute>
+      } />
+      <Route path="/work-orders/new" element={
+        <ProtectedRoute>
+          <NewWorkOrder />
+        </ProtectedRoute>
+      } />
+      <Route path="/work-orders/:workOrderId" element={
+        <ProtectedRoute>
+          <WorkOrderDetail />
         </ProtectedRoute>
       } />
 

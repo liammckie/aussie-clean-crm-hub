@@ -15,7 +15,8 @@ import {
   Building,
   ClipboardList,
   BarChart4,
-  LogOut
+  LogOut,
+  Clipboard
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -141,6 +142,12 @@ export const NewSidebar: React.FC<NewSidebarProps> = ({
               to="/sites" 
               icon={<Building size={20} />} 
               label="Sites" 
+              expanded={expanded} 
+            />
+            <NavItem 
+              to="/work-orders" 
+              icon={<Clipboard size={20} />} 
+              label="Work Orders" 
               expanded={expanded} 
             />
             <NavItem 

@@ -1,12 +1,6 @@
 
-import React, { useState } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription 
-} from '@/components/ui/card';
+import React, { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
   TableBody,
@@ -16,200 +10,248 @@ import {
   TableRow
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Plus, UserX, AlertCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Plus, Search, Trash2, X } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { LoadingSpinner } from '@/components/ui/spinner';
-import { useContractSuppliers, useRemoveSupplierFromContract } from '@/hooks/use-supplier-contracts';
-import { useNavigate } from 'react-router-dom';
-import { AssignSupplierDialog } from './AssignSupplierDialog';
-import { 
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { useSuppliers } from '@/hooks/use-suppliers';
+import { useContractSuppliers, useAssignSupplierToContract, useRemoveSupplierFromContract } from '@/hooks/use-supplier-contracts';
+import { SupplierData } from '@/types/supplier-types';
+import { toast } from 'sonner';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 interface ContractSuppliersTabProps {
   contractId: string;
 }
 
 export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) {
-  const navigate = useNavigate();
-  const [isAssignDialogOpen, setIsAssignDialogOpen] = useState(false);
-  const [removingSupplierId, setRemovingSupplierId] = useState<string | null>(null);
-  const { data: suppliers, isLoading, error, refetch } = useContractSuppliers(contractId);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedSupplier, setSelectedSupplier] = useState<SupplierData | null>(null);
+  const [selectedRole, setSelectedRole] = useState('subcontractor');
+  
+  const { data: suppliers = [], isLoading: loadingSuppliers } = useSuppliers();
+  const { data: contractSuppliers = [], isLoading: loadingContractSuppliers } = useContractSuppliers(contractId);
+  
+  const { mutateAsync: assignSupplier, isPending: isAssigning } = useAssignSupplierToContract();
   const { mutateAsync: removeSupplier, isPending: isRemoving } = useRemoveSupplierFromContract();
   
-  const handleViewSupplier = (supplierId: string) => {
-    navigate(`/suppliers/${supplierId}`);
+  const filteredSuppliers = suppliers.filter(supplier => {
+    if (!searchQuery.trim()) return true;
+    
+    const query = searchQuery.toLowerCase();
+    return (
+      supplier.business_name?.toLowerCase().includes(query) ||
+      supplier.abn?.toLowerCase().includes(query)
+    );
+  });
+  
+  const handleSelectSupplier = (supplier: SupplierData) => {
+    setSelectedSupplier(supplier);
   };
   
-  const confirmRemoveSupplier = (supplierId: string) => {
-    setRemovingSupplierId(supplierId);
-  };
-  
-  const handleRemoveSupplier = async () => {
-    if (!removingSupplierId) return;
+  const handleAssignSupplier = async () => {
+    if (!selectedSupplier) {
+      toast.error('Please select a supplier first');
+      return;
+    }
     
     try {
-      await removeSupplier({ 
-        supplierId: removingSupplierId, 
-        contractId 
+      await assignSupplier({
+        supplier_id: selectedSupplier.supplier_id || selectedSupplier.id,
+        contract_id: contractId,
+        role: selectedRole,
+        status: 'active',
+        notes: ''
       });
-      refetch();
+      
+      toast.success('Supplier assigned successfully');
+      setIsDialogOpen(false);
+      setSelectedSupplier(null);
     } catch (error) {
-      console.error('Failed to remove supplier:', error);
-    } finally {
-      setRemovingSupplierId(null);
+      toast.error('Failed to assign supplier');
+      AppLogger.error(LogCategory.SUPPLIER, 'Error assigning supplier to contract', { error });
     }
   };
   
-  const handleAssignComplete = () => {
-    refetch();
+  const handleRemoveSupplier = async (supplierId: string) => {
+    try {
+      await removeSupplier({ supplierId, contractId });
+      toast.success('Supplier removed from contract');
+    } catch (error) {
+      toast.error('Failed to remove supplier');
+      AppLogger.error(LogCategory.SUPPLIER, 'Error removing supplier from contract', { error });
+    }
   };
   
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'primary':
-        return 'default';
-      case 'secondary':
-        return 'outline';
-      case 'subcontractor':
-        return 'secondary';
-      default:
-        return 'outline';
-    }
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+  
+  const handleReset = () => {
+    setSelectedSupplier(null);
+    setSearchQuery('');
+    setSelectedRole('subcontractor');
   };
   
   return (
-    <>
-      <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
-          <div>
-            <CardTitle>Suppliers</CardTitle>
-            <CardDescription>Suppliers assigned to this contract</CardDescription>
+    <Card>
+      <CardHeader className="flex flex-row justify-between items-center">
+        <CardTitle>Contract Suppliers</CardTitle>
+        <Button onClick={() => setIsDialogOpen(true)}>
+          <Plus className="mr-2 h-4 w-4" />
+          Assign Supplier
+        </Button>
+      </CardHeader>
+      <CardContent>
+        {loadingContractSuppliers ? (
+          <div className="text-center py-4">Loading suppliers...</div>
+        ) : contractSuppliers.length === 0 ? (
+          <div className="text-center py-8 border rounded-md">
+            <p className="text-muted-foreground mb-4">No suppliers assigned to this contract</p>
+            <Button variant="outline" onClick={() => setIsDialogOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Assign First Supplier
+            </Button>
           </div>
-          <Button onClick={() => setIsAssignDialogOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Assign Supplier
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex justify-center py-8">
-              <LoadingSpinner size="lg" />
-            </div>
-          ) : error ? (
-            <div className="bg-destructive/10 text-destructive p-4 rounded-md flex items-center">
-              <AlertCircle className="h-5 w-5 mr-2" />
-              <span>Error loading suppliers: {error instanceof Error ? error.message : 'Unknown error'}</span>
-            </div>
-          ) : suppliers?.length === 0 ? (
-            <div className="text-center py-8 border rounded-md">
-              <p className="text-muted-foreground">No suppliers assigned to this contract yet.</p>
-              <Button 
-                variant="outline" 
-                className="mt-4"
-                onClick={() => setIsAssignDialogOpen(true)}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Assign First Supplier
-              </Button>
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Supplier</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Services</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Supplier</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>ABN</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {contractSuppliers.map((supplier) => (
+                  <TableRow key={supplier.supplier_id}>
+                    <TableCell className="font-medium">{supplier.business_name || 'Unknown'}</TableCell>
+                    <TableCell>{supplier.role || 'Subcontractor'}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        className={
+                          supplier.status === 'active'
+                            ? 'bg-green-100 text-green-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }
+                      >
+                        {supplier.status || 'Active'}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{supplier.abn || 'Not specified'}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveSupplier(supplier.supplier_id)}
+                        disabled={isRemoving}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Remove</span>
+                      </Button>
+                    </TableCell>
                   </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {suppliers?.map((item) => (
-                    <TableRow key={item.link_id}>
-                      <TableCell className="font-medium">
-                        {item.suppliers.supplier_name}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getRoleBadgeVariant(item.role)}>
-                          {item.role.charAt(0).toUpperCase() + item.role.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>{item.services || 'N/A'}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleViewSupplier(item.suppliers.supplier_id)}
-                          >
-                            View
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => confirmRemoveSupplier(item.suppliers.supplier_id)}
-                          >
-                            <UserX className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Assign Supplier to Contract</DialogTitle>
+              <DialogDescription>
+                Select a supplier to assign to this contract.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search suppliers..."
+                  className="pl-8"
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                />
+              </div>
+              
+              <div className="h-[250px] overflow-y-auto border rounded-md">
+                {loadingSuppliers ? (
+                  <div className="p-4 text-center">Loading suppliers...</div>
+                ) : filteredSuppliers.length === 0 ? (
+                  <div className="p-4 text-center text-muted-foreground">No suppliers found</div>
+                ) : (
+                  <div className="divide-y">
+                    {filteredSuppliers.map((supplier) => (
+                      <div
+                        key={supplier.id}
+                        className={`p-2 cursor-pointer hover:bg-secondary ${
+                          selectedSupplier?.id === supplier.id ? 'bg-secondary' : ''
+                        }`}
+                        onClick={() => handleSelectSupplier(supplier)}
+                      >
+                        <div className="font-medium">{supplier.business_name}</div>
+                        {supplier.abn && <div className="text-sm text-muted-foreground">ABN: {supplier.abn}</div>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Supplier Role</label>
+                <select
+                  className="w-full p-2 border rounded-md"
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                >
+                  <option value="subcontractor">Subcontractor</option>
+                  <option value="service_provider">Service Provider</option>
+                  <option value="consultant">Consultant</option>
+                </select>
+              </div>
+              
+              {selectedSupplier && (
+                <div className="flex items-center p-2 bg-secondary rounded-md">
+                  <div className="flex-1">
+                    <div className="font-medium">{selectedSupplier.business_name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      ABN: {selectedSupplier.abn || 'Not provided'}
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={() => setSelectedSupplier(null)}
+                  >
+                    <X className="h-4 w-4" />
+                    <span className="sr-only">Clear Selection</span>
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Supplier Assignment Dialog */}
-      <AssignSupplierDialog
-        isOpen={isAssignDialogOpen}
-        onClose={() => setIsAssignDialogOpen(false)}
-        contractId={contractId}
-        onAssigned={handleAssignComplete}
-      />
-
-      {/* Remove Supplier Confirmation Dialog */}
-      <AlertDialog 
-        open={!!removingSupplierId} 
-        onOpenChange={(open) => !open && setRemovingSupplierId(null)}
-      >
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Remove Supplier from Contract</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to remove this supplier from the contract? 
-              This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isRemoving}>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleRemoveSupplier}
-              disabled={isRemoving}
-              className="bg-destructive text-destructive-foreground"
-            >
-              {isRemoving ? <LoadingSpinner size="sm" className="mr-2" /> : null}
-              Remove
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+            <DialogFooter className="sm:justify-start">
+              <div className="flex items-center justify-end space-x-2 w-full">
+                <Button variant="outline" onClick={handleReset}>
+                  Reset
+                </Button>
+                <Button
+                  onClick={handleAssignSupplier}
+                  disabled={!selectedSupplier || isAssigning}
+                >
+                  {isAssigning ? 'Assigning...' : 'Assign Supplier'}
+                </Button>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </CardContent>
+    </Card>
   );
 }
