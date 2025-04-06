@@ -1,6 +1,7 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ContractData, BillingLineData, ContractBudgetData, ContractCreateData } from '@/types/contract-types';
+import { ContractCreateData } from '@/types/contract-types';
+import { ContractData, BillingLineData, ContractBudgetData } from './types';
 import { ErrorResponse, handleSupabaseError, logSuccess } from '@/utils/supabaseErrors';
 
 /**

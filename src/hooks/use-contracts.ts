@@ -2,7 +2,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { contractService } from '@/services/contract';
-import { ContractData, BillingLineData, ContractCreateData } from '@/types/contract-types';
+import { ContractCreateData } from '@/types/contract-types';
+import { ContractData, BillingLineData, ContractBudgetData } from '@/services/contract/types';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { AppLogger, LogCategory, withCache } from '@/utils/logging';
 

@@ -1,3 +1,4 @@
+
 import { generateRandomId } from '@/utils/idGenerator';
 import { contractService } from '@/services/contract';
 import { toast } from 'sonner';
@@ -179,6 +180,7 @@ export const generateSampleContract = (clientId: string) => {
       national_manager: generateManagerName(),
       start_date: formatDateToISODate(startDate),
       end_date: formatDateToISODate(endDate),
+      is_ongoing: false, // Adding the required property
       total_weekly_value: weeklyValue,
       total_monthly_value: monthlyValue,
       total_annual_value: annualValue,

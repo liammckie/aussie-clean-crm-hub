@@ -1,6 +1,6 @@
-
 import * as contractApi from './api';
-import { ContractData, BillingLineData, ContractBudgetData, ContractCreateData } from '@/types/contract-types';
+import { ContractCreateData } from '@/types/contract-types';
+import { ContractData, BillingLineData, ContractBudgetData } from './types';
 
 /**
  * Service wrapper for contract-related operations
