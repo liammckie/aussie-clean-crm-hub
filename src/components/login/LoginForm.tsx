@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { AlertCircle } from 'lucide-react';
 
 const loginFormSchema = z.object({
   email: z.string().email({
@@ -46,7 +47,7 @@ export function LoginForm() {
   async function onSubmit(values: z.infer<typeof loginFormSchema>) {
     try {
       await signIn(values.email, values.password);
-      navigate('/'); // Navigate to dashboard after successful login
+      navigate('/dashboard'); // Navigate to dashboard after successful login
     } catch (error) {
       console.error("Login error:", error);
     }
@@ -54,7 +55,7 @@ export function LoginForm() {
 
   const handleDevMode = () => {
     setAdminSession();
-    navigate('/'); // Navigate to dashboard after setting admin session
+    navigate('/dashboard'); // Navigate to dashboard after setting admin session
   };
 
   return (
@@ -118,19 +119,20 @@ export function LoginForm() {
         
         <div className="mt-6 pt-4">
           <Separator className="my-4 bg-slate-700" />
-          <div className="text-center text-sm text-slate-400 mb-4">
-            Development Options
+          <div className="flex items-center justify-center gap-1 text-sm text-amber-400 mb-4">
+            <AlertCircle size={16} />
+            <span>Development Options Only</span>
           </div>
           <Button 
             variant="outline" 
-            className="w-full"
+            className="w-full bg-slate-800 hover:bg-slate-700 border-slate-700"
             onClick={handleDevMode}
             aria-label="Use Development Mode"
           >
             Use Development Mode
           </Button>
           <div className="mt-2 text-xs text-slate-500 text-center">
-            This bypasses authentication for testing purposes
+            This bypasses authentication for testing purposes only
           </div>
         </div>
       </CardContent>

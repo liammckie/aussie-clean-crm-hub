@@ -9,7 +9,7 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, isAdminSession } = useAuth();
   
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -29,5 +29,9 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
   
   // Render children within the main layout if authenticated
-  return <MainLayout>{children}</MainLayout>;
+  return (
+    <MainLayout showDevBanner={isAdminSession}>
+      {children}
+    </MainLayout>
+  );
 };

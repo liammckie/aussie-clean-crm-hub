@@ -24,26 +24,32 @@ import {
 } from './lazyRoutes';
 
 export function AppRoutes() {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen" aria-busy="true" aria-live="polite">
+        <div className="animate-pulse flex flex-col items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-slate-700"></div>
+          <div className="h-4 w-32 rounded bg-slate-700"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Routes>
       {/* Public Routes */}
       <Route path="/login" element={
-        isAuthenticated ? <Navigate to="/" /> : <Login />
+        isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
       } />
       
-      {/* Root path - redirect based on auth status */}
+      {/* Root path - redirect to dashboard if authenticated, otherwise login */}
       <Route path="/" element={
-        isAuthenticated ? (
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        ) : (
-          <Navigate to="/login" />
-        )
+        <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
       } />
 
+      {/* Dashboard - protected route */}
       <Route path="/dashboard" element={
         <ProtectedRoute>
           <Dashboard />
@@ -115,6 +121,48 @@ export function AppRoutes() {
           <EditSupplier />
         </ProtectedRoute>
       } />
+
+      {/* Task routes (placeholder) */}
+      <Route path="/tasks" element={
+        <ProtectedRoute>
+          <NotFound />
+        </ProtectedRoute>
+      } />
+
+      {/* Sites routes (placeholder) */}
+      <Route path="/sites" element={
+        <ProtectedRoute>
+          <NotFound />
+        </ProtectedRoute>
+      } />
+
+      {/* Inventory routes (placeholder) */}
+      <Route path="/inventory" element={
+        <ProtectedRoute>
+          <NotFound />
+        </ProtectedRoute>
+      } />
+
+      {/* Schedule routes (placeholder) */}
+      <Route path="/schedule" element={
+        <ProtectedRoute>
+          <NotFound />
+        </ProtectedRoute>
+      } />
+
+      {/* Reports routes (placeholder) */}
+      <Route path="/reports" element={
+        <ProtectedRoute>
+          <NotFound />
+        </ProtectedRoute>
+      } />
+
+      {/* Settings routes (placeholder) */}
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <NotFound />
+        </ProtectedRoute>
+      } />
       
       {/* Catch all for 404 */}
       <Route path="*" element={
@@ -123,7 +171,7 @@ export function AppRoutes() {
             <NotFound />
           </ProtectedRoute>
         ) : (
-          <Navigate to="/login" />
+          <Navigate to="/login" replace />
         )
       } />
     </Routes>

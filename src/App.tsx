@@ -1,5 +1,5 @@
 
-import React, { Suspense, useEffect, useState } from "react";
+import React, { Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -14,6 +14,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
 import { createQueryClient } from "@/utils/query/queryConfig";
 import { AppLogger, LogCategory } from "@/utils/logging";
+import { useState, useEffect } from "react";
 
 // Create query client with optimized configuration
 const queryClient = createQueryClient();
@@ -92,10 +93,10 @@ const App = () => {
   return (
     <GlobalErrorBoundary maxRetries={3}>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <TooltipProvider>
-            <SidebarProvider>
-              <Sonner />
+        <TooltipProvider>
+          <SidebarProvider>
+            <Sonner />
+            <AuthProvider>
               <BrowserRouter>
                 {showLoading ? (
                   <LoadingScreen 
@@ -107,9 +108,9 @@ const App = () => {
                   </Suspense>
                 )}
               </BrowserRouter>
-            </SidebarProvider>
-          </TooltipProvider>
-        </AuthProvider>
+            </AuthProvider>
+          </SidebarProvider>
+        </TooltipProvider>
       </QueryClientProvider>
     </GlobalErrorBoundary>
   );

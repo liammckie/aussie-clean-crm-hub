@@ -8,7 +8,7 @@ interface LoadingScreenProps {
 }
 
 export function LoadingScreen({ 
-  duration = 3000,
+  duration = 2000, // Reduced from 3000ms to 2000ms for faster development
   onLoadingComplete 
 }: LoadingScreenProps) {
   const [loadingStage, setLoadingStage] = useState<'initial' | 'assets' | 'complete'>('initial');
@@ -27,9 +27,9 @@ export function LoadingScreen({
           console.log("Loading complete");
           setLoadingStage('complete');
           onLoadingComplete();
-        }, 1000);
-      }, duration - 1000);
-    }, 500);
+        }, 800); // Reduced from 1000ms to 800ms
+      }, duration - 800); // Adjusted accordingly
+    }, 300); // Reduced from 500ms to 300ms
     
     return () => {
       console.log("Cleaning up loading timers");
