@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   LayoutDashboard, 
@@ -14,8 +14,11 @@ import {
   Calendar,
   Building,
   ClipboardList,
-  BarChart4
+  BarChart4,
+  LogOut
 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { toast } from 'sonner';
 
 // Define the navigation item type
 interface NavItemProps {
@@ -24,33 +27,41 @@ interface NavItemProps {
   label: string;
   expanded: boolean;
   badge?: string | number;
+  onClick?: () => void;
 }
 
 // NavItem component for cleaner sidebar code
-const NavItem = ({ to, icon, label, expanded, badge }: NavItemProps) => (
-  <NavLink
-    to={to}
-    className={({ isActive }) =>
-      cn(
-        "flex items-center p-2 my-1 transition-colors duration-200 rounded-md hover:bg-slate-800",
-        isActive ? "bg-slate-800 text-primary" : "text-slate-300",
-        expanded ? "justify-start" : "justify-center"
-      )
-    }
-  >
-    <div className={cn("flex items-center", expanded ? "justify-start" : "justify-center", "w-full")}>
-      <span className="flex-shrink-0">{icon}</span>
-      {expanded && (
-        <span className="ml-3 text-sm font-medium flex-grow">{label}</span>
-      )}
-      {expanded && badge && (
-        <div className="ml-auto bg-slate-700 text-xs px-2 py-0.5 rounded-full">
-          {badge}
-        </div>
-      )}
-    </div>
-  </NavLink>
-);
+const NavItem = ({ to, icon, label, expanded, badge, onClick }: NavItemProps) => {
+  const location = useLocation();
+  const isActive = location.pathname === to || location.pathname.startsWith(`${to}/`);
+  
+  return (
+    <NavLink
+      to={to}
+      className={({ isActive }) =>
+        cn(
+          "flex items-center p-2 my-1 transition-colors duration-200 rounded-md hover:bg-slate-800",
+          isActive ? "bg-slate-800 text-primary" : "text-slate-300",
+          expanded ? "justify-start" : "justify-center"
+        )
+      }
+      onClick={onClick}
+      aria-current={isActive ? "page" : undefined}
+    >
+      <div className={cn("flex items-center", expanded ? "justify-start" : "justify-center", "w-full")}>
+        <span className="flex-shrink-0" aria-hidden="true">{icon}</span>
+        {expanded && (
+          <span className="ml-3 text-sm font-medium flex-grow">{label}</span>
+        )}
+        {expanded && badge && (
+          <div className="ml-auto bg-slate-700 text-xs px-2 py-0.5 rounded-full">
+            {badge}
+          </div>
+        )}
+      </div>
+    </NavLink>
+  );
+};
 
 interface NewSidebarProps {
   expanded: boolean;
@@ -61,6 +72,13 @@ export const NewSidebar: React.FC<NewSidebarProps> = ({
   expanded,
   onToggle
 }) => {
+  const { signOut } = useAuth();
+  const navigate = () => { toast.success('Logged out successfully'); navigate('/login'); };
+  
+  const handleLogout = async () => {
+    await signOut();
+  };
+
   return (
     <div
       className={cn(
@@ -82,6 +100,8 @@ export const NewSidebar: React.FC<NewSidebarProps> = ({
           <button 
             onClick={onToggle}
             className="p-2 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors duration-200"
+            aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+            aria-expanded={expanded}
           >
             {expanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
           </button>
@@ -89,7 +109,7 @@ export const NewSidebar: React.FC<NewSidebarProps> = ({
 
         {/* Navigation links */}
         <div className="flex flex-col justify-between flex-1">
-          <nav className="flex-1">
+          <nav className="flex-1" aria-label="Main navigation">
             <NavItem 
               to="/" 
               icon={<LayoutDashboard size={20} />} 
@@ -148,13 +168,31 @@ export const NewSidebar: React.FC<NewSidebarProps> = ({
             />
           </nav>
           
-          {/* Bottom settings link */}
-          <NavItem 
-            to="/settings" 
-            icon={<Settings size={20} />} 
-            label="Settings" 
-            expanded={expanded} 
-          />
+          {/* Bottom actions */}
+          <div className="mt-auto">
+            <NavItem 
+              to="/settings" 
+              icon={<Settings size={20} />} 
+              label="Settings" 
+              expanded={expanded} 
+            />
+            <button
+              onClick={handleLogout}
+              className={cn(
+                "flex items-center p-2 my-1 transition-colors duration-200 rounded-md hover:bg-slate-800 w-full",
+                "text-slate-300",
+                expanded ? "justify-start" : "justify-center"
+              )}
+              aria-label="Logout"
+            >
+              <div className={cn("flex items-center", expanded ? "justify-start" : "justify-center", "w-full")}>
+                <span className="flex-shrink-0" aria-hidden="true"><LogOut size={20} /></span>
+                {expanded && (
+                  <span className="ml-3 text-sm font-medium flex-grow">Logout</span>
+                )}
+              </div>
+            </button>
+          </div>
         </div>
       </div>
     </div>

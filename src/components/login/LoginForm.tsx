@@ -47,7 +47,7 @@ export function LoginForm() {
     try {
       await signIn(values.email, values.password);
       toast.success("Logged in successfully!");
-      navigate('/dashboard');
+      navigate('/'); // Navigate to root which will show dashboard
     } catch (error) {
       console.error("Login error:", error);
       toast.error("Failed to login. Please check your credentials.");
@@ -59,7 +59,7 @@ export function LoginForm() {
     toast.success("Development mode activated", {
       description: "You now have admin access for testing purposes"
     });
-    navigate('/dashboard');
+    navigate('/'); // Navigate to root which will show dashboard
   };
 
   return (
@@ -84,6 +84,7 @@ export function LoginForm() {
                       placeholder="your.email@example.com" 
                       {...field}
                       className="bg-slate-800 border-slate-700 text-slate-300" 
+                      aria-label="Email address"
                     />
                   </FormControl>
                   <FormMessage />
@@ -102,6 +103,7 @@ export function LoginForm() {
                       placeholder="••••••••" 
                       {...field} 
                       className="bg-slate-800 border-slate-700 text-slate-300"
+                      aria-label="Password"
                     />
                   </FormControl>
                   <FormMessage />
@@ -112,6 +114,7 @@ export function LoginForm() {
               type="submit" 
               className="w-full" 
               disabled={isLoading}
+              aria-label={isLoading ? "Logging in..." : "Login"}
             >
               {isLoading ? "Logging in..." : "Login"}
             </Button>
@@ -127,6 +130,7 @@ export function LoginForm() {
             variant="outline" 
             className="w-full"
             onClick={handleDevMode}
+            aria-label="Use Development Mode"
           >
             Use Development Mode
           </Button>

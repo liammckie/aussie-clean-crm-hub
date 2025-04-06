@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Session, User } from '@supabase/supabase-js';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -23,9 +24,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Function to set the user state from a session
-    const setUserFromSession = async () => {
+    const initializeAuthState = async () => {
       setIsLoading(true);
       try {
+        AppLogger.info(LogCategory.AUTH, 'Initializing auth state');
+        
+        // Set up listener for auth state changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(
+          async (event, session) => {
+            AppLogger.info(LogCategory.AUTH, `Auth state changed: ${event}`, { 
+              hasSession: !!session 
+            });
+            
+            // Update user and authentication state
+            setUser(session?.user || null);
+            setIsAuthenticated(!!session);
+            
+            // Send user info to error reporting
+            if (session?.user) {
+              ErrorReporting.setUser({
+                id: session.user.id,
+                email: session.user.email || undefined,
+              });
+            } else {
+              ErrorReporting.setUser(null);
+            }
+          }
+        );
+
+        // Then check for existing session
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -35,7 +62,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Update user and authentication state
         setUser(data.session?.user || null);
         setIsAuthenticated(!!data.session?.user);
-        console.log('Auth state initialized:', !!data.session?.user);
+        AppLogger.info(LogCategory.AUTH, 'Auth state initialized:', { 
+          isAuthenticated: !!data.session?.user 
+        });
         
         // Check for admin session as a fallback
         if (!data.session?.user) {
@@ -51,25 +80,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               if (hoursPassed < 24) {
                 // Set as authenticated if valid admin session
                 setIsAuthenticated(true);
-                console.log('Admin session is valid and active');
+                AppLogger.info(LogCategory.AUTH, 'Admin session is valid and active');
+              } else {
+                AppLogger.info(LogCategory.AUTH, 'Admin session expired');
+                localStorage.removeItem('admin_session');
               }
             } catch (e) {
-              console.error('Error parsing admin session:', e);
+              AppLogger.error(LogCategory.AUTH, 'Error parsing admin session', { error: e });
+              localStorage.removeItem('admin_session');
             }
           }
         }
         
-        // Send user info to error reporting
-        if (data.session?.user) {
-          ErrorReporting.setUser({
-            id: data.session.user.id,
-            email: data.session.user.email || undefined,
-          });
-        } else {
-          ErrorReporting.setUser(null);
-        }
+        // Clean up subscription when component unmounts
+        return () => {
+          subscription.unsubscribe();
+        };
       } catch (error) {
-        console.error('Error retrieving session:', error);
+        AppLogger.error(LogCategory.AUTH, 'Error retrieving session', { error });
         ErrorReporting.captureException(error as Error);
         setIsAuthenticated(false);
         setUser(null);
@@ -78,40 +106,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     };
 
-    // Call the function to set initial state
-    setUserFromSession();
-
-    // Subscribe to auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('Auth state changed:', event, !!session);
-        
-        // Update user and authentication state
-        setUser(session?.user || null);
-        setIsAuthenticated(!!session);
-        
-        // Send user info to error reporting
-        if (session?.user) {
-          ErrorReporting.setUser({
-            id: session.user.id,
-            email: session.user.email || undefined,
-          });
-        } else {
-          ErrorReporting.setUser(null);
-        }
-      }
-    );
-
-    // Cleanup subscription
-    return () => {
-      authListener?.subscription.unsubscribe();
-    };
+    // Initialize auth state
+    initializeAuthState();
   }, []);
 
   // Sign in function
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
+      AppLogger.info(LogCategory.AUTH, 'Attempting sign in', { email });
+      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -120,17 +124,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (error) throw error;
 
       // Log success and important info for debugging
-      console.log('Sign in successful:', data.session ? true : false);
-      console.log('JWT Token:', data.session?.access_token ? '[token set]' : '[no token]');
+      AppLogger.info(LogCategory.AUTH, 'Sign in successful', { 
+        hasSession: !!data.session,
+        hasUser: !!data.user
+      });
       
       setIsAuthenticated(true);
       setUser(data.user);
       toast.success('Logged in successfully');
     } catch (error: any) {
-      console.error('Login error:', error);
+      AppLogger.error(LogCategory.AUTH, 'Login error', { error });
       ErrorReporting.captureException(error as Error);
       toast.error(`Login failed: ${error.message}`);
-      setIsAuthenticated(false);
+      throw error; // Rethrow to allow handling in form
     } finally {
       setIsLoading(false);
     }
@@ -140,6 +146,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       setIsLoading(true);
+      AppLogger.info(LogCategory.AUTH, 'Signing out');
+      
       await supabase.auth.signOut();
       // Clear admin session as well
       localStorage.removeItem('admin_session');
@@ -147,7 +155,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(null);
       toast.success('Logged out successfully');
     } catch (error) {
-      console.error('Sign out error:', error);
+      AppLogger.error(LogCategory.AUTH, 'Sign out error', { error });
       ErrorReporting.captureException(error as Error);
       toast.error('Failed to log out');
     } finally {
@@ -160,6 +168,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const timestamp = new Date().toISOString();
     localStorage.setItem('admin_session', JSON.stringify({ timestamp }));
     setIsAuthenticated(true);
+    AppLogger.info(LogCategory.AUTH, 'Admin session set');
     toast.success('Admin session set');
   };
 

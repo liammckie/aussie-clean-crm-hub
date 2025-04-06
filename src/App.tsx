@@ -1,5 +1,5 @@
 
-import React, { useState, Suspense } from "react";
+import React, { Suspense, useEffect } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ const queryClient = createQueryClient();
 
 // Fallback for suspended components
 const SuspenseFallback = () => (
-  <div className="flex items-center justify-center min-h-[50vh]">
+  <div className="flex items-center justify-center min-h-[50vh]" aria-busy="true" aria-live="polite">
     <div className="animate-pulse flex flex-col items-center gap-2">
       <div className="h-8 w-8 rounded-full bg-slate-700"></div>
       <div className="h-4 w-32 rounded bg-slate-700"></div>
@@ -29,18 +29,21 @@ const SuspenseFallback = () => (
 );
 
 const App = () => {
-  // Make sure React is in scope for useState to work
+  // State for loading screen
   const [showLoading, setShowLoading] = React.useState(true);
 
   // Log app initialization
-  React.useEffect(() => {
-    AppLogger.info(LogCategory.UI, "Application initialized");
+  useEffect(() => {
+    AppLogger.info(LogCategory.APPLICATION, "Application initialized", {
+      environment: import.meta.env.MODE,
+      version: import.meta.env.VITE_APP_VERSION || 'development'
+    });
     
     // Setup global error handler
     const originalOnError = window.onerror;
     window.onerror = function(message, source, lineno, colno, error) {
       AppLogger.error(
-        LogCategory.UI,
+        LogCategory.APPLICATION,
         `Global error: ${String(message)}`,
         { source, lineno, colno, error }
       );
@@ -64,7 +67,7 @@ const App = () => {
     const originalOnUnhandledRejection = window.onunhandledrejection;
     window.onunhandledrejection = function(event) {
       AppLogger.error(
-        LogCategory.UI,
+        LogCategory.APPLICATION,
         `Unhandled promise rejection: ${String(event.reason)}`,
         { reason: event.reason }
       );
@@ -92,7 +95,6 @@ const App = () => {
         <AuthProvider>
           <TooltipProvider>
             <SidebarProvider>
-              {/* Only use Sonner toast provider, removing the shadcn/ui one */}
               <Sonner />
               <BrowserRouter>
                 {showLoading ? (

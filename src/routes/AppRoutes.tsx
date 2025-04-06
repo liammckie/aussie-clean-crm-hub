@@ -1,7 +1,8 @@
 
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { MainLayout } from '@/components/layout/MainLayout';
+import { useAuth } from '@/contexts/AuthContext';
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 
 // Import lazy-loaded components directly from the lazyRoutes file
 import {
@@ -23,35 +24,100 @@ import {
 } from './lazyRoutes';
 
 export function AppRoutes() {
-  const isLoggedIn = localStorage.getItem('token');
+  const { isAuthenticated } = useAuth();
 
-  // Function to handle protected routes
-  const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-    return isLoggedIn ? <>{children}</> : <Navigate to="/login" />;
-  };
+  // Redirect to dashboard if logged in and trying to access login page
+  if (isAuthenticated && window.location.pathname === '/login') {
+    return <Navigate to="/" />;
+  }
 
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      
+      {/* Protected Routes */}
       <Route path="/" element={
-        <MainLayout>
-          <Routes>
-            <Route index element={<Dashboard />} />
-            <Route path="clients" element={<Clients />} />
-            <Route path="clients/new" element={<NewClient />} />
-            <Route path="clients/:clientId" element={<ClientDetail />} />
-            <Route path="clients/:clientId/edit" element={<EditClient />} />
-            <Route path="contracts" element={<Contracts />} />
-            <Route path="contracts/:contractId" element={<ContractDetail />} />
-            <Route path="contracts/new" element={<NewContract />} />
-            <Route path="contracts/:contractId/edit" element={<EditContract />} />
-            <Route path="suppliers" element={<Suppliers />} />
-            <Route path="suppliers/new" element={<NewSupplier />} />
-            <Route path="suppliers/:supplierId" element={<SupplierDetail />} />
-            <Route path="suppliers/:supplierId/edit" element={<EditSupplier />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </MainLayout>
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      } />
+      <Route path="/dashboard" element={
+        <ProtectedRoute>
+          <Dashboard />
+        </ProtectedRoute>
+      } />
+      
+      {/* Client Routes */}
+      <Route path="/clients" element={
+        <ProtectedRoute>
+          <Clients />
+        </ProtectedRoute>
+      } />
+      <Route path="/clients/new" element={
+        <ProtectedRoute>
+          <NewClient />
+        </ProtectedRoute>
+      } />
+      <Route path="/clients/:clientId" element={
+        <ProtectedRoute>
+          <ClientDetail />
+        </ProtectedRoute>
+      } />
+      <Route path="/clients/:clientId/edit" element={
+        <ProtectedRoute>
+          <EditClient />
+        </ProtectedRoute>
+      } />
+      
+      {/* Contract Routes */}
+      <Route path="/contracts" element={
+        <ProtectedRoute>
+          <Contracts />
+        </ProtectedRoute>
+      } />
+      <Route path="/contracts/new" element={
+        <ProtectedRoute>
+          <NewContract />
+        </ProtectedRoute>
+      } />
+      <Route path="/contracts/:contractId" element={
+        <ProtectedRoute>
+          <ContractDetail />
+        </ProtectedRoute>
+      } />
+      <Route path="/contracts/:contractId/edit" element={
+        <ProtectedRoute>
+          <EditContract />
+        </ProtectedRoute>
+      } />
+      
+      {/* Supplier Routes */}
+      <Route path="/suppliers" element={
+        <ProtectedRoute>
+          <Suppliers />
+        </ProtectedRoute>
+      } />
+      <Route path="/suppliers/new" element={
+        <ProtectedRoute>
+          <NewSupplier />
+        </ProtectedRoute>
+      } />
+      <Route path="/suppliers/:supplierId" element={
+        <ProtectedRoute>
+          <SupplierDetail />
+        </ProtectedRoute>
+      } />
+      <Route path="/suppliers/:supplierId/edit" element={
+        <ProtectedRoute>
+          <EditSupplier />
+        </ProtectedRoute>
+      } />
+      
+      {/* Catch all for 404 */}
+      <Route path="*" element={
+        <ProtectedRoute>
+          <NotFound />
+        </ProtectedRoute>
       } />
     </Routes>
   );
