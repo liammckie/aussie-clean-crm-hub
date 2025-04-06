@@ -1,107 +1,108 @@
 
 import { supabase } from '@/integrations/supabase/client';
+import { ErrorReporting } from '@/utils/errorReporting';
 import { AppLogger, LogCategory } from '@/utils/logging';
-import { ContractWithSupplier } from '@/types/supplier-contract-types';
-import { ApiResponse, handleApiError, createSuccessResponse } from '@/utils/api-utils';
 
 /**
- * Get contracts associated with a specific supplier
+ * Get all contracts associated with a supplier
  */
-export async function getContractsBySupplier(supplierId: string): Promise<ApiResponse<ContractWithSupplier[]>> {
+export async function getContractsBySupplier(supplierId: string) {
   try {
-    AppLogger.info(LogCategory.CONTRACT, 'Fetching contracts for supplier', { supplierId });
+    AppLogger.info(LogCategory.SUPPLIER_CONTRACT, 'Fetching contracts by supplier', { supplierId });
     
     const { data, error } = await supabase
-      .from('supplier_contract_links')
+      .from('supplier_contract')
       .select(`
-        *,
-        contracts:contract_id (
-          contract_id,
-          contract_number,
+        link_id,
+        role,
+        status,
+        services,
+        percentage,
+        assigned_at,
+        contracts (
+          id,
+          contract_name,
+          contract_code,
           status,
-          contract_value,
-          clients:client_id (
-            client_name
-          )
+          total_annual_value
         )
       `)
       .eq('supplier_id', supplierId);
-    
+      
     if (error) {
-      return handleApiError(
-        error, 
-        'Failed to fetch supplier contracts',
-        { supplierId },
-        LogCategory.CONTRACT
-      );
+      AppLogger.error(LogCategory.SUPPLIER_CONTRACT, 'Error fetching contracts by supplier', { error, supplierId });
+      
+      return {
+        category: 'server',
+        message: `Failed to fetch contracts for supplier: ${error.message}`,
+        details: error
+      };
     }
     
-    // Transform the data to match the ContractWithSupplier type
-    const contracts = data.map(link => {
-      const contract = link.contracts;
-      return {
-        contract_id: contract.contract_id,
-        contract_number: contract.contract_number,
-        client_name: contract.clients?.client_name || 'Unknown Client',
-        status: contract.status,
-        contract_value: contract.contract_value,
-        supplier_role: link.role
-      } as ContractWithSupplier;
-    });
-    
-    return createSuccessResponse(
-      contracts,
-      'Supplier contracts fetched successfully'
-    );
+    return {
+      data,
+      message: 'Contracts fetched successfully'
+    };
   } catch (error) {
-    return handleApiError(
-      error, 
-      'An unexpected error occurred while fetching supplier contracts',
-      { supplierId },
-      LogCategory.CONTRACT
-    );
+    AppLogger.error(LogCategory.SUPPLIER_CONTRACT, 'Exception fetching contracts by supplier', { error, supplierId });
+    ErrorReporting.captureException(error);
+    
+    return {
+      category: 'server',
+      message: 'An unexpected error occurred while fetching supplier contracts',
+      details: error
+    };
   }
 }
 
 /**
- * Get suppliers associated with a specific contract
+ * Get all suppliers associated with a contract
  */
-export async function getSuppliersByContract(contractId: string): Promise<ApiResponse<any[]>> {
+export async function getSuppliersByContract(contractId: string) {
   try {
-    AppLogger.info(LogCategory.CONTRACT, 'Fetching suppliers for contract', { contractId });
+    AppLogger.info(LogCategory.SUPPLIER_CONTRACT, 'Fetching suppliers by contract', { contractId });
     
     const { data, error } = await supabase
-      .from('supplier_contract_links')
+      .from('supplier_contract')
       .select(`
-        *,
-        suppliers:supplier_id (
+        link_id,
+        role,
+        status,
+        services,
+        percentage,
+        assigned_at,
+        suppliers (
           supplier_id,
           supplier_name,
           supplier_type,
-          status
+          status,
+          abn
         )
       `)
       .eq('contract_id', contractId);
-    
+      
     if (error) {
-      return handleApiError(
-        error, 
-        'Failed to fetch contract suppliers',
-        { contractId },
-        LogCategory.CONTRACT
-      );
+      AppLogger.error(LogCategory.SUPPLIER_CONTRACT, 'Error fetching suppliers by contract', { error, contractId });
+      
+      return {
+        category: 'server',
+        message: `Failed to fetch suppliers for contract: ${error.message}`,
+        details: error
+      };
     }
     
-    return createSuccessResponse(
+    return {
       data,
-      'Contract suppliers fetched successfully'
-    );
+      message: 'Suppliers fetched successfully'
+    };
   } catch (error) {
-    return handleApiError(
-      error, 
-      'An unexpected error occurred while fetching contract suppliers',
-      { contractId },
-      LogCategory.CONTRACT
-    );
+    AppLogger.error(LogCategory.SUPPLIER_CONTRACT, 'Exception fetching suppliers by contract', { error, contractId });
+    ErrorReporting.captureException(error);
+    
+    return {
+      category: 'server',
+      message: 'An unexpected error occurred while fetching contract suppliers',
+      details: error
+    };
   }
 }

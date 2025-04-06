@@ -1,10 +1,25 @@
 
 /**
- * Shared types for the logging system
+ * Log categories for application logging
  */
+export enum LogCategory {
+  GENERAL = 'general',
+  AUTH = 'auth',
+  USER = 'user',
+  CLIENT = 'client',
+  SITE = 'site',
+  CONTRACT = 'contract',
+  SUPPLIER = 'supplier',
+  SUPPLIER_CONTRACT = 'supplier_contract',
+  BILLING = 'billing',
+  API = 'api',
+  PERFORMANCE = 'performance',
+  ERROR = 'error',
+  DEBUG = 'debug'
+}
 
 /**
- * Log levels for categorizing log messages
+ * Log levels for application logging
  */
 export enum LogLevel {
   DEBUG = 'debug',
@@ -14,32 +29,13 @@ export enum LogLevel {
 }
 
 /**
- * Log categories for organizing logs by domain
- */
-export enum LogCategory {
-  CONTRACT = 'contract',
-  CLIENT = 'client',
-  SITE = 'site',
-  API = 'api',
-  UI = 'ui',
-  AUTH = 'auth',
-  DATA = 'data',
-  PERFORMANCE = 'performance',
-  CACHE = 'cache',
-  SUPPLIER = 'supplier',
-  DATABASE = 'database',
-  STORAGE = 'storage',
-  APPLICATION = 'application'
-}
-
-/**
- * Structure for a log entry
+ * Log entry interface for application logging
  */
 export interface LogEntry {
   timestamp: string;
   level: LogLevel;
   category: LogCategory;
   message: string;
-  data?: any;
-  context?: Record<string, any>;
+  details?: any;
+  userId?: string;
 }
