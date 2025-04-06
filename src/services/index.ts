@@ -5,3 +5,5 @@ export * from './validation.service';
 export * from './site';
 export * from './contract';
 export * from './supplier';
+export * from './supplier-contract';
+

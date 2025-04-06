@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,9 +24,10 @@ interface SupplierFormProps {
   onSubmit: (data: SupplierCreateData) => void;
   isSubmitting?: boolean;
   error?: string | null;
+  buttonText?: string;
 }
 
-export function SupplierForm({ initialData, onSubmit, isSubmitting, error }: SupplierFormProps) {
+export function SupplierForm({ initialData, onSubmit, isSubmitting, error, buttonText = 'Save Supplier' }: SupplierFormProps) {
   const form = useForm<SupplierCreateData>({
     resolver: zodResolver(supplierFormSchema),
     defaultValues: {
@@ -399,7 +399,7 @@ export function SupplierForm({ initialData, onSubmit, isSubmitting, error }: Sup
         <div className="flex justify-end space-x-4">
           <Button type="button" variant="outline">Cancel</Button>
           <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Saving...' : 'Save Supplier'}
+            {isSubmitting ? 'Saving...' : buttonText}
           </Button>
         </div>
       </form>
