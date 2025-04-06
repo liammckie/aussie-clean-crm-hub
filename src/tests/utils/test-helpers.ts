@@ -1,5 +1,5 @@
 
-import { ErrorResponse } from '@/utils/supabaseErrors';
+import { ErrorCategory, ErrorResponse } from '@/utils/supabaseErrors';
 
 /**
  * Type definitions for API responses in tests
@@ -7,15 +7,6 @@ import { ErrorResponse } from '@/utils/supabaseErrors';
 export interface SuccessResponse<T = any> { 
   data: T; 
   error: null;
-}
-
-export interface ValidationErrorResponse {
-  category: 'validation';
-  message: string;
-  details?: {
-    field?: string;
-    error?: string;
-  };
 }
 
 /**
@@ -48,7 +39,7 @@ export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
  * Creates an error response with the given details
  */
 export function createErrorResponse(
-  category: string,
+  category: ErrorCategory,
   message: string,
   details?: any
 ): ErrorResponse {
@@ -65,6 +56,6 @@ export function createMockSuccessFunction<T>(data: T) {
 /**
  * Helper to create a mock function that returns an error response
  */
-export function createMockErrorFunction(category: string, message: string, details?: any) {
+export function createMockErrorFunction(category: ErrorCategory, message: string, details?: any) {
   return jest.fn().mockResolvedValue(createErrorResponse(category, message, details));
 }

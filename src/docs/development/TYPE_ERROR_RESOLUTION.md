@@ -1,3 +1,4 @@
+
 # TypeScript Error Resolution Guide
 
 ## Common Type Errors
@@ -256,6 +257,27 @@ export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
 // Use in tests:
 const mockResponse = createSuccessResponse(mockData);
 (clientService.getClientById as jest.Mock).mockResolvedValue(mockResponse);
+```
+
+### Error 4: ErrorCategory Enum Consistency
+
+**Error:**
+```
+src/tests/utils/test-helpers.ts(55,12): error TS2322: Type 'string' is not assignable to type 'ErrorCategory'.
+```
+
+**Solution:**
+```typescript
+// Import the ErrorCategory enum rather than using string literals
+import { ErrorCategory } from '@/utils/supabaseErrors';
+
+export function createErrorResponse(
+  category: ErrorCategory,  // Use the enum type
+  message: string,
+  details?: any
+): ErrorResponse {
+  return { category, message, details };
+}
 ```
 
 ## Preventing Future Errors

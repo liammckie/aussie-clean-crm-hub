@@ -4,12 +4,12 @@ import { createMockSupabaseClient } from '../mocks/supabaseMock';
 import { ClientStatus } from '@/types/database-schema';
 import { 
   ApiResponse, 
-  SuccessResponse, 
-  ErrorResponse, 
+  SuccessResponse,
   isSuccessResponse, 
   createSuccessResponse, 
   createErrorResponse 
 } from '../utils/test-helpers';
+import { ErrorCategory, ErrorResponse } from '@/utils/supabaseErrors';
 import { ClientFormData } from '@/services/client/types';
 
 // Mock the client service module
@@ -72,7 +72,7 @@ describe('Client Service', () => {
 
   it('handles error when getting all clients', async () => {
     const mockError: ErrorResponse = createErrorResponse(
-      'server', 
+      ErrorCategory.SERVER, 
       'Database error'
     );
     
@@ -112,7 +112,7 @@ describe('Client Service', () => {
 
   it('handles error when getting client by ID', async () => {
     const mockError: ErrorResponse = createErrorResponse(
-      'not_found', 
+      ErrorCategory.NOT_FOUND, 
       'Client not found'
     );
     
@@ -161,7 +161,7 @@ describe('Client Service', () => {
 
   it('handles error when creating client', async () => {
     const mockError: ErrorResponse = createErrorResponse(
-      'validation', 
+      ErrorCategory.VALIDATION, 
       'Failed to create client'
     );
     
