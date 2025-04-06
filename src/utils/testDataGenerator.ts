@@ -2,7 +2,7 @@
 import { ClientFormData, ContactFormData } from '@/services/client';
 import { SiteFormData } from '@/components/site/SiteFormTypes';
 import { generateRandomId } from '@/utils/idGenerator';
-import { SiteStatus, SiteType } from '@/types/database-schema';
+import { SiteStatus, SiteType, ClientStatus } from '@/types/database-schema';
 
 /**
  * Generates sample client data for testing purposes
@@ -15,7 +15,7 @@ export function generateSampleClient(overrides: Partial<ClientFormData> = {}): C
     abn: '83914571673', // Valid ABN format
     acn: '000000019', // Valid ACN format
     industry: 'Technology',
-    status: 'Active',
+    status: ClientStatus.ACTIVE,
     onboarding_date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
     source: 'Website',
     billing_cycle: 'Monthly',

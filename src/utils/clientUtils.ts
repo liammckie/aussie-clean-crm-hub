@@ -1,7 +1,7 @@
-
 import { ClientFormData } from "@/services/client";
 import { validationService } from "@/services/validation.service";
 import { validateContactInfo } from "./db-type-helpers";
+import { ClientStatus } from '@/types/database-schema';
 
 /**
  * Validates business identifiers (ABN, ACN)
@@ -78,7 +78,7 @@ export function prepareClientDataForSubmission(data: ClientFormData): ClientForm
 
   // Ensure required fields have values to match database schema
   if (!preparedData.status) {
-    preparedData.status = 'Prospect';
+    preparedData.status = ClientStatus.PROSPECT;
   }
 
   // Handle onboarding date
@@ -131,7 +131,7 @@ export function loadSampleClientData(setFormData: (data: ClientFormData) => void
     abn: '83 914 571 673',
     acn: '000 000 019',
     industry: 'Commercial Cleaning',
-    status: 'Prospect',
+    status: ClientStatus.PROSPECT,
     onboarding_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
     source: 'Trade Show',
     billing_cycle: 'Monthly',

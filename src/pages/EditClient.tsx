@@ -12,6 +12,7 @@ import { ClientDetailsTab } from '@/components/client/ClientDetailsTab';
 import { ClientContactsTab } from '@/components/client/ClientContactsTab';
 import { ClientSitesTab } from '@/components/client/ClientSitesTab';
 import { ClientContractsTab } from '@/components/client/ClientContractsTab';
+import { ClientStatus } from '@/types/database-schema';
 
 const EditClient = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -24,7 +25,7 @@ const EditClient = () => {
     abn: '',
     acn: '',
     industry: '',
-    status: 'Prospect',
+    status: ClientStatus.PROSPECT,
     onboarding_date: undefined,
     source: '',
     billing_cycle: '',

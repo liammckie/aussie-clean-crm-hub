@@ -15,6 +15,7 @@ import { LoadSampleButton } from '@/components/ui/load-sample-button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { isAuthenticated } from '@/integrations/supabase/client';
+import { ClientStatus } from '@/types/database-schema';
 
 const NewClient = () => {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ const NewClient = () => {
       abn: '',
       acn: '',
       industry: '',
-      status: 'Prospect',
+      status: ClientStatus.PROSPECT,
       onboarding_date: new Date().toISOString().split('T')[0], // Default to today
       source: '',
       billing_cycle: '',

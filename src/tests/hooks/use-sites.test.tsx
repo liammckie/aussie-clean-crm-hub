@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { renderHook, act, waitFor } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSites, useClientSites, useCreateSite, useUpdateSite, useDeleteSite } from '@/hooks/use-sites';
 import { siteService } from '@/services/site';
@@ -77,13 +77,13 @@ describe('Site Hooks', () => {
 
       (siteService.getAllSites as jest.Mock).mockResolvedValueOnce(mockSites);
 
-      const { result, waitFor } = renderHook(() => useSites(), { wrapper });
+      const { result, waitForNextUpdate } = renderHook(() => useSites(), { wrapper });
 
       // Initially loading
       expect(result.current.isLoading).toBe(true);
 
       // Wait for the query to resolve
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitForNextUpdate();
 
       // Check if data is returned correctly
       expect(result.current.data).toEqual(mockSites);
@@ -108,10 +108,10 @@ describe('Site Hooks', () => {
 
       (siteService.getClientSites as jest.Mock).mockResolvedValueOnce(mockSites);
 
-      const { result, waitFor } = renderHook(() => useClientSites(clientId), { wrapper });
+      const { result, waitForNextUpdate } = renderHook(() => useClientSites(clientId), { wrapper });
 
       // Wait for the query to resolve
-      await waitFor(() => expect(result.current.sites).not.toBeUndefined());
+      await waitForNextUpdate();
 
       // Check if data is returned correctly
       expect(result.current.sites).toEqual(mockSites);

@@ -15,7 +15,7 @@ interface ClientErrorResponse {
   details?: any;
 }
 
-type MockResponse = ClientResponse | ClientErrorResponse;
+type ApiResponse<T = any> = { data: T; error: null } | ClientErrorResponse;
 
 // Mock the client service module
 jest.mock('@/services/client/service', () => ({
@@ -53,7 +53,7 @@ describe('Client Service', () => {
       { id: '2', business_name: 'Company B' }
     ];
     
-    const mockResponse: ClientResponse = { 
+    const mockResponse: ApiResponse<any[]> = { 
       data: mockClients, 
       error: null 
     };
@@ -89,7 +89,7 @@ describe('Client Service', () => {
   it('gets client by ID', async () => {
     const mockClient = { id: '123', business_name: 'Test Company' };
     
-    const mockResponse: ClientResponse = {
+    const mockResponse: ApiResponse = {
       data: mockClient,
       error: null
     };
@@ -123,7 +123,7 @@ describe('Client Service', () => {
   });
 
   it('creates a new client', async () => {
-    const mockResponse: ClientResponse = {
+    const mockResponse: ApiResponse = {
       data: {
         id: 'new-id',
         business_name: 'New Company',
@@ -171,7 +171,7 @@ describe('Client Service', () => {
   });
 
   it('updates a client', async () => {
-    const mockResponse: ClientResponse = {
+    const mockResponse: ApiResponse = {
       data: {
         id: '123',
         business_name: 'Updated Company',

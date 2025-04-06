@@ -9,7 +9,7 @@ jest.mock('@/integrations/supabase/client', () => {
   const mockClient = createMockSupabaseClient();
   return {
     supabase: mockClient,
-    isAuthenticated: jest.fn().mockResolvedValue(true)
+    isAuthenticated: jest.fn().mockReturnValue(Promise.resolve(true))
   };
 });
 
@@ -66,7 +66,7 @@ describe('Site Service', () => {
     };
 
     // Set up the mock to return the mock response
-    (siteService.createSite as jest.Mock).mockResolvedValue(mockResponse);
+    (siteService.createSite as jest.Mock).mockReturnValue(Promise.resolve(mockResponse));
     
     // Call the service function
     const result = await siteService.createSite(mockSiteData);
@@ -91,7 +91,7 @@ describe('Site Service', () => {
       updated_at: new Date().toISOString()
     };
 
-    (siteService.getSite as jest.Mock).mockResolvedValue(mockSite);
+    (siteService.getSite as jest.Mock).mockReturnValue(Promise.resolve(mockSite));
     
     const result = await siteService.getSite('123');
 

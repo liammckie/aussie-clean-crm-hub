@@ -3,6 +3,7 @@ import { ClientFormData, ValidationErrorResponse, ContactFormData, AddressFormDa
 import { validationService } from '@/services/validation.service';
 import { logSuccess } from '@/utils/supabaseErrors';
 import { prepareClientDataForSubmission, validateBusinessIdentifiers } from '@/utils/clientUtils';
+import { ClientStatus } from '@/types/database-schema';
 
 /**
  * Client service containing all client-related operations with business logic
@@ -76,7 +77,7 @@ export const clientService = {
 
       // Ensure required fields that have database constraints are set
       if (!formattedClient.status) {
-        formattedClient.status = 'Prospect';
+        formattedClient.status = ClientStatus.PROSPECT;
       }
 
       if (!formattedClient.onboarding_date) {
