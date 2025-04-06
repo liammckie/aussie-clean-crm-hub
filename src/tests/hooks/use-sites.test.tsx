@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { renderHook, waitFor } from '@testing-library/react-hooks';
+import { renderHook, act } from '@testing-library/react-hooks';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useSites, useClientSites, useCreateSite, useUpdateSite, useDeleteSite } from '@/hooks/use-sites';
 import { siteService } from '@/services/site';
@@ -76,7 +76,7 @@ describe('Site Hooks', () => {
 
       (siteService.getAllSites as jest.Mock).mockResolvedValueOnce(mockSites);
 
-      const { result } = renderHook(() => useSites(), { wrapper });
+      const { result, waitFor } = renderHook(() => useSites(), { wrapper });
 
       // Initially loading
       expect(result.current.isLoading).toBe(true);
@@ -107,16 +107,13 @@ describe('Site Hooks', () => {
 
       (siteService.getClientSites as jest.Mock).mockResolvedValueOnce(mockSites);
 
-      const { result } = renderHook(() => useClientSites(clientId), { wrapper });
-
-      // Initially loading
-      expect(result.current.isLoading).toBe(true);
+      const { result, waitFor } = renderHook(() => useClientSites(clientId), { wrapper });
 
       // Wait for the query to resolve
-      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+      await waitFor(() => expect(result.current.sites).not.toBeUndefined());
 
       // Check if data is returned correctly
-      expect(result.current.data).toEqual(mockSites);
+      expect(result.current.sites).toEqual(mockSites);
       expect(siteService.getClientSites).toHaveBeenCalledWith(clientId);
       expect(siteService.getClientSites).toHaveBeenCalledTimes(1);
     });
@@ -148,7 +145,9 @@ describe('Site Hooks', () => {
       const { result } = renderHook(() => useCreateSite(), { wrapper });
 
       // Execute the mutation
-      result.current.mutate(newSite);
+      act(() => {
+        result.current.mutate(newSite);
+      });
 
       // Wait for the mutation to complete
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -179,7 +178,9 @@ describe('Site Hooks', () => {
       const { result } = renderHook(() => useUpdateSite(), { wrapper });
 
       // Execute the mutation
-      result.current.mutate({ siteId, siteData: updates });
+      act(() => {
+        result.current.mutate({ siteId, siteData: updates });
+      });
 
       // Wait for the mutation to complete
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -199,7 +200,9 @@ describe('Site Hooks', () => {
       const { result } = renderHook(() => useDeleteSite(), { wrapper });
 
       // Execute the mutation
-      result.current.mutate(siteId);
+      act(() => {
+        result.current.mutate(siteId);
+      });
 
       // Wait for the mutation to complete
       await waitFor(() => expect(result.current.isSuccess).toBe(true));

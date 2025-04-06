@@ -18,15 +18,73 @@ export const useSites = () => {
 
 /**
  * Hook to fetch sites for a specific client
+ * 
+ * This hook returns the sites data along with useful derived state
  */
 export const useClientSites = (clientId: string) => {
-  return useQuery({
+  const queryClient = useQueryClient();
+  
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    refetch
+  } = useQuery({
     queryKey: ['sites', 'client', clientId],
     queryFn: async () => {
       return siteService.getClientSites(clientId);
     },
     enabled: !!clientId,
   });
+
+  const createSiteMutation = useMutation({
+    mutationFn: (siteData: SiteInsertData) => siteService.createSite(siteData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sites', 'client', clientId] });
+      toast.success('Site created successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Error creating site: ${error.message}`);
+    }
+  });
+
+  const updateSiteMutation = useMutation({
+    mutationFn: ({ siteId, siteData }: { siteId: string; siteData: SiteUpdateData }) =>
+      siteService.updateSite(siteId, siteData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sites', 'client', clientId] });
+      toast.success('Site updated successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Error updating site: ${error.message}`);
+    }
+  });
+
+  const deleteSiteMutation = useMutation({
+    mutationFn: (siteId: string) => siteService.deleteSite(siteId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sites', 'client', clientId] });
+      toast.success('Site deleted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(`Error deleting site: ${error.message}`);
+    }
+  });
+
+  return {
+    sites: data,
+    isLoadingSites: isLoading,
+    isErrorSites: isError,
+    errorSites: error,
+    refetchSites: refetch,
+    createSite: createSiteMutation.mutate,
+    isCreatingSite: createSiteMutation.isPending,
+    updateSite: updateSiteMutation.mutate,
+    isUpdatingSite: updateSiteMutation.isPending,
+    deleteSite: deleteSiteMutation.mutate,
+    isDeletingSite: deleteSiteMutation.isPending
+  };
 };
 
 /**

@@ -23,10 +23,16 @@ interface SiteTypeFieldProps {
 }
 
 export function SiteTypeField({ form }: SiteTypeFieldProps) {
-  // Update site types to match the SiteType enum from services/site/index.ts
-  const siteTypes: SiteType[] = [
-    'residential', 'industrial', 'retail', 
-    'hospitality', 'office', 'warehouse', 'educational', 'medical'
+  // Create an array of site types from the enum values
+  const siteTypes = [
+    SiteType.RESIDENTIAL,
+    SiteType.INDUSTRIAL,
+    SiteType.RETAIL,
+    SiteType.HOSPITALITY,
+    SiteType.OFFICE,
+    SiteType.WAREHOUSE,
+    SiteType.EDUCATIONAL,
+    SiteType.MEDICAL
   ];
 
   return (

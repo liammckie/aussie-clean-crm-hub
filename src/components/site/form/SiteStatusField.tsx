@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
 import { SiteFormData } from '../SiteFormTypes';
+import { SiteStatus } from '@/services/site';
 
 interface SiteStatusFieldProps {
   form: UseFormReturn<SiteFormData>;
@@ -39,9 +40,9 @@ export function SiteStatusField({ form }: SiteStatusFieldProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="inactive">Inactive</SelectItem>
-              <SelectItem value="pending_activation">Pending Activation</SelectItem>
+              <SelectItem value={SiteStatus.ACTIVE}>Active</SelectItem>
+              <SelectItem value={SiteStatus.INACTIVE}>Inactive</SelectItem>
+              <SelectItem value={SiteStatus.PENDING_ACTIVATION}>Pending Activation</SelectItem>
             </SelectContent>
           </Select>
           <FormMessage />

@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { SiteType } from '@/services/site';
+import { SiteType, SiteStatus } from '@/services/site';
 
 // Define site form schema
 export const siteSchema = z.object({
@@ -17,8 +17,18 @@ export const siteSchema = z.object({
   notes: z.string().optional(),
   region: z.string().optional(),
   induction_required: z.boolean().default(false),
-  status: z.enum(['active', 'inactive', 'pending_activation']).default('pending_activation'),
-  site_type: z.enum(['residential', 'industrial', 'retail', 'hospitality', 'office', 'warehouse', 'educational', 'medical']).optional(),
+  status: z.enum([SiteStatus.ACTIVE, SiteStatus.INACTIVE, SiteStatus.PENDING_ACTIVATION])
+    .default(SiteStatus.PENDING_ACTIVATION),
+  site_type: z.enum([
+    SiteType.RESIDENTIAL, 
+    SiteType.INDUSTRIAL, 
+    SiteType.RETAIL, 
+    SiteType.HOSPITALITY, 
+    SiteType.OFFICE, 
+    SiteType.WAREHOUSE, 
+    SiteType.EDUCATIONAL, 
+    SiteType.MEDICAL
+  ]).optional(),
   square_meters: z.number().optional(),
   description: z.string().optional(), // Added new field
 });

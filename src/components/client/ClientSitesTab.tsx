@@ -11,8 +11,8 @@ import { Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { SiteForm, SiteFormData } from '@/components/site/SiteForm';
 import { toast } from 'sonner';
-import { SiteData, SiteType } from '@/services/site';
-import { useSites } from '@/hooks/use-sites';
+import { useClientSites, useCreateSite } from '@/hooks/use-sites';
+import { SiteData, SiteInsertData } from '@/services/site';
 
 interface ClientSitesTabProps {
   clientId: string;
@@ -21,21 +21,23 @@ interface ClientSitesTabProps {
 export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
   const [isSiteDialogOpen, setIsSiteDialogOpen] = useState(false);
   
-  const { 
-    sites, 
+  const {
+    sites,
     isLoadingSites,
-    createSite 
-  } = useSites(clientId);
+    refetchSites,
+    createSite,
+    isCreatingSite
+  } = useClientSites(clientId);
 
-  const handleSiteSubmit = (data: SiteFormData) => {
+  const handleSiteSubmit = async (data: SiteFormData) => {
     if (!clientId) return;
     
-    const siteData: SiteData = {
+    const siteData: SiteInsertData = {
       client_id: clientId,
       site_name: data.site_name,
       site_code: data.site_code,
       address_line_1: data.address_line_1,
-      address_line_2: data.address_line_2,
+      address_line_2: data.address_line_2 || null,
       suburb: data.suburb,
       state: data.state,
       postcode: data.postcode,
@@ -43,7 +45,7 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
       site_contact_email: data.site_contact_email || null,
       site_contact_phone: data.site_contact_phone || null,
       status: data.status,
-      site_type: data.site_type as SiteType | null,
+      site_type: data.site_type || null,
       square_meters: data.square_meters || null,
       region: data.region || null,
       notes: data.notes || null,
@@ -69,7 +71,7 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
               <DialogTitle>Add New Site</DialogTitle>
             </DialogHeader>
             <div className="max-h-[80vh] overflow-y-auto py-4">
-              <SiteForm onSubmit={handleSiteSubmit} />
+              <SiteForm onSubmit={handleSiteSubmit} isLoading={isCreatingSite} />
             </div>
           </DialogContent>
         </Dialog>
