@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
 import { 
   LayoutDashboard, 
@@ -73,10 +73,12 @@ export const NewSidebar: React.FC<NewSidebarProps> = ({
   onToggle
 }) => {
   const { signOut } = useAuth();
-  const navigate = () => { toast.success('Logged out successfully'); navigate('/login'); };
+  const navigate = useNavigate();
   
   const handleLogout = async () => {
     await signOut();
+    toast.success('Logged out successfully');
+    navigate('/login');
   };
 
   return (
