@@ -165,7 +165,7 @@ export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
 }
 
 export function createErrorResponse(
-  category: string, 
+  category: ErrorCategory, 
   message: string, 
   details?: any
 ): ErrorResponse {
@@ -193,9 +193,8 @@ if (isSuccessResponse(result)) {
 3. Ensure mock implementations match the expected types:
 ```typescript
 // Properly type the mock function implementation
-(serviceFunction as jest.Mock).mockResolvedValue(
-  createSuccessResponse(mockData)
-);
+(serviceFunction as jest.Mock<Promise<ApiResponse<typeof mockData>>>)
+  .mockResolvedValue(createSuccessResponse(mockData));
 ```
 
 ## Recent Errors and Solutions
@@ -254,9 +253,10 @@ export function createSuccessResponse<T>(data: T): SuccessResponse<T> {
   return { data, error: null };
 }
 
-// Use in tests:
+// Use in tests with proper typing:
 const mockResponse = createSuccessResponse(mockData);
-(clientService.getClientById as jest.Mock).mockResolvedValue(mockResponse);
+(clientService.getClientById as jest.Mock<Promise<ApiResponse<typeof mockData>>>)
+  .mockResolvedValue(mockResponse);
 ```
 
 ### Error 4: ErrorCategory Enum Consistency
@@ -278,6 +278,35 @@ export function createErrorResponse(
 ): ErrorResponse {
   return { category, message, details };
 }
+```
+
+### Error 5: Service Refactoring to Avoid Large Files
+
+**Error:**
+Large service files with multiple responsibilities making maintenance difficult.
+
+**Solution:**
+```typescript
+// Split services by domain functionality
+// 1. Main service as facade
+export const clientService = {
+  ...clientCrudService,
+  ...clientContactService,
+  ...clientAddressService
+};
+
+// 2. Create domain-specific services
+export const clientCrudService = {
+  getAllClients: async () => { /* implementation */ },
+  getClientById: async (id) => { /* implementation */ },
+  // ...
+};
+
+export const clientContactService = {
+  getClientContacts: async (clientId) => { /* implementation */ },
+  createClientContact: async (clientId, contactData) => { /* implementation */ },
+  // ...
+};
 ```
 
 ## Preventing Future Errors
@@ -311,6 +340,11 @@ export function createErrorResponse(
    - Create unit tests for core business logic
    - Implement integration tests for critical workflows
    - Add contract test fixtures for reliable testing
+
+8. **Implement Service Segregation**
+   - Split large service files by domain functionality
+   - Create focused service modules with clear responsibilities
+   - Use facade pattern to maintain backwards compatibility
 
 ## Additional Resources
 
