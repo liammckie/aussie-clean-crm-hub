@@ -15,15 +15,19 @@ interface ContractsTableProps {
   contracts: any[];
 }
 
-export function ContractsTable({ contracts }: ContractsTableProps) {
+export const ContractsTable: React.FC<ContractsTableProps> = ({ contracts }) => {
   if (!contracts || contracts.length === 0) {
-    return <div className="text-center p-4">No contracts found</div>;
+    return (
+      <div className="text-center py-8 text-muted-foreground">
+        No contracts found
+      </div>
+    );
   }
 
   return (
-    <div className="w-full overflow-auto">
+    <div className="overflow-x-auto">
       <Table>
-        <TableCaption>List of all contracts</TableCaption>
+        <TableCaption>List of contracts</TableCaption>
         <TableHeader>
           <TableRow>
             <TableHead>Client</TableHead>
@@ -38,17 +42,54 @@ export function ContractsTable({ contracts }: ContractsTableProps) {
         <TableBody>
           {contracts.map((contract) => (
             <TableRow key={contract.id}>
-              <TableCell className="font-medium">{contract.client_name}</TableCell>
+              <TableCell>{contract.client_name || contract.client_id}</TableCell>
               <TableCell>{contract.contract_name}</TableCell>
-              <TableCell>{contract.service_type || 'N/A'}</TableCell>
-              <TableCell>{contract.status}</TableCell>
-              <TableCell>{new Date(contract.start_date).toLocaleDateString()}</TableCell>
-              <TableCell>{contract.end_date ? new Date(contract.end_date).toLocaleDateString() : 'Ongoing'}</TableCell>
-              <TableCell className="text-right">{formatCurrency(contract.total_annual_value)}</TableCell>
+              <TableCell>{contract.service_type}</TableCell>
+              <TableCell>
+                <span className={`capitalize ${getStatusColor(contract.status)}`}>
+                  {contract.status}
+                </span>
+              </TableCell>
+              <TableCell>{formatDate(contract.start_date)}</TableCell>
+              <TableCell>{contract.is_ongoing ? 'Ongoing' : formatDate(contract.end_date)}</TableCell>
+              <TableCell className="text-right">
+                {formatCurrency(contract.total_annual_value || 0)}
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </div>
   );
+};
+
+// Helper functions for formatting
+function formatDate(dateString?: string) {
+  if (!dateString) return '-';
+  
+  try {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-AU', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric'
+    });
+  } catch (error) {
+    return dateString;
+  }
+}
+
+function getStatusColor(status: string) {
+  switch (status) {
+    case 'active':
+      return 'text-green-600';
+    case 'draft':
+      return 'text-amber-600';
+    case 'expired':
+      return 'text-red-600';
+    case 'pending_approval':
+      return 'text-blue-600';
+    default:
+      return 'text-slate-600';
+  }
 }

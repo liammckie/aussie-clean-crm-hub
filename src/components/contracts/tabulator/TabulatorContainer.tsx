@@ -30,13 +30,19 @@ export const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
 
   // Initialize Tabulator when data is available
   useEffect(() => {
-    if (!isClient) return;
+    if (!isClient || !data?.length) return;
     
-    initializeTabulator().catch((error) => {
-      console.error("Failed to initialize Tabulator:", error);
-      toast.error("Failed to initialize contracts table");
-    });
+    console.log("Initializing Tabulator with data:", data.length, "rows");
+    const init = async () => {
+      try {
+        await initializeTabulator();
+      } catch (error) {
+        console.error("Failed to initialize Tabulator:", error);
+        toast.error("Failed to initialize contracts table");
+      }
+    };
     
+    init();
     return destroyTabulator;
   }, [isClient, data, onSelectionChange]);
 
