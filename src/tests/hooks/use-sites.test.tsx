@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { useSites } from '@/hooks/use-sites';
 import { siteService } from '@/services/site/service';
+import { SiteStatus } from '@/services/site/types';
 
 // Mock dependencies
 jest.mock('@/services/site/service');
@@ -47,7 +48,7 @@ describe('useSites Hook', () => {
       suburb: 'Testville',
       state: 'NSW',
       postcode: '2000',
-      status: 'active'
+      status: 'active' as SiteStatus
     },
     {
       id: 'site-2',
@@ -58,7 +59,7 @@ describe('useSites Hook', () => {
       suburb: 'Testville',
       state: 'NSW',
       postcode: '2000',
-      status: 'active'
+      status: 'active' as SiteStatus
     }
   ];
 
@@ -98,7 +99,7 @@ describe('useSites Hook', () => {
       suburb: 'Testville',
       state: 'NSW',
       postcode: '2000',
-      status: 'active'
+      status: 'active' as SiteStatus
     };
     
     const createdSite = {

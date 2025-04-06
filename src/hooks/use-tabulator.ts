@@ -1,85 +1,103 @@
 
+import { useCallback, useState } from 'react';
 import Tabulator from 'tabulator-tables';
-import { useEffect, useState } from 'react';
 
-type TabulatorOptions = {
+interface TabulatorOptions {
   element: React.RefObject<HTMLDivElement>;
   data: any[];
-  onSelectionChange?: (selectedRows: any[]) => void;
-};
+  columns?: any[];
+  layout?: string;
+  pagination?: boolean;
+  paginationSize?: number;
+  movableColumns?: boolean;
+  resizableRows?: boolean;
+  selectable?: boolean;
+  selectableRangeMode?: string;
+  onSelectionChange?: (rows: any[]) => void;
+  initialSort?: { column: string, dir: string }[];
+}
 
-export function useTabulator({ element, data, onSelectionChange }: TabulatorOptions) {
+export const useTabulator = ({
+  element,
+  data,
+  columns = [],
+  layout = 'fitColumns',
+  pagination = true,
+  paginationSize = 10,
+  movableColumns = true,
+  resizableRows = false,
+  selectable = true,
+  selectableRangeMode = 'click',
+  onSelectionChange,
+  initialSort = []
+}: TabulatorOptions) => {
   const [tabulator, setTabulator] = useState<Tabulator | null>(null);
 
-  // Initialize Tabulator with the given options
-  const initializeTabulator = async () => {
-    // Make sure the element is available
+  const initializeTabulator = useCallback(async () => {
     if (!element.current) {
-      console.error("Tabulator container element is not available");
+      console.error('Table element not found');
       return;
     }
 
     try {
-      console.log("Initializing Tabulator...");
-      
-      // Check if Tabulator is globally available
+      // Ensure global Tabulator exists
       if (typeof Tabulator !== 'function') {
-        console.error("Tabulator is not available as a constructor");
-        throw new Error("Tabulator is not available");
+        console.error('Tabulator is not available');
+        throw new Error('Tabulator is not available');
       }
-
-      const tabulatorInstance = new Tabulator(element.current, {
+      
+      // Create a new instance with default options
+      const table = new Tabulator(element.current, {
         data: data || [],
-        layout: "fitColumns",
-        responsiveLayout: "collapse",
-        pagination: "local",
-        paginationSize: 10,
-        paginationSizeSelector: [10, 25, 50, 100],
-        movableColumns: true,
-        columns: [
-          { title: "Select", formatter: "rowSelection", titleFormatter: "rowSelection", hozAlign: "center", headerSort: false, width: 60 },
-          { title: "Client", field: "client_name", headerFilter: "input" },
-          { title: "Contract Name", field: "contract_name", headerFilter: "input" },
-          { title: "Service Type", field: "service_type", headerFilter: "input" },
-          { title: "Status", field: "status", headerFilter: "input" },
-          { title: "Account Manager", field: "account_manager", headerFilter: "input", editor: "input" },
-          { title: "State Manager", field: "state_manager", headerFilter: "input", editor: "input" },
-          { title: "National Manager", field: "national_manager", headerFilter: "input", editor: "input" },
-          { title: "Start Date", field: "start_date", headerFilter: "input" },
-          { title: "Annual Value", field: "total_annual_value", formatter: "money", formatterParams: { symbol: "$", precision: 2 } }
+        columns: columns.length > 0 ? columns : [
+          { title: 'ID', field: 'id', visible: false },
+          { title: 'Name', field: 'name', sorter: 'string' }
         ],
-        selectable: true,
-        selectableRangeMode: "click",
+        layout,
+        pagination,
+        paginationSize,
+        movableColumns,
+        resizableRows,
+        selectable,
+        selectableRangeMode,
+        initialSort,
+        
+        rowSelectionChanged: function(data, rows) {
+          if (onSelectionChange) {
+            onSelectionChange(data);
+          }
+        }
       });
 
-      // Handle row selection events
-      if (onSelectionChange) {
-        tabulatorInstance.on("rowSelectionChanged", function(data, rows) {
-          onSelectionChange(data);
-        });
-      }
-      
-      setTabulator(tabulatorInstance);
-      console.log("Tabulator initialized successfully");
-      return tabulatorInstance;
+      setTabulator(table);
+      return table;
     } catch (error) {
-      console.error("Error initializing Tabulator:", error);
+      console.error('Error initializing Tabulator:', error);
       throw error;
     }
-  };
+  }, [element, data, columns, layout, pagination, paginationSize, movableColumns, resizableRows, selectable, selectableRangeMode, onSelectionChange, initialSort]);
 
-  // Destroy Tabulator instance when component unmounts
-  const destroyTabulator = () => {
+  const destroyTabulator = useCallback(() => {
     if (tabulator) {
-      console.log("Destroying Tabulator instance");
-      tabulator.destroy();
-      setTabulator(null);
+      try {
+        tabulator.destroy();
+        setTabulator(null);
+      } catch (error) {
+        console.error('Error destroying Tabulator:', error);
+      }
     }
-  };
+  }, [tabulator]);
 
-  return {
+  const refreshData = useCallback((newData: any[]) => {
+    if (tabulator) {
+      tabulator.setData(newData);
+    }
+  }, [tabulator]);
+
+  return { 
     tabulator,
     initializeTabulator,
-    destroyTabulator
+    destroyTabulator,
+    refreshData
   };
-}
+};

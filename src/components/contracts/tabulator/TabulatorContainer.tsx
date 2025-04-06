@@ -44,7 +44,7 @@ export const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
     
     init();
     return destroyTabulator;
-  }, [isClient, data, onSelectionChange]);
+  }, [isClient, data, initializeTabulator, destroyTabulator, onSelectionChange]);
 
   return (
     <div className="border rounded-lg overflow-hidden">

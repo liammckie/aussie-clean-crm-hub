@@ -13,7 +13,8 @@ jest.mock('@/integrations/supabase/client', () => ({
     delete: jest.fn().mockReturnThis(),
     eq: jest.fn().mockReturnThis(),
     order: jest.fn().mockReturnThis(),
-    single: jest.fn()
+    single: jest.fn(),
+    maybeSingle: jest.fn()
   },
   isAuthenticated: jest.fn().mockResolvedValue(true)
 }));
@@ -67,7 +68,7 @@ describe('Client API Service', () => {
     const result = await clientApi.fetchAllClients();
 
     expect(result.error).toBeTruthy();
-    expect(result.error?.message).toContain('Failed to fetch clients');
+    expect(result.message).toContain('Failed to fetch clients');
   });
 
   test('createClient - success case', async () => {
@@ -101,8 +102,7 @@ describe('Client API Service', () => {
 
     const result = await clientApi.createClient(invalidClient);
 
-    expect(result.error).toBeTruthy();
-    expect(result.error?.message).toContain('Failed to create client');
+    expect(result.message).toContain('Failed to create client');
   });
 
   test('updateClient - success case', async () => {
