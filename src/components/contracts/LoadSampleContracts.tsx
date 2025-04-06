@@ -7,7 +7,8 @@ import { toast } from 'sonner';
 import { Loader2, AlertCircle, Info } from 'lucide-react';
 import { contractService } from '@/services/contract';
 import { ErrorReporting } from '@/utils/errorReporting';
-import { AppLogger, LogCategory, Cache } from '@/utils/logging';
+import { AppLogger, LogCategory } from '@/utils/logging';
+import { Cache } from '@/utils/caching/cache';
 
 interface LoadSampleContractsProps {
   onContractsLoaded: () => void;

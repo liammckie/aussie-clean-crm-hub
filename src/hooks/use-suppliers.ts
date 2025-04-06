@@ -9,7 +9,8 @@ import {
   SupplierCreateData 
 } from '@/services/supplier/types';
 import { ErrorReporting } from '@/utils/errorReporting';
-import { AppLogger, LogCategory, withCache } from '@/utils/logging';
+import { AppLogger, LogCategory } from '@/utils/logging';
+import { Cache } from '@/utils/caching/cache';
 
 export const useSuppliers = () => {
   const queryClient = useQueryClient();
@@ -25,25 +26,28 @@ export const useSuppliers = () => {
     queryFn: async () => {
       AppLogger.debug(LogCategory.SUPPLIER, 'Fetching suppliers');
       
-      // Use cache wrapper for supplier queries
-      const cacheKey = 'all-suppliers';
+      // Try to get suppliers from cache first
+      const cachedSuppliers = Cache.get<any[]>('all-suppliers');
+      if (cachedSuppliers) {
+        return cachedSuppliers;
+      }
       
-      return await withCache(cacheKey, async () => {
-        const response = await supplierService.getAllSuppliers();
-        
-        if ('category' in response) {
-          AppLogger.error(LogCategory.SUPPLIER, `Error fetching suppliers: ${response.message}`);
-          toast.error(`Error: ${response.message}`);
-          throw new Error(response.message);
-        }
-        
-        AppLogger.info(
-          LogCategory.SUPPLIER, 
-          `Retrieved ${response.data?.length || 0} suppliers`
-        );
-        
-        return response.data;
-      }, { ttl: 2 * 60 * 1000, tag: 'suppliers' }); // Cache for 2 minutes
+      const response = await supplierService.getAllSuppliers();
+      
+      if ('category' in response) {
+        AppLogger.error(LogCategory.SUPPLIER, `Error fetching suppliers: ${response.message}`);
+        toast.error(`Error: ${response.message}`);
+        throw new Error(response.message);
+      }
+      
+      AppLogger.info(
+        LogCategory.SUPPLIER, 
+        `Retrieved ${response.data?.length || 0} suppliers`
+      );
+      
+      // Store in cache for 2 minutes
+      Cache.set('all-suppliers', response.data, 2 * 60 * 1000, 'suppliers');
+      return response.data;
     },
   });
 
@@ -56,24 +60,28 @@ export const useSuppliers = () => {
         
         AppLogger.debug(LogCategory.SUPPLIER, `Fetching supplier details: ${supplierId}`);
         
-        // Use cache wrapper for supplier details
+        // Try to get from cache first
         const cacheKey = `supplier-detail-${supplierId}`;
+        const cachedSupplier = Cache.get<SupplierData>(cacheKey);
+        if (cachedSupplier) {
+          return cachedSupplier;
+        }
         
-        return await withCache(cacheKey, async () => {
-          const response = await supplierService.getSupplierById(supplierId);
-          
-          if ('category' in response) {
-            AppLogger.error(
-              LogCategory.SUPPLIER, 
-              `Error fetching supplier details: ${response.message}`, 
-              { supplierId }
-            );
-            toast.error(`Error: ${response.message}`);
-            throw new Error(response.message);
-          }
-          
-          return response.data;
-        }, { ttl: 2 * 60 * 1000, tag: 'suppliers' });
+        const response = await supplierService.getSupplierById(supplierId);
+        
+        if ('category' in response) {
+          AppLogger.error(
+            LogCategory.SUPPLIER, 
+            `Error fetching supplier details: ${response.message}`, 
+            { supplierId }
+          );
+          toast.error(`Error: ${response.message}`);
+          throw new Error(response.message);
+        }
+        
+        // Cache for 2 minutes
+        Cache.set(cacheKey, response.data, 2 * 60 * 1000, 'suppliers');
+        return response.data;
       },
       enabled: !!supplierId,
     });
@@ -89,28 +97,31 @@ export const useSuppliers = () => {
         AppLogger.debug(LogCategory.SUPPLIER, `Fetching documents for supplier: ${supplierId}`);
         
         const cacheKey = `supplier-documents-${supplierId}`;
+        const cachedDocs = Cache.get<SupplierDocumentData[]>(cacheKey);
+        if (cachedDocs) {
+          return cachedDocs;
+        }
         
-        return await withCache(cacheKey, async () => {
-          const response = await supplierService.getSupplierDocuments(supplierId);
-          
-          if ('category' in response) {
-            AppLogger.error(
-              LogCategory.SUPPLIER, 
-              `Error fetching supplier documents: ${response.message}`, 
-              { supplierId }
-            );
-            toast.error(`Error: ${response.message}`);
-            throw new Error(response.message);
-          }
-          
-          AppLogger.info(
+        const response = await supplierService.getSupplierDocuments(supplierId);
+        
+        if ('category' in response) {
+          AppLogger.error(
             LogCategory.SUPPLIER, 
-            `Retrieved ${response.data?.length || 0} documents for supplier`, 
+            `Error fetching supplier documents: ${response.message}`, 
             { supplierId }
           );
-          
-          return response.data;
-        }, { ttl: 2 * 60 * 1000, tag: 'supplier-documents' });
+          toast.error(`Error: ${response.message}`);
+          throw new Error(response.message);
+        }
+        
+        AppLogger.info(
+          LogCategory.SUPPLIER, 
+          `Retrieved ${response.data?.length || 0} documents for supplier`, 
+          { supplierId }
+        );
+        
+        Cache.set(cacheKey, response.data, 2 * 60 * 1000, 'supplier-documents');
+        return response.data;
       },
       enabled: !!supplierId,
     });
@@ -126,22 +137,25 @@ export const useSuppliers = () => {
         AppLogger.debug(LogCategory.SUPPLIER, `Fetching services for supplier: ${supplierId}`);
         
         const cacheKey = `supplier-services-${supplierId}`;
+        const cachedServices = Cache.get<SupplierServiceData[]>(cacheKey);
+        if (cachedServices) {
+          return cachedServices;
+        }
         
-        return await withCache(cacheKey, async () => {
-          const response = await supplierService.getSupplierServices(supplierId);
-          
-          if ('category' in response) {
-            AppLogger.error(
-              LogCategory.SUPPLIER, 
-              `Error fetching supplier services: ${response.message}`, 
-              { supplierId }
-            );
-            toast.error(`Error: ${response.message}`);
-            throw new Error(response.message);
-          }
-          
-          return response.data;
-        }, { ttl: 2 * 60 * 1000, tag: 'supplier-services' });
+        const response = await supplierService.getSupplierServices(supplierId);
+        
+        if ('category' in response) {
+          AppLogger.error(
+            LogCategory.SUPPLIER, 
+            `Error fetching supplier services: ${response.message}`, 
+            { supplierId }
+          );
+          toast.error(`Error: ${response.message}`);
+          throw new Error(response.message);
+        }
+        
+        Cache.set(cacheKey, response.data, 2 * 60 * 1000, 'supplier-services');
+        return response.data;
       },
       enabled: !!supplierId,
     });
@@ -157,22 +171,25 @@ export const useSuppliers = () => {
         AppLogger.debug(LogCategory.SUPPLIER, `Fetching contracts for supplier: ${supplierId}`);
         
         const cacheKey = `supplier-contracts-${supplierId}`;
+        const cachedContracts = Cache.get(cacheKey);
+        if (cachedContracts) {
+          return cachedContracts;
+        }
         
-        return await withCache(cacheKey, async () => {
-          const response = await supplierService.getSupplierContracts(supplierId);
-          
-          if ('category' in response) {
-            AppLogger.error(
-              LogCategory.SUPPLIER, 
-              `Error fetching supplier contracts: ${response.message}`, 
-              { supplierId }
-            );
-            toast.error(`Error: ${response.message}`);
-            throw new Error(response.message);
-          }
-          
-          return response.data;
-        }, { ttl: 2 * 60 * 1000, tag: 'supplier-contracts' });
+        const response = await supplierService.getSupplierContracts(supplierId);
+        
+        if ('category' in response) {
+          AppLogger.error(
+            LogCategory.SUPPLIER, 
+            `Error fetching supplier contracts: ${response.message}`, 
+            { supplierId }
+          );
+          toast.error(`Error: ${response.message}`);
+          throw new Error(response.message);
+        }
+        
+        Cache.set(cacheKey, response.data, 2 * 60 * 1000, 'supplier-contracts');
+        return response.data;
       },
       enabled: !!supplierId,
     });
