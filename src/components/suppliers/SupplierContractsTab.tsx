@@ -64,31 +64,44 @@ export function SupplierContractsTab({ supplierId }: SupplierContractsTabProps) 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contracts.map((contract) => (
-                  <TableRow key={contract.contract_id}>
-                    <TableCell className="font-medium">{contract.contract_number}</TableCell>
-                    <TableCell>{contract.client_name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{contract.status}</Badge>
-                    </TableCell>
-                    <TableCell>${contract.contract_value?.toLocaleString() || 'N/A'}</TableCell>
-                    <TableCell>
-                      <Badge variant={contract.supplier_role === 'primary' ? 'default' : 'secondary'}>
-                        {contract.supplier_role}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => handleViewContract(contract.contract_id)}
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        View
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {contracts.map((contract) => {
+                  // Extract contract details from nested contracts array
+                  const contractDetails = contract.contracts ? contract.contracts[0] : null;
+                  
+                  return (
+                    <TableRow key={contract.link_id}>
+                      <TableCell className="font-medium">
+                        {contractDetails?.contract_code || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        {/* Client name is not directly available in the response structure */}
+                        {/* We would need to fetch client details separately or update the backend query */}
+                        {'Client info not available'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{contractDetails?.status || 'N/A'}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        ${contractDetails?.total_annual_value?.toLocaleString() || 'N/A'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={contract.role === 'primary' ? 'default' : 'secondary'}>
+                          {contract.role}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => contractDetails && handleViewContract(contractDetails.id)}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </div>

@@ -19,12 +19,13 @@ export async function getContractsBySupplier(supplierId: string) {
         services,
         percentage,
         assigned_at,
-        contracts (
+        contracts:contract_id (
           id,
           contract_name,
           contract_code,
           status,
-          total_annual_value
+          total_annual_value,
+          client_id
         )
       `)
       .eq('supplier_id', supplierId);
@@ -71,9 +72,9 @@ export async function getSuppliersByContract(contractId: string) {
         services,
         percentage,
         assigned_at,
-        suppliers (
-          supplier_id,
-          supplier_name,
+        suppliers:supplier_id (
+          supplier_id:id,
+          supplier_name:business_name,
           supplier_type,
           status,
           abn

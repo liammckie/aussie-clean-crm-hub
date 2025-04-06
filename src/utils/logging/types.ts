@@ -15,7 +15,12 @@ export enum LogCategory {
   API = 'api',
   PERFORMANCE = 'performance',
   ERROR = 'error',
-  DEBUG = 'debug'
+  DEBUG = 'debug',
+  APPLICATION = 'application',
+  UI = 'ui',
+  DATABASE = 'database',
+  STORAGE = 'storage',
+  CACHE = 'cache'
 }
 
 /**
@@ -36,6 +41,8 @@ export interface LogEntry {
   level: LogLevel;
   category: LogCategory;
   message: string;
+  data?: any;
   details?: any;
   userId?: string;
+  context?: Record<string, any>;
 }

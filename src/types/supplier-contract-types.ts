@@ -26,24 +26,42 @@ export type SupplierContractLink = z.infer<typeof supplierContractLinkSchema> & 
 };
 
 /**
- * Type for contract with supplier information
+ * Type for contract information returned with supplier
  */
 export interface ContractWithSupplier {
-  contract_id: string;
-  contract_number: string;
-  client_name: string;
+  link_id: string;
+  role: string;
   status: string;
-  contract_value?: number;
-  supplier_role: 'primary' | 'secondary' | 'subcontractor';
+  services?: string;
+  percentage?: number;
+  assigned_at?: string;
+  contracts: Array<{
+    id: string;
+    contract_name: string;
+    contract_code: string;
+    status: string;
+    total_annual_value: number;
+    client_id?: string;
+  }>;
 }
 
 /**
- * Type for supplier with contract information
+ * Type for supplier information returned with contract
  */
-export interface SupplierWithContracts {
-  supplier_id: string;
-  supplier_name: string;
-  contracts: ContractWithSupplier[];
+export interface SupplierWithContract {
+  link_id: string;
+  role: string;
+  status: string;
+  services?: string;
+  percentage?: number;
+  assigned_at?: string;
+  suppliers: {
+    supplier_id: string;
+    supplier_name: string;
+    supplier_type: string;
+    status: string;
+    abn?: string;
+  };
 }
 
 /**
