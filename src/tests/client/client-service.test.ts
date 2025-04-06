@@ -4,15 +4,17 @@ import { createMockSupabaseClient } from '../mocks/supabaseMock';
 
 // Mock the service module to properly mock its exports
 jest.mock('@/services/client', () => ({
-  createClient: jest.fn(),
-  getClient: jest.fn(),
-  updateClient: jest.fn(),
-  deleteClient: jest.fn(),
-  getAllClients: jest.fn()
+  clientService: {
+    createClient: jest.fn(),
+    getClientById: jest.fn(),
+    updateClient: jest.fn(),
+    deleteClient: jest.fn(),
+    getAllClients: jest.fn()
+  }
 }));
 
 // Import the mocked functions after mocking
-import { createClient, getClient, updateClient, deleteClient, getAllClients } from '@/services/client';
+import { clientService } from '@/services/client';
 
 // Mock the Supabase client module
 jest.mock('@/integrations/supabase/client', () => {
@@ -42,14 +44,14 @@ describe('Client Service', () => {
       supabase.data = { data: mockClients, error: null };
       
       // Mock the implementation for this test
-      (getAllClients as jest.Mock).mockResolvedValue(mockClients);
+      (clientService.getAllClients as jest.Mock).mockResolvedValue(mockClients);
       
       // Call the function
-      const result = await getAllClients();
+      const result = await clientService.getAllClients();
       
       // Assertions
       expect(result).toEqual(mockClients);
-      expect(getAllClients).toHaveBeenCalled();
+      expect(clientService.getAllClients).toHaveBeenCalled();
     });
 
     it('should throw error when database query fails', async () => {
@@ -58,28 +60,28 @@ describe('Client Service', () => {
       supabase.data = { data: null, error: mockError };
       
       // Mock implementation to throw error
-      (getAllClients as jest.Mock).mockRejectedValue(new Error('Database error'));
+      (clientService.getAllClients as jest.Mock).mockRejectedValue(new Error('Database error'));
       
       // Call function and expect error
-      await expect(getAllClients()).rejects.toThrow();
+      await expect(clientService.getAllClients()).rejects.toThrow();
     });
   });
 
-  describe('getClient', () => {
+  describe('getClientById', () => {
     it('should return a client when successful', async () => {
       // Setup mock data
       const mockClient = { id: '1', business_name: 'Test Client' };
       supabase.data = { data: mockClient, error: null };
       
       // Mock implementation
-      (getClient as jest.Mock).mockResolvedValue(mockClient);
+      (clientService.getClientById as jest.Mock).mockResolvedValue(mockClient);
       
       // Call the function
-      const result = await getClient('1');
+      const result = await clientService.getClientById('1');
       
       // Assertions
       expect(result).toEqual(mockClient);
-      expect(getClient).toHaveBeenCalledWith('1');
+      expect(clientService.getClientById).toHaveBeenCalledWith('1');
     });
 
     it('should throw error when client not found', async () => {
@@ -88,11 +90,11 @@ describe('Client Service', () => {
       supabase.data = { data: null, error: mockError };
       
       // Mock implementation to throw error
-      (getClient as jest.Mock).mockRejectedValue(new Error('Not found'));
+      (clientService.getClientById as jest.Mock).mockRejectedValue(new Error('Not found'));
       
       // Call function and expect error
-      await expect(getClient('999')).rejects.toThrow();
-      expect(getClient).toHaveBeenCalledWith('999');
+      await expect(clientService.getClientById('999')).rejects.toThrow();
+      expect(clientService.getClientById).toHaveBeenCalledWith('999');
     });
   });
 
@@ -105,14 +107,14 @@ describe('Client Service', () => {
       supabase.data = { data: mockCreatedClient, error: null };
       
       // Mock implementation
-      (createClient as jest.Mock).mockResolvedValue(mockCreatedClient);
+      (clientService.createClient as jest.Mock).mockResolvedValue(mockCreatedClient);
       
       // Call the function
-      const result = await createClient(mockClientData);
+      const result = await clientService.createClient(mockClientData);
       
       // Assertions
       expect(result).toEqual(mockCreatedClient);
-      expect(createClient).toHaveBeenCalledWith(mockClientData);
+      expect(clientService.createClient).toHaveBeenCalledWith(mockClientData);
     });
 
     it('should throw error when creation fails', async () => {
@@ -123,11 +125,11 @@ describe('Client Service', () => {
       supabase.data = { data: null, error: mockError };
       
       // Mock implementation to throw error
-      (createClient as jest.Mock).mockRejectedValue(new Error('Insert failed'));
+      (clientService.createClient as jest.Mock).mockRejectedValue(new Error('Insert failed'));
       
       // Call function and expect error
-      await expect(createClient(mockClientData)).rejects.toThrow();
-      expect(createClient).toHaveBeenCalledWith(mockClientData);
+      await expect(clientService.createClient(mockClientData)).rejects.toThrow();
+      expect(clientService.createClient).toHaveBeenCalledWith(mockClientData);
     });
   });
 
@@ -141,14 +143,14 @@ describe('Client Service', () => {
       supabase.data = { data: mockUpdatedClient, error: null };
       
       // Mock implementation
-      (updateClient as jest.Mock).mockResolvedValue(mockUpdatedClient);
+      (clientService.updateClient as jest.Mock).mockResolvedValue(mockUpdatedClient);
       
       // Call the function
-      const result = await updateClient(mockClientId, mockUpdateData);
+      const result = await clientService.updateClient(mockClientId, mockUpdateData);
       
       // Assertions
       expect(result).toEqual(mockUpdatedClient);
-      expect(updateClient).toHaveBeenCalledWith(mockClientId, mockUpdateData);
+      expect(clientService.updateClient).toHaveBeenCalledWith(mockClientId, mockUpdateData);
     });
   });
 
@@ -159,14 +161,14 @@ describe('Client Service', () => {
       supabase.data = { success: true, error: null };
       
       // Mock implementation
-      (deleteClient as jest.Mock).mockResolvedValue(true);
+      (clientService.deleteClient as jest.Mock).mockResolvedValue(true);
       
       // Call the function
-      const result = await deleteClient(mockClientId);
+      const result = await clientService.deleteClient(mockClientId);
       
       // Assertions
       expect(result).toBe(true);
-      expect(deleteClient).toHaveBeenCalledWith(mockClientId);
+      expect(clientService.deleteClient).toHaveBeenCalledWith(mockClientId);
     });
   });
 });

@@ -2,21 +2,19 @@
 import { describe, expect, it, jest } from '@jest/globals';
 import { createMockSupabaseClient } from '../mocks/supabaseMock';
 
-// Define SiteStatus enum
-enum SiteStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  PENDING = 'pending'
-}
+// Import SiteStatus from the database schema
+import { SiteStatus } from '@/types/database-schema';
 
 // Mock the service module
 jest.mock('@/services/site', () => ({
-  createSite: jest.fn(),
-  getSite: jest.fn()
+  siteService: {
+    createSite: jest.fn(),
+    getSite: jest.fn()
+  }
 }));
 
-// Import mocked functions
-import { createSite, getSite } from '@/services/site';
+// Import the mocked functions
+import { siteService } from '@/services/site';
 
 // Mock the database schema module
 jest.mock('@/types/database-schema', () => ({
@@ -60,14 +58,14 @@ describe('Site Service', () => {
     supabase.data = { data: mockSiteData, error: null };
     
     // Mock implementation
-    (createSite as jest.Mock).mockResolvedValue(mockSiteData);
+    (siteService.createSite as jest.Mock).mockResolvedValue(mockSiteData);
 
     // Call the service function
-    const result = await createSite(mockSiteData);
+    const result = await siteService.createSite(mockSiteData);
 
     // Check if the result is as expected
     expect(result).toEqual(mockSiteData);
-    expect(createSite).toHaveBeenCalledWith(mockSiteData);
+    expect(siteService.createSite).toHaveBeenCalledWith(mockSiteData);
   });
 
   it('gets a site by ID', async () => {
@@ -75,11 +73,11 @@ describe('Site Service', () => {
     supabase.data = { data: mockSite, error: null };
     
     // Mock implementation
-    (getSite as jest.Mock).mockResolvedValue(mockSite);
+    (siteService.getSite as jest.Mock).mockResolvedValue(mockSite);
 
-    const result = await getSite('123');
+    const result = await siteService.getSite('123');
 
     expect(result).toEqual(mockSite);
-    expect(getSite).toHaveBeenCalledWith('123');
+    expect(siteService.getSite).toHaveBeenCalledWith('123');
   });
 });

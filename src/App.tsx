@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SidebarProvider } from './components/ui/sidebar';
 
 // Import immediately needed components
-import { MainLayout as Layout } from './components/layout/MainLayout';
+import { MainLayout } from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 
 // Lazy load component pages
@@ -53,8 +53,9 @@ function App() {
       <BrowserRouter>
         <SidebarProvider>
           <Routes>
-            <Route path="/" element={<Layout children={undefined} />}>
+            <Route path="/" element={<MainLayout />}>
               <Route index element={<Dashboard />} />
+              <Route path="dashboard" element={<Dashboard />} />
               <Route path="clients" element={
                 <Suspense fallback={<Loading />}>
                   <Clients />
