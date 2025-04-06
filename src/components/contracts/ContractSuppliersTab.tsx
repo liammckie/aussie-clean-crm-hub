@@ -82,11 +82,8 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
           throw error;
         }
         
-        // Transform data to match SupplierWithContract type
-        return data.map(item => ({
-          ...item,
-          suppliers: item.suppliers // Supplier data is already in the expected format
-        })) as SupplierWithContract[];
+        // Each row already contains the expected structure for SupplierWithContract
+        return data as SupplierWithContract[];
       } catch (error) {
         AppLogger.error(LogCategory.CONTRACT, 'Exception in contract suppliers query', { error });
         throw new Error('Failed to load suppliers for this contract');

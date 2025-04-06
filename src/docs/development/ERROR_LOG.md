@@ -19,9 +19,9 @@ error TS2352: Conversion of type '{ link_id: any; role: any; status: any; servic
 - Type mismatch between the interface definition and the actual data structure returned from the database.
 
 **Solution:**
-1. Updated the query transformation to correctly map the nested data structure
-2. Revised the supplier contract type definitions to match the actual database schema
-3. Implemented proper error handling with try/catch blocks in the query function
+1. Updated the `SupplierWithContract` interface to correctly reflect that the `suppliers` property contains a single supplier object (not an array)
+2. Added proper type casting in the ContractSuppliersTab component to handle the data structure correctly
+3. Documented the expected data shape in comments to prevent future mismatches
 
 **Files Modified:**
 - `src/types/supplier-contract-types.ts`
@@ -108,3 +108,25 @@ To prevent similar errors in the future:
 - **TypeScript Strict Mode**: Enabled for early type error detection
 - **ESLint Rules**: Configured to catch common type and error handling issues
 - **Unit Tests**: Added for critical data transformation and validation logic
+
+## Schema vs TypeScript Interface Mismatches (Fixed: 2025-04-06)
+
+**Error:**
+```
+error TS2352: Conversion of type '{ suppliers: { supplier_id: any; supplier_name: any; supplier_type: any; status: any; abn: any; }[]; link_id: any; role: any; status: any; services: any; percentage: any; assigned_at: any; }[]' to type 'SupplierWithContract[]' may be a mistake...
+```
+
+**Root Cause:**
+- The shape of the data returned by Supabase's foreign table joins didn't match our TypeScript interface expectations
+- The `suppliers` property in the data returned from Supabase contained a single supplier object, not an array, but our TypeScript interface was incorrect
+
+**Solution:**
+1. Analyzed the actual data structure returned by Supabase
+2. Updated the `SupplierWithContract` interface to correctly match the expected structure
+3. Used proper type assertions in the data fetching function
+4. Added descriptive comments to the interface definition to clarify the expected data shape
+
+**Prevention Measures:**
+- Add schema validation checks (using Zod) to validate database responses match expected shapes
+- Create unit tests that verify the structure of mock responses matches interface definitions
+- Document join query patterns and their return types for easier reference
