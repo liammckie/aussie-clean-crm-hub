@@ -2,28 +2,31 @@
 import React from 'react';
 import { useSuppliers } from '@/hooks/use-suppliers';
 import { SuppliersList } from '@/components/suppliers/SuppliersList';
-import { Button } from '@/components/ui/button';
 import { Heading } from '@/components/ui/heading';
-import { PlusCircle } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Separator } from '@/components/ui/separator';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 export default function Suppliers() {
-  const { data: suppliers, error, isLoading } = useSuppliers();
-  const navigate = useNavigate();
-
+  const { data: suppliers, isLoading, error } = useSuppliers();
+  
+  // Log page access
+  React.useEffect(() => {
+    AppLogger.info(LogCategory.SUPPLIER, 'Viewing suppliers list');
+  }, []);
+  
   return (
-    <div className="container py-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <Heading title="Supplier Management" />
-        <Button onClick={() => navigate('/suppliers/new')} className="flex items-center">
-          <PlusCircle className="mr-2 h-4 w-4" />
-          New Supplier
-        </Button>
-      </div>
+    <div className="container py-6">
+      <Heading 
+        title="Suppliers" 
+        description="Manage your suppliers and subcontractors"
+      />
+      
+      <Separator className="my-4" />
+      
       <SuppliersList 
         suppliers={suppliers || []} 
-        isLoading={isLoading} 
-        error={error instanceof Error ? error : null} 
+        isLoading={isLoading}
+        error={error instanceof Error ? error : null}
       />
     </div>
   );
