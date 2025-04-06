@@ -1,3 +1,4 @@
+
 /**
  * Re-export all logging utilities from the modular system
  */
@@ -18,6 +19,7 @@ export enum LogCategory {
   CONTRACT = 'contract',
   SITE = 'site',
   SUPPLIER = 'supplier',
+  SUPPLIER_CONTRACT = 'supplier_contract',
   FINANCIAL = 'financial',
   WORK_ORDER = 'work_order',
   API = 'api',

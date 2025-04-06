@@ -129,7 +129,7 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
               <TableBody>
                 {contractSuppliers.map((supplier) => (
                   <TableRow key={supplier.supplier_id}>
-                    <TableCell className="font-medium">{supplier.business_name || 'Unknown'}</TableCell>
+                    <TableCell className="font-medium">{supplier.suppliers?.business_name || 'Unknown'}</TableCell>
                     <TableCell>{supplier.role || 'Subcontractor'}</TableCell>
                     <TableCell>
                       <Badge 
@@ -142,7 +142,7 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
                         {supplier.status || 'Active'}
                       </Badge>
                     </TableCell>
-                    <TableCell>{supplier.abn || 'Not specified'}</TableCell>
+                    <TableCell>{supplier.suppliers?.abn || 'Not specified'}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
