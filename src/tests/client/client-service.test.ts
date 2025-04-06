@@ -1,146 +1,158 @@
 
-import { clientApi } from '@/services/client/api';
-import { supabase } from '@/integrations/supabase/client';
-import { ClientFormData } from '@/services/client/types';
+import { describe, expect, it, jest, beforeEach } from '@jest/globals';
+import { createClient, getClient, updateClient, deleteClient, getAllClients } from '@/services/client';
+import { createMockSupabaseClient } from '../mocks/supabaseMock';
 
-// Mock the Supabase client with appropriate method chaining
-jest.mock('@/integrations/supabase/client', () => ({
-  supabase: {
-    from: jest.fn().mockReturnThis(),
-    select: jest.fn().mockReturnThis(),
-    insert: jest.fn().mockReturnThis(),
-    update: jest.fn().mockReturnThis(),
-    delete: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    order: jest.fn().mockReturnThis(),
-    // Mock the terminal methods correctly
-    single: jest.fn(),
-    maybeSingle: jest.fn(),
-  },
-  isAuthenticated: jest.fn().mockResolvedValue(true)
-}));
+// Mock the Supabase client module
+jest.mock('@/integrations/supabase/client', () => {
+  const mockClient = createMockSupabaseClient();
+  return {
+    supabase: mockClient
+  };
+});
 
-describe('Client API Service', () => {
+// Import the mocked supabase client
+const { supabase } = jest.requireMock('@/integrations/supabase/client');
+
+describe('Client Service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  const mockClient: ClientFormData = {
-    business_name: 'Test Business',
-    trading_name: 'Test Trading Name',
-    abn: '12345678901',
-    status: 'Active',
-    address_line_1: '123 Test St',
-    suburb: 'Testville',
-    state: 'NSW',
-    postcode: '2000',
-    phone: '0412345678',
-    address: '123 Test St, Testville'
-  };
-
-  const mockClientResponse = {
-    id: '123e4567-e89b-12d3-a456-426614174000',
-    ...mockClient,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString()
-  };
-
-  test('fetchAllClients - success case', async () => {
-    // Mock successful response
-    (supabase.single as jest.Mock).mockResolvedValueOnce({ 
-      data: [mockClientResponse], 
-      error: null 
+  describe('getAllClients', () => {
+    it('should return all clients when successful', async () => {
+      // Setup mock data
+      const mockClients = [
+        { id: '1', business_name: 'Client A' },
+        { id: '2', business_name: 'Client B' }
+      ];
+      
+      // Configure mock response
+      supabase.data = { data: mockClients, error: null };
+      
+      // Call the function
+      const result = await getAllClients();
+      
+      // Assertions
+      expect(supabase.from).toHaveBeenCalledWith('clients');
+      expect(supabase.select).toHaveBeenCalledWith('*');
+      expect(result).toEqual(mockClients);
     });
 
-    const result = await clientApi.fetchAllClients();
-
-    expect(supabase.from).toHaveBeenCalledWith('clients');
-    expect(supabase.select).toHaveBeenCalledWith('*');
-    expect(result).toEqual({ data: [mockClientResponse], error: null });
+    it('should throw error when database query fails', async () => {
+      // Setup mock error
+      const mockError = { message: 'Database error', details: 'Failed to fetch clients' };
+      supabase.data = { data: null, error: mockError };
+      
+      // Call function and expect error
+      await expect(getAllClients()).rejects.toThrow();
+      
+      expect(supabase.from).toHaveBeenCalledWith('clients');
+      expect(supabase.select).toHaveBeenCalledWith('*');
+    });
   });
 
-  test('fetchAllClients - error case', async () => {
-    // Mock error response
-    const mockError = { message: 'Database error' };
-    (supabase.single as jest.Mock).mockResolvedValueOnce({ 
-      data: null, 
-      error: mockError
+  describe('getClient', () => {
+    it('should return a client when successful', async () => {
+      // Setup mock data
+      const mockClient = { id: '1', business_name: 'Test Client' };
+      supabase.data = { data: mockClient, error: null };
+      
+      // Call the function
+      const result = await getClient('1');
+      
+      // Assertions
+      expect(supabase.from).toHaveBeenCalledWith('clients');
+      expect(supabase.select).toHaveBeenCalledWith('*');
+      expect(supabase.eq).toHaveBeenCalledWith('id', '1');
+      expect(supabase.single).toHaveBeenCalled();
+      expect(result).toEqual(mockClient);
     });
 
-    const result = await clientApi.fetchAllClients();
-
-    expect(result.message).toBeDefined();
-    expect(result.category).toBeDefined();
+    it('should throw error when client not found', async () => {
+      // Setup mock error
+      const mockError = { message: 'Not found', category: 'not_found' };
+      supabase.data = { data: null, error: mockError };
+      
+      // Call function and expect error
+      await expect(getClient('999')).rejects.toThrow();
+      
+      expect(supabase.from).toHaveBeenCalledWith('clients');
+      expect(supabase.select).toHaveBeenCalledWith('*');
+      expect(supabase.eq).toHaveBeenCalledWith('id', '999');
+      expect(supabase.single).toHaveBeenCalled();
+    });
   });
 
-  test('createClient - success case', async () => {
-    // Mock successful response
-    (supabase.single as jest.Mock).mockResolvedValueOnce({ 
-      data: mockClientResponse, 
-      error: null 
+  describe('createClient', () => {
+    it('should create client when successful', async () => {
+      // Setup mock client data
+      const mockClientData = { business_name: 'New Client' };
+      const mockCreatedClient = { id: '123', business_name: 'New Client', created_at: new Date().toISOString() };
+      
+      supabase.data = { data: mockCreatedClient, error: null };
+      
+      // Call the function
+      const result = await createClient(mockClientData);
+      
+      // Assertions
+      expect(supabase.from).toHaveBeenCalledWith('clients');
+      expect(supabase.insert).toHaveBeenCalledWith(mockClientData);
+      expect(supabase.single).toHaveBeenCalled();
+      expect(result).toEqual(mockCreatedClient);
     });
 
-    const result = await clientApi.createClient(mockClient);
-
-    expect(supabase.from).toHaveBeenCalledWith('clients');
-    expect(supabase.insert).toHaveBeenCalledWith(mockClient);
-    expect(result).toEqual({ data: mockClientResponse, error: null });
+    it('should throw error when creation fails', async () => {
+      // Setup mock error
+      const mockClientData = { business_name: 'New Client' };
+      const mockError = { message: 'Insert failed', details: 'Validation error' };
+      
+      supabase.data = { data: null, error: mockError };
+      
+      // Call function and expect error
+      await expect(createClient(mockClientData)).rejects.toThrow();
+      
+      expect(supabase.from).toHaveBeenCalledWith('clients');
+      expect(supabase.insert).toHaveBeenCalledWith(mockClientData);
+      expect(supabase.single).toHaveBeenCalled();
+    });
   });
 
-  test('createClient - validation error', async () => {
-    // Mock validation error
-    const mockError = { 
-      message: 'Invalid phone format',
-      code: '23514' 
-    };
-    
-    (supabase.single as jest.Mock).mockResolvedValueOnce({ 
-      data: null, 
-      error: mockError
+  describe('updateClient', () => {
+    it('should update client when successful', async () => {
+      // Setup mock data
+      const mockClientId = '123';
+      const mockUpdateData = { business_name: 'Updated Client' };
+      const mockUpdatedClient = { id: '123', business_name: 'Updated Client', updated_at: new Date().toISOString() };
+      
+      supabase.data = { data: mockUpdatedClient, error: null };
+      
+      // Call the function
+      const result = await updateClient(mockClientId, mockUpdateData);
+      
+      // Assertions
+      expect(supabase.from).toHaveBeenCalledWith('clients');
+      expect(supabase.update).toHaveBeenCalledWith(mockUpdateData);
+      expect(supabase.eq).toHaveBeenCalledWith('id', mockClientId);
+      expect(supabase.single).toHaveBeenCalled();
+      expect(result).toEqual(mockUpdatedClient);
     });
-
-    const invalidClient = {
-      ...mockClient,
-      phone: 'not-a-phone-number'
-    };
-
-    const result = await clientApi.createClient(invalidClient);
-
-    expect(result.message).toContain('Failed to create client');
   });
 
-  test('updateClient - success case', async () => {
-    // Mock successful response
-    (supabase.single as jest.Mock).mockResolvedValueOnce({ 
-      data: mockClientResponse, 
-      error: null 
+  describe('deleteClient', () => {
+    it('should delete client when successful', async () => {
+      // Setup mock data
+      const mockClientId = '123';
+      supabase.data = { success: true, error: null };
+      
+      // Call the function
+      const result = await deleteClient(mockClientId);
+      
+      // Assertions
+      expect(supabase.from).toHaveBeenCalledWith('clients');
+      expect(supabase.delete).toHaveBeenCalled();
+      expect(supabase.eq).toHaveBeenCalledWith('id', mockClientId);
+      expect(result).toBe(true);
     });
-
-    const clientId = '123e4567-e89b-12d3-a456-426614174000';
-    const updateData = { business_name: 'Updated Business Name' };
-    
-    const result = await clientApi.updateClient(clientId, updateData);
-
-    expect(supabase.from).toHaveBeenCalledWith('clients');
-    expect(supabase.update).toHaveBeenCalledWith(updateData);
-    expect(supabase.eq).toHaveBeenCalledWith('id', clientId);
-    expect(result).toEqual({ data: mockClientResponse, error: null });
-  });
-
-  test('deleteClient - success case', async () => {
-    // Mock successful response
-    (supabase.single as jest.Mock).mockResolvedValueOnce({ 
-      data: null, 
-      error: null 
-    });
-
-    const clientId = '123e4567-e89b-12d3-a456-426614174000';
-    
-    const result = await clientApi.deleteClient(clientId);
-
-    expect(supabase.from).toHaveBeenCalledWith('clients');
-    expect(supabase.delete).toHaveBeenCalled();
-    expect(supabase.eq).toHaveBeenCalledWith('id', clientId);
-    expect(result.success).toBeTruthy();
   });
 });

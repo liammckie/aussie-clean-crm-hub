@@ -5,25 +5,25 @@ import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 // Import immediately needed components
-import Layout from './components/layout/Layout';
+import { MainLayout as Layout } from './components/layout/MainLayout';
 import Dashboard from './pages/Dashboard';
 
 // Lazy load component pages
 const Clients = lazy(() => import('./pages/Clients'));
 const NewClient = lazy(() => import('./pages/NewClient'));
-const ClientDetails = lazy(() => import('./pages/ClientDetails'));
+const ClientDetails = lazy(() => import('./pages/ClientDetail'));
 const Sites = lazy(() => import('./pages/Sites'));
-const SiteDetails = lazy(() => import('./pages/SiteDetails'));
-const NewSite = lazy(() => import('./pages/NewSite'));
+const SiteDetails = lazy(() => import('./pages/Sites')); // Placeholder until SiteDetails is created
+const NewSite = lazy(() => import('./pages/NotFound')); // Placeholder until NewSite is created
 const Contracts = lazy(() => import('./pages/Contracts'));
-const ContractDetails = lazy(() => import('./pages/ContractDetails'));
+const ContractDetails = lazy(() => import('./pages/ContractDetail'));
 const NewContract = lazy(() => import('./pages/NewContract'));
 const Suppliers = lazy(() => import('./pages/Suppliers'));
-const SupplierDetails = lazy(() => import('./pages/SupplierDetails'));
+const SupplierDetails = lazy(() => import('./pages/SupplierDetail'));
 const NewSupplier = lazy(() => import('./pages/NewSupplier'));
-const Login = lazy(() => import('./pages/Auth/Login'));
-const Register = lazy(() => import('./pages/Auth/Register'));
-const Settings = lazy(() => import('./pages/Settings'));
+const Login = lazy(() => import('./pages/Login'));
+const Register = lazy(() => import('./pages/NotFound')); // Placeholder until Register is created
+const Settings = lazy(() => import('./pages/NotFound')); // Placeholder until Settings is created
 const NotFound = lazy(() => import('./pages/NotFound'));
 
 // Loading component for suspense fallback

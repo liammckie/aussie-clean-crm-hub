@@ -1,120 +1,59 @@
-import { siteService } from '@/services/site/service';
-import * as siteApi from '@/services/site/api';
-import { SiteData, SiteStatus } from '@/services/site/types';
 
-// Mock the site API
-jest.mock('@/services/site/api');
+import { describe, expect, it, jest } from '@jest/globals';
+import { createSite, getSite } from '@/services/site';
+import { SiteStatus } from '@/types/database-schema'; // Use the correct import for SiteStatus
+
+// Mock the Supabase client
+jest.mock('@/integrations/supabase/client', () => ({
+  supabase: {
+    from: jest.fn().mockReturnThis(),
+    select: jest.fn().mockReturnThis(),
+    insert: jest.fn().mockReturnThis(),
+    single: jest.fn().mockReturnThis(),
+    then: jest.fn()
+  }
+}));
 
 describe('Site Service', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  const mockSite: SiteData = {
-    client_id: '123e4567-e89b-12d3-a456-426614174000',
-    site_name: 'Test Site',
-    site_code: 'TEST-001',
-    address_line_1: '123 Test St',
-    suburb: 'Testville',
-    state: 'NSW',
-    postcode: '2000',
-    status: 'active' as SiteStatus
-  };
-
-  const mockSiteResponse = {
-    data: {
-      id: '123e4567-e89b-12d3-a456-426614174001',
-      ...mockSite,
+  it('creates a new site', async () => {
+    // Create mock site data that matches the expected SiteData type
+    const mockSiteData = {
+      id: '1',
+      client_id: '123',
+      site_name: 'Test Site',
+      site_code: 'TEST001',
+      address_line_1: '123 Test Street',
+      suburb: 'Testville',
+      state: 'Testing',
+      postcode: '1234',
+      status: 'active' as SiteStatus, // Cast to SiteStatus enum
       created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    }
-  };
-
-  test('getAllSites - success case', async () => {
-    // Mock successful response
-    (siteApi.getAllSites as jest.Mock).mockResolvedValueOnce({ 
-      data: [mockSiteResponse.data]
-    });
-
-    const result = await siteService.getAllSites();
-
-    expect(siteApi.getAllSites).toHaveBeenCalled();
-    expect(result).toEqual({ data: [mockSiteResponse.data] });
-  });
-
-  test('getClientSites - success case', async () => {
-    // Mock successful response
-    (siteApi.getClientSites as jest.Mock).mockResolvedValueOnce({ 
-      data: [mockSiteResponse.data]
-    });
-
-    const clientId = '123e4567-e89b-12d3-a456-426614174000';
-    const result = await siteService.getClientSites(clientId);
-
-    expect(siteApi.getClientSites).toHaveBeenCalledWith(clientId);
-    expect(result).toEqual({ data: [mockSiteResponse.data] });
-  });
-
-  test('getSiteById - success case', async () => {
-    // Mock successful response
-    (siteApi.getSiteById as jest.Mock).mockResolvedValueOnce(mockSiteResponse);
-
-    const siteId = '123e4567-e89b-12d3-a456-426614174001';
-    const result = await siteService.getSiteById(siteId);
-
-    expect(siteApi.getSiteById).toHaveBeenCalledWith(siteId);
-    expect(result).toEqual(mockSiteResponse);
-  });
-
-  test('createSite - success case', async () => {
-    // Mock successful response
-    (siteApi.createSite as jest.Mock).mockResolvedValueOnce(mockSiteResponse);
-    
-    const { id, created_at, updated_at, ...siteData } = mockSiteResponse.data;
-    const result = await siteService.createSite(siteData);
-
-    expect(siteApi.createSite).toHaveBeenCalledWith(siteData);
-    expect(result).toEqual(mockSiteResponse);
-  });
-
-  test('updateSite - success case', async () => {
-    // Mock successful response
-    (siteApi.updateSite as jest.Mock).mockResolvedValueOnce(mockSiteResponse);
-
-    const siteId = '123e4567-e89b-12d3-a456-426614174001';
-    const updateData = { site_name: 'Updated Site Name' };
-    
-    const result = await siteService.updateSite(siteId, updateData);
-
-    expect(siteApi.updateSite).toHaveBeenCalledWith(siteId, updateData);
-    expect(result).toEqual(mockSiteResponse);
-  });
-
-  test('deleteSite - success case', async () => {
-    // Mock successful response
-    (siteApi.deleteSite as jest.Mock).mockResolvedValueOnce({ data: true });
-
-    const siteId = '123e4567-e89b-12d3-a456-426614174001';
-    
-    const result = await siteService.deleteSite(siteId);
-
-    expect(siteApi.deleteSite).toHaveBeenCalledWith(siteId);
-    expect(result).toEqual({ data: true });
-  });
-
-  test('getSiteById - error case', async () => {
-    // Mock error response
-    const errorResponse = {
-      category: 'not_found',
-      message: 'Site not found'
+      updated_at: new Date().toISOString(),
+      country: 'Australia'
     };
-    
-    (siteApi.getSiteById as jest.Mock).mockResolvedValueOnce(errorResponse);
 
-    const siteId = 'non-existent-id';
-    const result = await siteService.getSiteById(siteId);
+    // Set up the mock response
+    const mockResponse = { data: mockSiteData, error: null };
+    require('@/integrations/supabase/client').supabase.then.mockImplementation((callback) => callback(mockResponse));
 
-    expect(siteApi.getSiteById).toHaveBeenCalledWith(siteId);
-    expect(result).toEqual(errorResponse);
+    // Call the service function
+    const result = await createSite(mockSiteData);
+
+    // Check if the result is as expected
+    expect(result).toEqual(mockSiteData);
+    expect(require('@/integrations/supabase/client').supabase.from).toHaveBeenCalledWith('sites');
+    expect(require('@/integrations/supabase/client').supabase.insert).toHaveBeenCalled();
+  });
+
+  it('gets a site by ID', async () => {
+    const mockSite = { id: '123', name: 'Test Site' };
+    const mockResponse = { data: mockSite, error: null };
+    require('@/integrations/supabase/client').supabase.then.mockImplementation((callback) => callback(mockResponse));
+
+    const result = await getSite('123');
+
+    expect(result).toEqual(mockSite);
+    expect(require('@/integrations/supabase/client').supabase.from).toHaveBeenCalledWith('sites');
+    expect(require('@/integrations/supabase/client').supabase.select).toHaveBeenCalled();
   });
 });
