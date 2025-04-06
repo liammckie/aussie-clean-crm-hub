@@ -30,21 +30,25 @@ export function AppRoutes() {
 
   return (
     <Routes>
-      <Route path="/" element={<MainLayout />}>
-        <Route index element={<Dashboard />} />
-        <Route path="clients" element={<Clients />} />
-        <Route path="clients/new" element={<NewClient />} />
-        <Route path="clients/:clientId" element={<ClientDetail />} />
-        <Route path="clients/:clientId/edit" element={<EditClient />} />
-        <Route path="contracts" element={<Contracts />} />
-        <Route path="contracts/:contractId" element={<ContractDetail />} />
-        <Route path="contracts/new" element={<NewContract />} />
-        <Route path="contracts/:contractId/edit" element={<EditContract />} />
-        <Route path="suppliers" element={<Suppliers />} />
-        <Route path="new-supplier" element={<NewSupplier />} />
-        <Route path="*" element={<NotFound />} />
-      </Route>
       <Route path="/login" element={<Login />} />
+      <Route path="/" element={
+        <MainLayout>
+          <Routes>
+            <Route index element={<Dashboard />} />
+            <Route path="clients" element={<Clients />} />
+            <Route path="clients/new" element={<NewClient />} />
+            <Route path="clients/:clientId" element={<ClientDetail />} />
+            <Route path="clients/:clientId/edit" element={<EditClient />} />
+            <Route path="contracts" element={<Contracts />} />
+            <Route path="contracts/:contractId" element={<ContractDetail />} />
+            <Route path="contracts/new" element={<NewContract />} />
+            <Route path="contracts/:contractId/edit" element={<EditContract />} />
+            <Route path="suppliers" element={<Suppliers />} />
+            <Route path="new-supplier" element={<NewSupplier />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </MainLayout>
+      } />
     </Routes>
   );
 }
