@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ContractDetailsTab } from '@/components/contracts/ContractDetailsTab';
 import { ContractBillingTab } from '@/components/contracts/ContractBillingTab';
 import { ContractSitesTab } from '@/components/contracts/ContractSitesTab';
+import { ContractSuppliersTab } from '@/components/contracts/ContractSuppliersTab';
 import { useContracts } from '@/hooks/use-contracts';
 import { ArrowLeft, Edit } from 'lucide-react';
 import { AppLogger, LogCategory } from '@/utils/logging';
@@ -92,6 +93,7 @@ const ContractDetail = () => {
         <TabsList className="mb-6">
           <TabsTrigger value="details">Contract Details</TabsTrigger>
           <TabsTrigger value="billing">Billing</TabsTrigger>
+          <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
           <TabsTrigger value="sites">Sites</TabsTrigger>
           <TabsTrigger value="documents">Documents</TabsTrigger>
         </TabsList>
@@ -102,6 +104,10 @@ const ContractDetail = () => {
         
         <TabsContent value="billing">
           <ContractBillingTab contractId={contractId} />
+        </TabsContent>
+        
+        <TabsContent value="suppliers">
+          <ContractSuppliersTab contractId={contractId} />
         </TabsContent>
         
         <TabsContent value="sites">
@@ -119,6 +125,6 @@ const ContractDetail = () => {
       </Tabs>
     </div>
   );
-};
+}
 
 export default ContractDetail;
