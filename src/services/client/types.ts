@@ -33,6 +33,10 @@ export interface ClientRecord {
   state?: string;
   postcode?: string;
   country?: string;
+  address?: string; // Added new field
+  
+  // Contact fields
+  phone?: string; // Added new field
   
   // Financial fields
   billing_cycle?: string;
@@ -67,6 +71,10 @@ export interface ClientFormData {
   state?: string;
   postcode?: string;
   country?: string;
+  address?: string; // Added new field
+  
+  // Contact fields
+  phone?: string; // Added new field
   
   // Financial fields
   billing_cycle?: string;

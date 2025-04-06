@@ -1,6 +1,7 @@
 
 import { ClientFormData } from "@/services/client";
 import { validationService } from "@/services/validation.service";
+import { validateContactInfo } from "./db-type-helpers";
 
 /**
  * Validates business identifiers (ABN, ACN)
@@ -33,10 +34,29 @@ export function validateBusinessIdentifiers({ abn, acn }: { abn?: string, acn?: 
 }
 
 /**
+ * Validates client contact information (phone, email)
+ * @returns Error object if validation fails, null if valid
+ */
+export function validateClientContactInfo({ phone, email }: { phone?: string, email?: string }) {
+  const validationError = validateContactInfo({ phone, email });
+  
+  if (validationError) {
+    return {
+      category: 'validation' as const,
+      message: validationError.message,
+      details: { field: validationError.field }
+    };
+  }
+  
+  return null;
+}
+
+/**
  * Prepares client data for submission to the API
  * - Cleans business identifiers
  * - Formats dates
  * - Validates required fields match database schema
+ * - Validates contact information
  */
 export function prepareClientDataForSubmission(data: ClientFormData): ClientFormData {
   // Create a new object to avoid mutating the original
@@ -49,6 +69,11 @@ export function prepareClientDataForSubmission(data: ClientFormData): ClientForm
 
   if (preparedData.acn) {
     preparedData.acn = validationService.cleanBusinessIdentifier(preparedData.acn);
+  }
+
+  // Clean phone field if present
+  if (preparedData.phone) {
+    preparedData.phone = preparedData.phone.trim();
   }
 
   // Ensure required fields have values to match database schema
@@ -120,6 +145,8 @@ export function loadSampleClientData(setFormData: (data: ClientFormData) => void
     state: 'VIC',
     postcode: '3000',
     country: 'Australia',
+    phone: '+61 2 9876 5432', // Added sample phone
+    address: 'Corporate Park, Building C', // Added sample address
   };
 
   setFormData(sampleClient);

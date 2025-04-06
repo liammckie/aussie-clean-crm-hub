@@ -20,6 +20,7 @@ export const siteSchema = z.object({
   status: z.enum(['active', 'inactive', 'pending_activation']).default('pending_activation'),
   site_type: z.enum(['residential', 'industrial', 'retail', 'hospitality', 'office', 'warehouse', 'educational', 'medical']).optional(),
   square_meters: z.number().optional(),
+  description: z.string().optional(), // Added new field
 });
 
 export type SiteFormData = z.infer<typeof siteSchema>;

@@ -210,6 +210,7 @@ export type Database = {
           abn: string | null
           account_manager_id: string | null
           acn: string | null
+          address: string | null
           address_line_1: string | null
           address_line_2: string | null
           billing_cycle: string | null
@@ -222,6 +223,7 @@ export type Database = {
           onboarding_date: string
           payment_method: string | null
           payment_terms: string | null
+          phone: string | null
           postcode: string | null
           relationship_rating: number | null
           source: string | null
@@ -236,6 +238,7 @@ export type Database = {
           abn?: string | null
           account_manager_id?: string | null
           acn?: string | null
+          address?: string | null
           address_line_1?: string | null
           address_line_2?: string | null
           billing_cycle?: string | null
@@ -248,6 +251,7 @@ export type Database = {
           onboarding_date?: string
           payment_method?: string | null
           payment_terms?: string | null
+          phone?: string | null
           postcode?: string | null
           relationship_rating?: number | null
           source?: string | null
@@ -262,6 +266,7 @@ export type Database = {
           abn?: string | null
           account_manager_id?: string | null
           acn?: string | null
+          address?: string | null
           address_line_1?: string | null
           address_line_2?: string | null
           billing_cycle?: string | null
@@ -274,6 +279,7 @@ export type Database = {
           onboarding_date?: string
           payment_method?: string | null
           payment_terms?: string | null
+          phone?: string | null
           postcode?: string | null
           relationship_rating?: number | null
           source?: string | null
@@ -562,6 +568,7 @@ export type Database = {
           country: string
           created_at: string
           default_calendar_id: string | null
+          description: string | null
           emergency_instructions: string | null
           id: string
           induction_required: boolean | null
@@ -598,6 +605,7 @@ export type Database = {
           country?: string
           created_at?: string
           default_calendar_id?: string | null
+          description?: string | null
           emergency_instructions?: string | null
           id?: string
           induction_required?: boolean | null
@@ -634,6 +642,7 @@ export type Database = {
           country?: string
           created_at?: string
           default_calendar_id?: string | null
+          description?: string | null
           emergency_instructions?: string | null
           id?: string
           induction_required?: boolean | null

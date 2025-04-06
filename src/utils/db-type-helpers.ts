@@ -74,6 +74,24 @@ export const dbDateSchema = z.preprocess(
 );
 
 /**
+ * Phone validation schema using regex pattern
+ * Matches the database constraint pattern
+ */
+export const phoneSchema = z.string()
+  .regex(/^(\+?[0-9\s\-\(\)]{8,20})$/, { message: "Invalid phone number format" })
+  .optional()
+  .or(z.literal(''));
+
+/**
+ * Email validation schema using regex pattern
+ * Matches the database constraint pattern
+ */
+export const emailSchema = z.string()
+  .regex(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, { message: "Invalid email format" })
+  .optional()
+  .or(z.literal(''));
+
+/**
  * Generic typing helper to map database response to application types
  * @param data The database response data
  * @returns Properly typed application data
@@ -146,4 +164,24 @@ export function camelToSnake<T extends Record<string, any>>(obj: Record<string, 
   }
   
   return result as T;
+}
+
+/**
+ * Validate contact information according to database constraints
+ * @param phone Phone number to validate
+ * @param email Email address to validate
+ * @returns Validation error or null if valid
+ */
+export function validateContactInfo(
+  { phone, email }: { phone?: string, email?: string }
+): { field: string, message: string } | null {
+  if (email && !/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(email)) {
+    return { field: 'email', message: 'Invalid email format' };
+  }
+  
+  if (phone && !/^(\+?[0-9\s\-\(\)]{8,20})$/.test(phone)) {
+    return { field: 'phone', message: 'Invalid phone format' };
+  }
+  
+  return null;
 }

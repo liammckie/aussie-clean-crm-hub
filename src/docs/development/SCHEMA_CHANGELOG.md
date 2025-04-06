@@ -1,4 +1,3 @@
-
 # Schema Changelog
 
 ## Overview
@@ -16,26 +15,27 @@ Each change entry includes:
 
 ## Recent Changes
 
-### 2025-04-08: Supplier-Contract Relationship Implementation
+### 2025-04-08: Client and Site Table Enhancements
 
-**Change Type**: Addition (Tables, Relationships)
+**Change Type**: Addition (Columns, Validation)
 
 **Affected Tables/Columns**:
-- New `supplier_contract` table with complete relationship data
-- Added audit trigger for `supplier_contract` table
+- `clients` table: Added `phone` and `address` columns
+- `sites` table: Added `description` column
+- Added validation trigger for client contact information
 
 **Description**:
-Created `supplier_contract` table to formalize relationships between suppliers and contracts:
-1. Implemented link_id as primary key
-2. Added supplier_id and contract_id as foreign keys
-3. Added role, status, services and other relationship metadata
-4. Added audit logging for tracking changes to relationships
-5. Implemented unique constraint on supplier-contract combination
+Enhanced client and site data models with additional fields and validation:
+1. Added phone and address columns to the clients table for better contact information
+2. Added description column to sites table for more detailed site information
+3. Implemented phone and email validation via database triggers to ensure data integrity
+4. Email validation uses regex `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$`
+5. Phone validation uses regex `^(\+?[0-9\s\-\(\)]{8,20})$` to support international formats
 
 **Migration Scripts**: Lovable migration executed on 2025-04-08
 
 **Backward Compatibility**:
-Fully compatible. This is a new table that enables functionality previously not available.
+Fully compatible. Added columns are nullable with no constraints that affect existing records. Validation only applies to new or updated records.
 
 **Developer**: Lovable AI
 

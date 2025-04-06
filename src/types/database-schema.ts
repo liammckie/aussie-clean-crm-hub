@@ -1,4 +1,3 @@
-
 // TypeScript Interfaces for Database Tables
 // Generated from database schema
 
@@ -87,6 +86,8 @@ export interface Client {
   state?: string; // text
   postcode?: string; // text
   country: string; // text
+  phone?: string; // text
+  address?: string; // text
 }
 
 // Contract Budget
@@ -201,6 +202,7 @@ export interface Site {
   updatedAt: Date; // timestamp with time zone
   accessInstructions?: string; // text
   emergencyInstructions?: string; // text
+  description?: string; // text
 }
 
 // Supplier Compliance Documents

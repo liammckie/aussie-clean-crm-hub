@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
@@ -38,6 +37,41 @@ export function ClientFormFields({ form }: ClientFormFieldsProps) {
           )}
         />
       </div>
+      
+      {/* Contact Information */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+        <FormField
+          control={form.control}
+          name="phone"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="+61 2 1234 5678" {...field} />
+              </FormControl>
+              <FormDescription>Main business phone number.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="address"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>General Address (Optional)</FormLabel>
+              <FormControl>
+                <Input placeholder="General business address" {...field} />
+              </FormControl>
+              <FormDescription>General address for the business.</FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+      
+      {/* trading_name, abn, acn, industry fields */}
       <div>
         <FormField
           control={form.control}
@@ -100,8 +134,8 @@ export function ClientFormFields({ form }: ClientFormFieldsProps) {
           )}
         />
       </div>
-
-      {/* Client Status */}
+      
+      {/* client status */}
       <div>
         <FormField
           control={form.control}
@@ -128,8 +162,8 @@ export function ClientFormFields({ form }: ClientFormFieldsProps) {
           )}
         />
       </div>
-
-      {/* Onboarding Date */}
+      
+      {/* onboarding date */}
       <div>
         <FormField
           control={form.control}
@@ -172,8 +206,8 @@ export function ClientFormFields({ form }: ClientFormFieldsProps) {
           )}
         />
       </div>
-
-      {/* Source */}
+      
+      {/* source */}
       <div>
         <FormField
           control={form.control}
@@ -190,7 +224,7 @@ export function ClientFormFields({ form }: ClientFormFieldsProps) {
           )}
         />
       </div>
-
+      
       {/* Address Fields */}
       <div className="border-t pt-6 mt-6">
         <h3 className="text-lg font-medium mb-4">Address Information</h3>
@@ -198,8 +232,8 @@ export function ClientFormFields({ form }: ClientFormFieldsProps) {
           <AddressFieldsSection form={form} showHeading={false} />
         </div>
       </div>
-
-      {/* Billing Information */}
+      
+      {/* billing information */}
       <div className="border-t pt-6 mt-6">
         <h3 className="text-lg font-medium mb-4">Billing Information</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

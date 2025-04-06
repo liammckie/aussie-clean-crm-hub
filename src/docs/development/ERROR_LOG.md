@@ -30,6 +30,32 @@ error TS2352: Conversion of type '{ link_id: any; role: any; status: any; servic
 - `src/components/contracts/ContractSuppliersTab.tsx`
 - `src/utils/db-type-helpers.ts`
 
+### Client and Site Schema Updates (Fixed: 2025-04-08)
+
+**Error:**
+Database schema and TypeScript interfaces were not aligned for clients and sites tables.
+
+**Root Cause:**
+- Missing fields in TypeScript interfaces for newly added database columns
+- Lack of validation for phone and email fields in client data
+
+**Solution:**
+1. Added `phone` and `address` fields to Client interfaces
+2. Added `description` field to Site interfaces
+3. Updated database schema with appropriate columns
+4. Added validation functions and schemas for phone and email fields
+5. Updated form components to include the new fields
+6. Added validation triggers in the database to ensure data integrity
+
+**Files Modified:**
+- `src/types/database-schema.ts`
+- `src/services/client/types.ts`
+- `src/components/site/SiteFormTypes.ts`
+- `src/utils/db-type-helpers.ts`
+- `src/components/client/ClientFormFields.tsx`
+- `src/components/site/form/SiteAdditionalFields.tsx`
+- `src/docs/development/SCHEMA_CHANGELOG.md`
+
 ### React Query v5 API Changes (Fixed: 2025-04-06)
 
 **Error:**
