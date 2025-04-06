@@ -49,7 +49,36 @@ export const contractFormSchema = z.object({
   notes: z.string().optional(),
 });
 
+// This is what the form gives us
 export type ContractFormData = z.infer<typeof contractFormSchema>;
+
+// This ensures the form data matches what the API expects
+export type ContractCreateData = {
+  contract_name: string;
+  contract_code: string;
+  client_id: string;
+  description?: string;
+  service_type: string;
+  status: string;
+  start_date: string;
+  end_date?: string;
+  is_ongoing: boolean;
+  delivery_mode?: string;
+  account_manager?: string;
+  state_manager?: string;
+  national_manager?: string;
+  billing_frequency?: string;
+  billing_type?: string;
+  payment_terms?: string;
+  payment_method?: string;
+  total_weekly_value?: number;
+  total_monthly_value?: number;
+  total_annual_value?: number;
+  sla_requirements?: string;
+  client_representative_name?: string;
+  client_representative_contact?: string;
+  notes?: string;
+}
 
 // Helper to create default contract values
 export function createDefaultContractValues(

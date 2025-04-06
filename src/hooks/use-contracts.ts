@@ -1,6 +1,8 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { contractService, ContractData, BillingLineData } from '@/services/contract';
+import { contractService } from '@/services/contract';
+import { ContractData, BillingLineData, ContractCreateData } from '@/types/contract-types';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { AppLogger, LogCategory, withCache } from '@/utils/logging';
 
@@ -119,7 +121,7 @@ export const useContracts = (clientId?: string) => {
 
   // Mutation to create a new contract
   const createContractMutation = useMutation({
-    mutationFn: async (data: Omit<ContractData, 'id' | 'created_at' | 'updated_at'>) => {
+    mutationFn: async (data: ContractCreateData) => {
       const response = await contractService.createContract(data);
       
       if ('category' in response) {
@@ -223,16 +225,16 @@ export const useContracts = (clientId?: string) => {
     useContractDetails,
     useContractBillingLines,
     
-    createContract: createContractMutation.mutate,
+    createContract: createContractMutation.mutateAsync,
     isCreatingContract: createContractMutation.isPending,
     
-    updateContract: updateContractMutation.mutate,
+    updateContract: updateContractMutation.mutateAsync,
     isUpdatingContract: updateContractMutation.isPending,
     
-    deleteContract: deleteContractMutation.mutate,
+    deleteContract: deleteContractMutation.mutateAsync,
     isDeletingContract: deleteContractMutation.isPending,
     
-    createBillingLine: createBillingLineMutation.mutate,
+    createBillingLine: createBillingLineMutation.mutateAsync,
     isCreatingBillingLine: createBillingLineMutation.isPending,
   };
 };

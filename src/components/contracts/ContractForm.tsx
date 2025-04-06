@@ -34,6 +34,7 @@ import {
   contractFormSchema, 
   createDefaultContractValues,
   ContractFormData,
+  ContractCreateData,
   ServiceType
 } from '@/types/contract-types';
 import { useContracts } from '@/hooks/use-contracts';
@@ -122,15 +123,44 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
         `${isEdit ? 'Updating' : 'Creating'} contract`, 
         { data }
       );
+
+      // Ensure all required fields are present for contract creation
+      const contractData: ContractCreateData = {
+        contract_name: data.contract_name,
+        contract_code: data.contract_code,
+        client_id: data.client_id,
+        service_type: data.service_type || 'commercial_cleaning',
+        status: data.status || 'draft',
+        start_date: data.start_date,
+        is_ongoing: data.is_ongoing || false,
+        // Include all optional fields
+        description: data.description,
+        end_date: data.end_date,
+        delivery_mode: data.delivery_mode,
+        account_manager: data.account_manager,
+        state_manager: data.state_manager,
+        national_manager: data.national_manager,
+        billing_frequency: data.billing_frequency,
+        billing_type: data.billing_type,
+        payment_terms: data.payment_terms,
+        payment_method: data.payment_method,
+        total_weekly_value: data.total_weekly_value,
+        total_monthly_value: data.total_monthly_value,
+        total_annual_value: data.total_annual_value,
+        sla_requirements: data.sla_requirements,
+        client_representative_name: data.client_representative_name,
+        client_representative_contact: data.client_representative_contact,
+        notes: data.notes
+      };
       
       if (isEdit && contractId) {
         // Update existing contract
-        updateContract({ id: contractId, data });
+        const result = await updateContract({ id: contractId, data: contractData });
         toast.success('Contract updated successfully!');
         navigate(`/contracts/${contractId}`);
       } else {
         // Create new contract
-        const result = await createContract(data);
+        const result = await createContract(contractData);
         toast.success('Contract created successfully!');
         // Navigate to the new contract or back to client
         if (result?.id) {

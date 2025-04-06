@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ContractData, BillingLineData, ContractBudgetData } from './types';
+import { ContractData, BillingLineData, ContractBudgetData, ContractCreateData } from '@/types/contract-types';
 import { ErrorResponse, handleSupabaseError, logSuccess } from '@/utils/supabaseErrors';
 
 /**
@@ -65,7 +65,7 @@ export async function getContractById(contractId: string) {
 /**
  * Create a new contract
  */
-export async function createContract(contractData: Omit<ContractData, 'id' | 'created_at' | 'updated_at'>) {
+export async function createContract(contractData: ContractCreateData) {
   try {
     const { data, error } = await supabase
       .from('contracts')

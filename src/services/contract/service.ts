@@ -1,6 +1,6 @@
 
 import * as contractApi from './api';
-import { ContractData, BillingLineData, ContractBudgetData } from './types';
+import { ContractData, BillingLineData, ContractBudgetData, ContractCreateData } from '@/types/contract-types';
 
 /**
  * Service wrapper for contract-related operations
@@ -30,7 +30,7 @@ export const contractService = {
   /**
    * Create a new contract
    */
-  createContract: async (contractData: Omit<ContractData, 'id' | 'created_at' | 'updated_at'>) => {
+  createContract: async (contractData: ContractCreateData) => {
     return contractApi.createContract(contractData);
   },
 
