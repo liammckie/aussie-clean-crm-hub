@@ -28,7 +28,7 @@ export const ContractRoutes = () => {
           <ContractDetail />
         </ProtectedRoute>
       } />
-      <Route path=":contractId/edit" element={
+      <Route path="edit/:contractId" element={
         <ProtectedRoute>
           <EditContract />
         </ProtectedRoute>

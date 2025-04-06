@@ -28,7 +28,7 @@ export const SupplierRoutes = () => {
           <SupplierDetail />
         </ProtectedRoute>
       } />
-      <Route path=":supplierId/edit" element={
+      <Route path="edit/:supplierId" element={
         <ProtectedRoute>
           <EditSupplier />
         </ProtectedRoute>

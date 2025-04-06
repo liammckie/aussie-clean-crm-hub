@@ -52,7 +52,7 @@ describe('Client Service', () => {
       { id: '2', business_name: 'Company B' }
     ];
     
-    const mockResponse: SuccessResponse<any[]> = { 
+    const mockResponse: ApiResponse<typeof mockClients> = { 
       data: mockClients, 
       error: null 
     };
@@ -63,8 +63,15 @@ describe('Client Service', () => {
     // Call the service function
     const result = await clientService.getAllClients();
 
-    // Verify the results
-    expect(result.data).toEqual(mockClients);
+    // Type guard to check if it's a success response
+    if ('data' in result) {
+      // Verify the results
+      expect(result.data).toEqual(mockClients);
+    } else {
+      // This should not happen in this test case
+      throw new Error('Expected success response but got error');
+    }
+    
     expect(clientService.getAllClients).toHaveBeenCalled();
   });
 
@@ -88,7 +95,7 @@ describe('Client Service', () => {
   it('gets client by ID', async () => {
     const mockClient = { id: '123', business_name: 'Test Company' };
     
-    const mockResponse: SuccessResponse = {
+    const mockResponse: ApiResponse<typeof mockClient> = {
       data: mockClient,
       error: null
     };
@@ -99,8 +106,14 @@ describe('Client Service', () => {
     // Call the service function
     const result = await clientService.getClientById('123');
 
-    // Verify the results
-    expect(result.data).toEqual(mockClient);
+    // Type guard for success response
+    if ('data' in result) {
+      // Verify the results
+      expect(result.data).toEqual(mockClient);
+    } else {
+      throw new Error('Expected success response but got error');
+    }
+    
     expect(clientService.getClientById).toHaveBeenCalledWith('123');
   });
 
@@ -122,12 +135,14 @@ describe('Client Service', () => {
   });
 
   it('creates a new client', async () => {
-    const mockResponse: SuccessResponse = {
-      data: {
-        id: 'new-id',
-        business_name: 'New Company',
-        created_at: '2023-04-01T12:00:00Z',
-      },
+    const newClientData = {
+      id: 'new-id',
+      business_name: 'New Company',
+      created_at: '2023-04-01T12:00:00Z',
+    };
+
+    const mockResponse: ApiResponse<typeof newClientData> = {
+      data: newClientData,
       error: null
     };
     
@@ -142,8 +157,14 @@ describe('Client Service', () => {
     // Call the service function
     const result = await clientService.createClient(newClient);
 
-    // Verify the results
-    expect(result.data).toEqual(mockResponse.data);
+    // Type guard for success response
+    if ('data' in result) {
+      // Verify the results
+      expect(result.data).toEqual(mockResponse.data);
+    } else {
+      throw new Error('Expected success response but got error');
+    }
+    
     expect(clientService.createClient).toHaveBeenCalledWith(newClient);
   });
 
@@ -170,12 +191,14 @@ describe('Client Service', () => {
   });
 
   it('updates a client', async () => {
-    const mockResponse: SuccessResponse = {
-      data: {
-        id: '123',
-        business_name: 'Updated Company',
-        updated_at: '2023-04-01T14:00:00Z'
-      },
+    const updatedClientData = {
+      id: '123',
+      business_name: 'Updated Company',
+      updated_at: '2023-04-01T14:00:00Z'
+    };
+
+    const mockResponse: ApiResponse<typeof updatedClientData> = {
+      data: updatedClientData,
       error: null
     };
     
@@ -187,13 +210,22 @@ describe('Client Service', () => {
     // Call the service function
     const result = await clientService.updateClient('123', updates);
 
-    // Verify the results
-    expect(result.data).toEqual(mockResponse.data);
+    // Type guard for success response
+    if ('data' in result) {
+      // Verify the results
+      expect(result.data).toEqual(mockResponse.data);
+    } else {
+      throw new Error('Expected success response but got error');
+    }
+    
     expect(clientService.updateClient).toHaveBeenCalledWith('123', updates);
   });
 
   it('deletes a client', async () => {
-    const mockResponse = { success: true, error: null };
+    const mockResponse: ApiResponse<{ success: boolean }> = {
+      data: { success: true },
+      error: null
+    };
     
     // Set up the mock implementation
     (clientService.deleteClient as jest.Mock).mockResolvedValue(mockResponse);
