@@ -26,7 +26,10 @@ export enum LogCategory {
   DATA = 'data',
   PERFORMANCE = 'performance',
   CACHE = 'cache',
-  SUPPLIER = 'supplier'
+  SUPPLIER = 'supplier',
+  DATABASE = 'database',
+  STORAGE = 'storage',
+  APPLICATION = 'application'
 }
 
 /**
