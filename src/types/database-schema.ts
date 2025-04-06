@@ -354,3 +354,18 @@ export interface Workbill {
   createdAt?: Date; // timestamp with time zone
   updatedAt?: Date; // timestamp with time zone
 }
+
+export enum SiteStatus {
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  PENDING = 'pending'
+}
+
+export enum SiteType {
+  OFFICE = 'office',
+  WAREHOUSE = 'warehouse',
+  RETAIL = 'retail',
+  INDUSTRIAL = 'industrial',
+  RESIDENTIAL = 'residential',
+  OTHER = 'other'
+}

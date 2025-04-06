@@ -1,26 +1,29 @@
 
 import { describe, expect, it, jest, beforeEach } from '@jest/globals';
 import { createMockSupabaseClient } from '../mocks/supabaseMock';
+import { ClientStatus } from '@/types/database-schema';
 
-// Mock the service module to properly mock its exports
-jest.mock('@/services/client', () => ({
+// Mock the client service module
+jest.mock('@/services/client/service', () => ({
   clientService: {
-    createClient: jest.fn(),
+    getAllClients: jest.fn(),
     getClientById: jest.fn(),
+    createClient: jest.fn(),
     updateClient: jest.fn(),
     deleteClient: jest.fn(),
-    getAllClients: jest.fn()
   }
 }));
 
-// Import the mocked functions after mocking
-import { clientService } from '@/services/client';
+// Import the mocked functions
+import { clientService } from '@/services/client/service';
+import { ClientFormData } from '@/types/form-types';
 
-// Mock the Supabase client module
+// Mock the Supabase client
 jest.mock('@/integrations/supabase/client', () => {
   const mockClient = createMockSupabaseClient();
   return {
-    supabase: mockClient
+    supabase: mockClient,
+    isAuthenticated: jest.fn().mockResolvedValue(true)
   };
 });
 
@@ -32,143 +35,132 @@ describe('Client Service', () => {
     jest.clearAllMocks();
   });
 
-  describe('getAllClients', () => {
-    it('should return all clients when successful', async () => {
-      // Setup mock data
-      const mockClients = [
-        { id: '1', business_name: 'Client A' },
-        { id: '2', business_name: 'Client B' }
-      ];
-      
-      // Configure mock response
-      supabase.data = { data: mockClients, error: null };
-      
-      // Mock the implementation for this test
-      (clientService.getAllClients as jest.Mock).mockResolvedValue(mockClients);
-      
-      // Call the function
-      const result = await clientService.getAllClients();
-      
-      // Assertions
-      expect(result).toEqual(mockClients);
-      expect(clientService.getAllClients).toHaveBeenCalled();
-    });
+  it('gets all clients', async () => {
+    // Set up mock data
+    const mockClients = [
+      { id: '1', business_name: 'Company A' },
+      { id: '2', business_name: 'Company B' }
+    ];
+    
+    // Set up the mock implementation
+    (clientService.getAllClients as jest.Mock).mockResolvedValue(mockClients);
 
-    it('should throw error when database query fails', async () => {
-      // Setup mock error
-      const mockError = { message: 'Database error', details: 'Failed to fetch clients' };
-      supabase.data = { data: null, error: mockError };
-      
-      // Mock implementation to throw error
-      (clientService.getAllClients as jest.Mock).mockRejectedValue(new Error('Database error'));
-      
-      // Call function and expect error
-      await expect(clientService.getAllClients()).rejects.toThrow();
-    });
+    // Call the service function
+    const result = await clientService.getAllClients();
+
+    // Verify the results
+    expect(result).toEqual(mockClients);
+    expect(clientService.getAllClients).toHaveBeenCalled();
   });
 
-  describe('getClientById', () => {
-    it('should return a client when successful', async () => {
-      // Setup mock data
-      const mockClient = { id: '1', business_name: 'Test Client' };
-      supabase.data = { data: mockClient, error: null };
-      
-      // Mock implementation
-      (clientService.getClientById as jest.Mock).mockResolvedValue(mockClient);
-      
-      // Call the function
-      const result = await clientService.getClientById('1');
-      
-      // Assertions
-      expect(result).toEqual(mockClient);
-      expect(clientService.getClientById).toHaveBeenCalledWith('1');
-    });
+  it('handles error when getting all clients', async () => {
+    const mockError = new Error('Database error');
+    
+    // Set up the mock implementation to throw an error
+    (clientService.getAllClients as jest.Mock).mockRejectedValue(mockError);
 
-    it('should throw error when client not found', async () => {
-      // Setup mock error
-      const mockError = { message: 'Not found', category: 'not_found' };
-      supabase.data = { data: null, error: mockError };
-      
-      // Mock implementation to throw error
-      (clientService.getClientById as jest.Mock).mockRejectedValue(new Error('Not found'));
-      
-      // Call function and expect error
-      await expect(clientService.getClientById('999')).rejects.toThrow();
-      expect(clientService.getClientById).toHaveBeenCalledWith('999');
-    });
+    // Call the service function and expect it to throw
+    await expect(clientService.getAllClients()).rejects.toThrow('Database error');
+    expect(clientService.getAllClients).toHaveBeenCalled();
   });
 
-  describe('createClient', () => {
-    it('should create client when successful', async () => {
-      // Setup mock client data
-      const mockClientData = { business_name: 'New Client' };
-      const mockCreatedClient = { id: '123', business_name: 'New Client', created_at: new Date().toISOString() };
-      
-      supabase.data = { data: mockCreatedClient, error: null };
-      
-      // Mock implementation
-      (clientService.createClient as jest.Mock).mockResolvedValue(mockCreatedClient);
-      
-      // Call the function
-      const result = await clientService.createClient(mockClientData);
-      
-      // Assertions
-      expect(result).toEqual(mockCreatedClient);
-      expect(clientService.createClient).toHaveBeenCalledWith(mockClientData);
-    });
+  it('gets client by ID', async () => {
+    const mockClient = { id: '123', business_name: 'Test Company' };
+    
+    // Set up the mock implementation
+    (clientService.getClientById as jest.Mock).mockResolvedValue(mockClient);
 
-    it('should throw error when creation fails', async () => {
-      // Setup mock error
-      const mockClientData = { business_name: 'New Client' };
-      const mockError = { message: 'Insert failed', details: 'Validation error' };
-      
-      supabase.data = { data: null, error: mockError };
-      
-      // Mock implementation to throw error
-      (clientService.createClient as jest.Mock).mockRejectedValue(new Error('Insert failed'));
-      
-      // Call function and expect error
-      await expect(clientService.createClient(mockClientData)).rejects.toThrow();
-      expect(clientService.createClient).toHaveBeenCalledWith(mockClientData);
-    });
+    // Call the service function
+    const result = await clientService.getClientById('123');
+
+    // Verify the results
+    expect(result).toEqual(mockClient);
+    expect(clientService.getClientById).toHaveBeenCalledWith('123');
   });
 
-  describe('updateClient', () => {
-    it('should update client when successful', async () => {
-      // Setup mock data
-      const mockClientId = '123';
-      const mockUpdateData = { business_name: 'Updated Client' };
-      const mockUpdatedClient = { id: '123', business_name: 'Updated Client', updated_at: new Date().toISOString() };
-      
-      supabase.data = { data: mockUpdatedClient, error: null };
-      
-      // Mock implementation
-      (clientService.updateClient as jest.Mock).mockResolvedValue(mockUpdatedClient);
-      
-      // Call the function
-      const result = await clientService.updateClient(mockClientId, mockUpdateData);
-      
-      // Assertions
-      expect(result).toEqual(mockUpdatedClient);
-      expect(clientService.updateClient).toHaveBeenCalledWith(mockClientId, mockUpdateData);
-    });
+  it('handles error when getting client by ID', async () => {
+    const mockError = new Error('Client not found');
+    
+    // Set up the mock implementation to throw an error
+    (clientService.getClientById as jest.Mock).mockRejectedValue(mockError);
+
+    // Call the service function and expect it to throw
+    await expect(clientService.getClientById('invalid-id')).rejects.toThrow('Client not found');
+    expect(clientService.getClientById).toHaveBeenCalledWith('invalid-id');
   });
 
-  describe('deleteClient', () => {
-    it('should delete client when successful', async () => {
-      // Setup mock data
-      const mockClientId = '123';
-      supabase.data = { success: true, error: null };
-      
-      // Mock implementation
-      (clientService.deleteClient as jest.Mock).mockResolvedValue(true);
-      
-      // Call the function
-      const result = await clientService.deleteClient(mockClientId);
-      
-      // Assertions
-      expect(result).toBe(true);
-      expect(clientService.deleteClient).toHaveBeenCalledWith(mockClientId);
-    });
+  it('creates a new client', async () => {
+    const mockResponse = {
+      id: 'new-id',
+      business_name: 'New Company',
+      created_at: '2023-04-01T12:00:00Z',
+    };
+    
+    // Set up the mock implementation
+    (clientService.createClient as jest.Mock).mockResolvedValue(mockResponse);
+
+    const newClient: ClientFormData = {
+      business_name: 'New Company',
+      status: ClientStatus.ACTIVE,
+      addresses: [],
+      contacts: []
+    };
+
+    // Call the service function
+    const result = await clientService.createClient(newClient);
+
+    // Verify the results
+    expect(result).toEqual(mockResponse);
+    expect(clientService.createClient).toHaveBeenCalledWith(newClient);
+  });
+
+  it('handles error when creating client', async () => {
+    const mockError = new Error('Failed to create client');
+    
+    // Set up the mock implementation to throw an error
+    (clientService.createClient as jest.Mock).mockRejectedValue(mockError);
+
+    const newClient: ClientFormData = {
+      business_name: 'New Company',
+      status: ClientStatus.ACTIVE,
+      addresses: [],
+      contacts: []
+    };
+
+    // Call the service function and expect it to throw
+    await expect(clientService.createClient(newClient)).rejects.toThrow('Failed to create client');
+    expect(clientService.createClient).toHaveBeenCalledWith(newClient);
+  });
+
+  it('updates a client', async () => {
+    const mockResponse = {
+      id: '123',
+      business_name: 'Updated Company',
+      updated_at: '2023-04-01T14:00:00Z'
+    };
+    
+    // Set up the mock implementation
+    (clientService.updateClient as jest.Mock).mockResolvedValue(mockResponse);
+
+    const updates = { business_name: 'Updated Company' };
+
+    // Call the service function
+    const result = await clientService.updateClient('123', updates);
+
+    // Verify the results
+    expect(result).toEqual(mockResponse);
+    expect(clientService.updateClient).toHaveBeenCalledWith('123', updates);
+  });
+
+  it('deletes a client', async () => {
+    // Set up the mock implementation
+    (clientService.deleteClient as jest.Mock).mockResolvedValue(true);
+
+    // Call the service function
+    const result = await clientService.deleteClient('123');
+
+    // Verify the results
+    expect(result).toBe(true);
+    expect(clientService.deleteClient).toHaveBeenCalledWith('123');
   });
 });

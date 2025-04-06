@@ -1,5 +1,6 @@
 
 import { Tables } from '@/types/supabase';
+import { SiteStatus, SiteType } from '@/types/database-schema';
 
 // Site entity data types
 export type SiteData = Tables<'sites'>;
@@ -31,3 +32,6 @@ export interface SiteErrorResponse {
 // Union type for all site API responses
 export type SiteApiResponse = SiteSuccessResponse | SiteErrorResponse;
 export type SitesApiResponse = SiteSuccessResponse[] | SiteErrorResponse;
+
+// Re-export enums to avoid importing from multiple places
+export { SiteStatus, SiteType };

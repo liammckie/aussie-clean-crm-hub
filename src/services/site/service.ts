@@ -1,16 +1,8 @@
 
 import { supabase, isAuthenticated } from '@/integrations/supabase/client';
 import { Tables } from '@/types/supabase';
-import { SiteStatus } from '@/types/database-schema';
-
-export interface SiteData extends Tables<'sites'> {
-  // Additional properties can be added here
-}
-
-interface SiteResponse {
-  data: SiteData | null;
-  error: string | null;
-}
+import { SiteStatus, SiteType } from '@/types/database-schema';
+import { SiteData, SiteInsertData, SiteUpdateData, SiteResponse, SitesResponse } from './types';
 
 export const siteService = {
   /**
@@ -18,7 +10,7 @@ export const siteService = {
    * @param siteData The site data to create
    * @returns The created site or error
    */
-  createSite: async (siteData: Omit<SiteData, 'id' | 'created_at' | 'updated_at'>): Promise<SiteData> => {
+  createSite: async (siteData: SiteInsertData): Promise<SiteData> => {
     try {
       const authenticated = await isAuthenticated();
       if (!authenticated) {
@@ -70,6 +62,15 @@ export const siteService = {
       throw error;
     }
   },
+  
+  /**
+   * Gets a site by ID (alias for getSite)
+   * @param siteId The ID of the site to get
+   * @returns The site or error
+   */
+  getSiteById: async (siteId: string): Promise<SiteData> => {
+    return siteService.getSite(siteId);
+  },
 
   /**
    * Gets all sites
@@ -97,6 +98,35 @@ export const siteService = {
       throw error;
     }
   },
+  
+  /**
+   * Gets all sites for a specific client
+   * @param clientId The ID of the client to get sites for
+   * @returns All sites for the client or error
+   */
+  getClientSites: async (clientId: string): Promise<SiteData[]> => {
+    try {
+      const authenticated = await isAuthenticated();
+      if (!authenticated) {
+        throw new Error('Not authenticated. Please log in first.');
+      }
+
+      const { data, error } = await supabase
+        .from('sites')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      return data as SiteData[];
+    } catch (error) {
+      console.error('Error getting client sites:', error);
+      throw error;
+    }
+  },
 
   /**
    * Updates a site
@@ -104,7 +134,7 @@ export const siteService = {
    * @param siteData The site data to update
    * @returns The updated site or error
    */
-  updateSite: async (siteId: string, siteData: Partial<SiteData>): Promise<SiteData> => {
+  updateSite: async (siteId: string, siteData: SiteUpdateData): Promise<SiteData> => {
     try {
       const { data, error } = await supabase
         .from('sites')

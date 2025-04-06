@@ -1,134 +1,105 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { siteService } from '@/services/site';
+import { SiteData, SiteInsertData, SiteUpdateData } from '@/services/site/types';
 import { toast } from 'sonner';
-import { siteService, SiteData } from '@/services/site';
-import { ErrorReporting } from '@/utils/errorReporting';
 
-export const useSites = (clientId?: string) => {
-  const queryClient = useQueryClient();
-  
-  // Query to fetch all sites for a client
-  const { 
-    data: sites, 
-    isLoading: isLoadingSites,
-    error: sitesError,
-    refetch: refetchSites
-  } = useQuery({
-    queryKey: ['client-sites', clientId],
+/**
+ * Hook to fetch all sites
+ */
+export const useSites = () => {
+  return useQuery({
+    queryKey: ['sites'],
     queryFn: async () => {
-      if (!clientId) return [];
-      
-      const response = await siteService.getClientSites(clientId);
-      if ('category' in response) {
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
-      }
-      return response.data;
+      return siteService.getAllSites();
+    },
+  });
+};
+
+/**
+ * Hook to fetch sites for a specific client
+ */
+export const useClientSites = (clientId: string) => {
+  return useQuery({
+    queryKey: ['sites', 'client', clientId],
+    queryFn: async () => {
+      return siteService.getClientSites(clientId);
     },
     enabled: !!clientId,
   });
+};
 
-  // Query to fetch a single site by ID
-  const useSiteDetails = (siteId: string | undefined) => {
-    return useQuery({
-      queryKey: ['site', siteId],
-      queryFn: async () => {
-        if (!siteId) throw new Error('Site ID is required');
-        
-        const response = await siteService.getSiteById(siteId);
-        if ('category' in response) {
-          toast.error(`Error: ${response.message}`);
-          throw new Error(response.message);
-        }
-        return response.data;
-      },
-      enabled: !!siteId,
-    });
-  };
-
-  // Mutation to create a new site
-  const createSiteMutation = useMutation({
-    mutationFn: async (data: SiteData) => {
-      const response = await siteService.createSite(data);
-      
-      if ('category' in response) {
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
-      }
-      
-      return response.data;
+/**
+ * Hook to fetch a single site by ID
+ */
+export const useSite = (siteId?: string) => {
+  return useQuery({
+    queryKey: ['sites', siteId],
+    queryFn: async () => {
+      if (!siteId) throw new Error('Site ID is required');
+      return siteService.getSiteById(siteId);
     },
+    enabled: !!siteId,
+  });
+};
+
+/**
+ * Hook to create a new site
+ */
+export const useCreateSite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (newSite: SiteInsertData) => siteService.createSite(newSite),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['client-sites', clientId] });
-      toast.success('Site created successfully!');
+      queryClient.invalidateQueries({ queryKey: ['sites'] });
+      toast.success('Site created successfully');
       return data;
     },
-    onError: (error) => {
-      ErrorReporting.captureException(error as Error);
-      toast.error('Failed to create site');
-    }
-  });
-
-  // Mutation to update an existing site
-  const updateSiteMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<SiteData> }) => {
-      const response = await siteService.updateSite(id, data);
-      
-      if ('category' in response) {
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
-      }
-      
-      return response.data;
+    onError: (error: Error) => {
+      toast.error(`Error creating site: ${error.message}`);
+      throw error;
     },
+  });
+};
+
+/**
+ * Hook to update an existing site
+ */
+export const useUpdateSite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ siteId, siteData }: { siteId: string; siteData: SiteUpdateData }) =>
+      siteService.updateSite(siteId, siteData),
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['client-sites', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['site', data.id] });
-      toast.success('Site updated successfully!');
+      queryClient.invalidateQueries({ queryKey: ['sites'] });
+      toast.success('Site updated successfully');
       return data;
     },
-    onError: (error) => {
-      ErrorReporting.captureException(error as Error);
-      toast.error('Failed to update site');
-    }
+    onError: (error: Error) => {
+      toast.error(`Error updating site: ${error.message}`);
+      throw error;
+    },
   });
+};
 
-  // Mutation to delete a site
-  const deleteSiteMutation = useMutation({
-    mutationFn: async (siteId: string) => {
-      const response = await siteService.deleteSite(siteId);
-      
-      if ('category' in response) {
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
-      }
-      
+/**
+ * Hook to delete a site
+ */
+export const useDeleteSite = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (siteId: string) => siteService.deleteSite(siteId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sites'] });
+      toast.success('Site deleted successfully');
       return true;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-sites', clientId] });
-      toast.success('Site deleted successfully!');
+    onError: (error: Error) => {
+      toast.error(`Error deleting site: ${error.message}`);
+      throw error;
     },
-    onError: (error) => {
-      ErrorReporting.captureException(error as Error);
-      toast.error('Failed to delete site');
-    }
   });
-
-  return {
-    sites,
-    isLoadingSites,
-    sitesError,
-    refetchSites,
-    useSiteDetails,
-    
-    createSite: createSiteMutation.mutate,
-    isCreatingSite: createSiteMutation.isPending,
-    
-    updateSite: updateSiteMutation.mutate,
-    isUpdatingSite: updateSiteMutation.isPending,
-    
-    deleteSite: deleteSiteMutation.mutate,
-    isDeletingSite: deleteSiteMutation.isPending,
-  };
 };

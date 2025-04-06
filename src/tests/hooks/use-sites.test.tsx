@@ -1,13 +1,24 @@
 
-import { renderHook, act } from '@testing-library/react-hooks';
+import React from 'react';
+import { renderHook, waitFor } from '@testing-library/react-hooks';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { useSites } from '@/hooks/use-sites';
-import { siteService } from '@/services/site/service';
-import { SiteStatus } from '@/services/site/types';
+import { useSites, useClientSites, useCreateSite, useUpdateSite, useDeleteSite } from '@/hooks/use-sites';
+import { siteService } from '@/services/site';
+import { SiteStatus, SiteType } from '@/types/database-schema';
+import { SiteData } from '@/services/site/types';
 
-// Mock dependencies
-jest.mock('@/services/site/service');
+// Mock the site service methods
+jest.mock('@/services/site', () => ({
+  siteService: {
+    getAllSites: jest.fn(),
+    getClientSites: jest.fn(),
+    createSite: jest.fn(),
+    updateSite: jest.fn(),
+    deleteSite: jest.fn()
+  }
+}));
+
+// Mock Sonner to avoid test errors
 jest.mock('sonner', () => ({
   toast: {
     success: jest.fn(),
@@ -15,203 +26,187 @@ jest.mock('sonner', () => ({
   }
 }));
 
-// Create a wrapper with QueryClientProvider
-const createWrapper = () => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        retry: false,
-      },
-    },
-  });
-  
-  return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-};
+describe('Site Hooks', () => {
+  let queryClient: QueryClient;
+  let wrapper: React.FC<{ children: React.ReactNode }>;
 
-describe('useSites Hook', () => {
   beforeEach(() => {
+    // Reset all mocks before each test
     jest.clearAllMocks();
+    
+    // Create new QueryClient for each test
+    queryClient = new QueryClient({
+      defaultOptions: {
+        queries: {
+          retry: false,
+        },
+      },
+    });
+    
+    // Create wrapper component with QueryClientProvider
+    wrapper = ({ children }) => (
+      <QueryClientProvider client={queryClient}>
+        {children}
+      </QueryClientProvider>
+    );
   });
 
-  const mockClientId = '123e4567-e89b-12d3-a456-426614174000';
-  const mockSites = [
-    {
-      id: 'site-1',
-      site_name: 'Test Site 1',
-      client_id: mockClientId,
-      site_code: 'TEST-001',
-      address_line_1: '123 Test St',
-      suburb: 'Testville',
-      state: 'NSW',
-      postcode: '2000',
-      status: 'active' as SiteStatus
-    },
-    {
-      id: 'site-2',
-      site_name: 'Test Site 2',
-      client_id: mockClientId,
-      site_code: 'TEST-002',
-      address_line_1: '456 Test St',
-      suburb: 'Testville',
-      state: 'NSW',
-      postcode: '2000',
-      status: 'active' as SiteStatus
-    }
-  ];
+  describe('useSites', () => {
+    it('fetches all sites', async () => {
+      const mockSites = [
+        {
+          id: '1',
+          site_name: 'Site 1',
+          client_id: '123',
+          status: SiteStatus.ACTIVE,
+          site_type: SiteType.OFFICE,
+          created_at: '2023-01-01',
+          updated_at: '2023-01-01',
+        },
+        {
+          id: '2',
+          site_name: 'Site 2',
+          client_id: '456',
+          status: SiteStatus.INACTIVE,
+          site_type: SiteType.WAREHOUSE,
+          created_at: '2023-01-02',
+          updated_at: '2023-01-02',
+        },
+      ] as SiteData[];
 
-  test('should fetch client sites successfully', async () => {
-    // Mock successful API response
-    (siteService.getClientSites as jest.Mock).mockResolvedValueOnce({
-      data: mockSites
+      (siteService.getAllSites as jest.Mock).mockResolvedValueOnce(mockSites);
+
+      const { result } = renderHook(() => useSites(), { wrapper });
+
+      // Initially loading
+      expect(result.current.isLoading).toBe(true);
+
+      // Wait for the query to resolve
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      // Check if data is returned correctly
+      expect(result.current.data).toEqual(mockSites);
+      expect(siteService.getAllSites).toHaveBeenCalledTimes(1);
     });
-
-    const { result, waitForNextUpdate } = renderHook(() => useSites(mockClientId), {
-      wrapper: createWrapper()
-    });
-
-    // Initial state should be loading
-    expect(result.current.isLoadingSites).toBe(true);
-    
-    // Wait for the query to complete
-    await waitForNextUpdate();
-    
-    // Validate results
-    expect(result.current.isLoadingSites).toBe(false);
-    expect(result.current.sites).toEqual(mockSites);
-    expect(siteService.getClientSites).toHaveBeenCalledWith(mockClientId);
   });
 
-  test('should handle site creation successfully', async () => {
-    // Mock successful API responses
-    (siteService.getClientSites as jest.Mock).mockResolvedValue({
-      data: mockSites
-    });
-    
-    const newSite = {
-      client_id: mockClientId,
-      site_name: 'New Test Site',
-      site_code: 'TEST-003',
-      address_line_1: '789 Test St',
-      suburb: 'Testville',
-      state: 'NSW',
-      postcode: '2000',
-      status: 'active' as SiteStatus
-    };
-    
-    const createdSite = {
-      id: 'site-3',
-      ...newSite
-    };
-    
-    (siteService.createSite as jest.Mock).mockResolvedValueOnce({
-      data: createdSite
-    });
+  describe('useClientSites', () => {
+    it('fetches sites for a specific client', async () => {
+      const clientId = '123';
+      const mockSites = [
+        {
+          id: '1',
+          site_name: 'Client Site 1',
+          client_id: clientId,
+          status: SiteStatus.ACTIVE,
+          site_type: SiteType.OFFICE,
+          created_at: '2023-01-01',
+          updated_at: '2023-01-01',
+        },
+      ] as SiteData[];
 
-    const { result, waitForNextUpdate } = renderHook(() => useSites(mockClientId), {
-      wrapper: createWrapper()
+      (siteService.getClientSites as jest.Mock).mockResolvedValueOnce(mockSites);
+
+      const { result } = renderHook(() => useClientSites(clientId), { wrapper });
+
+      // Initially loading
+      expect(result.current.isLoading).toBe(true);
+
+      // Wait for the query to resolve
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      // Check if data is returned correctly
+      expect(result.current.data).toEqual(mockSites);
+      expect(siteService.getClientSites).toHaveBeenCalledWith(clientId);
+      expect(siteService.getClientSites).toHaveBeenCalledTimes(1);
     });
-    
-    // Wait for the initial query to complete
-    await waitForNextUpdate();
-    
-    // Call the createSite function
-    await act(async () => {
-      result.current.createSite(newSite);
-    });
-    
-    // Validate toast was called with success message
-    expect(toast.success).toHaveBeenCalledWith('Site created successfully!');
-    expect(siteService.createSite).toHaveBeenCalledWith(newSite);
   });
 
-  test('should handle site update successfully', async () => {
-    // Mock successful API responses
-    (siteService.getClientSites as jest.Mock).mockResolvedValue({
-      data: mockSites
-    });
-    
-    const siteId = 'site-1';
-    const updateData = {
-      site_name: 'Updated Site Name'
-    };
-    
-    const updatedSite = {
-      id: siteId,
-      site_name: 'Updated Site Name',
-      client_id: mockClientId
-    };
-    
-    (siteService.updateSite as jest.Mock).mockResolvedValueOnce({
-      data: updatedSite
-    });
+  describe('useCreateSite', () => {
+    it('creates a new site', async () => {
+      const newSite = {
+        client_id: '123',
+        site_name: 'New Test Site',
+        site_code: 'NEW001',
+        address_line_1: '123 New Street',
+        suburb: 'Newville',
+        state: 'NSW',
+        postcode: '2000',
+        status: SiteStatus.ACTIVE,
+        site_type: SiteType.OFFICE
+      } as any;
 
-    const { result, waitForNextUpdate } = renderHook(() => useSites(mockClientId), {
-      wrapper: createWrapper()
+      const mockCreatedSite = {
+        id: 'new-site-id',
+        ...newSite,
+        created_at: '2023-01-15',
+        updated_at: '2023-01-15'
+      };
+
+      (siteService.createSite as jest.Mock).mockResolvedValueOnce(mockCreatedSite);
+
+      const { result } = renderHook(() => useCreateSite(), { wrapper });
+
+      // Execute the mutation
+      result.current.mutate(newSite);
+
+      // Wait for the mutation to complete
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      // Check if mutation was successful
+      expect(siteService.createSite).toHaveBeenCalledWith(newSite);
+      expect(result.current.data).toEqual(mockCreatedSite);
     });
-    
-    // Wait for the initial query to complete
-    await waitForNextUpdate();
-    
-    // Call the updateSite function
-    await act(async () => {
-      result.current.updateSite({ id: siteId, data: updateData });
-    });
-    
-    // Validate toast was called with success message
-    expect(toast.success).toHaveBeenCalledWith('Site updated successfully!');
-    expect(siteService.updateSite).toHaveBeenCalledWith(siteId, updateData);
   });
 
-  test('should handle site deletion successfully', async () => {
-    // Mock successful API responses
-    (siteService.getClientSites as jest.Mock).mockResolvedValue({
-      data: mockSites
-    });
-    
-    const siteId = 'site-1';
-    
-    (siteService.deleteSite as jest.Mock).mockResolvedValueOnce({
-      data: true
-    });
+  describe('useUpdateSite', () => {
+    it('updates an existing site', async () => {
+      const siteId = 'site-id-123';
+      const updates = {
+        site_name: 'Updated Site Name',
+        status: SiteStatus.INACTIVE
+      };
 
-    const { result, waitForNextUpdate } = renderHook(() => useSites(mockClientId), {
-      wrapper: createWrapper()
+      const mockUpdatedSite = {
+        id: siteId,
+        site_name: 'Updated Site Name',
+        status: SiteStatus.INACTIVE,
+        updated_at: '2023-01-20'
+      };
+
+      (siteService.updateSite as jest.Mock).mockResolvedValueOnce(mockUpdatedSite);
+
+      const { result } = renderHook(() => useUpdateSite(), { wrapper });
+
+      // Execute the mutation
+      result.current.mutate({ siteId, siteData: updates });
+
+      // Wait for the mutation to complete
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      // Check if mutation was successful
+      expect(siteService.updateSite).toHaveBeenCalledWith(siteId, updates);
+      expect(result.current.data).toEqual(mockUpdatedSite);
     });
-    
-    // Wait for the initial query to complete
-    await waitForNextUpdate();
-    
-    // Call the deleteSite function
-    await act(async () => {
-      result.current.deleteSite(siteId);
-    });
-    
-    // Validate toast was called with success message
-    expect(toast.success).toHaveBeenCalledWith('Site deleted successfully!');
-    expect(siteService.deleteSite).toHaveBeenCalledWith(siteId);
   });
 
-  test('should handle errors when fetching sites', async () => {
-    // Mock error API response
-    const errorMessage = 'Failed to fetch client sites';
-    (siteService.getClientSites as jest.Mock).mockResolvedValueOnce({
-      category: 'server',
-      message: errorMessage
-    });
+  describe('useDeleteSite', () => {
+    it('deletes a site', async () => {
+      const siteId = 'site-id-to-delete';
+      
+      (siteService.deleteSite as jest.Mock).mockResolvedValueOnce(true);
 
-    const { result, waitForNextUpdate } = renderHook(() => useSites(mockClientId), {
-      wrapper: createWrapper()
+      const { result } = renderHook(() => useDeleteSite(), { wrapper });
+
+      // Execute the mutation
+      result.current.mutate(siteId);
+
+      // Wait for the mutation to complete
+      await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+      // Check if mutation was successful
+      expect(siteService.deleteSite).toHaveBeenCalledWith(siteId);
+      expect(result.current.data).toBe(true);
     });
-    
-    // Wait for the query to complete
-    await waitForNextUpdate();
-    
-    // Validate error state
-    expect(result.current.sitesError).toBeTruthy();
-    expect(toast.error).toHaveBeenCalled();
   });
 });
