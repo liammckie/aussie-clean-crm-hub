@@ -67,14 +67,14 @@ export function useCreateSupplier() {
     },
     onSuccess: (data) => {
       toast.success('Supplier created successfully');
-      AppLogger.info(LogCategory.DATA, 'Supplier created', { supplierId: data.supplier_id });
+      AppLogger.info(LogCategory.SUPPLIER, 'Supplier created', { supplierId: data.supplier_id });
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
     },
     onError: (error: Error) => {
       toast.error('Failed to create supplier', {
         description: error.message
       });
-      AppLogger.error(LogCategory.DATA, 'Error creating supplier', { error });
+      AppLogger.error(LogCategory.SUPPLIER, 'Error creating supplier', { error });
     }
   });
 }
@@ -97,7 +97,7 @@ export function useUpdateSupplier() {
     },
     onSuccess: (data) => {
       toast.success('Supplier updated successfully');
-      AppLogger.info(LogCategory.DATA, 'Supplier updated', { supplierId: data.supplier_id });
+      AppLogger.info(LogCategory.SUPPLIER, 'Supplier updated', { supplierId: data.supplier_id });
       queryClient.invalidateQueries({ queryKey: ['suppliers'] });
       queryClient.invalidateQueries({ queryKey: ['supplier', data.supplier_id] });
     },
@@ -105,7 +105,7 @@ export function useUpdateSupplier() {
       toast.error('Failed to update supplier', {
         description: error.message
       });
-      AppLogger.error(LogCategory.DATA, 'Error updating supplier', { error });
+      AppLogger.error(LogCategory.SUPPLIER, 'Error updating supplier', { error });
     }
   });
 }

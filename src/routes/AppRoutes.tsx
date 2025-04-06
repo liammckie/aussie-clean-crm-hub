@@ -1,23 +1,12 @@
+
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { MainLayout } from '@/layouts/MainLayout';
-import { Login } from '@/pages/Login';
+import { default as MainLayout } from '@/layouts/MainLayout';
 
-// Lazy-loaded components
-import { lazy } from 'react';
-
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
-const Clients = lazy(() => import('@/pages/Clients'));
-const NewClient = lazy(() => import('@/pages/NewClient'));
-const ClientDetail = lazy(() => import('@/pages/ClientDetail'));
-const EditClient = lazy(() => import('@/pages/EditClient'));
-const Contracts = lazy(() => import('@/pages/Contracts'));
-const ContractDetail = lazy(() => import('@/pages/ContractDetail'));
-const NewContract = lazy(() => import('@/pages/NewContract'));
-const NotFound = lazy(() => import('@/pages/NotFound'));
-
-import { 
+// Import lazy-loaded components directly from the lazyRoutes file
+import {
   Dashboard, 
+  Login,
   Clients, 
   NewClient,
   ClientDetail, 

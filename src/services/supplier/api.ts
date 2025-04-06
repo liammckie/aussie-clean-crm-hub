@@ -15,7 +15,7 @@ import { ErrorReporting } from '@/utils/errorReporting';
  */
 export async function createSupplier(supplierData: SupplierCreateData): Promise<SupplierApiResponse> {
   try {
-    AppLogger.info(LogCategory.DATA, 'Creating new supplier', { supplierName: supplierData.supplier_name });
+    AppLogger.info(LogCategory.SUPPLIER, 'Creating new supplier', { supplierName: supplierData.supplier_name });
     
     const { data, error } = await supabase
       .from('suppliers')
@@ -24,7 +24,7 @@ export async function createSupplier(supplierData: SupplierCreateData): Promise<
       .single();
       
     if (error) {
-      AppLogger.error(LogCategory.DATA, 'Error creating supplier', { error });
+      AppLogger.error(LogCategory.SUPPLIER, 'Error creating supplier', { error });
       
       return {
         category: error.code === '42P01' ? 'permission' : 'server',
@@ -38,7 +38,7 @@ export async function createSupplier(supplierData: SupplierCreateData): Promise<
       message: 'Supplier created successfully'
     };
   } catch (error) {
-    AppLogger.error(LogCategory.DATA, 'Exception creating supplier', { error });
+    AppLogger.error(LogCategory.SUPPLIER, 'Exception creating supplier', { error });
     ErrorReporting.captureException(error);
     
     return {
@@ -54,7 +54,7 @@ export async function createSupplier(supplierData: SupplierCreateData): Promise<
  */
 export async function getAllSuppliers(): Promise<SuppliersApiResponse> {
   try {
-    AppLogger.info(LogCategory.DATA, 'Fetching all suppliers');
+    AppLogger.info(LogCategory.SUPPLIER, 'Fetching all suppliers');
     
     const { data, error } = await supabase
       .from('suppliers')
@@ -62,7 +62,7 @@ export async function getAllSuppliers(): Promise<SuppliersApiResponse> {
       .order('supplier_name');
       
     if (error) {
-      AppLogger.error(LogCategory.DATA, 'Error fetching suppliers', { error });
+      AppLogger.error(LogCategory.SUPPLIER, 'Error fetching suppliers', { error });
       
       return {
         category: error.code === '42P01' ? 'permission' : 'server',
@@ -76,7 +76,7 @@ export async function getAllSuppliers(): Promise<SuppliersApiResponse> {
       message: 'Suppliers fetched successfully'
     };
   } catch (error) {
-    AppLogger.error(LogCategory.DATA, 'Exception fetching suppliers', { error });
+    AppLogger.error(LogCategory.SUPPLIER, 'Exception fetching suppliers', { error });
     ErrorReporting.captureException(error);
     
     return {
@@ -92,7 +92,7 @@ export async function getAllSuppliers(): Promise<SuppliersApiResponse> {
  */
 export async function getSupplierById(supplierId: string): Promise<SupplierApiResponse> {
   try {
-    AppLogger.info(LogCategory.DATA, 'Fetching supplier by ID', { supplierId });
+    AppLogger.info(LogCategory.SUPPLIER, 'Fetching supplier by ID', { supplierId });
     
     const { data, error } = await supabase
       .from('suppliers')
@@ -109,7 +109,7 @@ export async function getSupplierById(supplierId: string): Promise<SupplierApiRe
         };
       }
       
-      AppLogger.error(LogCategory.DATA, 'Error fetching supplier', { error, supplierId });
+      AppLogger.error(LogCategory.SUPPLIER, 'Error fetching supplier', { error, supplierId });
       
       return {
         category: error.code === '42P01' ? 'permission' : 'server',
@@ -123,7 +123,7 @@ export async function getSupplierById(supplierId: string): Promise<SupplierApiRe
       message: 'Supplier fetched successfully'
     };
   } catch (error) {
-    AppLogger.error(LogCategory.DATA, 'Exception fetching supplier', { error, supplierId });
+    AppLogger.error(LogCategory.SUPPLIER, 'Exception fetching supplier', { error, supplierId });
     ErrorReporting.captureException(error);
     
     return {
@@ -139,7 +139,7 @@ export async function getSupplierById(supplierId: string): Promise<SupplierApiRe
  */
 export async function updateSupplier(supplierId: string, supplierData: Partial<SupplierData>): Promise<SupplierApiResponse> {
   try {
-    AppLogger.info(LogCategory.DATA, 'Updating supplier', { supplierId });
+    AppLogger.info(LogCategory.SUPPLIER, 'Updating supplier', { supplierId });
     
     const { data, error } = await supabase
       .from('suppliers')
@@ -149,7 +149,7 @@ export async function updateSupplier(supplierId: string, supplierData: Partial<S
       .single();
       
     if (error) {
-      AppLogger.error(LogCategory.DATA, 'Error updating supplier', { error, supplierId });
+      AppLogger.error(LogCategory.SUPPLIER, 'Error updating supplier', { error, supplierId });
       
       return {
         category: error.code === '42P01' ? 'permission' : 'server',
@@ -163,7 +163,7 @@ export async function updateSupplier(supplierId: string, supplierData: Partial<S
       message: 'Supplier updated successfully'
     };
   } catch (error) {
-    AppLogger.error(LogCategory.DATA, 'Exception updating supplier', { error, supplierId });
+    AppLogger.error(LogCategory.SUPPLIER, 'Exception updating supplier', { error, supplierId });
     ErrorReporting.captureException(error);
     
     return {
@@ -179,7 +179,7 @@ export async function updateSupplier(supplierId: string, supplierData: Partial<S
  */
 export async function deleteSupplier(supplierId: string): Promise<SupplierApiResponse> {
   try {
-    AppLogger.info(LogCategory.DATA, 'Deleting supplier', { supplierId });
+    AppLogger.info(LogCategory.SUPPLIER, 'Deleting supplier', { supplierId });
     
     // First get the supplier to return in the response
     const { data: supplier } = await supabase
@@ -194,7 +194,7 @@ export async function deleteSupplier(supplierId: string): Promise<SupplierApiRes
       .eq('supplier_id', supplierId);
       
     if (error) {
-      AppLogger.error(LogCategory.DATA, 'Error deleting supplier', { error, supplierId });
+      AppLogger.error(LogCategory.SUPPLIER, 'Error deleting supplier', { error, supplierId });
       
       return {
         category: error.code === '42P01' ? 'permission' : 'server',
@@ -208,7 +208,7 @@ export async function deleteSupplier(supplierId: string): Promise<SupplierApiRes
       message: 'Supplier deleted successfully'
     };
   } catch (error) {
-    AppLogger.error(LogCategory.DATA, 'Exception deleting supplier', { error, supplierId });
+    AppLogger.error(LogCategory.SUPPLIER, 'Exception deleting supplier', { error, supplierId });
     ErrorReporting.captureException(error);
     
     return {
@@ -224,7 +224,7 @@ export async function deleteSupplier(supplierId: string): Promise<SupplierApiRes
  */
 export async function getComplianceDocuments(supplierId: string): Promise<ComplianceDocumentsApiResponse> {
   try {
-    AppLogger.info(LogCategory.DATA, 'Fetching compliance documents', { supplierId });
+    AppLogger.info(LogCategory.SUPPLIER, 'Fetching compliance documents', { supplierId });
     
     const { data, error } = await supabase
       .from('supplier_compliance_documents')
@@ -232,7 +232,7 @@ export async function getComplianceDocuments(supplierId: string): Promise<Compli
       .eq('supplier_id', supplierId);
       
     if (error) {
-      AppLogger.error(LogCategory.DATA, 'Error fetching compliance documents', { error, supplierId });
+      AppLogger.error(LogCategory.SUPPLIER, 'Error fetching compliance documents', { error, supplierId });
       
       return {
         category: error.code === '42P01' ? 'permission' : 'server',
@@ -246,7 +246,7 @@ export async function getComplianceDocuments(supplierId: string): Promise<Compli
       message: 'Compliance documents fetched successfully'
     };
   } catch (error) {
-    AppLogger.error(LogCategory.DATA, 'Exception fetching compliance documents', { error, supplierId });
+    AppLogger.error(LogCategory.SUPPLIER, 'Exception fetching compliance documents', { error, supplierId });
     ErrorReporting.captureException(error);
     
     return {

@@ -29,7 +29,7 @@ export default function NewSupplier() {
         <Button variant="ghost" size="icon" onClick={() => navigate('/suppliers')}>
           <ChevronLeft className="h-4 w-4" />
         </Button>
-        <Heading>New Supplier</Heading>
+        <Heading title="New Supplier" />
       </div>
       
       <SupplierForm 

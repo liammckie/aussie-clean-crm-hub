@@ -14,7 +14,7 @@ export default function Suppliers() {
   return (
     <div className="container py-6 space-y-6">
       <div className="flex items-center justify-between">
-        <Heading>Supplier Management</Heading>
+        <Heading title="Supplier Management" />
         <Button onClick={() => navigate('/new-supplier')} className="flex items-center">
           <PlusCircle className="mr-2 h-4 w-4" />
           New Supplier
