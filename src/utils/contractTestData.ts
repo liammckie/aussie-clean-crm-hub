@@ -114,43 +114,36 @@ const generateClientName = () => {
 /**
  * Generate mock contract data for UI visualization (no database calls)
  */
-export const getMockContractData = (count = 10) => {
-  const mockContracts = [];
-  
-  for (let i = 0; i < count; i++) {
-    const weeklyValue = randomValue(1000, 10000);
-    const monthlyValue = weeklyValue * 4.33;
-    const annualValue = weeklyValue * 52;
-    
-    const now = new Date();
-    const startDate = randomDate(new Date(now.getFullYear() - 1, 0, 1), now);
-    const endDate = randomDate(now, new Date(now.getFullYear() + 2, 11, 31));
-    
-    mockContracts.push({
-      id: generateRandomId(),
-      client_id: generateRandomId(),
-      client_name: generateClientName(),
-      contract_name: generateContractName(),
-      contract_code: `C${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-      service_type: generateServiceType(),
-      status: generateStatus(),
-      delivery_mode: generateDeliveryMode(),
-      account_manager: generateManagerName(),
-      state_manager: generateManagerName(),
-      national_manager: generateManagerName(),
-      start_date: formatDateToISODate(startDate),
-      end_date: formatDateToISODate(endDate),
-      total_weekly_value: weeklyValue,
-      total_monthly_value: monthlyValue,
-      total_annual_value: annualValue,
-      description: `This is a mock visualization contract for testing purposes.`,
-      billing_frequency: 'Monthly',
-      billing_type: 'Fixed',
-      payment_terms: 'Net 30'
-    });
-  }
-  
-  return mockContracts;
+export const getMockContractData = (count = 5) => {
+  const createMockContract = (id: number) => ({
+    id: `mock-contract-${id}`,
+    client_id: `mock-client-${Math.floor(Math.random() * 10)}`,
+    contract_name: `Mock Contract ${id}`,
+    contract_code: `CNT-${1000 + id}`,
+    service_type: getRandomServiceType(),
+    status: getRandomStatus(),
+    delivery_mode: getRandomDeliveryMode(),
+    account_manager: getRandomName(),
+    state_manager: getRandomName(),
+    national_manager: getRandomName(),
+    start_date: getRandomDate(new Date('2022-01-01'), new Date('2023-01-01')),
+    end_date: getRandomDate(new Date('2023-01-01'), new Date('2025-01-01')),
+    is_ongoing: Math.random() > 0.7,
+    total_weekly_value: Math.floor(Math.random() * 10000) + 500,
+    total_monthly_value: Math.floor(Math.random() * 40000) + 2000,
+    total_annual_value: Math.floor(Math.random() * 500000) + 24000,
+    billing_frequency: getRandomBillingFrequency(),
+    billing_type: getRandomBillingType(),
+    payment_terms: getRandomPaymentTerms(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    supplier_cost_weekly: Math.floor(Math.random() * 5000) + 200,
+    supplier_cost_monthly: Math.floor(Math.random() * 20000) + 1000,
+    supplier_cost_annual: Math.floor(Math.random() * 250000) + 12000,
+    profit_margin_percentage: Math.floor(Math.random() * 35) + 15
+  });
+
+  return Array.from({ length: count }).map((_, i) => createMockContract(i + 1));
 };
 
 /**
@@ -314,3 +307,43 @@ export const createSampleContracts = async (clientIds: string[], count = 20) => 
     return false;
   }
 };
+
+// Example helper functions that might exist in the file
+function getRandomServiceType() {
+  const types = ['commercial_cleaning', 'industrial_cleaning', 'window_cleaning', 'carpet_cleaning'];
+  return types[Math.floor(Math.random() * types.length)];
+}
+
+function getRandomStatus() {
+  const statuses = ['draft', 'active', 'expired', 'on_hold', 'pending_approval'];
+  return statuses[Math.floor(Math.random() * statuses.length)];
+}
+
+function getRandomDeliveryMode() {
+  const modes = ['employee', 'contractor', 'hybrid'];
+  return modes[Math.floor(Math.random() * modes.length)];
+}
+
+function getRandomName() {
+  const names = ['John Smith', 'Sarah Johnson', 'Michael Brown', 'Rachel Williams', 'David Lee'];
+  return names[Math.floor(Math.random() * names.length)];
+}
+
+function getRandomDate(start: Date, end: Date) {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime())).toISOString().split('T')[0];
+}
+
+function getRandomBillingFrequency() {
+  const frequencies = ['weekly', 'monthly', 'quarterly', 'annually'];
+  return frequencies[Math.floor(Math.random() * frequencies.length)];
+}
+
+function getRandomBillingType() {
+  const types = ['fixed', 'variable', 'time_materials', 'retainer'];
+  return types[Math.floor(Math.random() * types.length)];
+}
+
+function getRandomPaymentTerms() {
+  const terms = ['Net 7', 'Net 15', 'Net 30', 'Net 45', 'Net 60'];
+  return terms[Math.floor(Math.random() * terms.length)];
+}

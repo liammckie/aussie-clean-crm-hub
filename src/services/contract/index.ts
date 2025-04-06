@@ -1,5 +1,7 @@
 
-export * from './types';
+// Re-export types using 'export type' syntax for isolated modules
+export type { ContractData, BillingLineData, ContractBudgetData } from './types';
 export * from './service';
 export * from './api';
-export { ContractData, BillingLineData, ContractCreateData } from '@/types/contract-types';
+export { ContractCreateData, contractFormSchema } from '@/types/contract-types';
+

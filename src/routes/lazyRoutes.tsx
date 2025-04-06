@@ -49,5 +49,7 @@ export const LazyNewClient = withLazyLoading(() => import("@/pages/NewClient"), 
 export const LazyEditClient = withLazyLoading(() => import("@/pages/EditClient"), "EditClient");
 export const LazyContracts = withLazyLoading(() => import("@/pages/Contracts"), "Contracts");
 export const LazyNewContract = withLazyLoading(() => import("@/pages/NewContract"), "NewContract");
+export const LazyContractDetail = withLazyLoading(() => import("@/pages/ContractDetail"), "ContractDetail");
+export const LazyEditContract = withLazyLoading(() => import("@/pages/EditContract"), "EditContract");
 export const LazyNotFound = withLazyLoading(() => import("@/pages/NotFound"), "NotFound");
 export const LazyIndex = withLazyLoading(() => import("@/pages/Index"), "Index");

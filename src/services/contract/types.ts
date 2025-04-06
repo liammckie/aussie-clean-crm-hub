@@ -28,6 +28,11 @@ export interface ContractData {
   client_representative_name?: string;
   client_representative_contact?: string;
   notes?: string;
+  // New fields for supplier costs tracking
+  supplier_cost_weekly?: number;
+  supplier_cost_monthly?: number;
+  supplier_cost_annual?: number;
+  profit_margin_percentage?: number;
 }
 
 export interface BillingLineData {
@@ -44,6 +49,8 @@ export interface BillingLineData {
   notes?: string;
   created_at?: string;
   updated_at?: string;
+  // New field for supplier cost
+  supplier_cost?: number;
 }
 
 export interface ContractBudgetData {
@@ -55,3 +62,6 @@ export interface ContractBudgetData {
   created_at?: string;
   updated_at?: string;
 }
+
+// Contract view mode enum
+export type ContractViewMode = 'view' | 'edit' | 'create';

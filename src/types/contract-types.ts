@@ -47,12 +47,17 @@ export const contractFormSchema = z.object({
   client_representative_name: z.string().optional(),
   client_representative_contact: z.string().optional(),
   notes: z.string().optional(),
+  // New fields for supplier costs
+  supplier_cost_weekly: z.number().optional(),
+  supplier_cost_monthly: z.number().optional(),
+  supplier_cost_annual: z.number().optional(),
+  profit_margin_percentage: z.number().optional(),
 });
 
 // This is what the form gives us
 export type ContractFormData = z.infer<typeof contractFormSchema>;
 
-// This ensures the form data matches what the API expects
+// This ensures the form data matches what the API expects when creating a contract
 export type ContractCreateData = {
   contract_name: string;
   contract_code: string;
@@ -78,6 +83,10 @@ export type ContractCreateData = {
   client_representative_name?: string;
   client_representative_contact?: string;
   notes?: string;
+  supplier_cost_weekly?: number;
+  supplier_cost_monthly?: number;
+  supplier_cost_annual?: number;
+  profit_margin_percentage?: number;
 }
 
 // Helper to create default contract values
@@ -109,5 +118,16 @@ export function createDefaultContractValues(
     client_representative_name: initialValues.client_representative_name || '',
     client_representative_contact: initialValues.client_representative_contact || '',
     notes: initialValues.notes || '',
+    // Initialize new supplier cost fields
+    supplier_cost_weekly: initialValues.supplier_cost_weekly,
+    supplier_cost_monthly: initialValues.supplier_cost_monthly,
+    supplier_cost_annual: initialValues.supplier_cost_annual,
+    profit_margin_percentage: initialValues.profit_margin_percentage,
   };
+}
+
+// Create a contract detail view helper
+export interface ContractDetailTabProps {
+  contractId: string;
+  viewMode?: 'view' | 'edit';
 }

@@ -8,7 +8,7 @@ import {
   CardDescription 
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Plus, Edit, Eye } from 'lucide-react';
 import { useContracts } from '@/hooks/use-contracts';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -57,6 +57,11 @@ export function ClientContractsTab({ clientId }: ClientContractsTabProps) {
   const handleViewContract = (contractId: string) => {
     navigate(`/contracts/${contractId}`);
   };
+  
+  const handleEditContract = (contractId: string, event: React.MouseEvent) => {
+    event.stopPropagation(); // Prevent triggering the row click
+    navigate(`/contracts/${contractId}/edit`);
+  };
 
   return (
     <Card>
@@ -92,7 +97,11 @@ export function ClientContractsTab({ clientId }: ClientContractsTabProps) {
               </TableHeader>
               <TableBody>
                 {contracts.map((contract) => (
-                  <TableRow key={contract.id}>
+                  <TableRow 
+                    key={contract.id}
+                    className="cursor-pointer"
+                    onClick={() => handleViewContract(contract.id)}
+                  >
                     <TableCell className="font-medium">{contract.contract_name}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -108,13 +117,22 @@ export function ClientContractsTab({ clientId }: ClientContractsTabProps) {
                     <TableCell>{contract.end_date || (contract.is_ongoing ? 'Ongoing' : 'Not set')}</TableCell>
                     <TableCell>${contract.total_weekly_value ? contract.total_weekly_value.toLocaleString() : '0'}</TableCell>
                     <TableCell className="text-right">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={() => handleViewContract(contract.id)}
-                      >
-                        View
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={(e) => handleViewContract(contract.id)}
+                        >
+                          <Eye className="h-4 w-4 mr-1" /> View
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={(e) => handleEditContract(contract.id, e)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" /> Edit
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

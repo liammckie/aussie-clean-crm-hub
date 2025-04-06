@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import * as Sentry from "@sentry/react";
@@ -19,7 +18,9 @@ import {
   LazyLogin,
   LazyNotFound,
   LazyContracts,
-  LazyNewContract
+  LazyNewContract,
+  LazyContractDetail,
+  LazyEditContract
 } from "./lazyRoutes";
 
 // ProtectedRoute component to protect routes that require authentication
@@ -216,6 +217,7 @@ export const AppRoutes = () => {
           </RouterErrorBoundary>
         }
       />
+      
       {/* Client Routes */}
       <Route 
         path="/clients" 
@@ -257,6 +259,7 @@ export const AppRoutes = () => {
           </RouterErrorBoundary>
         }
       />
+      
       {/* Contract Routes */}
       <Route 
         path="/contracts" 
@@ -278,6 +281,27 @@ export const AppRoutes = () => {
           </RouterErrorBoundary>
         }
       />
+      <Route 
+        path="/contracts/:id" 
+        element={
+          <RouterErrorBoundary>
+            <ProtectedRoute>
+              <LazyContractDetail />
+            </ProtectedRoute>
+          </RouterErrorBoundary>
+        }
+      />
+      <Route 
+        path="/contracts/:id/edit" 
+        element={
+          <RouterErrorBoundary>
+            <ProtectedRoute>
+              <LazyEditContract />
+            </ProtectedRoute>
+          </RouterErrorBoundary>
+        }
+      />
+      
       {/* Database Schema Documentation */}
       <Route 
         path="/docs/schema" 
@@ -289,6 +313,7 @@ export const AppRoutes = () => {
           </RouterErrorBoundary>
         }
       />
+      
       {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
       <Route 
         path="*" 
