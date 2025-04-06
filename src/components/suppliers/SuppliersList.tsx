@@ -42,6 +42,10 @@ export function SuppliersList({ suppliers, isLoading, error }: SuppliersListProp
         return 'bg-orange-100 text-orange-800 hover:bg-orange-200';
       case SupplierStatus.TERMINATED:
         return 'bg-red-100 text-red-800 hover:bg-red-200';
+      case SupplierStatus.INACTIVE:
+        return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
+      case SupplierStatus.PENDING:
+        return 'bg-blue-100 text-blue-800 hover:bg-blue-200';
       default:
         return 'bg-gray-100 text-gray-800 hover:bg-gray-200';
     }

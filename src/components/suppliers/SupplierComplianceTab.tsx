@@ -93,7 +93,7 @@ export function SupplierComplianceTab({ supplierId }: SupplierComplianceTabProps
               </TableHeader>
               <TableBody>
                 {documents?.map((doc) => (
-                  <TableRow key={doc.document_id}>
+                  <TableRow key={doc.id || doc.document_id}>
                     <TableCell className="font-medium">{doc.document_name}</TableCell>
                     <TableCell>{doc.document_type}</TableCell>
                     <TableCell>{formatDate(doc.expiry_date)}</TableCell>

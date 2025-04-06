@@ -6,7 +6,9 @@ export enum SupplierStatus {
   ACTIVE = "active",
   INACTIVE = "inactive",
   PENDING = "pending",
-  TERMINATED = "terminated"
+  TERMINATED = "terminated",
+  ON_HOLD = "on_hold",
+  SUSPENDED = "suspended"
 }
 
 // Supplier type enum
@@ -18,6 +20,16 @@ export enum SupplierType {
 
 // Australian states
 export const AustralianStates = ["ACT", "NSW", "NT", "QLD", "SA", "TAS", "VIC", "WA"];
+
+// Bank details schema
+export const bankDetailsSchema = z.object({
+  account_name: z.string().optional().nullable(),
+  account_number: z.string().optional().nullable(),
+  bsb: z.string().optional().nullable(),
+  bank_name: z.string().optional().nullable(),
+});
+
+export type BankDetails = z.infer<typeof bankDetailsSchema>;
 
 // Base supplier schema that matches the database table structure
 export const supplierFormSchema = z.object({
@@ -41,6 +53,7 @@ export const supplierFormSchema = z.object({
   invoice_email: z.string().optional().nullable(),
   services_provided: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
+  bank_details: bankDetailsSchema.optional().nullable(),
 });
 
 // Define the SupplierData type based on the Zod schema
@@ -66,6 +79,7 @@ export type SupplierData = {
   invoice_email?: string | null;
   services_provided?: string | null;
   notes?: string | null;
+  bank_details?: BankDetails | null;
   created_at?: string;
   updated_at?: string;
 };
@@ -81,6 +95,7 @@ export type SupplierWithCompliance = SupplierData & {
 // Compliance document type
 export type ComplianceDocument = {
   id: string;
+  document_id: string; // Added this field to match what's used in the component
   supplier_id: string;
   document_name: string;
   document_type: string;

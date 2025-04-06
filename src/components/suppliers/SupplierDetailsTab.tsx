@@ -83,15 +83,15 @@ export function SupplierDetailsTab({ supplier }: SupplierDetailsTabProps) {
           <div className="space-y-1">
             <InfoRow 
               label="BSB" 
-              value={supplier.bank_details?.bsb}
+              value={supplier.bank_details?.bsb || 'Not specified'}
             />
             <InfoRow 
               label="Account Number" 
-              value={supplier.bank_details?.account_number}
+              value={supplier.bank_details?.account_number || 'Not specified'}
             />
             <InfoRow 
               label="Account Name" 
-              value={supplier.bank_details?.account_name}
+              value={supplier.bank_details?.account_name || 'Not specified'}
             />
           </div>
         </CardContent>
