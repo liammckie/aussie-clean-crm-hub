@@ -136,7 +136,7 @@ export function ContractSuppliersTab({ contractId }: ContractSuppliersTabProps) 
                   {suppliers?.map((item) => (
                     <TableRow key={item.link_id}>
                       <TableCell className="font-medium">
-                        {item.suppliers && item.suppliers.supplier_name}
+                        {item.suppliers?.supplier_name}
                       </TableCell>
                       <TableCell>
                         <Badge variant={getRoleBadgeVariant(item.role)}>
