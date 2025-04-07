@@ -1,13 +1,31 @@
 
-Checking project versions:
+# SCS ERP Version Information
 
-1. package.json version (if exists):
+## Current Package Versions
+
 ```bash
-$ cat package.json | grep version
+$ npm list --depth=0
 ```
 
-2. Vite environment variables:
-import.meta.env.VITE_APP_VERSION: ${import.meta.env.VITE_APP_VERSION || 'Not set'}
+## Application Version
+- Version from package.json: ${require('./package.json').version || '1.0.0'}
+- Environment variable version: ${process.env.VITE_APP_VERSION || 'Not set'}
 
-3. Main application logging:
-Application starting with version: ${import.meta.env.VITE_APP_VERSION || 'development'}
+## Build Information
+- Build date: ${new Date().toISOString()}
+- Build environment: ${process.env.NODE_ENV || 'development'}
+- Node version: ${process.version}
+
+## Dependency Updates
+Last dependency update: ${new Date().toISOString()}
+
+## How to check version in the application
+```javascript
+console.log('App version:', import.meta.env.VITE_APP_VERSION);
+```
+
+## Access version in components
+The application version is accessible in any component via:
+```jsx
+const version = import.meta.env.VITE_APP_VERSION;
+```
