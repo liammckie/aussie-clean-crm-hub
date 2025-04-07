@@ -1,8 +1,15 @@
+import { ErrorCategory } from '@/utils/logging/error-types';
 
-/**
- * Error categories to standardize error types across the application
- */
-export type ErrorCategory = 'validation' | 'permission' | 'server' | 'not_found' | 'authentication';
+// Explicitly define ErrorCategory to match the imported enum
+export type ErrorCategory = 
+  | 'validation' 
+  | 'permission' 
+  | 'server' 
+  | 'not_found' 
+  | 'authentication'
+  | 'auth'
+  | 'database'
+  | 'unknown';
 
 /**
  * Interface for successful API responses
