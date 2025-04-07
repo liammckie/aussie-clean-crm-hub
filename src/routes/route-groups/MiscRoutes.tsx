@@ -11,7 +11,7 @@ export const MiscRoutes = () => {
   return (
     <Routes>
       {/* Dashboard - protected route */}
-      <Route path="dashboard" element={
+      <Route path="/" element={
         <ProtectedRoute>
           <Dashboard />
         </ProtectedRoute>

@@ -1,116 +1,103 @@
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useForm } from 'react-hook-form';
+import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
-import { ContactBaseFields } from './form/ContactBaseFields';
-import { ContactTypeField } from './form/ContactTypeField';
-import { ContactAdditionalFields } from './form/ContactAdditionalFields';
-import { IsPrimaryField } from './form/IsPrimaryField';
-import { ManagerFields } from './form/ManagerFields';
-import { 
-  UnifiedContactFormData, 
-  ContactType,
-  unifiedContactSchema,
-  createDefaultContactValues
-} from '@/types/form-types';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ContactBaseFields } from '@/components/client/form/ContactBaseFields';
+import { ContactTypeField } from '@/components/client/form/ContactTypeField';
+import { ContactAdditionalFields } from '@/components/client/form/ContactAdditionalFields';
+import { IsPrimaryField } from '@/components/client/form/IsPrimaryField';
+import { ManagerFields } from '@/components/client/form/ManagerFields';
+import { UnifiedContactFormData, ContactType } from '@/types/form-types';
+import { validateFormData, applyValidationErrorsToForm } from '@/utils/form-validation';
+
+// Define the schema for contact validation
+const contactSchema = z.object({
+  name: z.string().min(1, { message: "Full name is required" }),
+  email: z.string().email({ message: "Valid email is required" }),
+  position: z.string().optional(),
+  company: z.string().optional(),
+  phone: z.string().optional(),
+  mobile: z.string().optional(),
+  contact_type: z.string(),
+  is_primary: z.boolean().default(false),
+  notes: z.string().optional(),
+  account_manager: z.string().optional(),
+  state_manager: z.string().optional(),
+  national_manager: z.string().optional(),
+});
 
 interface UnifiedContactFormProps {
   onSubmit: (data: UnifiedContactFormData) => void;
   isLoading?: boolean;
   initialData?: Partial<UnifiedContactFormData>;
-  contactTypes?: ContactType[];
+  contactTypes: ContactType[];
+  showManagerFields?: boolean;
   buttonText?: string;
-  showIsPrimary?: boolean;
 }
 
-export function UnifiedContactForm({ 
-  onSubmit, 
-  isLoading = false, 
-  initialData = {}, 
-  contactTypes = ['Primary', 'Billing', 'Operations', 'Technical'],
-  buttonText = "Add Contact",
-  showIsPrimary = true
+export function UnifiedContactForm({
+  onSubmit,
+  isLoading = false,
+  initialData = {},
+  contactTypes,
+  showManagerFields = false,
+  buttonText = "Save Contact"
 }: UnifiedContactFormProps) {
-  // Always ensure is_primary is defined as a boolean
-  const formInitialData = createDefaultContactValues(
-    { 
-      ...initialData,
-      // Ensure is_primary is always defined as a boolean
-      is_primary: initialData.is_primary === undefined ? false : Boolean(initialData.is_primary) 
-    }, 
-    contactTypes[0]
-  );
-
   const form = useForm<UnifiedContactFormData>({
-    resolver: zodResolver(unifiedContactSchema),
-    defaultValues: formInitialData
+    resolver: zodResolver(contactSchema),
+    defaultValues: {
+      name: initialData.name || '',
+      email: initialData.email || '',
+      position: initialData.position || '',
+      company: initialData.company || '',
+      phone: initialData.phone || '',
+      mobile: initialData.mobile || '',
+      contact_type: initialData.contact_type || contactTypes[0],
+      is_primary: initialData.is_primary || false,
+      notes: initialData.notes || '',
+      account_manager: initialData.account_manager || '',
+      state_manager: initialData.state_manager || '',
+      national_manager: initialData.national_manager || '',
+    }
   });
 
-  // State to track the current contact type
-  const [currentContactType, setCurrentContactType] = useState<string>(
-    formInitialData.contact_type as string
-  );
-
-  // Watch for contact type changes
-  useEffect(() => {
-    const subscription = form.watch((value, { name }) => {
-      if (name === 'contact_type') {
-        setCurrentContactType(value.contact_type as string);
+  const handleSubmit = (data: UnifiedContactFormData) => {
+    const validation = validateFormData<UnifiedContactFormData>(contactSchema, data);
+    
+    if (!validation.success) {
+      if (validation.errors) {
+        applyValidationErrorsToForm(form, validation.errors);
+        return;
       }
-    });
-    return () => subscription.unsubscribe();
-  }, [form.watch]);
-
-  const handleFormSubmit = (data: UnifiedContactFormData) => {
-    // Ensure is_primary is always a boolean
-    const submissionData = {
-      ...data,
-      is_primary: Boolean(data.is_primary) // Convert to boolean to ensure it's always a boolean
-    };
-    console.log("Form submission data:", submissionData);
-    onSubmit(submissionData);
+    }
+    
+    onSubmit(data);
   };
 
-  // Check if the current contact type is employee (internal staff)
-  const isInternalStaff = currentContactType === 'employee';
-
   return (
-    <ScrollArea className="max-h-[60vh] pr-4">
-      <Form {...form}>
-        <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <ContactBaseFields form={form} />
-            <ContactTypeField form={form} contactTypes={contactTypes} />
-            <ContactAdditionalFields form={form} />
-            
-            {/* Only show manager fields for employee type */}
-            {isInternalStaff && (
-              <div className="col-span-1 sm:col-span-2">
-                <div className="border-t pt-4 mt-2">
-                  <h3 className="text-sm font-medium mb-4">Manager Information</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                    <ManagerFields form={form} />
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <ContactBaseFields form={form} />
           
-          {showIsPrimary && (
-            <IsPrimaryField 
-              form={form} 
-              label="Primary contact" 
-            />
-          )}
+          <ContactTypeField form={form} contactTypes={contactTypes} />
+          
+          <ContactAdditionalFields form={form} />
+        </div>
+        
+        <IsPrimaryField form={form} />
+        
+        {showManagerFields && (
+          <ManagerFields form={form} />
+        )}
 
-          <Button type="submit" disabled={isLoading} className="mt-6 w-full">
-            {isLoading ? "Saving..." : buttonText}
-          </Button>
-        </form>
-      </Form>
-    </ScrollArea>
+        <Button type="submit" disabled={isLoading} className="mt-4">
+          {isLoading ? "Saving..." : buttonText}
+        </Button>
+      </form>
+    </Form>
   );
 }

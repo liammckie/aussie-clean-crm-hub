@@ -11,6 +11,8 @@ import { MiscRoutes } from './route-groups/MiscRoutes';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { Login } from './lazyRoutes';
 import { NotFound } from './lazyRoutes';
+import { Dashboard } from './lazyRoutes';
+import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 
 export function AppRoutes() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -47,6 +49,13 @@ export function AppRoutes() {
         {/* Login route directly in main routes for easier access */}
         <Route path="/login" element={
           isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        } />
+        
+        {/* Dashboard page */}
+        <Route path="/dashboard" element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
         } />
         
         {/* Auth routes */}
