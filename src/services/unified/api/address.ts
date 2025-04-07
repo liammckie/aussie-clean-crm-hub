@@ -1,222 +1,197 @@
 
-import { supabase } from '@/integrations/supabase/client';
-import { AppLogger, LogCategory } from '@/utils/logging';
-import { ApiResponse, createErrorResponse, createSuccessResponse } from '@/types/api-response';
-import { EntityType } from '@/types/form-types';
+import { supabase } from '@/lib/supabase';
+import { ApiResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
 import { UnifiedAddressRecord } from '../types';
+import { AddressType, EntityType } from '@/types/form-types';
 import { ErrorCategory } from '@/utils/logging/error-types';
 
-/**
- * Create a new address for an entity
- */
-export const createAddress = async (
-  entityType: EntityType,
-  entityId: string,
-  addressData: Omit<UnifiedAddressRecord, 'entity_type' | 'entity_id'>
-): Promise<ApiResponse<UnifiedAddressRecord>> => {
-  try {
-    // Map the form field names to database column names if needed
-    const processedData = {
-      ...addressData,
-      address_line_1: addressData.address_line_1,
-      address_line_2: addressData.address_line_2,
-      entity_type: entityType,
-      entity_id: entityId
-    };
-    
-    AppLogger.info(LogCategory.ADDRESS, `Creating ${entityType} address for ID: ${entityId}`);
-    
-    const { data, error } = await supabase
-      .from('unified_addresses')
-      .insert({
-        name: addressData.name,
-        address_line_1: addressData.address_line_1,
-        address_line_2: addressData.address_line_2,
-        suburb: addressData.suburb,
-        state: addressData.state,
-        postcode: addressData.postcode,
-        country: addressData.country || 'Australia',
-        entity_id: entityId,
-        entity_type: entityType,
-        address_type: addressData.address_type,
-        is_primary: addressData.is_primary
-      })
-      .select('*')
-      .single();
-
-    if (error) {
-      AppLogger.error(LogCategory.DATABASE, `Error creating address: ${error.message}`, { 
-        error, 
-        entityType, 
-        entityId 
-      });
-      
-      return createErrorResponse(
-        ErrorCategory.DATABASE,
-        `Failed to create address: ${error.message}`,
-        { details: error.details }
-      );
-    }
-
-    return createSuccessResponse(data, 'Address created successfully');
-  } catch (error: any) {
-    AppLogger.error(LogCategory.SERVER, `Exception creating address: ${error.message}`, { 
-      error,
-      entityType,
-      entityId
-    });
-    
-    return createErrorResponse(
-      ErrorCategory.SERVER,
-      `Failed to create address: ${error.message}`
-    );
-  }
-};
-
-/**
- * Update an existing address
- */
-export const updateAddress = async (
-  addressId: string,
-  addressData: Partial<UnifiedAddressRecord>
-): Promise<ApiResponse<UnifiedAddressRecord>> => {
-  try {
-    // Map the form field names to database column names if needed
-    const processedData: any = { ...addressData };
-    
-    if (addressData.address_line_1) {
-      processedData.address_line_1 = addressData.address_line_1;
-    }
-    
-    if (addressData.address_line_2) {
-      processedData.address_line_2 = addressData.address_line_2;
-    }
-    
-    AppLogger.info(LogCategory.ADDRESS, `Updating address ID: ${addressId}`);
-    
-    const { data, error } = await supabase
-      .from('unified_addresses')
-      .update(processedData)
-      .eq('id', addressId)
-      .select('*')
-      .single();
-
-    if (error) {
-      AppLogger.error(LogCategory.DATABASE, `Error updating address: ${error.message}`, {
-        error,
-        addressId
-      });
-      
-      return createErrorResponse(
-        ErrorCategory.DATABASE,
-        `Failed to update address: ${error.message}`,
-        { details: error.details }
-      );
-    }
-
-    return createSuccessResponse(data, 'Address updated successfully');
-  } catch (error: any) {
-    AppLogger.error(LogCategory.SERVER, `Exception updating address: ${error.message}`, {
-      error,
-      addressId
-    });
-    
-    return createErrorResponse(
-      ErrorCategory.SERVER,
-      `Failed to update address: ${error.message}`
-    );
-  }
-};
-
-/**
- * Get addresses for an entity
- */
-export const getEntityAddresses = async (
-  entityType: EntityType,
-  entityId: string
-): Promise<ApiResponse<UnifiedAddressRecord[]>> => {
-  try {
-    AppLogger.info(LogCategory.ADDRESS, `Getting addresses for ${entityType} ID: ${entityId}`);
-    
-    const { data, error } = await supabase
-      .from('unified_addresses')
-      .select('*')
-      .eq('entity_type', entityType)
-      .eq('entity_id', entityId)
-      .order('is_primary', { ascending: false });
-
-    if (error) {
-      AppLogger.error(LogCategory.DATABASE, `Error getting addresses: ${error.message}`, {
-        error,
-        entityType,
-        entityId
-      });
-      
-      return createErrorResponse(
-        ErrorCategory.DATABASE,
-        `Failed to get addresses: ${error.message}`,
-        { details: error.details }
-      );
-    }
-
-    return createSuccessResponse(data, 'Addresses retrieved successfully');
-  } catch (error: any) {
-    AppLogger.error(LogCategory.SERVER, `Exception getting addresses: ${error.message}`, {
-      error,
-      entityType,
-      entityId
-    });
-    
-    return createErrorResponse(
-      ErrorCategory.SERVER,
-      `Failed to get addresses: ${error.message}`
-    );
-  }
-};
-
-/**
- * Delete an address
- */
-export const deleteAddress = async (addressId: string): Promise<ApiResponse<boolean>> => {
-  try {
-    AppLogger.info(LogCategory.ADDRESS, `Deleting address ID: ${addressId}`);
-    
-    const { error } = await supabase
-      .from('unified_addresses')
-      .delete()
-      .eq('id', addressId);
-
-    if (error) {
-      AppLogger.error(LogCategory.DATABASE, `Error deleting address: ${error.message}`, {
-        error,
-        addressId
-      });
-      
-      return createErrorResponse(
-        ErrorCategory.DATABASE,
-        `Failed to delete address: ${error.message}`,
-        { details: error.details }
-      );
-    }
-
-    return createSuccessResponse(true, 'Address deleted successfully');
-  } catch (error: any) {
-    AppLogger.error(LogCategory.SERVER, `Exception deleting address: ${error.message}`, {
-      error,
-      addressId
-    });
-    
-    return createErrorResponse(
-      ErrorCategory.SERVER,
-      `Failed to delete address: ${error.message}`
-    );
-  }
-};
-
-// Export all the address API methods
 export const addressApi = {
-  createAddress,
-  updateAddress,
-  getEntityAddresses,
-  deleteAddress
+  /**
+   * Create a new address for an entity
+   */
+  createAddress: async (
+    entityType: EntityType,
+    entityId: string,
+    addressData: Omit<UnifiedAddressRecord, 'entity_type' | 'entity_id' | 'id'>
+  ): Promise<ApiResponse<UnifiedAddressRecord>> => {
+    try {
+      // Check if this is set as primary and handle accordingly
+      if (addressData.is_primary) {
+        // If this is set as primary, update other addresses to not be primary
+        const { error: updateError } = await supabase
+          .from('unified_addresses')
+          .update({ is_primary: false })
+          .eq('entity_type', entityType)
+          .eq('entity_id', entityId);
+
+        if (updateError) {
+          console.error('Error updating existing primary addresses:', updateError);
+          return createErrorResponse(
+            ErrorCategory.DATABASE,
+            'Failed to update existing primary addresses'
+          );
+        }
+      }
+
+      // Create the address record
+      const { data, error } = await supabase
+        .from('unified_addresses')
+        .insert({
+          entity_type: entityType,
+          entity_id: entityId,
+          ...addressData
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating address:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
+      }
+
+      return createSuccessResponse(
+        data,
+        'Address created successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error creating address:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while creating the address'
+      );
+    }
+  },
+
+  /**
+   * Get all addresses for an entity
+   */
+  getEntityAddresses: async (entityType: EntityType, entityId: string): Promise<ApiResponse<UnifiedAddressRecord[]>> => {
+    try {
+      const { data, error } = await supabase
+        .from('unified_addresses')
+        .select('*')
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId);
+
+      if (error) {
+        console.error('Error fetching addresses:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
+      }
+
+      return createSuccessResponse(
+        data,
+        'Addresses fetched successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error fetching addresses:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while fetching addresses'
+      );
+    }
+  },
+
+  /**
+   * Update an existing address
+   */
+  updateAddress: async (
+    addressId: string,
+    addressData: Partial<UnifiedAddressRecord>
+  ): Promise<ApiResponse<UnifiedAddressRecord>> => {
+    try {
+      // Check if this is set as primary and handle accordingly
+      if (addressData.is_primary) {
+        // Get the entity type and id for this address
+        const { data: addressInfo, error: fetchError } = await supabase
+          .from('unified_addresses')
+          .select('entity_type, entity_id')
+          .eq('id', addressId)
+          .single();
+
+        if (fetchError) {
+          console.error('Error fetching address info:', fetchError);
+          return createErrorResponse(
+            ErrorCategory.DATABASE,
+            'Failed to fetch address information'
+          );
+        }
+
+        // Update other addresses to not be primary
+        const { error: updateError } = await supabase
+          .from('unified_addresses')
+          .update({ is_primary: false })
+          .eq('entity_type', addressInfo.entity_type)
+          .eq('entity_id', addressInfo.entity_id)
+          .neq('id', addressId);
+
+        if (updateError) {
+          console.error('Error updating existing primary addresses:', updateError);
+        }
+      }
+
+      // Update the address
+      const { data, error } = await supabase
+        .from('unified_addresses')
+        .update(addressData)
+        .eq('id', addressId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error updating address:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
+      }
+
+      return createSuccessResponse(
+        data,
+        'Address updated successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error updating address:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while updating the address'
+      );
+    }
+  },
+
+  /**
+   * Delete an address
+   */
+  deleteAddress: async (addressId: string): Promise<ApiResponse<{ success: boolean }>> => {
+    try {
+      const { error } = await supabase
+        .from('unified_addresses')
+        .delete()
+        .eq('id', addressId);
+
+      if (error) {
+        console.error('Error deleting address:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
+      }
+
+      return createSuccessResponse(
+        { success: true },
+        'Address deleted successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error deleting address:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while deleting the address'
+      );
+    }
+  }
 };

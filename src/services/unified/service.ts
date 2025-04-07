@@ -1,3 +1,4 @@
+
 import { ApiResponse } from '@/types/api-response';
 import { 
   UnifiedAddressFormData,
@@ -6,10 +7,9 @@ import {
 } from '@/types/form-types';
 import { 
   UnifiedAddressRecord, 
-  UnifiedContactRecord,
-  addressApi,
-  contactApi
-} from './api';
+  UnifiedContactRecord
+} from './types';
+import { addressApi, contactApi } from './api';
 import { MutationOptions } from '@/hooks/use-unified-entities';
 
 /**

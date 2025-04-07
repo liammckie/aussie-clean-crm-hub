@@ -3,6 +3,13 @@ import { addressApi } from './address';
 import { contactApi } from './contact';
 import { EntityType } from '@/services/client/types';
 import { UnifiedAddressFormData, UnifiedContactFormData } from '@/services/unified/types';
+import { UnifiedAddressRecord, UnifiedContactRecord } from '@/services/unified/types';
+
+// Export the API modules
+export { addressApi, contactApi };
+
+// Export types
+export { UnifiedAddressRecord, UnifiedContactRecord };
 
 // Unified API service for consistent data access
 export const unifiedApi = {
