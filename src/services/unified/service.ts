@@ -32,7 +32,7 @@ export const createUnifiedAddress = async (
       state: addressData.state,
       postcode: addressData.postcode,
       country: addressData.country,
-      address_type: addressData.address_type as unknown as DbAddressType, // Type assertion to handle compatibility
+      address_type: addressData.address_type, // Type is now aligned between form and db
       is_primary: addressData.is_primary || false,
       name: addressData.name,
       latitude: addressData.latitude,
@@ -82,7 +82,7 @@ export const updateUnifiedAddress = async (
     }
     
     if ('address_type' in addressData) {
-      processedData.address_type = addressData.address_type as unknown as DbAddressType;
+      processedData.address_type = addressData.address_type; // Type is now aligned
     }
     
     if ('is_primary' in addressData) {
@@ -131,7 +131,7 @@ export const unifiedService = {
       state: addressData.state,
       postcode: addressData.postcode,
       country: addressData.country,
-      address_type: addressData.address_type as unknown as DbAddressType,
+      address_type: addressData.address_type, // Now aligned with database type
       is_primary: addressData.is_primary || false,
       name: addressData.name,
       latitude: addressData.latitude,

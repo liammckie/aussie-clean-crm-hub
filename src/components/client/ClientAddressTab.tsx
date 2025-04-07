@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { Button } from '@/components/ui/button';
@@ -28,6 +27,7 @@ import { EntityType } from '@/services/client/types';
 import { UnifiedAddressRecord } from '@/services/unified/types';
 import { useTypedTransition } from '@/hooks/use-suspense-transition';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { AddressType as DbAddressType } from '@/types/database-schema';
 
 interface ClientAddressTabProps {
   clientId: string;
@@ -36,7 +36,7 @@ interface ClientAddressTabProps {
 
 export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabProps) {
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedAddressType, setSelectedAddressType] = useState<AddressType>('billing');
+  const [selectedAddressType, setSelectedAddressType] = useState<AddressType>(DbAddressType.BILLING);
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const { isPending, startTypedTransition } = useTypedTransition<void>();

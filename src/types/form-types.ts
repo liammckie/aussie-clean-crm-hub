@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import { AddressType as DbAddressType } from './database-schema';
 
@@ -23,7 +24,7 @@ export type ContactType =
   | 'sales_lead'
   | 'subcontractor';
 
-// Define address types - ensure it includes all values from database-schema.ts AddressType
+// Use the database schema's AddressType enum to ensure consistency
 export type AddressType = DbAddressType;
 
 // Define preferred communication type
@@ -104,7 +105,7 @@ export interface UnifiedAddressFormData {
   name?: string;  // Added for address.ts usage
 }
 
-// Define the schema for address validation
+// Define the schema for address validation, using enum values from AddressType
 export const unifiedAddressSchema = z.object({
   address_line1: z.string().min(1, { message: "Address line 1 is required" }),
   address_line2: z.string().optional(),
@@ -112,7 +113,7 @@ export const unifiedAddressSchema = z.object({
   state: z.string().min(1, { message: "State is required" }),
   postcode: z.string().min(1, { message: "Postcode is required" }),
   country: z.string().min(1, { message: "Country is required" }),
-  address_type: z.string().min(1, { message: "Address type is required" }),
+  address_type: z.nativeEnum(DbAddressType),
   is_primary: z.boolean().default(false),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
@@ -129,7 +130,7 @@ export function createDefaultAddressValues(initialData?: Partial<UnifiedAddressF
     state: initialData?.state || '',
     postcode: initialData?.postcode || '',
     country: initialData?.country || 'Australia',
-    address_type: initialData?.address_type || 'billing',
+    address_type: initialData?.address_type || DbAddressType.BILLING,
     is_primary: initialData?.is_primary === true,
     latitude: initialData?.latitude,
     longitude: initialData?.longitude,

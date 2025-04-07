@@ -16,25 +16,15 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { AddressType as DbAddressType } from '@/types/database-schema';
 
 interface AddressTypeFieldProps {
   form: UseFormReturn<UnifiedAddressFormData>;
 }
 
 export function AddressTypeField({ form }: AddressTypeFieldProps) {
-  // Address types
-  const addressTypes: AddressType[] = [
-    'billing',
-    'shipping',
-    'physical',
-    'head_office',
-    'branch',
-    'site',
-    'warehouse',
-    'commercial',
-    'residential',
-    'postal'
-  ];
+  // Address types from the enum
+  const addressTypes: AddressType[] = Object.values(DbAddressType);
 
   return (
     <FormField
@@ -46,7 +36,7 @@ export function AddressTypeField({ form }: AddressTypeFieldProps) {
           <Select
             onValueChange={field.onChange}
             value={field.value}
-            defaultValue="billing"
+            defaultValue={DbAddressType.BILLING}
           >
             <FormControl>
               <SelectTrigger>
@@ -56,7 +46,7 @@ export function AddressTypeField({ form }: AddressTypeFieldProps) {
             <SelectContent>
               {addressTypes.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                  {type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')}
                 </SelectItem>
               ))}
             </SelectContent>
