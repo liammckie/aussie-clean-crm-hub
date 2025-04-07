@@ -21,26 +21,37 @@ import {
   Upload,
 } from 'lucide-react';
 
+interface ActivityEntity {
+  id: string;
+  type: string;
+}
+
 export const getActivityIcon = (type: ActivityType) => {
   switch (type) {
+    case 'client':
     case 'client_created':
       return { Icon: Users, color: 'blue' };
     case 'client_updated':
       return { Icon: Users, color: 'indigo' };
+    case 'contract':
     case 'contract_signed':
       return { Icon: FileText, color: 'green' };
     case 'task_completed':
       return { Icon: CheckCircle2, color: 'green' };
     case 'invoice_paid':
       return { Icon: CreditCard, color: 'emerald' };
+    case 'work_order':
     case 'work_order_created':
       return { Icon: ClipboardList, color: 'purple' };
     case 'site_added':
       return { Icon: Building, color: 'blue' };
+    case 'supplier':
     case 'supplier_added':
       return { Icon: Truck, color: 'amber' };
+    case 'user':
     case 'user_login':
       return { Icon: LogIn, color: 'blue' };
+    case 'system':
     case 'system_event':
       return { Icon: Settings, color: 'slate' };
     default:
@@ -48,7 +59,7 @@ export const getActivityIcon = (type: ActivityType) => {
   }
 };
 
-export const getActivityEntityUrl = (entity: { type: string; id: string }): string => {
+export const getActivityEntityUrl = (entity: ActivityEntity): string => {
   switch (entity.type.toLowerCase()) {
     case 'client':
       return `/clients/${entity.id}`;

@@ -35,55 +35,65 @@ export const MiscRoutes = () => {
       {/* Task routes (placeholder) */}
       <Route path="tasks" element={
         <ProtectedRoute>
-          <NotFound 
-            title="Tasks Coming Soon"
-            description="This feature is currently under development."
-            returnToHomepageLink="/dashboard"
-          />
+          <div>
+            <NotFound 
+              title="Tasks Coming Soon"
+              description="This feature is currently under development."
+              returnToHomepageLink="/dashboard"
+            />
+          </div>
         </ProtectedRoute>
       } />
 
       {/* Inventory routes (placeholder) */}
       <Route path="inventory" element={
         <ProtectedRoute>
-          <NotFound 
-            title="Inventory Coming Soon"
-            description="This feature is currently under development."
-            returnToHomepageLink="/dashboard"
-          />
+          <div>
+            <NotFound 
+              title="Inventory Coming Soon"
+              description="This feature is currently under development."
+              returnToHomepageLink="/dashboard"
+            />
+          </div>
         </ProtectedRoute>
       } />
 
       {/* Schedule routes (placeholder) */}
       <Route path="schedule" element={
         <ProtectedRoute>
-          <NotFound 
-            title="Schedule Coming Soon"
-            description="This feature is currently under development."
-            returnToHomepageLink="/dashboard"
-          />
+          <div>
+            <NotFound 
+              title="Schedule Coming Soon"
+              description="This feature is currently under development."
+              returnToHomepageLink="/dashboard"
+            />
+          </div>
         </ProtectedRoute>
       } />
 
       {/* Reports routes (placeholder) */}
       <Route path="reports" element={
         <ProtectedRoute>
-          <NotFound 
-            title="Reports Coming Soon"
-            description="This feature is currently under development."
-            returnToHomepageLink="/dashboard"
-          />
+          <div>
+            <NotFound 
+              title="Reports Coming Soon"
+              description="This feature is currently under development."
+              returnToHomepageLink="/dashboard"
+            />
+          </div>
         </ProtectedRoute>
       } />
 
       {/* Settings routes (placeholder) */}
       <Route path="settings" element={
         <ProtectedRoute>
-          <NotFound 
-            title="Settings Coming Soon"
-            description="This feature is currently under development."
-            returnToHomepageLink="/dashboard"
-          />
+          <div>
+            <NotFound 
+              title="Settings Coming Soon"
+              description="This feature is currently under development."
+              returnToHomepageLink="/dashboard"
+            />
+          </div>
         </ProtectedRoute>
       } />
       

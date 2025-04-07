@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
@@ -238,16 +237,14 @@ const Activities = () => {
                     ) : viewMode === 'table' ? (
                       <div className="bg-white/50 backdrop-blur-sm rounded-lg border border-border/30 shadow-sm overflow-hidden">
                         <ActivityTable 
-                          activities={filteredActivities} 
-                          onActivityClick={handleActivityClick}
+                          activities={filteredActivities}
                         />
                       </div>
                     ) : (
                       <div className={`transition-all duration-300 ${animateIn ? 'opacity-100' : 'opacity-0'}`}>
                         <ActivityList 
                           activities={filteredActivities} 
-                          viewMode={viewMode === 'grid' ? 'grid' : 'list'} 
-                          onActivityClick={handleActivityClick}
+                          viewMode={viewMode === 'grid' ? 'grid' : 'list'}
                         />
                       </div>
                     )}

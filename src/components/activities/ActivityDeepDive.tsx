@@ -134,9 +134,11 @@ export function ActivityDeepDive({ activity, onClose, relatedActivities = [] }: 
               <div className="flex justify-between items-start">
                 <CardTitle className="text-lg">{activity.title}</CardTitle>
                 <Badge 
-                  variant={activity.status === 'success' ? 'success' : 
-                          activity.status === 'warning' ? 'warning' : 
-                          activity.status === 'error' ? 'destructive' : 'outline'}
+                  variant={
+                    activity.status === 'success' ? 'default' : 
+                    activity.status === 'warning' ? 'secondary' : 
+                    activity.status === 'error' ? 'destructive' : 'outline'
+                  }
                 >
                   {activity.status}
                 </Badge>

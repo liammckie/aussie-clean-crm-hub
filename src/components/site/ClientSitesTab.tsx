@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   Card, 
@@ -43,8 +42,7 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
       status: data.status,
       site_type: data.site_type || null,
       square_meters: data.square_meters || null,
-      region: data.region || null,
-      notes: data.notes || null,
+      description: data.description || null,
       induction_required: data.induction_required
     };
     

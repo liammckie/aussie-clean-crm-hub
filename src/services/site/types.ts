@@ -38,6 +38,8 @@ export interface SiteInsertData {
   site_type?: string;
   description?: string;
   square_meters?: number;
+  induction_required?: boolean;
+  notes?: string;
 }
 
 export interface SiteUpdateData {
@@ -58,3 +60,17 @@ export interface SiteUpdateData {
   description?: string;
   square_meters?: number;
 }
+
+// Add these types to fix the service issues
+export interface SiteApiResponse {
+  data: SiteData;
+  message: string;
+}
+
+export interface SitesApiResponse {
+  data: SiteData[];
+  message: string;
+}
+
+// For backward compatibility
+export type SiteRecord = SiteData;

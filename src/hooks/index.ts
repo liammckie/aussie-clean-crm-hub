@@ -7,4 +7,4 @@ export * from './use-optimized-query';
 export * from './use-optimized-clients';
 export * from './use-realtime-sync';
 export * from './use-work-orders';
-
+export * from './use-activities';

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { 
   Card, 
@@ -12,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { SiteForm, SiteFormData } from '@/components/site/SiteForm';
 import { toast } from 'sonner';
 import { useSites, useCreateSite } from '@/hooks/use-sites';
-import { SiteInsertData, SiteRecord } from '@/services/site/types';
+import { SiteInsertData, SiteData } from '@/services/site/types';
 import { isApiSuccess } from '@/types/api-response';
 import { useTypedTransition } from '@/hooks/use-suspense-transition';
 import { AppLogger, LogCategory } from '@/utils/logging';
@@ -46,8 +45,7 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
       status: data.status,
       site_type: data.site_type || null,
       square_meters: data.square_meters || null,
-      region: data.region || null,
-      notes: data.notes || null,
+      description: data.description || null,
       induction_required: data.induction_required
     };
     
@@ -72,7 +70,7 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
   const clientSites = React.useMemo(() => {
     if (!sitesResponse) return [];
     if (isApiSuccess(sitesResponse)) {
-      return sitesResponse.data.filter((site: SiteRecord) => site.client_id === clientId);
+      return sitesResponse.data.filter((site: SiteData) => site.client_id === clientId);
     }
     return [];
   }, [sitesResponse, clientId]);
@@ -105,7 +103,7 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
           <div className="text-center py-8">Loading sites...</div>
         ) : clientSites && clientSites.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clientSites.map((site: SiteRecord) => (
+            {clientSites.map((site: SiteData) => (
               <Card key={site.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">{site.site_name}</CardTitle>

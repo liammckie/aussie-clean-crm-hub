@@ -25,7 +25,31 @@ export function ActivityCard({ activity }: ActivityCardProps) {
     info: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
   };
   
-  const entityUrl = getActivityEntityUrl(activity.entity);
+  // Safely handle entity URL
+  const getEntityUrl = () => {
+    if (activity.entity) {
+      return getActivityEntityUrl(activity.entity);
+    } else if (activity.entityId && activity.entityType) {
+      return getActivityEntityUrl({ id: activity.entityId, type: activity.entityType });
+    }
+    return '#';
+  };
+  
+  const entityUrl = getEntityUrl();
+  
+  // Handle user information
+  const getUserInitial = () => {
+    if (activity.user?.name) {
+      return activity.user.name.charAt(0);
+    } else if (activity.actor) {
+      return activity.actor.charAt(0);
+    }
+    return 'U';
+  };
+  
+  const getUserName = () => {
+    return activity.user?.name || activity.actor || 'Unknown';
+  };
   
   return (
     <Card className="overflow-hidden bg-white/40 backdrop-blur-sm border-white/20 shadow-sm hover:shadow-md transition-all duration-300 hover:translate-y-[-2px] group">
@@ -38,7 +62,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
             )}>
               <Icon className={cn("h-4 w-4", `text-${color}-500`)} />
             </div>
-            <span className="text-sm font-medium">{activity.entity.type}</span>
+            <span className="text-sm font-medium">{activity.entityType || (activity.entity?.type || 'System')}</span>
           </div>
           <Badge variant="outline" className={cn(statusColors[activity.status])}>
             {activity.status}
@@ -52,10 +76,10 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         
         <div className="flex items-center gap-2 mt-4 text-xs text-muted-foreground">
           <Avatar className="h-6 w-6">
-            <AvatarImage src={activity.user.avatar} />
-            <AvatarFallback className="text-xs">{activity.user.name.charAt(0)}</AvatarFallback>
+            <AvatarImage src={activity.user?.avatar} />
+            <AvatarFallback className="text-xs">{getUserInitial()}</AvatarFallback>
           </Avatar>
-          <span>{activity.user.name}</span>
+          <span>{getUserName()}</span>
           <span className="text-xs ml-auto">{formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}</span>
         </div>
       </CardContent>
@@ -67,7 +91,7 @@ export function ActivityCard({ activity }: ActivityCardProps) {
         {entityUrl !== '#' && (
           <Button variant="outline" size="sm" className="text-xs" asChild>
             <Link to={entityUrl}>
-              {activity.entity.type}
+              {activity.entity?.type || activity.entityType || 'View'}
               <ArrowRight className="ml-1 h-3 w-3" />
             </Link>
           </Button>

@@ -1,5 +1,8 @@
 
-export type ActivityType = 'system' | 'user' | 'client' | 'contract' | 'work_order' | 'supplier';
+export type ActivityType = 'system' | 'user' | 'client' | 'contract' | 'work_order' | 'supplier' | 
+  'client_created' | 'client_updated' | 'contract_signed' | 'task_completed' | 
+  'invoice_paid' | 'work_order_created' | 'site_added' | 'supplier_added' | 
+  'user_login' | 'system_event';
 export type ActivityStatus = 'success' | 'warning' | 'error' | 'info';
 export type ActivityImpactLevel = 'high' | 'medium' | 'low';
 
@@ -22,6 +25,15 @@ export interface Activity {
   clientName?: string;
   location?: string;
   tags?: string[];
+  // Add these fields to support ActivityCard.tsx
+  user?: {
+    name: string;
+    avatar?: string;
+  };
+  entity?: {
+    id: string;
+    type: string;
+  };
 }
 
 export interface ActivityFilterState {

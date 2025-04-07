@@ -1,7 +1,11 @@
-
-import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { Plus, Filter, Search, X, Calendar, List, Download } from 'lucide-react';
+import React, { useState } from 'react';
+import { 
+  ClipboardList, 
+  Filter, 
+  Calendar, 
+  MoreVertical, 
+  ChevronDown 
+} from 'lucide-react';
 import { 
   Card, 
   CardContent, 
