@@ -4,6 +4,7 @@ import { Activity } from '@/types/activity-types';
 import { ActivityItem } from './ActivityItem';
 import { ActivityCard } from './ActivityCard';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { motion } from 'framer-motion';
 
 interface ActivityListProps {
   activities: Activity[];
@@ -25,20 +26,49 @@ export function ActivityList({ activities, viewMode }: ActivityListProps) {
     );
   }
   
+  const container = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05
+      }
+    }
+  };
+  
+  const item = {
+    hidden: { opacity: 0, y: 20 },
+    show: { opacity: 1, y: 0 }
+  };
+  
   return (
-    <ScrollArea className="h-[calc(100vh-320px)] min-h-[400px] pr-4">
+    <ScrollArea className="h-[calc(100vh-400px)] min-h-[400px] pr-4">
       {viewMode === 'list' ? (
-        <div className="space-y-4">
-          {activities.map((activity) => (
-            <ActivityItem key={activity.id} activity={activity} />
+        <motion.div 
+          className="space-y-4"
+          variants={container}
+          initial="hidden"
+          animate="show"
+        >
+          {activities.map((activity, index) => (
+            <motion.div key={activity.id} variants={item}>
+              <ActivityItem activity={activity} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {activities.map((activity) => (
-            <ActivityCard key={activity.id} activity={activity} />
+        <motion.div 
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+          variants={container}
+          initial="hidden"
+          animate="show"
+        >
+          {activities.map((activity, index) => (
+            <motion.div key={activity.id} variants={item}>
+              <ActivityCard activity={activity} />
+            </motion.div>
           ))}
-        </div>
+        </motion.div>
       )}
     </ScrollArea>
   );

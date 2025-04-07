@@ -90,15 +90,9 @@ const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) =
     }
   }, [clients, searchTerm, activeStatusFilter]);
 
-  // Pass the isPending state to the children
-  const childrenWithProps = React.Children.map(children, child => {
-    if (React.isValidElement(child)) {
-      return React.cloneElement(child, { isPending });
-    }
-    return child;
-  });
-
-  return <>{childrenWithProps}</>;
+  // Return the children as is without attempting to pass isPending prop
+  // This avoids the type error since we don't know the exact props of children
+  return <>{children}</>;
 };
 
 export default ClientDataProcessor;

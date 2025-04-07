@@ -18,6 +18,8 @@ export function ActivityStats() {
         change={12}
         icon={<Users className="h-5 w-5" />}
         color="blue"
+        description="Last 30 days"
+        chartData={[35, 55, 41, 37, 62, 45, 43, 25, 32, 55, 74, 45, 58]}
       />
       <ActivityStatCard 
         title="Contract Events"
@@ -25,6 +27,8 @@ export function ActivityStats() {
         change={-3}
         icon={<FileText className="h-5 w-5" />}
         color="green"
+        description="Last 30 days"
+        chartData={[25, 45, 51, 27, 42, 35, 23, 15, 22, 35, 44, 35, 28]}
       />
       <ActivityStatCard 
         title="Work Orders"
@@ -32,6 +36,8 @@ export function ActivityStats() {
         change={8}
         icon={<ClipboardList className="h-5 w-5" />}
         color="purple"
+        description="Last 30 days"
+        chartData={[45, 65, 51, 37, 52, 35, 73, 35, 42, 65, 54, 45, 48]}
       />
       <ActivityStatCard 
         title="System Alerts"
@@ -39,6 +45,8 @@ export function ActivityStats() {
         change={-2}
         icon={<Bell className="h-5 w-5" />}
         color="amber"
+        description="Last 30 days"
+        chartData={[15, 25, 11, 17, 12, 25, 13, 15, 12, 25, 14, 15, 8]}
       />
     </div>
   );
