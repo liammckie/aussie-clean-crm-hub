@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { unifiedService } from '@/services/unified';
 import { UnifiedAddressFormData } from '@/types/form-types';
-import { EntityType, AddressType } from '@/types/database-schema';
+import { EntityType, AddressType } from '@/services/client/types';
 import { ValidationErrorResponse } from '@/services/unified/types';
 import { ApiResponse, isApiError } from '@/types/api-response';
 

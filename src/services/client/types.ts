@@ -2,7 +2,8 @@
 import { ApiResponse } from '@/types/api-response';
 import { EntityType, AddressType, ContactType } from '@/types/database-schema';
 
-export type { EntityType, AddressType, ContactType };
+// Re-export these from database-schema.ts - using regular exports since they're used as values
+export { EntityType, AddressType, ContactType };
 
 /**
  * Client data record structure from database

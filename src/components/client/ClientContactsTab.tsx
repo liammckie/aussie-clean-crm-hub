@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { 
   Card, 
@@ -23,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { ContactType } from '@/types/form-types';
+import { ContactType } from '@/services/client/types';
 import { EntityType } from '@/services/client/types';
 import { UnifiedContactRecord } from '@/services/unified/types';
 import { useTypedTransition } from '@/hooks/use-suspense-transition';
