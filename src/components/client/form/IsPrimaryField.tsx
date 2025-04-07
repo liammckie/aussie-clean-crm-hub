@@ -8,8 +8,7 @@ import {
   FormDescription,
 } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
-import { UseFormReturn } from 'react-hook-form';
-import { UnifiedContactFormData, UnifiedAddressFormData } from '@/types/form-types';
+import { UseFormReturn, Path } from 'react-hook-form';
 
 // Create a union type that contains both form data types
 type FormDataWithIsPrimary = {
