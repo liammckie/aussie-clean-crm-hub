@@ -1,119 +1,105 @@
 
-import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import React, { Suspense } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
-import { NotFound, Sites, Dashboard, Activities } from '../lazyRoutes';
-import { useAuth } from '@/contexts/AuthContext';
-import { WorkOrders } from '../lazyRoutes';
+import { Dashboard, NotFound, Sites, Activities } from '../lazyRoutes';
+import { LoadingState } from '@/components/clients/LoadingState';
+import { Custom404Page } from '@/components/error/Custom404Page';
 
 export const MiscRoutes = () => {
-  const { isAuthenticated } = useAuth();
-  
   return (
     <Routes>
-      {/* Dashboard - protected route */}
-      <Route path="/" element={
-        <ProtectedRoute>
-          <Dashboard />
-        </ProtectedRoute>
-      } />
-      
-      {/* Sites route */}
-      <Route path="sites" element={
-        <ProtectedRoute>
-          <Sites />
-        </ProtectedRoute>
-      } />
-      
-      {/* Activities route */}
-      <Route path="activities" element={
-        <ProtectedRoute>
-          <Activities />
-        </ProtectedRoute>
-      } />
-
-      {/* Task routes (placeholder) */}
-      <Route path="tasks" element={
-        <ProtectedRoute>
-          <div>
-            <NotFound 
-              title="Tasks Coming Soon"
-              description="This feature is currently under development."
-              returnToHomepageLink="/dashboard"
-            />
-          </div>
-        </ProtectedRoute>
-      } />
-
-      {/* Inventory routes (placeholder) */}
-      <Route path="inventory" element={
-        <ProtectedRoute>
-          <div>
-            <NotFound 
-              title="Inventory Coming Soon"
-              description="This feature is currently under development."
-              returnToHomepageLink="/dashboard"
-            />
-          </div>
-        </ProtectedRoute>
-      } />
-
-      {/* Schedule routes (placeholder) */}
-      <Route path="schedule" element={
-        <ProtectedRoute>
-          <div>
-            <NotFound 
-              title="Schedule Coming Soon"
-              description="This feature is currently under development."
-              returnToHomepageLink="/dashboard"
-            />
-          </div>
-        </ProtectedRoute>
-      } />
-
-      {/* Reports routes (placeholder) */}
-      <Route path="reports" element={
-        <ProtectedRoute>
-          <div>
-            <NotFound 
-              title="Reports Coming Soon"
-              description="This feature is currently under development."
-              returnToHomepageLink="/dashboard"
-            />
-          </div>
-        </ProtectedRoute>
-      } />
-
-      {/* Settings routes (placeholder) */}
-      <Route path="settings" element={
-        <ProtectedRoute>
-          <div>
-            <NotFound 
-              title="Settings Coming Soon"
-              description="This feature is currently under development."
-              returnToHomepageLink="/dashboard"
-            />
-          </div>
-        </ProtectedRoute>
-      } />
-      
-      {/* Work Orders route */}
-      <Route path="work-orders" element={
-        <ProtectedRoute>
-          <WorkOrders />
-        </ProtectedRoute>
-      } />
-      
-      {/* Catch all for 404 */}
-      <Route path="*" element={
-        isAuthenticated ? (
+      {/* Dashboard page */}
+      <Route 
+        path="/" 
+        element={
           <ProtectedRoute>
-            <NotFound />
+            <Suspense fallback={<LoadingState />}>
+              <Dashboard />
+            </Suspense>
           </ProtectedRoute>
-        ) : (
-          <Navigate to="/login" replace />
-        )
-      } />
+        } 
+      />
+      
+      {/* Sites page */}
+      <Route 
+        path="/sites" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingState />}>
+              <Sites />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Activities page */}
+      <Route 
+        path="/activities" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingState />}>
+              <Activities />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+      
+      {/* Error pages with custom messages */}
+      <Route 
+        path="/unauthorized" 
+        element={
+          <Custom404Page
+            title="Unauthorized Access"
+            description="You don't have permission to access this page."
+            returnToHomepageLink="/dashboard"
+          />
+        } 
+      />
+      
+      <Route 
+        path="/not-found" 
+        element={
+          <Custom404Page
+            title="Page Not Found"
+            description="The page you are looking for doesn't exist or has been moved."
+            returnToHomepageLink="/dashboard"
+          />
+        } 
+      />
+      
+      <Route 
+        path="/server-error" 
+        element={
+          <Custom404Page
+            title="Server Error"
+            description="Something went wrong on our end. Please try again later."
+            returnToHomepageLink="/dashboard"
+          />
+        } 
+      />
+      
+      <Route 
+        path="/maintenance" 
+        element={
+          <Custom404Page
+            title="Under Maintenance"
+            description="The system is currently undergoing scheduled maintenance. Please check back soon."
+            returnToHomepageLink="/dashboard"
+          />
+        } 
+      />
+      
+      <Route 
+        path="/feature-unavailable" 
+        element={
+          <Custom404Page
+            title="Feature Unavailable"
+            description="This feature is currently under development and will be available soon."
+            returnToHomepageLink="/dashboard"
+          />
+        } 
+      />
     </Routes>
   );
 };

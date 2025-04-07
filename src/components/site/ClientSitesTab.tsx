@@ -1,126 +1,106 @@
+
 import React, { useState } from 'react';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Plus } from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { SiteForm, SiteFormData } from '@/components/site/SiteForm';
-import { toast } from 'sonner';
-import { useSites, useCreateSite } from '@/hooks/use-sites';
+import { Plus, Building } from 'lucide-react';
+import { SiteForm } from '@/components/site/SiteForm';
+import { useClientSites } from '@/hooks/use-sites';
 import { SiteInsertData } from '@/services/site/types';
-import { isApiError } from '@/types/api-response';
+import { SiteListTable } from '@/components/site/SiteListTable';
+import { toast } from 'sonner';
+import { useCreateSite } from '@/hooks/use-sites';
 
 interface ClientSitesTabProps {
   clientId: string;
 }
 
 export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
-  const [isSiteDialogOpen, setIsSiteDialogOpen] = useState(false);
-  
-  const { data: sitesResponse, isLoading: isLoadingSites, refetch: refetchSites } = useSites();
+  const [isNewSiteDialogOpen, setIsNewSiteDialogOpen] = useState(false);
+  const { sites, isLoadingSites, errorSites, refetchSites } = useClientSites(clientId);
   const createSiteMutation = useCreateSite();
-
-  const handleSiteSubmit = async (data: SiteFormData) => {
-    if (!clientId) return;
-    
-    const siteData: SiteInsertData = {
-      client_id: clientId,
-      site_name: data.site_name,
-      site_code: data.site_code,
-      address_line_1: data.address_line_1,
-      address_line_2: data.address_line_2 || null,
-      suburb: data.suburb,
-      state: data.state,
-      postcode: data.postcode,
-      site_contact_name: data.site_contact_name || null,
-      site_contact_email: data.site_contact_email || null,
-      site_contact_phone: data.site_contact_phone || null,
-      status: data.status,
-      site_type: data.site_type || null,
-      square_meters: data.square_meters || null,
-      description: data.description || null,
-      induction_required: data.induction_required
-    };
-    
-    createSiteMutation.mutate(siteData, {
-      onSuccess: () => {
-        setIsSiteDialogOpen(false);
-        refetchSites();
-      }
-    });
+  
+  const handleCreateSite = async (siteData: SiteInsertData) => {
+    try {
+      await createSiteMutation.mutateAsync({
+        ...siteData,
+        client_id: clientId,
+        region: siteData.region || 'Default', // Support the region field
+      });
+      toast.success('Site added successfully');
+      setIsNewSiteDialogOpen(false);
+      refetchSites();
+    } catch (error) {
+      console.error('Error creating site:', error);
+      toast.error('Failed to create site');
+    }
   };
 
-  // Handle API response safely
-  const clientSites = React.useMemo(() => {
-    if (sitesResponse && !isApiError(sitesResponse)) {
-      return sitesResponse.data.filter(site => site.client_id === clientId);
-    }
-    return [];
-  }, [sitesResponse, clientId]);
+  if (isLoadingSites) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Client Sites</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center h-32">
+            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
+  if (errorSites) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Client Sites</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="p-4 border border-red-200 bg-red-50 text-red-700 rounded-md">
+            Error loading sites: {errorSites.message}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Make sure sites is treated as an array
+  const sitesList = Array.isArray(sites) ? sites : [];
+  
   return (
     <Card>
-      <CardHeader className="flex flex-row justify-between items-center">
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle>Client Sites</CardTitle>
-        <Dialog open={isSiteDialogOpen} onOpenChange={setIsSiteDialogOpen}>
+        <Dialog open={isNewSiteDialogOpen} onOpenChange={setIsNewSiteDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="ml-2" size="sm">
-              <Plus className="h-4 w-4 mr-1" /> Add Site
+            <Button size="sm" className="ml-auto">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Site
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="max-w-3xl">
             <DialogHeader>
               <DialogTitle>Add New Site</DialogTitle>
             </DialogHeader>
-            <div className="max-h-[80vh] overflow-y-auto py-4">
-              <SiteForm 
-                onSubmit={handleSiteSubmit} 
-                isLoading={createSiteMutation.isPending} 
-              />
-            </div>
+            <SiteForm clientId={clientId} onSubmit={handleCreateSite} />
           </DialogContent>
         </Dialog>
       </CardHeader>
       <CardContent>
-        {isLoadingSites ? (
-          <div className="text-center py-8">Loading sites...</div>
-        ) : clientSites && clientSites.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clientSites.map((site) => (
-              <Card key={site.id} className="overflow-hidden">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{site.site_name}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <p className="text-muted-foreground">Site Code: <span className="text-foreground">{site.site_code}</span></p>
-                    <p className="text-muted-foreground">Address: <span className="text-foreground">
-                      {site.address_line_1}
-                      {site.address_line_2 && `, ${site.address_line_2}`}, 
-                      {site.suburb}, {site.state} {site.postcode}
-                    </span></p>
-                    {site.site_type && (
-                      <p className="text-muted-foreground">Type: <span className="text-foreground capitalize">{site.site_type}</span></p>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+        {sitesList.length > 0 ? (
+          <SiteListTable sites={sitesList} />
         ) : (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">No sites have been added yet.</p>
-            <Button 
-              variant="outline" 
-              className="mt-4"
-              onClick={() => setIsSiteDialogOpen(true)}
-            >
+          <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
+            <Building className="h-12 w-12 text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No Sites Found</h3>
+            <p className="text-muted-foreground mb-4">
+              This client does not have any sites added yet.
+            </p>
+            <Button onClick={() => setIsNewSiteDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              Add your first site
+              Add First Site
             </Button>
           </div>
         )}

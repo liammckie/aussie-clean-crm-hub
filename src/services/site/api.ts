@@ -1,6 +1,16 @@
 
-import { supabase } from "../supabase";
-import { SiteData, SiteInsertData, SiteUpdateData, SiteApiResponse, SitesApiResponse } from "./types";
+import { supabase } from "../client/api"; // Use client's supabase import
+import { SiteData, SiteInsertData, SiteUpdateData } from "./types";
+
+interface SiteApiResponse {
+  data: SiteData;
+  message: string;
+}
+
+interface SitesApiResponse {
+  data: SiteData[];
+  message: string;
+}
 
 export const fetchSites = async (): Promise<SitesApiResponse> => {
   const { data, error } = await supabase

@@ -1,520 +1,448 @@
-import React, { useState } from 'react';
-import { 
-  ClipboardList, 
-  Filter, 
-  Calendar, 
-  MoreVertical, 
-  ChevronDown 
-} from 'lucide-react';
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
+
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
   CardTitle,
-  CardDescription 
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { 
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import { useWorkOrders } from '@/hooks/use-work-orders';
-import TabulatorTable from '@/components/contracts/TabulatorTable';
-import { ColumnDefinition, RowComponent } from '@/types/tabulator-types';
-import { useNavigate } from 'react-router-dom';
-import { WorkOrderFiltersAdvanced } from '@/components/work-orders/WorkOrderFiltersAdvanced';
-import { useQuery } from '@tanstack/react-query';
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Separator } from '@/components/ui/separator';
-import { format } from 'date-fns';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { WorkOrderFiltersAdvanced } from '@/components/work-orders/WorkOrderFiltersAdvanced';
+import {
+  Download,
+  List,
+  Search,
+  ArrowDownNarrowWide,
+  X,
+  ChevronDown,
+  Plus,
+  Filter,
+  ArrowRight,
+  ArrowLeft,
+  MoreHorizontal,
+  ClipboardList,
+} from 'lucide-react';
+
+// Sample data for work orders
+const mockWorkOrders = [
+  {
+    id: '1',
+    title: 'Office Deep Clean',
+    client: 'Acme Corporation',
+    location: 'Sydney CBD',
+    status: 'Scheduled',
+    date: '2023-05-20',
+    priority: 'Medium',
+    assignee: 'John Smith',
+    supplier: 'CleanPro Services',
+  },
+  {
+    id: '2',
+    title: 'Window Cleaning',
+    client: 'TechStar Inc.',
+    location: 'Melbourne Central',
+    status: 'In Progress',
+    date: '2023-05-18',
+    priority: 'High',
+    assignee: 'Sarah Jones',
+    supplier: 'Crystal Clear Windows',
+  },
+  {
+    id: '3',
+    title: 'Carpet Shampooing',
+    client: 'Finance Group',
+    location: 'Brisbane Office',
+    status: 'Completed',
+    date: '2023-05-15',
+    priority: 'Low',
+    assignee: 'Michael Brown',
+    supplier: 'Carpet Masters',
+  },
+  {
+    id: '4',
+    title: 'HVAC Maintenance',
+    client: 'Global Media',
+    location: 'Perth Office',
+    status: 'Pending Approval',
+    date: '2023-05-22',
+    priority: 'Medium',
+    assignee: 'Lisa Chen',
+    supplier: 'Cool Air Systems',
+  },
+  {
+    id: '5',
+    title: 'Security System Check',
+    client: 'Secure Banking',
+    location: 'Adelaide Branch',
+    status: 'Scheduled',
+    date: '2023-05-21',
+    priority: 'High',
+    assignee: 'Robert Wilson',
+    supplier: 'SecureTech',
+  },
+];
+
+const statusColors: Record<string, string> = {
+  Completed: 'bg-green-100 text-green-800',
+  'In Progress': 'bg-blue-100 text-blue-800',
+  Scheduled: 'bg-purple-100 text-purple-800',
+  'Pending Approval': 'bg-yellow-100 text-yellow-800',
+  Cancelled: 'bg-red-100 text-red-800',
+};
+
+const priorityColors: Record<string, string> = {
+  High: 'bg-red-100 text-red-800',
+  Medium: 'bg-yellow-100 text-yellow-800',
+  Low: 'bg-green-100 text-green-800',
+};
 
 const WorkOrders = () => {
-  const navigate = useNavigate();
-  const { 
-    workOrders,
-    isLoadingWorkOrders,
-    workOrdersError,
-    refetchWorkOrders
-  } = useWorkOrders();
-  
-  const [workOrdersData, setWorkOrdersData] = useState<any[]>([]);
-  const [filterState, setFilterState] = useState({
-    status: '',
-    priority: '',
-    client_id: '',
-    supplier_id: '',
-    site_id: '',
-    state: '',
-    dateFrom: null,
-    dateTo: null,
-    searchTerm: '',
-    showCompleted: true,
-  });
-  const [showFilters, setShowFilters] = useState(false);
-  const [viewMode, setViewMode] = useState<'list' | 'calendar'>('list');
+  const [workOrders, setWorkOrders] = useState(mockWorkOrders);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
 
-  // Fetch clients for the dropdown
-  const { data: clients } = useQuery({
-    queryKey: ['clients'],
-    queryFn: async () => {
-      // Placeholder for actual API call
-      return [
-        { id: '1', business_name: 'Client 1' },
-        { id: '2', business_name: 'Client 2' },
-      ];
-    },
-  });
+  // Apply search term filtering
+  const filteredWorkOrders = workOrders.filter((workOrder) =>
+    Object.values(workOrder).some((value) =>
+      String(value).toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
 
-  // Fetch suppliers for the dropdown
-  const { data: suppliers } = useQuery({
-    queryKey: ['suppliers'],
-    queryFn: async () => {
-      // Placeholder for actual API call
-      return [
-        { id: '1', business_name: 'Supplier 1' },
-        { id: '2', business_name: 'Supplier 2' },
-      ];
-    },
-  });
-
-  // Fetch sites for the dropdown
-  const { data: sites } = useQuery({
-    queryKey: ['sites'],
-    queryFn: async () => {
-      // Placeholder for actual API call
-      return [
-        { id: '1', site_name: 'Site 1' },
-        { id: '2', site_name: 'Site 2' },
-      ];
-    },
-  });
-
-  useEffect(() => {
-    if (workOrders) {
-      let filteredData = [...workOrders];
-
-      // Apply filters
-      if (filterState.status) {
-        filteredData = filteredData.filter(wo => wo.status === filterState.status);
-      }
-      
-      if (filterState.priority) {
-        filteredData = filteredData.filter(wo => wo.priority === filterState.priority);
-      }
-      
-      if (filterState.client_id) {
-        filteredData = filteredData.filter(wo => wo.client_id === filterState.client_id);
-      }
-      
-      if (filterState.supplier_id) {
-        filteredData = filteredData.filter(wo => wo.supplier_id === filterState.supplier_id);
-      }
-
-      if (filterState.site_id) {
-        filteredData = filteredData.filter(wo => wo.site_id === filterState.site_id);
-      }
-
-      if (filterState.state) {
-        filteredData = filteredData.filter(wo => {
-          // This would require site data with state information
-          // Placeholder logic - in real app we'd join with site data
-          return wo.state === filterState.state;
-        });
-      }
-      
-      if (filterState.dateFrom) {
-        const fromDate = new Date(filterState.dateFrom);
-        filteredData = filteredData.filter(wo => {
-          const woDate = new Date(wo.scheduled_start);
-          return woDate >= fromDate;
-        });
-      }
-      
-      if (filterState.dateTo) {
-        const toDate = new Date(filterState.dateTo);
-        filteredData = filteredData.filter(wo => {
-          const woDate = new Date(wo.scheduled_start);
-          return woDate <= toDate;
-        });
-      }
-
-      if (!filterState.showCompleted) {
-        filteredData = filteredData.filter(wo => wo.status !== 'completed');
-      }
-
-      if (filterState.searchTerm) {
-        const searchLower = filterState.searchTerm.toLowerCase();
-        filteredData = filteredData.filter(wo => 
-          wo.title?.toLowerCase().includes(searchLower) || 
-          wo.description?.toLowerCase().includes(searchLower) ||
-          wo.work_order_number?.toLowerCase().includes(searchLower)
-        );
-      }
-      
-      setWorkOrdersData(filteredData);
-    }
-  }, [workOrders, filterState]);
-
-  const columns: ColumnDefinition[] = React.useMemo(() => [
-    { 
-      title: "Work Order", 
-      field: "title", 
-      sorter: "string", 
-      headerFilter: true,
-      formatter: (cell) => {
-        const data = cell.getRow().getData();
-        return `<div>
-          <div class="font-medium">${data.work_order_number || ''} - ${data.title || ''}</div>
-          <div class="text-xs text-muted-foreground">${data.description || ''}</div>
-        </div>`;
-      }
-    },
-    { 
-      title: "Status", 
-      field: "status", 
-      sorter: "string", 
-      headerFilter: true,
-      formatter: (cell) => {
-        const status = cell.getValue();
-        let badgeClass = '';
-        
-        switch(status) {
-          case 'pending':
-            badgeClass = 'bg-yellow-100 text-yellow-800 border-yellow-200';
-            break;
-          case 'in_progress':
-            badgeClass = 'bg-blue-100 text-blue-800 border-blue-200';
-            break;
-          case 'completed':
-            badgeClass = 'bg-green-100 text-green-800 border-green-200';
-            break;
-          case 'cancelled':
-            badgeClass = 'bg-red-100 text-red-800 border-red-200';
-            break;
-          default:
-            badgeClass = 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-        
-        return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}">${status.replace('_', ' ')}</span>`;
-      }
-    },
-    { 
-      title: "Priority", 
-      field: "priority", 
-      sorter: "string", 
-      headerFilter: true,
-      formatter: (cell) => {
-        const priority = cell.getValue();
-        let badgeClass = '';
-        
-        switch(priority) {
-          case 'low':
-            badgeClass = 'bg-green-100 text-green-800 border-green-200';
-            break;
-          case 'medium':
-            badgeClass = 'bg-blue-100 text-blue-800 border-blue-200';
-            break;
-          case 'high':
-            badgeClass = 'bg-orange-100 text-orange-800 border-orange-200';
-            break;
-          case 'urgent':
-            badgeClass = 'bg-red-100 text-red-800 border-red-200';
-            break;
-          default:
-            badgeClass = 'bg-gray-100 text-gray-800 border-gray-200';
-        }
-        
-        return `<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${badgeClass}">${priority}</span>`;
-      }
-    },
-    { 
-      title: "Scheduled", 
-      field: "scheduled_start", 
-      sorter: "date", 
-      headerFilter: true,
-      formatter: (cell) => {
-        const value = cell.getValue();
-        if (!value) return '';
-        try {
-          const date = new Date(value);
-          return format(date, 'dd MMM yyyy');
-        } catch (e) {
-          return value;
-        }
-      }
-    },
-    { 
-      title: "Client", 
-      field: "client_id", 
-      sorter: "string", 
-      headerFilter: true,
-      formatter: (cell) => {
-        // In a real app, we'd use client name from a joined query
-        return `Client ${cell.getValue()}`;
-      }
-    },
-    { 
-      title: "Site", 
-      field: "site_id", 
-      sorter: "string", 
-      headerFilter: true,
-      formatter: (cell) => {
-        // In a real app, we'd use site name from a joined query
-        return `Site ${cell.getValue()}`;
-      }
-    },
-  ], []);
-
-  const handleRowClick = (_e: Event, row: RowComponent) => {
-    navigate(`/work-orders/${row.getData().id}`);
+  // Handle filter changes
+  const handleFilterChange = (filters: Record<string, any>) => {
+    setActiveFilters(filters);
+    // In a real application, this would filter the workOrders based on the filters
+    console.log('Filters applied:', filters);
   };
 
-  const handleFilterChange = (filters: any) => {
-    setFilterState(filters);
-    setShowFilters(false);
+  // Clear all filters
+  const clearFilters = () => {
+    setActiveFilters({});
   };
 
-  if (isLoadingWorkOrders) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex justify-center items-center h-64">
-          <div className="animate-pulse flex flex-col items-center gap-4">
-            <div className="h-12 w-12 rounded-full bg-slate-200"></div>
-            <div className="h-4 w-48 bg-slate-200 rounded"></div>
-            <div className="h-2 w-36 bg-slate-200 rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Function to render the filter badges
+  const renderFilterBadges = () => {
+    return Object.entries(activeFilters).map(([key, value]) => {
+      if (!value || (Array.isArray(value) && value.length === 0)) {
+        return null;
+      }
+      
+      return (
+        <Badge variant="outline" key={key} className="mr-2 mb-2">
+          {key}: {Array.isArray(value) ? value.join(', ') : value}
+          <button
+            onClick={() => {
+              const newFilters = { ...activeFilters };
+              delete newFilters[key];
+              setActiveFilters(newFilters);
+            }}
+            className="ml-1 hover:bg-gray-200 rounded-full"
+          >
+            <X className="h-3 w-3" />
+          </button>
+        </Badge>
+      );
+    });
+  };
 
-  if (workOrdersError) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <Card className="border-red-200 bg-red-50">
-          <CardHeader>
-            <CardTitle className="text-red-700">Error Loading Work Orders</CardTitle>
+  // Table view component
+  const TableView = () => (
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>ID</TableHead>
+          <TableHead>Title</TableHead>
+          <TableHead>Client</TableHead>
+          <TableHead>Location</TableHead>
+          <TableHead>Status</TableHead>
+          <TableHead>Date</TableHead>
+          <TableHead>Priority</TableHead>
+          <TableHead>Assignee</TableHead>
+          <TableHead>Supplier</TableHead>
+          <TableHead className="text-right">Actions</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {filteredWorkOrders.map((workOrder) => (
+          <TableRow key={workOrder.id}>
+            <TableCell>{workOrder.id}</TableCell>
+            <TableCell>
+              <Link to={`/work-orders/${workOrder.id}`} className="font-medium hover:underline text-blue-600">
+                {workOrder.title}
+              </Link>
+            </TableCell>
+            <TableCell>{workOrder.client}</TableCell>
+            <TableCell>{workOrder.location}</TableCell>
+            <TableCell>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  statusColors[workOrder.status] || 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                {workOrder.status}
+              </span>
+            </TableCell>
+            <TableCell>{workOrder.date}</TableCell>
+            <TableCell>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  priorityColors[workOrder.priority] || 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                {workOrder.priority}
+              </span>
+            </TableCell>
+            <TableCell>{workOrder.assignee}</TableCell>
+            <TableCell>{workOrder.supplier}</TableCell>
+            <TableCell className="text-right">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuItem>
+                    <Link to={`/work-orders/${workOrder.id}`}>View Details</Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600">Cancel</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  );
+
+  // Card view component
+  const CardView = () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {filteredWorkOrders.map((workOrder) => (
+        <Card key={workOrder.id} className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <div className="flex justify-between items-start">
+              <CardTitle className="text-lg">
+                <Link to={`/work-orders/${workOrder.id}`} className="hover:underline text-blue-600">
+                  {workOrder.title}
+                </Link>
+              </CardTitle>
+              <span
+                className={`px-2 py-1 rounded-full text-xs font-medium ${
+                  statusColors[workOrder.status] || 'bg-gray-100 text-gray-800'
+                }`}
+              >
+                {workOrder.status}
+              </span>
+            </div>
+            <CardDescription>
+              {workOrder.client} • {workOrder.location}
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-red-600">{workOrdersError.message}</p>
-            <Button 
-              variant="outline" 
-              className="mt-4 border-red-300 text-red-700 hover:bg-red-100" 
-              onClick={() => refetchWorkOrders()}
-            >
-              Retry
-            </Button>
+            <div className="grid grid-cols-2 gap-2 text-sm">
+              <div>
+                <p className="text-muted-foreground">Date</p>
+                <p>{workOrder.date}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Priority</p>
+                <p className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
+                  priorityColors[workOrder.priority] || 'bg-gray-100 text-gray-800'
+                }`}>
+                  {workOrder.priority}
+                </p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Assignee</p>
+                <p>{workOrder.assignee}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground">Supplier</p>
+                <p>{workOrder.supplier}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
-      </div>
-    );
-  }
+      ))}
+    </div>
+  );
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Breadcrumb className="my-4">
-        <BreadcrumbList>
-          <BreadcrumbItem>
-            <BreadcrumbLink asChild>
-              <Link to="/dashboard">Dashboard</Link>
-            </BreadcrumbLink>
-          </BreadcrumbItem>
-          <BreadcrumbSeparator />
-          <BreadcrumbItem>
-            <BreadcrumbPage>Work Orders</BreadcrumbPage>
-          </BreadcrumbItem>
-        </BreadcrumbList>
-      </Breadcrumb>
-
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Work Orders</h1>
-        <div className="flex space-x-2">
-          <Button 
-            variant="outline"
-            onClick={() => setViewMode(viewMode === 'list' ? 'calendar' : 'list')}
-          >
-            {viewMode === 'list' ? (
-              <>
-                <Calendar className="mr-2 h-4 w-4" /> Calendar
-              </>
-            ) : (
-              <>
-                <List className="mr-2 h-4 w-4" /> List
-              </>
-            )}
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm">
+            <Download className="mr-2 h-4 w-4" />
+            Export
           </Button>
-          <Button 
-            variant="outline"
-            onClick={() => {
-              // Export data functionality would go here
-              alert('Export functionality to be implemented');
-            }}
-          >
-            <Download className="mr-2 h-4 w-4" /> Export
-          </Button>
-          <Button asChild>
+          <Button size="sm" asChild>
             <Link to="/work-orders/new">
-              <Plus className="mr-2 h-4 w-4" /> New Work Order
+              <Plus className="mr-2 h-4 w-4" />
+              New Work Order
             </Link>
           </Button>
         </div>
       </div>
-
-      <Card className="mb-8">
-        <CardHeader className="pb-2 border-b">
-          <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
-            <div>
-              <CardTitle>Work Order Management</CardTitle>
-              <CardDescription>
-                Manage and track all work orders across sites and clients
-              </CardDescription>
-            </div>
-            
-            <div className="flex gap-2">
-              <div className="relative w-full md:w-auto">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search work orders..."
-                  className="pl-8 w-full md:w-[250px]"
-                  value={filterState.searchTerm}
-                  onChange={(e) => setFilterState(prev => ({ ...prev, searchTerm: e.target.value }))}
-                />
-                {filterState.searchTerm && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-1 top-1 h-6 w-6"
-                    onClick={() => setFilterState(prev => ({ ...prev, searchTerm: '' }))}
-                  >
-                    <X className="h-3 w-3" />
-                  </Button>
-                )}
+      
+      <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2 mb-4">
+        <div className="relative flex-grow">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="search"
+            placeholder="Search work orders..."
+            className="pl-8"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        
+        <div className="flex space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsFilterOpen(true)}
+            className="whitespace-nowrap"
+          >
+            <Filter className="mr-2 h-4 w-4" />
+            Filter
+          </Button>
+          
+          <div className="border rounded-md flex">
+            <Button
+              variant={viewMode === 'table' ? 'default' : 'ghost'}
+              size="sm"
+              className="rounded-r-none"
+              onClick={() => setViewMode('table')}
+            >
+              <List className="h-4 w-4" />
+            </Button>
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'ghost'}
+              size="sm"
+              className="rounded-l-none"
+              onClick={() => setViewMode('cards')}
+            >
+              <div className="grid grid-cols-2 gap-0.5 h-4 w-4">
+                <div className="bg-current rounded-sm"></div>
+                <div className="bg-current rounded-sm"></div>
+                <div className="bg-current rounded-sm"></div>
+                <div className="bg-current rounded-sm"></div>
               </div>
-              <Button 
-                variant={Object.values(filterState).some(v => v !== '' && v !== null && v !== true) ? "default" : "outline"} 
-                onClick={() => setShowFilters(!showFilters)}
-              >
-                <Filter className="mr-2 h-4 w-4" />
-                Filters 
-                {Object.values(filterState).filter(v => v !== '' && v !== null && v !== true).length > 0 && (
-                  <Badge variant="secondary" className="ml-2">
-                    {Object.values(filterState).filter(v => v !== '' && v !== null && v !== true).length}
-                  </Badge>
-                )}
-              </Button>
-            </div>
+            </Button>
           </div>
-        </CardHeader>
-
-        {showFilters && (
-          <div className="p-4 border-b">
-            <WorkOrderFiltersAdvanced
-              initialFilters={filterState}
-              onApplyFilters={handleFilterChange}
-              onCancel={() => setShowFilters(false)}
-              clients={clients || []}
-              suppliers={suppliers || []}
-              sites={sites || []}
-            />
+        </div>
+      </div>
+      
+      {/* Active filters */}
+      {Object.keys(activeFilters).length > 0 && (
+        <div className="mb-4">
+          <div className="flex flex-wrap items-center">
+            <span className="text-sm font-medium mr-2">Filters:</span>
+            {renderFilterBadges()}
+            <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7">
+              Clear all
+            </Button>
           </div>
-        )}
-
+        </div>
+      )}
+      
+      <Card>
         <CardContent className="p-0">
-          <Tabs defaultValue="active" className="w-full">
-            <div className="px-6 pt-4">
-              <TabsList>
-                <TabsTrigger value="active">Active</TabsTrigger>
-                <TabsTrigger value="completed">Completed</TabsTrigger>
-                <TabsTrigger value="pending">Pending</TabsTrigger>
-                <TabsTrigger value="all">All Work Orders</TabsTrigger>
-              </TabsList>
-            </div>
-            
-            <Separator className="my-2" />
-            
-            <div className="px-4">
-              <TabsContent value="active" className="mt-0 pt-4">
-                {viewMode === 'list' ? (
-                  <TabulatorTable 
-                    columns={columns}
-                    data={workOrdersData.filter(wo => wo.status === 'in_progress')}
-                    onRowClick={handleRowClick}
-                  />
-                ) : (
-                  <div className="h-96 flex items-center justify-center bg-muted/20">
-                    <p className="text-muted-foreground">Calendar view coming soon</p>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="completed" className="mt-0 pt-4">
-                {viewMode === 'list' ? (
-                  <TabulatorTable 
-                    columns={columns}
-                    data={workOrdersData.filter(wo => wo.status === 'completed')}
-                    onRowClick={handleRowClick}
-                  />
-                ) : (
-                  <div className="h-96 flex items-center justify-center bg-muted/20">
-                    <p className="text-muted-foreground">Calendar view coming soon</p>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="pending" className="mt-0 pt-4">
-                {viewMode === 'list' ? (
-                  <TabulatorTable 
-                    columns={columns}
-                    data={workOrdersData.filter(wo => wo.status === 'pending')}
-                    onRowClick={handleRowClick}
-                  />
-                ) : (
-                  <div className="h-96 flex items-center justify-center bg-muted/20">
-                    <p className="text-muted-foreground">Calendar view coming soon</p>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="all" className="mt-0 pt-4">
-                {viewMode === 'list' ? (
-                  workOrdersData && workOrdersData.length > 0 ? (
-                    <TabulatorTable 
-                      columns={columns}
-                      data={workOrdersData}
-                      onRowClick={handleRowClick}
-                    />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center mb-4">
-                        <ClipboardList className="h-12 w-12 text-muted-foreground" />
-                      </div>
-                      <h3 className="text-lg font-medium">No work orders found</h3>
-                      <p className="text-muted-foreground mt-2 mb-4 text-center max-w-md">
-                        There are no work orders matching your current filters. Try adjusting your filters or create your first work order.
-                      </p>
-                      <Button asChild>
-                        <Link to="/work-orders/new">
-                          <Plus className="mr-2 h-4 w-4" /> Create Work Order
-                        </Link>
-                      </Button>
-                    </div>
-                  )
-                ) : (
-                  <div className="h-96 flex items-center justify-center bg-muted/20">
-                    <p className="text-muted-foreground">Calendar view coming soon</p>
-                  </div>
-                )}
-              </TabsContent>
-            </div>
-          </Tabs>
+          <div className={`${viewMode === 'table' ? '' : 'p-4'}`}>
+            {filteredWorkOrders.length > 0 ? (
+              viewMode === 'table' ? <TableView /> : <CardView />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12">
+                <div className="rounded-full bg-blue-50 p-3 mb-4">
+                  <ClipboardList className="h-6 w-6 text-blue-500" />
+                </div>
+                <h3 className="text-lg font-medium mb-1">No work orders found</h3>
+                <p className="text-muted-foreground text-sm mb-4">
+                  Try adjusting your search or filters
+                </p>
+                <Button asChild>
+                  <Link to="/work-orders/new">
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create New Work Order
+                  </Link>
+                </Button>
+              </div>
+            )}
+          </div>
         </CardContent>
       </Card>
+      
+      {/* Advanced Filter Dialog */}
+      <Dialog open={isFilterOpen} onOpenChange={setIsFilterOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Filter Work Orders</DialogTitle>
+            <DialogDescription>
+              Apply filters to narrow down your work orders view.
+            </DialogDescription>
+          </DialogHeader>
+          <WorkOrderFiltersAdvanced 
+            onFilterChange={handleFilterChange}
+            initialFilters={activeFilters}
+          />
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => setIsFilterOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => setIsFilterOpen(false)}>Apply Filters</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Pagination */}
+      <div className="flex items-center justify-between mt-4">
+        <p className="text-sm text-muted-foreground">
+          Showing 1-{filteredWorkOrders.length} of {filteredWorkOrders.length} work orders
+        </p>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm" disabled>
+            <ArrowLeft className="h-4 w-4 mr-1" />
+            Previous
+          </Button>
+          <Button variant="outline" size="sm" disabled>
+            Next
+            <ArrowRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 };

@@ -19,6 +19,9 @@ export interface SiteData {
   square_meters?: number;
   created_at: string;
   updated_at: string;
+  induction_required?: boolean;
+  notes?: string;
+  region?: string; // Add region field to support existing code
 }
 
 export interface SiteInsertData {
@@ -40,6 +43,7 @@ export interface SiteInsertData {
   square_meters?: number;
   induction_required?: boolean;
   notes?: string;
+  region?: string; // Add region field to support existing code
 }
 
 export interface SiteUpdateData {
@@ -59,18 +63,10 @@ export interface SiteUpdateData {
   site_type?: string;
   description?: string;
   square_meters?: number;
+  induction_required?: boolean;
+  notes?: string;
+  region?: string; // Add region field to support existing code
 }
 
-// Add these types to fix the service issues
-export interface SiteApiResponse {
-  data: SiteData;
-  message: string;
-}
-
-export interface SitesApiResponse {
-  data: SiteData[];
-  message: string;
-}
-
-// For backward compatibility
+// Alias for backward compatibility
 export type SiteRecord = SiteData;
