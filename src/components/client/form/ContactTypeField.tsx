@@ -5,44 +5,35 @@ import {
   FormItem,
   FormLabel,
   FormControl,
-  FormMessage,
+  FormMessage
 } from '@/components/ui/form';
+import { UseFormReturn } from 'react-hook-form';
+import { ContactType, UnifiedContactFormData } from '@/types/form-types';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
-import { UseFormReturn } from 'react-hook-form';
-import { UnifiedContactFormData, ContactType } from '@/types/form-types';
 
 interface ContactTypeFieldProps {
   form: UseFormReturn<UnifiedContactFormData>;
-  contactTypes: ContactType[];
+  availableTypes?: ContactType[];
 }
 
-// Updated contact type labels to support all ContactType values
-const contactTypeLabels: Record<string, string> = {
-  'Primary': 'Primary Contact',
-  'Billing': 'Billing Contact',
-  'Operations': 'Operations Contact',
-  'Emergency': 'Emergency Contact',
-  'Technical': 'Technical Contact',
-  'Support': 'Support Contact',
-  'Sales': 'Sales Contact',
-  'Management': 'Management Contact',
-  'client_primary': 'Client Primary Contact',
-  'client_site': 'Client Site Contact',
-  'supplier': 'Supplier Contact',
-  'employee': 'Internal Staff Member',
-  'hr_payroll': 'HR/Payroll Contact',
-  'emergency': 'Emergency Contact',
-  'sales_lead': 'Sales Contact (Lead)',
-  'subcontractor': 'Subcontractor Contact'
-};
+export function ContactTypeField({ form, availableTypes }: ContactTypeFieldProps) {
+  // Default contact types to use if not provided
+  const defaultTypes: ContactType[] = [
+    'Primary',
+    'Billing',
+    'Operations',
+    'Technical',
+    'Emergency'
+  ];
 
-export function ContactTypeField({ form, contactTypes }: ContactTypeFieldProps) {
+  const types = availableTypes || defaultTypes;
+
   return (
     <FormField
       control={form.control}
@@ -50,22 +41,19 @@ export function ContactTypeField({ form, contactTypes }: ContactTypeFieldProps) 
       render={({ field }) => (
         <FormItem>
           <FormLabel>Contact Type</FormLabel>
-          <Select 
-            onValueChange={(value) => {
-              console.log("Selected contact type:", value);
-              field.onChange(value);
-            }} 
+          <Select
+            onValueChange={field.onChange}
             value={field.value}
           >
             <FormControl>
               <SelectTrigger>
-                <SelectValue placeholder="Select a contact type" />
+                <SelectValue placeholder="Select contact type" />
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {contactTypes.map((type) => (
+              {types.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {contactTypeLabels[type] || type}
+                  {type}
                 </SelectItem>
               ))}
             </SelectContent>

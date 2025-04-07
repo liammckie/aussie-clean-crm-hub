@@ -5,37 +5,37 @@ import {
   FormItem,
   FormLabel,
   FormControl,
-  FormMessage,
+  FormMessage
 } from '@/components/ui/form';
+import { UseFormReturn } from 'react-hook-form';
+import { AddressType, UnifiedAddressFormData } from '@/types/form-types';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from '@/components/ui/select';
-import { UseFormReturn } from 'react-hook-form';
-import { UnifiedAddressFormData, AddressType } from '@/types/form-types';
 
 interface AddressTypeFieldProps {
   form: UseFormReturn<UnifiedAddressFormData>;
 }
 
-// Updated to match all AddressType values defined in form-types.ts
-const addressTypeLabels: Record<AddressType, string> = {
-  'billing': 'Billing Address',
-  'shipping': 'Shipping Address',
-  'physical': 'Physical Address',
-  'postal': 'Postal Address',
-  'head_office': 'Head Office Address',
-  'branch': 'Branch Address',
-  'residential': 'Employee Residential',
-  'commercial': 'Commercial Address',
-  'warehouse': 'Warehouse/Depot Address',
-  'site': 'Site Address'
-};
-
 export function AddressTypeField({ form }: AddressTypeFieldProps) {
+  // Address types
+  const addressTypes: AddressType[] = [
+    'billing',
+    'shipping',
+    'physical',
+    'head_office',
+    'branch',
+    'site',
+    'warehouse',
+    'commercial',
+    'residential',
+    'postal'
+  ];
+
   return (
     <FormField
       control={form.control}
@@ -45,7 +45,8 @@ export function AddressTypeField({ form }: AddressTypeFieldProps) {
           <FormLabel>Address Type</FormLabel>
           <Select
             onValueChange={field.onChange}
-            defaultValue={field.value}
+            value={field.value}
+            defaultValue="billing"
           >
             <FormControl>
               <SelectTrigger>
@@ -53,8 +54,10 @@ export function AddressTypeField({ form }: AddressTypeFieldProps) {
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {Object.entries(addressTypeLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>{label}</SelectItem>
+              {addressTypes.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>

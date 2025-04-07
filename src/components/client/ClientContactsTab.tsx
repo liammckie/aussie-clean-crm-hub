@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
+import { enhancedToast } from '@/components/ui/enhanced-toast';
 import ContactsTable from '@/components/shared/ContactsTable';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { UnifiedContactForm } from '@/components/client/UnifiedContactForm';
@@ -67,6 +67,9 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
   const handleContactSubmit = useCallback((formData: any) => {
     AppLogger.debug(LogCategory.CLIENT, `Creating contact for client ${clientId}`, { formData });
     
+    // Show immediate toast feedback to user
+    enhancedToast.info("Processing your request...");
+    
     startTypedTransition(() => {
       createContact(
         {
@@ -84,11 +87,11 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
             if (onContactAdded) {
               onContactAdded();
             }
-            toast.success('Contact added successfully!');
+            enhancedToast.success('Contact added successfully!');
           },
           onError: (error: Error) => {
             AppLogger.error(LogCategory.ERROR, `Failed to add contact: ${error.message}`, { clientId, error });
-            toast.error(`Failed to add contact: ${error.message}`);
+            enhancedToast.error(`Failed to add contact: ${error.message}`);
           }
         }
       );
@@ -97,7 +100,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
 
   const handleEditContact = (contact: UnifiedContactRecord) => {
     // Implementation for editing - would open a dialog with the form pre-populated
-    toast.info("Edit functionality will be implemented in future sprint");
+    enhancedToast.info("Edit functionality will be implemented in future sprint");
   };
 
   const handleDeleteContact = (contactId: string) => {
@@ -110,19 +113,22 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     
     AppLogger.debug(LogCategory.CLIENT, `Deleting contact ${contactToDelete} for client ${clientId}`);
     
+    // Show immediate toast feedback
+    enhancedToast.info("Deleting contact...");
+    
     startTypedTransition(() => {
       deleteContact(
         { contactId: contactToDelete },
         {
           onSuccess: () => {
-            toast.success("Contact deleted successfully");
+            enhancedToast.success("Contact deleted successfully");
             refetch();
             setDeleteAlertOpen(false);
             setContactToDelete(null);
           },
           onError: (error: Error) => {
             AppLogger.error(LogCategory.ERROR, `Failed to delete contact: ${error.message}`, { clientId, contactId: contactToDelete, error });
-            toast.error(`Failed to delete contact: ${error.message}`);
+            enhancedToast.error(`Failed to delete contact: ${error.message}`);
             setDeleteAlertOpen(false);
             setContactToDelete(null);
           }

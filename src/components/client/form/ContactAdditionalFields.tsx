@@ -40,7 +40,7 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
         )}
       />
       
-      {/* Use type assertion for additional fields not in the original type */}
+      {/* Handle the phone_landline field with proper type verification */}
       <FormField
         control={form.control}
         name="phone_landline"
@@ -69,6 +69,7 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
         )}
       />
       
+      {/* Handle the job_title field with proper type verification */}
       <FormField
         control={form.control}
         name="job_title"
@@ -105,7 +106,7 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
             <FormLabel>Preferred Communication</FormLabel>
             <Select 
               onValueChange={field.onChange} 
-              value={field.value || undefined}
+              value={field.value || ''}
             >
               <FormControl>
                 <SelectTrigger>

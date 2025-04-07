@@ -58,6 +58,46 @@ export interface UnifiedContactFormData {
   preferred_communication?: PreferredCommunication;
 }
 
+// Define contact schema using Zod for validation
+export const unifiedContactSchema = z.object({
+  name: z.string().min(1, { message: "Name is required" }),
+  email: z.string().email({ message: "Valid email is required" }),
+  position: z.string().optional(),
+  company: z.string().optional(),
+  phone: z.string().optional(),
+  phone_landline: z.string().optional(),
+  mobile: z.string().optional(),
+  contact_type: z.string().min(1, { message: "Contact type is required" }),
+  is_primary: z.boolean().default(false),
+  notes: z.string().optional(),
+  account_manager: z.string().optional(),
+  state_manager: z.string().optional(),
+  national_manager: z.string().optional(),
+  job_title: z.string().optional(),
+  preferred_communication: z.string().optional()
+});
+
+// Helper function to create default values for contact form
+export function createDefaultContactValues(initialData?: Partial<UnifiedContactFormData>): UnifiedContactFormData {
+  return {
+    name: initialData?.name || '',
+    email: initialData?.email || '',
+    position: initialData?.position || '',
+    company: initialData?.company || '',
+    phone: initialData?.phone || '',
+    phone_landline: initialData?.phone_landline || '',
+    mobile: initialData?.mobile || '',
+    contact_type: initialData?.contact_type || 'Primary',
+    is_primary: initialData?.is_primary === true,
+    notes: initialData?.notes || '',
+    account_manager: initialData?.account_manager || '',
+    state_manager: initialData?.state_manager || '',
+    national_manager: initialData?.national_manager || '',
+    job_title: initialData?.job_title || '',
+    preferred_communication: initialData?.preferred_communication || undefined,
+  };
+}
+
 // Form data for unified address form
 export interface UnifiedAddressFormData {
   address_line1: string;

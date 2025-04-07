@@ -1,180 +1,127 @@
+
 import React from 'react';
-import { 
+import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow,
 } from '@/components/ui/table';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { PlusCircle, MoreHorizontal, Pencil, Trash2, MapPin } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { EntityType } from '@/services/client/types';
+import { UnifiedAddressRecord } from '@/services/unified/types';
 import { AddressType } from '@/types/form-types';
-import { UnifiedAddressRecord as ImportedUnifiedAddressRecord } from '@/services/unified/types';
-
-// Define the unified address record structure - using the imported type
-export type UnifiedAddressRecord = ImportedUnifiedAddressRecord;
+import { Badge } from '@/components/ui/badge';
+import { Edit, MapPin, Trash } from 'lucide-react';
 
 interface AddressTableProps {
   addresses: UnifiedAddressRecord[];
   onEdit?: (address: UnifiedAddressRecord) => void;
   onDelete?: (addressId: string) => void;
   onAdd?: () => void;
-  showEntityType?: boolean;
   isLoading?: boolean;
 }
 
-const AddressTable: React.FC<AddressTableProps> = ({ 
-  addresses, 
-  onEdit, 
-  onDelete, 
-  onAdd, 
-  showEntityType = true,
-  isLoading = false 
-}) => {
-  // Function to format address for display
-  const formatAddress = (address: UnifiedAddressRecord): string => {
-    const parts = [
-      address.address_line_1,
-      address.address_line_2,
-      address.suburb,
-      `${address.state} ${address.postcode}`,
-      address.country
-    ].filter(Boolean);
-    
-    return parts.join(', ');
+export function AddressTable({ 
+  addresses = [], 
+  onEdit,
+  onDelete,
+  onAdd,
+  isLoading = false
+}: AddressTableProps) {
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-40">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  if (addresses.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-8 text-center">
+        <MapPin className="w-12 h-12 text-muted-foreground mb-4" />
+        <h3 className="font-medium text-lg mb-2">No Addresses Added</h3>
+        <p className="text-muted-foreground mb-4">There are no addresses associated with this entity yet.</p>
+        {onAdd && (
+          <Button onClick={onAdd}>
+            Add First Address
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  const getAddressTypeLabel = (type: AddressType) => {
+    return type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
   };
 
-  // Function to get address type label with proper formatting
-  const getAddressTypeLabel = (type: string): string => {
-    const typeMap: Record<string, string> = {
-      'billing': 'Billing',
-      'shipping': 'Shipping',
-      'site': 'Site',
-      'warehouse': 'Warehouse',
-      'postal': 'Postal',
-      'physical': 'Physical',
-      'head_office': 'Head Office',
-      'branch': 'Branch',
-      'residential': 'Residential',
-      'commercial': 'Commercial'
-    };
-    return typeMap[type] || type;
+  const getAddressSummary = (address: UnifiedAddressRecord) => {
+    const parts = [];
+    if (address.address_line_1) parts.push(address.address_line_1);
+    if (address.suburb) parts.push(address.suburb);
+    if (address.state) parts.push(address.state);
+    if (address.postcode) parts.push(address.postcode);
+    return parts.join(', ');
   };
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-          <MapPin className="h-5 w-5 text-muted-foreground" />
-          <h2 className="text-lg font-medium">Addresses</h2>
-        </div>
-        {onAdd && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={onAdd} 
-            className="flex items-center gap-1"
-          >
-            <PlusCircle className="h-4 w-4" />
-            <span>Add Address</span>
-          </Button>
-        )}
-      </div>
-
-      {isLoading ? (
-        <div className="text-center py-8 text-muted-foreground">Loading addresses...</div>
-      ) : addresses.length === 0 ? (
-        <Card>
-          <CardContent className="py-8 text-center">
-            <MapPin className="h-12 w-12 mx-auto text-muted-foreground opacity-40 mb-4" />
-            <p className="text-muted-foreground">No addresses found</p>
-            {onAdd && (
-              <Button 
-                variant="outline" 
-                className="mt-4" 
-                onClick={onAdd}>
-                <PlusCircle className="h-4 w-4 mr-2" />
-                Add first address
-              </Button>
-            )}
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Type</TableHead>
-                {showEntityType && <TableHead>Entity</TableHead>}
-                <TableHead className="w-[50%]">Address</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {addresses.map((address) => (
-                <TableRow key={address.id}>
-                  <TableCell>
-                    <span className="font-medium">
-                      {getAddressTypeLabel(address.address_type)}
-                      {address.is_primary && (
-                        <span className="ml-2 text-xs bg-primary/20 text-primary py-0.5 px-1.5 rounded">
-                          Primary
-                        </span>
-                      )}
-                    </span>
-                  </TableCell>
-                  {showEntityType && (
-                    <TableCell>
-                      <span className="capitalize">
-                        {address.name || address.entity_type}
-                      </span>
-                    </TableCell>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Type</TableHead>
+            <TableHead className="hidden md:table-cell">Name</TableHead>
+            <TableHead>Address</TableHead>
+            <TableHead className="w-[100px]">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {addresses.map((address) => (
+            <TableRow key={address.id}>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  <span>{getAddressTypeLabel(address.address_type as AddressType)}</span>
+                  {address.is_primary && (
+                    <Badge variant="outline" className="bg-primary/10">Primary</Badge>
                   )}
-                  <TableCell>{formatAddress(address)}</TableCell>
-                  <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Actions</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {onEdit && (
-                          <DropdownMenuItem onClick={() => onEdit(address)}>
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                        )}
-                        {onDelete && (
-                          <DropdownMenuItem 
-                            onClick={() => onDelete(address.id)}
-                            className="text-destructive focus:text-destructive"
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
+                </div>
+              </TableCell>
+              <TableCell className="hidden md:table-cell">
+                {address.name || '-'}
+              </TableCell>
+              <TableCell className="max-w-[200px] md:max-w-none truncate">
+                {getAddressSummary(address)}
+              </TableCell>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {onEdit && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => onEdit(address)}
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span className="sr-only">Edit</span>
+                    </Button>
+                  )}
+                  {onDelete && (
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => onDelete(address.id)}
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <Trash className="h-4 w-4" />
+                      <span className="sr-only">Delete</span>
+                    </Button>
+                  )}
+                </div>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
     </div>
   );
-};
-
-export default AddressTable;
+}
