@@ -131,7 +131,7 @@ export function createDefaultAddressValues(initialData?: Partial<UnifiedAddressF
     state: initialData?.state || '',
     postcode: initialData?.postcode || '',
     country: initialData?.country || 'Australia',
-    address_type: initialData?.address_type || DbAddressType.BILLING,
+    address_type: initialData?.address_type || AddressType.BILLING,
     is_primary: initialData?.is_primary === true,
     latitude: initialData?.latitude,
     longitude: initialData?.longitude,
