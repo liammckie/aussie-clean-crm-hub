@@ -1,21 +1,15 @@
 
 import { describe, expect, it, jest } from '@jest/globals';
 import { clientService } from '../../services/client';
-import { ApiResponse, ApiSuccessResponse, ApiErrorResponse } from '@/types/api-response';
+import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
 import { ClientRecord, ClientStatus } from '@/types/database-schema';
 
-// Create helper functions for mocking responses
-function createSuccessResponse<T>(data: T, message: string): ApiSuccessResponse<T> {
-  return { data, message };
-}
-
-function createErrorResponse(
-  category: ErrorCategory,
-  message: string,
-  details?: Record<string, any>
-): ApiErrorResponse {
-  return { category, message, details };
+// Define a proper mock client type for tests
+interface MockClientRecord extends ClientRecord {
+  business_name: string;
+  status: ClientStatus;
+  id: string; // Adding required id property
 }
 
 // Mock the client API module
@@ -43,13 +37,12 @@ jest.mock('@/types/database-schema', () => ({
 }));
 
 describe('Client Service', () => {
-  const mockClientData = {
+  const mockClientData: MockClientRecord = {
+    id: 'test-id', // Added required id property
     business_name: 'Test Client',
     status: ClientStatus.ACTIVE
   };
 
-  type MockClientType = typeof mockClientData;
-  
   const mockClientId = 'test-client-id';
 
   afterEach(() => {
@@ -105,7 +98,7 @@ describe('Client Service', () => {
   it('should handle errors when getting all clients', async () => {
     const mockError = { message: 'Failed to retrieve clients' };
     const errorResponse = createErrorResponse(ErrorCategory.SERVER, mockError.message, mockError);
-    jest.spyOn(clientService, 'getAllClients').mockResolvedValue(errorResponse as ApiResponse<MockClientType[]>);
+    jest.spyOn(clientService, 'getAllClients').mockResolvedValue(errorResponse as ApiResponse<MockClientRecord[]>);
     
     const result = await clientService.getAllClients();
     expect(result).toEqual(errorResponse);
@@ -114,7 +107,7 @@ describe('Client Service', () => {
   it('should handle errors when getting a client by ID', async () => {
     const mockError = { message: 'Client not found' };
     const errorResponse = createErrorResponse(ErrorCategory.NOT_FOUND, mockError.message, mockError);
-    jest.spyOn(clientService, 'getClientById').mockResolvedValue(errorResponse as ApiResponse<MockClientType>);
+    jest.spyOn(clientService, 'getClientById').mockResolvedValue(errorResponse as ApiResponse<MockClientRecord>);
     
     const result = await clientService.getClientById(mockClientId);
     expect(result).toEqual(errorResponse);
@@ -123,7 +116,7 @@ describe('Client Service', () => {
   it('should handle errors when creating a client', async () => {
     const mockError = { message: 'Failed to create client' };
     const errorResponse = createErrorResponse(ErrorCategory.DATABASE, mockError.message, mockError);
-    jest.spyOn(clientService, 'createClient').mockResolvedValue(errorResponse as ApiResponse<MockClientType>);
+    jest.spyOn(clientService, 'createClient').mockResolvedValue(errorResponse as ApiResponse<MockClientRecord>);
     
     const result = await clientService.createClient(mockClientData);
     expect(result).toEqual(errorResponse);
@@ -132,7 +125,7 @@ describe('Client Service', () => {
   it('should handle errors when updating a client', async () => {
     const mockError = { message: 'Failed to update client' };
     const errorResponse = createErrorResponse(ErrorCategory.SERVER, mockError.message, mockError);
-    jest.spyOn(clientService, 'updateClient').mockResolvedValue(errorResponse as ApiResponse<MockClientType>);
+    jest.spyOn(clientService, 'updateClient').mockResolvedValue(errorResponse as ApiResponse<MockClientRecord>);
     
     const result = await clientService.updateClient(mockClientId, mockClientData);
     expect(result).toEqual(errorResponse);

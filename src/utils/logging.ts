@@ -10,3 +10,4 @@ export { ErrorCategory } from './logging/error-types';
 export { PerformanceTracker } from './logging/performance';
 export * from './logging/cache-wrapper';
 export { Cache } from './caching/cache';
+export { withCache, invalidateByTag, clearCache } from './logging/cache-functions';

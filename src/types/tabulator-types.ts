@@ -1,7 +1,7 @@
 
 // Define types based on Tabulator library
 // We need to define our own because Tabulator's type exports are not consistent
-import type { RowComponent as TabulatorRowComponent, CellComponent as TabulatorCellComponent } from 'tabulator-tables';
+import type { ColumnDefinition as TabulatorColumnDef, RowComponent, CellComponent } from 'tabulator-tables';
 
 // Column definition is a common pattern, define it directly
 export interface ColumnDefinition {

@@ -1,36 +1,31 @@
 
 import { describe, expect, it, jest } from '@jest/globals';
 import { contractService } from '../../services/contract';
-import { ApiResponse, ApiSuccessResponse, ApiErrorResponse } from '@/types/api-response';
+import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
+import { ContractData } from '@/types/contract-types';
+
+// Create a mock contract data type that includes all required fields
+interface MockContractData extends Partial<ContractData> {
+  id: string;
+  contract_name: string;
+  client_id: string;
+  start_date: string;
+  status: string;
+  contract_code: string; // Added required field
+}
 
 // Create helper functions for mocking responses
-function createSuccessResponse<T>(data: T, message: string): ApiSuccessResponse<T> {
+function createSuccessResponseWithData<T>(data: T, message: string): ApiSuccessResponse<T> {
   return { data, message };
 }
 
-function createErrorResponse(
+function createErrorResponseWithCategory(
   category: ErrorCategory,
   message: string,
   details?: Record<string, any>
 ): ApiErrorResponse {
   return { category, message, details };
-}
-
-// Define a proper ContractData type for tests
-interface ContractData {
-  contract_name: string;
-  client_id?: string;
-  client_name?: string;
-  start_date?: string;
-  end_date?: string;
-  status?: string;
-  contract_value?: number;
-  created_at?: string;
-  updated_at?: string;
-  id?: string;
-  notes?: string;
-  [key: string]: any; // Allow additional fields
 }
 
 jest.mock('../../services/contract/api', () => ({
@@ -44,17 +39,18 @@ jest.mock('../../services/contract/api', () => ({
 }));
 
 describe('Contract Service', () => {
-  const mockContractData: ContractData = {
+  const mockContractData: MockContractData = {
     created_at: '2023-06-01T00:00:00Z',
     updated_at: '2023-06-01T00:00:00Z',
     id: 'test-contract-id',
     contract_name: 'Test Contract', // Required field
-    client_id: 'test-client-id',
+    client_id: 'test-client-id',    // Required field
     client_name: 'Test Client',
-    start_date: '2023-06-01',
+    start_date: '2023-06-01',       // Required field
     end_date: '2024-06-01',
-    status: 'active',
-    contract_value: 10000
+    status: 'active',              // Required field
+    contract_value: 10000,
+    contract_code: 'TC-001'        // Required field
   };
   
   const mockContractId = 'test-contract-id';
@@ -100,7 +96,7 @@ describe('Contract Service', () => {
   });
 
   it('should successfully delete a contract', async () => {
-    const mockResponse = createSuccessResponse({ success: true }, 'Contract deleted successfully');
+    const mockResponse = createSuccessResponse(true, 'Contract deleted successfully');
     jest.spyOn(contractService, 'deleteContract').mockResolvedValue(mockResponse);
     
     const result = await contractService.deleteContract(mockContractId);
