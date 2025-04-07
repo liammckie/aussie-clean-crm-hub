@@ -7,7 +7,6 @@ import { AppLogger } from '@/utils/logging';
 import { LogCategory } from '@/utils/logging/LogCategory';
 
 // Define the Supabase project URL and anon key
-// Using environment variables and fallback to hardcoded values if needed
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://fzrhweggxusfwrohtvpb.supabase.co';
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cmh3ZWdneHVzZndyb2h0dnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MDU4MjQsImV4cCI6MjA1OTI4MTgyNH0.W0ocOlTW9Oc4nRytpYByg49B_4pA4lgWoxeSUM0tqdc';
 
@@ -16,14 +15,22 @@ AppLogger.info(LogCategory.SYSTEM, 'Initializing Supabase client', {
   hasKey: !!SUPABASE_ANON_KEY
 });
 
-// Create a single instance of the Supabase client
+// Create a single instance of the Supabase client with more robust configuration
 const supabaseClientInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true, // Detect session from URL query params
   },
+  realtime: {
+    params: {
+      eventsPerSecond: 10 // Limit real-time events
+    }
+  }
 });
+
+// Disable automatic reconnection to prevent excessive socket attempts
+supabaseClientInstance.realtime.reconnect = false;
 
 // Create the typed Supabase client using the same instance
 export const typedSupabase: TypedSupabaseClient = createTypedSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
