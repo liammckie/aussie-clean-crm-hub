@@ -1,6 +1,6 @@
 
 import { useState, useEffect, useRef } from 'react';
-import Tabulator from 'tabulator-tables';
+import * as Tabulator from 'tabulator-tables';
 import { TabulatorOptions } from '@/types/tabulator-types';
 
 interface UseTabulatorProps {
@@ -9,7 +9,7 @@ interface UseTabulatorProps {
 }
 
 const useTabulator = ({ options, tableRef }: UseTabulatorProps) => {
-  const [table, setTable] = useState<Tabulator | null>(null);
+  const [table, setTable] = useState<Tabulator.default | null>(null);
   const initialOptions = useRef(options);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ const useTabulator = ({ options, tableRef }: UseTabulatorProps) => {
       };
 
       // Cast as any to avoid type errors with Tabulator's complex options
-      const newTable = new Tabulator(tableRef.current, tabulatorConfiguration as any);
+      const newTable = new Tabulator.default(tableRef.current, tabulatorConfiguration as any);
       setTable(newTable);
 
       return () => {

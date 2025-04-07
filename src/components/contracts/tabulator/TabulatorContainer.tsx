@@ -1,6 +1,6 @@
 
 import React, { useRef, useEffect } from 'react';
-import Tabulator from 'tabulator-tables';
+import * as Tabulator from 'tabulator-tables';
 import type { TabulatorOptions, TabulatorColumn, RowComponent } from '@/types/tabulator-types';
 
 interface TabulatorContainerProps {
@@ -19,7 +19,7 @@ const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
   onRowClick 
 }) => {
   const tableRef = useRef<HTMLDivElement>(null);
-  const tabulatorRef = useRef<Tabulator | null>(null);
+  const tabulatorRef = useRef<Tabulator.default | null>(null);
 
   useEffect(() => {
     // Initialize tabulator when the component mounts
@@ -32,7 +32,7 @@ const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
       };
       
       // Cast to any to avoid TypeScript errors with the complex Tabulator options
-      const table = new Tabulator(tableRef.current, tabulatorOptions as any);
+      const table = new Tabulator.default(tableRef.current, tabulatorOptions as any);
       
       tabulatorRef.current = table;
       

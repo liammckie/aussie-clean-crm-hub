@@ -1,12 +1,113 @@
-
-import {
-  UnifiedAddressRecord,
+import { ApiResponse } from '@/types/api-response';
+import { 
+  UnifiedAddressFormData,
+  UnifiedContactFormData,
+  EntityType
+} from '@/types/form-types';
+import { 
+  UnifiedAddressRecord, 
   UnifiedContactRecord,
-  ValidationErrorResponse
-} from './types';
-import { UnifiedAddressFormData, UnifiedContactFormData, EntityType } from '@/types/form-types';
-import { addressApi } from './api/address';
-import { contactApi } from './api/contact';
+  addressApi,
+  contactApi
+} from './api';
+import { MutationOptions } from '@/hooks/use-unified-entities';
+
+/**
+ * Create a new address for an entity
+ */
+export const createUnifiedAddress = async (
+  entityType: EntityType,
+  entityId: string,
+  addressData: UnifiedAddressFormData,
+  options?: MutationOptions<UnifiedAddressRecord>
+): Promise<ApiResponse<UnifiedAddressRecord>> => {
+  try {
+    // Convert from form field names to database column names
+    const processedData: Omit<UnifiedAddressRecord, 'entity_type' | 'entity_id' | 'id'> = {
+      address_line_1: addressData.address_line1,
+      address_line_2: addressData.address_line2,
+      suburb: addressData.suburb,
+      state: addressData.state,
+      postcode: addressData.postcode,
+      country: addressData.country,
+      address_type: addressData.address_type,
+      is_primary: addressData.is_primary || false,
+      name: addressData.name,
+      latitude: addressData.latitude,
+      longitude: addressData.longitude,
+      notes: addressData.notes
+    };
+    
+    return await addressApi.createAddress(entityType, entityId, processedData);
+  } catch (error: any) {
+    throw new Error(`Failed to create address: ${error.message}`);
+  }
+};
+
+/**
+ * Update an existing address
+ */
+export const updateUnifiedAddress = async (
+  addressId: string,
+  addressData: Partial<UnifiedAddressFormData>
+): Promise<ApiResponse<UnifiedAddressRecord>> => {
+  try {
+    // Convert from form field names to database column names
+    const processedData: Partial<UnifiedAddressRecord> = {};
+    
+    if ('address_line1' in addressData) {
+      processedData.address_line_1 = addressData.address_line1;
+    }
+    
+    if ('address_line2' in addressData) {
+      processedData.address_line_2 = addressData.address_line2;
+    }
+    
+    if ('suburb' in addressData) {
+      processedData.suburb = addressData.suburb;
+    }
+    
+    if ('state' in addressData) {
+      processedData.state = addressData.state;
+    }
+    
+    if ('postcode' in addressData) {
+      processedData.postcode = addressData.postcode;
+    }
+    
+    if ('country' in addressData) {
+      processedData.country = addressData.country;
+    }
+    
+    if ('address_type' in addressData) {
+      processedData.address_type = addressData.address_type;
+    }
+    
+    if ('is_primary' in addressData) {
+      processedData.is_primary = addressData.is_primary;
+    }
+    
+    if ('name' in addressData) {
+      processedData.name = addressData.name;
+    }
+    
+    if ('latitude' in addressData) {
+      processedData.latitude = addressData.latitude;
+    }
+    
+    if ('longitude' in addressData) {
+      processedData.longitude = addressData.longitude;
+    }
+    
+    if ('notes' in addressData) {
+      processedData.notes = addressData.notes;
+    }
+    
+    return await addressApi.updateAddress(addressId, processedData);
+  } catch (error: any) {
+    throw new Error(`Failed to update address: ${error.message}`);
+  }
+};
 
 /**
  * Unified service layer for managing addresses and contacts across different entity types

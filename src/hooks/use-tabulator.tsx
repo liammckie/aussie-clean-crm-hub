@@ -1,6 +1,6 @@
 
 import { useMemo } from 'react';
-import Tabulator from 'tabulator-tables';
+import * as Tabulator from 'tabulator-tables';
 import { TabulatorOptions, TabulatorColumn, SortDirection } from '@/types/tabulator-types';
 
 // Type for Tabulator's sorter
@@ -33,7 +33,7 @@ export function useTabulator() {
     element: HTMLElement,
     columns: TabulatorColumn[] = defaultColumns,
     options: Partial<TabulatorOptions> = {}
-  ): Promise<Tabulator> => {
+  ): Promise<Tabulator.default> => {
     // Merge default options with provided options
     const mergedOptions: TabulatorOptions = {
       ...defaultOptions,
@@ -41,7 +41,7 @@ export function useTabulator() {
       columns: columns || defaultColumns,
     };
     
-    return new Tabulator(element, mergedOptions);
+    return new Tabulator.default(element, mergedOptions);
   };
 
   return { 

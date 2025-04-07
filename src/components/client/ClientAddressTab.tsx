@@ -171,7 +171,6 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
             onEdit={handleEditAddress}
             onDelete={handleDeleteAddress}
             onAdd={handleAddClick}
-            showEntityType={false}
             isLoading={isLoading || isDeletingAddress || isPending}
           />
         )}

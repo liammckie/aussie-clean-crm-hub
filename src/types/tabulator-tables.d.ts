@@ -1,5 +1,34 @@
 
 declare module 'tabulator-tables' {
+  export class default {
+    constructor(selector: string | HTMLElement, options: TabulatorOptions);
+    
+    setData(data: Record<string, unknown>[], params?: Record<string, unknown>): Promise<void>;
+    getData(): Record<string, unknown>[];
+    getSelectedRows(): TabulatorRow[];
+    selectRow(row: TabulatorRow | number | number[]): void;
+    deselectRow(row?: TabulatorRow | number | number[]): void;
+    redraw(force?: boolean): void;
+    addRow(rowData: Record<string, unknown>, position?: boolean | string, index?: number): Promise<TabulatorRow>;
+    updateRow(row: TabulatorRow | number, data: Record<string, unknown>): Promise<void>;
+    deleteRow(row: TabulatorRow | number | number[]): Promise<void>;
+    clearData(): Promise<void>;
+    on(event: string, callback: Function): void;
+    getElement(): HTMLElement;
+    setColumns(columns: TabulatorColumn[]): void;
+    getColumns(): TabulatorColumn[];
+    getRowFromPosition(position: number, activeOnly?: boolean): TabulatorRow;
+    getRowPosition(row: TabulatorRow, activeOnly?: boolean): number;
+    setPage(page: number): Promise<void>;
+    getPage(): number;
+    getPageMax(): number;
+    setHeight(height: number | string): void;
+    setSort(sorters: string | TabulatorSorter[]): void;
+    setFilter(filters: TabulatorFilter[]): void;
+    clearFilter(trigger?: boolean): void;
+    destroy(): void;
+  }
+
   export interface TabulatorOptions {
     height?: string | number;
     layout?: string;
@@ -98,7 +127,7 @@ declare module 'tabulator-tables' {
     getColumn(): TabulatorColumn;
     getField(): string;
     getData(): Record<string, unknown>;
-    getTable(): Tabulator;
+    getTable(): default;
     checkHeight(): void;
     delete(): void;
     nav(): {
@@ -114,7 +143,7 @@ declare module 'tabulator-tables' {
   export interface TabulatorRow {
     getData(): Record<string, unknown>;
     getElement(): HTMLElement;
-    getTable(): Tabulator;
+    getTable(): default;
     getPosition(active?: boolean): number;
     delete(): Promise<void>;
     scrollTo(): Promise<void>;
@@ -130,34 +159,5 @@ declare module 'tabulator-tables' {
     getIndex(): number;
     getNextRow(): TabulatorRow | false;
     getPrevRow(): TabulatorRow | false;
-  }
-
-  export default class Tabulator {
-    constructor(selector: string | HTMLElement, options: TabulatorOptions);
-    
-    setData(data: Record<string, unknown>[], params?: Record<string, unknown>): Promise<void>;
-    getData(): Record<string, unknown>[];
-    getSelectedRows(): TabulatorRow[];
-    selectRow(row: TabulatorRow | number | number[]): void;
-    deselectRow(row?: TabulatorRow | number | number[]): void;
-    redraw(force?: boolean): void;
-    addRow(rowData: Record<string, unknown>, position?: boolean | string, index?: number): Promise<TabulatorRow>;
-    updateRow(row: TabulatorRow | number, data: Record<string, unknown>): Promise<void>;
-    deleteRow(row: TabulatorRow | number | number[]): Promise<void>;
-    clearData(): Promise<void>;
-    on(event: string, callback: Function): void;
-    getElement(): HTMLElement;
-    setColumns(columns: TabulatorColumn[]): void;
-    getColumns(): TabulatorColumn[];
-    getRowFromPosition(position: number, activeOnly?: boolean): TabulatorRow;
-    getRowPosition(row: TabulatorRow, activeOnly?: boolean): number;
-    setPage(page: number): Promise<void>;
-    getPage(): number;
-    getPageMax(): number;
-    setHeight(height: number | string): void;
-    setSort(sorters: string | TabulatorSorter[]): void;
-    setFilter(filters: TabulatorFilter[]): void;
-    clearFilter(trigger?: boolean): void;
-    destroy(): void;
   }
 }

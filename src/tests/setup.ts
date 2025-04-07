@@ -24,18 +24,18 @@ global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 
 // Mock Tabulator constructor
 jest.mock('tabulator-tables', () => {
-  return class MockTabulator {
-    constructor() {
-      return {
-        on: jest.fn(),
-        setData: jest.fn().mockReturnThis(),
-        setSort: jest.fn().mockReturnThis(),
-        setFilter: jest.fn().mockReturnThis(),
-        setGroupBy: jest.fn().mockReturnThis(),
-        getSelectedRows: jest.fn().mockReturnValue([]),
-        destroy: jest.fn()
-      };
-    }
+  const MockTabulator = class {
+    on = jest.fn();
+    setData = jest.fn().mockReturnThis();
+    setSort = jest.fn().mockReturnThis();
+    setFilter = jest.fn().mockReturnThis();
+    setGroupBy = jest.fn().mockReturnThis();
+    getSelectedRows = jest.fn().mockReturnValue([]);
+    destroy = jest.fn();
+  };
+
+  return {
+    default: MockTabulator
   };
 });
 
