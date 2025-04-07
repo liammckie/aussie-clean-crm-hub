@@ -35,7 +35,7 @@ jest.mock('tabulator-tables', () => {
   };
 
   return {
-    default: MockTabulator
+    Tabulator: MockTabulator
   };
 });
 

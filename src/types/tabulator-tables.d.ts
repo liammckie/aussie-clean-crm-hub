@@ -1,6 +1,6 @@
 
 declare module 'tabulator-tables' {
-  export class default {
+  export class Tabulator {
     constructor(selector: string | HTMLElement, options: TabulatorOptions);
     
     setData(data: Record<string, unknown>[], params?: Record<string, unknown>): Promise<void>;
@@ -45,6 +45,7 @@ declare module 'tabulator-tables' {
     resizableColumns?: boolean;
     autoResize?: boolean;
     placeholder?: string;
+    headerFilterLiveFilter?: boolean;
     headerFilterLiveFilterDelay?: number;
     headerVisible?: boolean;
     rowFormatter?: (row: TabulatorRow) => void;
@@ -127,7 +128,7 @@ declare module 'tabulator-tables' {
     getColumn(): TabulatorColumn;
     getField(): string;
     getData(): Record<string, unknown>;
-    getTable(): default;
+    getTable(): Tabulator;
     checkHeight(): void;
     delete(): void;
     nav(): {
@@ -143,7 +144,7 @@ declare module 'tabulator-tables' {
   export interface TabulatorRow {
     getData(): Record<string, unknown>;
     getElement(): HTMLElement;
-    getTable(): default;
+    getTable(): Tabulator;
     getPosition(active?: boolean): number;
     delete(): Promise<void>;
     scrollTo(): Promise<void>;
