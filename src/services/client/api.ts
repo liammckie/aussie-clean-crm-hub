@@ -1,12 +1,12 @@
+
 import { supabase, isAuthenticated } from '@/integrations/supabase/client';
-import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
+import { handleSupabaseError, logSuccess } from '@/utils/supabaseErrors';
 import { 
   ClientFormData, 
   ContactFormData, 
-  ValidationErrorResponse, 
-  ClientRecord,
   AddressFormData 
 } from './types';
+import { ApiErrorResponse, ApiResponse, createSuccessResponse } from '@/types/api-response';
 
 /**
  * Client API service - handles raw Supabase calls for client data
@@ -15,7 +15,7 @@ export const clientApi = {
   /**
    * Fetch all clients from the database
    */
-  fetchAllClients: async () => {
+  fetchAllClients: async (): Promise<ApiResponse<any[]>> => {
     try {
       // First check if the user is authenticated
       const authenticated = await isAuthenticated();
@@ -32,7 +32,7 @@ export const clientApi = {
         throw error;
       }
 
-      return { data, error: null };
+      return createSuccessResponse(data, 'Clients fetched successfully');
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -45,7 +45,7 @@ export const clientApi = {
   /**
    * Fetch a single client by ID, including contacts and addresses
    */
-  fetchClientById: async (clientId: string) => {
+  fetchClientById: async (clientId: string): Promise<ApiResponse<any>> => {
     try {
       // First check if the user is authenticated
       const authenticated = await isAuthenticated();
@@ -67,7 +67,7 @@ export const clientApi = {
         throw error;
       }
       
-      return { data, error: null };
+      return createSuccessResponse(data, `Client with ID ${clientId} fetched successfully`);
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -80,7 +80,7 @@ export const clientApi = {
   /**
    * Create a new client
    */
-  createClient: async (clientData: ClientFormData) => {
+  createClient: async (clientData: ClientFormData): Promise<ApiResponse<any>> => {
     try {
       // First check if the user is authenticated
       const authenticated = await isAuthenticated();
@@ -113,7 +113,7 @@ export const clientApi = {
         throw error;
       }
 
-      return { data, error: null };
+      return createSuccessResponse(data, 'Client created successfully');
     } catch (error) {
       console.error('Error in createClient:', error);
       return handleSupabaseError(
@@ -127,7 +127,7 @@ export const clientApi = {
   /**
    * Update an existing client
    */
-  updateClient: async (clientId: string, clientData: Partial<ClientFormData>) => {
+  updateClient: async (clientId: string, clientData: Partial<ClientFormData>): Promise<ApiResponse<any>> => {
     try {
       const processedData = { ...clientData };
 
@@ -147,7 +147,7 @@ export const clientApi = {
         throw error;
       }
 
-      return { data, error: null };
+      return createSuccessResponse(data, `Client with ID ${clientId} updated successfully`);
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -160,9 +160,9 @@ export const clientApi = {
   /**
    * Delete a client by ID
    */
-  deleteClient: async (clientId: string) => {
+  deleteClient: async (clientId: string): Promise<ApiResponse<{success: boolean}>> => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('clients')
         .delete()
         .eq('id', clientId);
@@ -171,7 +171,7 @@ export const clientApi = {
         throw error;
       }
 
-      return { success: true, error: null };
+      return createSuccessResponse({ success: true }, `Client with ID ${clientId} deleted successfully`);
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -184,7 +184,7 @@ export const clientApi = {
   /**
    * Fetch client contacts
    */
-  fetchClientContacts: async (clientId: string) => {
+  fetchClientContacts: async (clientId: string): Promise<ApiResponse<any[]>> => {
     try {
       const { data, error } = await supabase
         .from('client_contacts')
@@ -196,7 +196,7 @@ export const clientApi = {
         throw error;
       }
 
-      return { data, error: null };
+      return createSuccessResponse(data, `Contacts for client ID ${clientId} fetched successfully`);
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -209,7 +209,7 @@ export const clientApi = {
   /**
    * Create a client contact
    */
-  createClientContact: async (contactData: ContactFormData) => {
+  createClientContact: async (contactData: ContactFormData): Promise<ApiResponse<any>> => {
     try {
       const { data, error } = await supabase
         .from('client_contacts')
@@ -221,7 +221,7 @@ export const clientApi = {
         throw error;
       }
 
-      return { data, error: null };
+      return createSuccessResponse(data, 'Contact created successfully');
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -234,7 +234,7 @@ export const clientApi = {
   /**
    * Fetch client addresses
    */
-  fetchClientAddresses: async (clientId: string) => {
+  fetchClientAddresses: async (clientId: string): Promise<ApiResponse<any[]>> => {
     try {
       const { data, error } = await supabase
         .from('client_addresses')
@@ -246,7 +246,7 @@ export const clientApi = {
         throw error;
       }
 
-      return { data, error: null };
+      return createSuccessResponse(data, `Addresses for client ID ${clientId} fetched successfully`);
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -259,7 +259,7 @@ export const clientApi = {
   /**
    * Create a client address
    */
-  createClientAddress: async (addressData: AddressFormData) => {
+  createClientAddress: async (addressData: AddressFormData): Promise<ApiResponse<any>> => {
     try {
       // Transform to match database schema
       const dbAddressData = {
@@ -282,7 +282,7 @@ export const clientApi = {
         throw error;
       }
 
-      return { data, error: null };
+      return createSuccessResponse(data, 'Client address created successfully');
     } catch (error) {
       return handleSupabaseError(
         error,
@@ -295,9 +295,9 @@ export const clientApi = {
   /**
    * Delete a client address
    */
-  deleteClientAddress: async (addressId: string) => {
+  deleteClientAddress: async (addressId: string): Promise<ApiResponse<{success: boolean}>> => {
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('client_addresses')
         .delete()
         .eq('id', addressId);
@@ -306,7 +306,7 @@ export const clientApi = {
         throw error;
       }
 
-      return { success: true, error: null };
+      return createSuccessResponse({ success: true }, `Address with ID ${addressId} deleted successfully`);
     } catch (error) {
       return handleSupabaseError(
         error,

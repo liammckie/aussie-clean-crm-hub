@@ -1,3 +1,4 @@
+
 import { isSupabaseError } from '@/integrations/supabase/client';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';

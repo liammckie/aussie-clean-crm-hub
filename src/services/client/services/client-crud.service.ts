@@ -6,7 +6,7 @@ import { logSuccess } from '@/utils/supabaseErrors';
 import { prepareClientDataForSubmission } from '@/utils/clientUtils';
 import { ClientStatus } from '@/types/database-schema';
 import { clientSchema, validateWithZod } from '../validation';
-import { ApiResponse, createSuccessResponse, formatError, ErrorCategory } from '@/types/api-response';
+import { ApiResponse, createSuccessResponse, isApiError, formatError, ErrorCategory } from '@/types/api-response';
 
 /**
  * Client CRUD operations service

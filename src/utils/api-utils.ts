@@ -1,3 +1,4 @@
+
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { isSupabaseError } from '@/integrations/supabase/client';

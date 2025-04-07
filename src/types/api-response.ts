@@ -96,3 +96,6 @@ export function formatError(
 ): ApiErrorResponse {
   return createErrorResponse(category, message, details);
 }
+
+// Re-export ErrorCategory for convenience
+export { ErrorCategory };

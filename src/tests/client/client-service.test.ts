@@ -54,7 +54,7 @@ describe('Client Service', () => {
     const mockResponse: ApiResponse<typeof mockClients> = createSuccessResponse(mockClients, 'Clients retrieved successfully');
     
     // Set up the mock implementation
-    (clientService.getAllClients as jest.Mock<Promise<ApiResponse<typeof mockClients>>>).mockResolvedValue(mockResponse);
+    (clientService.getAllClients as jest.Mock).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.getAllClients();
@@ -78,7 +78,7 @@ describe('Client Service', () => {
     );
     
     // Set up the mock implementation to return an error
-    (clientService.getAllClients as jest.Mock<Promise<ApiResponse<any>>>).mockResolvedValue(mockError);
+    (clientService.getAllClients as jest.Mock).mockResolvedValue(mockError);
 
     // Call the service function
     const result = await clientService.getAllClients();
@@ -95,7 +95,7 @@ describe('Client Service', () => {
     const mockResponse: ApiResponse<typeof mockClient> = createSuccessResponse(mockClient, 'Client retrieved successfully');
     
     // Set up the mock implementation
-    (clientService.getClientById as jest.Mock<Promise<ApiResponse<typeof mockClient>>>).mockResolvedValue(mockResponse);
+    (clientService.getClientById as jest.Mock).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.getClientById('123');
@@ -118,7 +118,7 @@ describe('Client Service', () => {
     );
     
     // Set up the mock implementation to return an error
-    (clientService.getClientById as jest.Mock<Promise<ApiResponse<any>>>).mockResolvedValue(mockError);
+    (clientService.getClientById as jest.Mock).mockResolvedValue(mockError);
 
     // Call the service function
     const result = await clientService.getClientById('invalid-id');
@@ -139,7 +139,7 @@ describe('Client Service', () => {
     const mockResponse: ApiResponse<typeof newClientData> = createSuccessResponse(newClientData, 'Client created successfully');
     
     // Set up the mock implementation
-    (clientService.createClient as jest.Mock<Promise<ApiResponse<typeof newClientData>>>).mockResolvedValue(mockResponse);
+    (clientService.createClient as jest.Mock).mockResolvedValue(mockResponse);
 
     const newClient: ClientFormData = {
       business_name: 'New Company',
@@ -167,7 +167,7 @@ describe('Client Service', () => {
     );
     
     // Set up the mock implementation to return an error
-    (clientService.createClient as jest.Mock<Promise<ApiResponse<any>>>).mockResolvedValue(mockError);
+    (clientService.createClient as jest.Mock).mockResolvedValue(mockError);
 
     const newClient: ClientFormData = {
       business_name: 'New Company',
@@ -193,7 +193,7 @@ describe('Client Service', () => {
     const mockResponse: ApiResponse<typeof updatedClientData> = createSuccessResponse(updatedClientData, 'Client updated successfully');
     
     // Set up the mock implementation
-    (clientService.updateClient as jest.Mock<Promise<ApiResponse<typeof updatedClientData>>>).mockResolvedValue(mockResponse);
+    (clientService.updateClient as jest.Mock).mockResolvedValue(mockResponse);
 
     const updates = { business_name: 'Updated Company' };
 
@@ -216,7 +216,7 @@ describe('Client Service', () => {
     const mockResponse: ApiResponse<{success: true}> = createSuccessResponse({ success: true }, 'Client deleted successfully');
     
     // Set up the mock implementation
-    (clientService.deleteClient as jest.Mock<Promise<ApiResponse<{success: true}>>>).mockResolvedValue(mockResponse);
+    (clientService.deleteClient as jest.Mock).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.deleteClient('123');
