@@ -1,6 +1,6 @@
 
 import { AppLogger } from './logger';
-import { LogCategory } from './types';
+import { LogCategory } from './LogCategory';
 import { Cache } from '../caching/cache';
 
 /**

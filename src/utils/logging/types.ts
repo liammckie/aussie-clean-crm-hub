@@ -1,10 +1,10 @@
 
-import { LogCategory as AppLogCategory } from './LogCategory';
+import { LogCategory } from './LogCategory';
 
 /**
  * Re-export LogCategory to ensure consistent usage
  */
-export type LogCategory = AppLogCategory;
+export type { LogCategory };
 
 /**
  * Log levels for application logging

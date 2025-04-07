@@ -1,6 +1,6 @@
 
 import { AppLogger } from './logger';
-import { LogCategory } from './types';
+import { LogCategory } from './LogCategory';
 
 /**
  * Performance tracking utility
@@ -19,64 +19,60 @@ export class PerformanceTracker {
   /**
    * End timing an operation and log the result
    */
-  static end(operationName: string, additionalContext?: Record<string, any>): number {
-    if (!this.timers[operationName]) {
+  static end(operationName: string, additionalData: Record<string, any> = {}): void {
+    const startTime = this.timers[operationName];
+    if (startTime === undefined) {
       AppLogger.warn(
-        LogCategory.PERFORMANCE, 
-        `Attempted to end timing for operation that was never started: ${operationName}`
+        LogCategory.PERFORMANCE,
+        `Cannot end timing for '${operationName}' - no start time recorded`
       );
-      return 0;
+      return;
     }
     
-    const startTime = this.timers[operationName];
-    const endTime = performance.now();
-    const duration = endTime - startTime;
+    const duration = performance.now() - startTime;
+    delete this.timers[operationName];
     
     AppLogger.info(
-      LogCategory.PERFORMANCE, 
-      `Operation ${operationName} completed in ${duration.toFixed(2)}ms`,
-      { duration, ...additionalContext }
+      LogCategory.PERFORMANCE,
+      `Operation '${operationName}' completed in ${duration.toFixed(2)}ms`,
+      { ...additionalData, duration }
     );
-    
-    delete this.timers[operationName];
-    return duration;
   }
   
   /**
-   * Track the execution time of an async function
+   * Wrap a function with performance tracking
    */
-  static async trackAsync<T>(
-    operationName: string, 
-    fn: () => Promise<T>,
-    context?: Record<string, any>
-  ): Promise<T> {
-    this.start(operationName);
-    try {
-      const result = await fn();
-      this.end(operationName, context);
-      return result;
-    } catch (error) {
-      this.end(operationName, { ...context, error: true });
-      throw error;
-    }
-  }
-  
-  /**
-   * Track the execution time of a synchronous function
-   */
-  static track<T>(
-    operationName: string, 
-    fn: () => T,
-    context?: Record<string, any>
-  ): T {
-    this.start(operationName);
+  static track<T>(name: string, fn: () => T): T {
+    this.start(name);
     try {
       const result = fn();
-      this.end(operationName, context);
+      this.end(name);
       return result;
     } catch (error) {
-      this.end(operationName, { ...context, error: true });
+      this.end(name, { error });
       throw error;
     }
+  }
+  
+  /**
+   * Wrap an async function with performance tracking
+   */
+  static async trackAsync<T>(name: string, fn: () => Promise<T>): Promise<T> {
+    this.start(name);
+    try {
+      const result = await fn();
+      this.end(name);
+      return result;
+    } catch (error) {
+      this.end(name, { error });
+      throw error;
+    }
+  }
+  
+  /**
+   * Clear all timers
+   */
+  static clearAll(): void {
+    this.timers = {};
   }
 }
