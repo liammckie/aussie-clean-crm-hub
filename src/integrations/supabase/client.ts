@@ -16,18 +16,20 @@ AppLogger.info(LogCategory.SYSTEM, 'Initializing Supabase client', {
   hasKey: !!SUPABASE_ANON_KEY
 });
 
-// Create the typed Supabase client
-export const typedSupabase: TypedSupabaseClient = createTypedSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// Create the Supabase client for legacy code compatibility
-// Using a single instance to prevent duplicate client warnings
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+// Create a single instance of the Supabase client
+const supabaseClientInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true, // Detect session from URL query params
   },
 });
+
+// Create the typed Supabase client using the same instance
+export const typedSupabase: TypedSupabaseClient = createTypedSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// Export the singleton instance
+export const supabase = supabaseClientInstance;
 
 // Enhanced type guard to check if an error is from Supabase with more detailed error properties
 export const isSupabaseError = (error: unknown): boolean => {

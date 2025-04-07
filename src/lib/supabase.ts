@@ -1,30 +1,11 @@
 
-import { createClient } from '@supabase/supabase-js';
+// Re-export Supabase client from the integrations folder
+// This file exists for backward compatibility
+import { supabase as supabaseClient, typedSupabase } from '@/integrations/supabase/client';
 import { AppLogger, LogCategory } from '@/utils/logging';
 
-// Create a single supabase client for the entire application
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
+// Log the re-export to help track usage patterns
+AppLogger.debug(LogCategory.SYSTEM, 'Using supabase client via backward compatibility import (src/lib/supabase.ts)');
 
-// Log initialization
-AppLogger.debug(LogCategory.SYSTEM, `Initializing Supabase client with URL: ${supabaseUrl}`);
-
-// Use a singleton pattern to ensure we only create one instance
-let supabaseInstance: ReturnType<typeof createClient> | null = null;
-
-export const getSupabaseClient = () => {
-  if (!supabaseInstance) {
-    supabaseInstance = createClient(supabaseUrl, supabaseAnonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true, // Detect session from URL query params
-      },
-    });
-    AppLogger.debug(LogCategory.SYSTEM, 'Supabase client initialized');
-  }
-  return supabaseInstance;
-};
-
-// Export the singleton instance for backward compatibility
-export const supabase = getSupabaseClient();
+export const supabase = supabaseClient;
+export const getSupabaseClient = () => supabaseClient;
