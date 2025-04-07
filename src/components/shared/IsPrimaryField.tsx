@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 
 interface IsPrimaryFieldProps<T extends Record<string, any>> {
   form: UseFormReturn<T>;
-  name: Path<T>;  // Updated to use Path<T> directly
+  name: Path<T>;  // This is already using Path<T> directly
   label: string;
   description?: string;
 }

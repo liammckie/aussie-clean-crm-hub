@@ -9,7 +9,7 @@ import { UnifiedAddressRecord, UnifiedContactRecord } from '@/services/unified/t
 export { addressApi, contactApi };
 
 // Export types
-export { UnifiedAddressRecord, UnifiedContactRecord };
+export type { UnifiedAddressRecord, UnifiedContactRecord };
 
 // Unified API service for consistent data access
 export const unifiedApi = {

@@ -1,5 +1,5 @@
-
 import { z } from 'zod';
+import { AddressType as DbAddressType } from './database-schema';
 
 // Type for entity types
 export type EntityType = 'client' | 'supplier' | 'site' | 'work_order' | 'contract';
@@ -23,18 +23,8 @@ export type ContactType =
   | 'sales_lead'
   | 'subcontractor';
 
-// Define address types
-export type AddressType = 
-  | 'billing'
-  | 'shipping'
-  | 'physical'
-  | 'postal'
-  | 'head_office'
-  | 'branch'
-  | 'residential'
-  | 'commercial'
-  | 'warehouse'
-  | 'site';
+// Define address types - ensure it includes all values from database-schema.ts AddressType
+export type AddressType = DbAddressType;
 
 // Define preferred communication type
 export type PreferredCommunication = 'email' | 'phone' | 'portal';

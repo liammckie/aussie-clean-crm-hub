@@ -12,7 +12,7 @@ import {
 } from '@/types/form-types';
 import { AddressTypeField } from './form/AddressTypeField';
 import { AddressFields } from './form/AddressFields';
-import { IsPrimaryField } from './form/IsPrimaryField';
+import { IsPrimaryField } from '../shared/IsPrimaryField';
 
 interface UnifiedAddressFormProps {
   onSubmit: (data: UnifiedAddressFormData) => void;
@@ -62,7 +62,8 @@ export function UnifiedAddressForm({
         {showIsPrimary && (
           <IsPrimaryField<UnifiedAddressFormData>
             form={form} 
-            label="Set as primary address" 
+            label="Set as primary address"
+            name="is_primary"
           />
         )}
 

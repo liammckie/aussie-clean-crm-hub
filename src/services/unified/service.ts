@@ -3,6 +3,7 @@ import { ApiResponse } from '@/types/api-response';
 import { 
   UnifiedAddressFormData,
   UnifiedContactFormData,
+  AddressType as FormAddressType,
   EntityType
 } from '@/types/form-types';
 import { 
@@ -11,6 +12,7 @@ import {
 } from './types';
 import { addressApi, contactApi } from './api';
 import { MutationOptions } from '@/hooks/use-unified-entities';
+import { AddressType as DbAddressType } from '@/types/database-schema';
 
 /**
  * Create a new address for an entity
@@ -30,7 +32,7 @@ export const createUnifiedAddress = async (
       state: addressData.state,
       postcode: addressData.postcode,
       country: addressData.country,
-      address_type: addressData.address_type,
+      address_type: addressData.address_type as unknown as DbAddressType, // Type assertion to handle compatibility
       is_primary: addressData.is_primary || false,
       name: addressData.name,
       latitude: addressData.latitude,
@@ -80,7 +82,7 @@ export const updateUnifiedAddress = async (
     }
     
     if ('address_type' in addressData) {
-      processedData.address_type = addressData.address_type;
+      processedData.address_type = addressData.address_type as unknown as DbAddressType;
     }
     
     if ('is_primary' in addressData) {
@@ -121,7 +123,23 @@ export const unifiedService = {
     entityId: string,
     addressData: Omit<UnifiedAddressFormData, 'entity_type' | 'entity_id'>
   ) => {
-    return addressApi.createAddress(entityType, entityId, addressData);
+    // Convert form data to database record format
+    const dbAddressData: Omit<UnifiedAddressRecord, 'entity_type' | 'entity_id' | 'id'> = {
+      address_line_1: addressData.address_line1,
+      address_line_2: addressData.address_line2,
+      suburb: addressData.suburb,
+      state: addressData.state,
+      postcode: addressData.postcode,
+      country: addressData.country,
+      address_type: addressData.address_type as unknown as DbAddressType,
+      is_primary: addressData.is_primary || false,
+      name: addressData.name,
+      latitude: addressData.latitude,
+      longitude: addressData.longitude,
+      notes: addressData.notes
+    };
+    
+    return addressApi.createAddress(entityType, entityId, dbAddressData);
   },
 
   /**
@@ -135,7 +153,58 @@ export const unifiedService = {
    * Update an existing address
    */
   updateAddress: async (addressId: string, addressData: Partial<UnifiedAddressFormData>) => {
-    return addressApi.updateAddress(addressId, addressData);
+    // Convert form data to database record format
+    const dbAddressData: Partial<UnifiedAddressRecord> = {};
+    
+    if ('address_line1' in addressData) {
+      dbAddressData.address_line_1 = addressData.address_line1;
+    }
+    
+    if ('address_line2' in addressData) {
+      dbAddressData.address_line_2 = addressData.address_line2;
+    }
+    
+    if ('suburb' in addressData) {
+      dbAddressData.suburb = addressData.suburb;
+    }
+    
+    if ('state' in addressData) {
+      dbAddressData.state = addressData.state;
+    }
+    
+    if ('postcode' in addressData) {
+      dbAddressData.postcode = addressData.postcode;
+    }
+    
+    if ('country' in addressData) {
+      dbAddressData.country = addressData.country;
+    }
+    
+    if ('address_type' in addressData) {
+      dbAddressData.address_type = addressData.address_type as unknown as DbAddressType;
+    }
+    
+    if ('is_primary' in addressData) {
+      dbAddressData.is_primary = addressData.is_primary;
+    }
+    
+    if ('name' in addressData) {
+      dbAddressData.name = addressData.name;
+    }
+    
+    if ('latitude' in addressData) {
+      dbAddressData.latitude = addressData.latitude;
+    }
+    
+    if ('longitude' in addressData) {
+      dbAddressData.longitude = addressData.longitude;
+    }
+    
+    if ('notes' in addressData) {
+      dbAddressData.notes = addressData.notes;
+    }
+    
+    return addressApi.updateAddress(addressId, dbAddressData);
   },
 
   /**
