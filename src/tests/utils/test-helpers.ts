@@ -12,9 +12,18 @@ export type {
 };
 
 /**
- * Re-export the type guards from the centralized types
+ * Type guard to check if response is a success
  */
-export { isApiError as isErrorResponse, isApiSuccess as isSuccessResponse } from '@/types/api-response';
+export function isSuccessResponse<T>(response: ApiResponse<T>): response is ApiSuccessResponse<T> {
+  return 'data' in response && !('category' in response);
+}
+
+/**
+ * Type guard to check if response is an error
+ */
+export function isErrorResponse(response: any): response is ApiErrorResponse {
+  return 'category' in response;
+}
 
 /**
  * Re-export the response creation helpers

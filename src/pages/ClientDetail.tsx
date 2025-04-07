@@ -255,6 +255,9 @@ const ClientDetail = () => {
     );
   }
 
+  const client = data as ClientRecord;
+  client.business_name // Now this will work correctly
+
   return (
     <div className="container mx-auto px-0 max-w-full">
       <Breadcrumb className="my-4">

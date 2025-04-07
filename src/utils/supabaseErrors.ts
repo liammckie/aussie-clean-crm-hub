@@ -1,4 +1,5 @@
 
+import { ApiErrorResponse, createErrorResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
@@ -40,10 +41,19 @@ export function formatSupabaseError(error: any): ErrorResponse {
 
 /**
  * Handle Supabase error and return standardized error response
- * @deprecated Use formatSupabaseError instead
+ * Updated to accept message and context parameters
  */
-export function handleSupabaseError(error: any): ErrorResponse {
-  return formatSupabaseError(error);
+export function handleSupabaseError(
+  error: any,
+  message = 'An error occurred',
+  context?: Record<string, any>
+): ApiErrorResponse {
+  const formattedError = formatSupabaseError(error);
+  return createErrorResponse(
+    formattedError.category,
+    message || formattedError.message,
+    { ...formattedError.details, ...context }
+  );
 }
 
 /**

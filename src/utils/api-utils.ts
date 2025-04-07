@@ -4,6 +4,23 @@ import { ErrorCategory } from '@/utils/logging/error-types';
 import { PostgrestError } from '@supabase/supabase-js';
 
 /**
+ * Format an error for API responses (replacement for formatError)
+ */
+export function formatError(error: any, message = 'An error occurred'): ApiErrorResponse {
+  // If it's already an ApiErrorResponse, return it
+  if (error && 'category' in error) {
+    return error as ApiErrorResponse;
+  }
+  
+  // Create a new error response
+  return createErrorResponse(
+    ErrorCategory.UNKNOWN,
+    error?.message || message,
+    { error }
+  );
+}
+
+/**
  * Handles Supabase API errors and converts them to consistent error responses
  */
 export function handleApiError(

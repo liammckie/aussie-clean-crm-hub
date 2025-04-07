@@ -1,172 +1,107 @@
-
-import React, { useEffect, useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-import { useContracts } from "@/hooks/use-contracts-table";
-import { ContractsTable } from "@/components/contracts/ContractsTable";
-import { BulkManagerAssign } from "@/components/contracts/BulkManagerAssign";
-import { Card } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Heading } from "@/components/ui/heading";
-import { Separator } from "@/components/ui/separator";
-import { contractService } from "@/services/contract";
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Plus } from 'lucide-react';
+import { 
+  Card, 
+  CardContent, 
+  CardHeader, 
+  CardTitle,
+  CardDescription 
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { AlertCircle, Plus } from "lucide-react";
-import { TabulatorTable } from "@/components/contracts/TabulatorTable";
-import { LoadSampleContracts } from "@/components/contracts/LoadSampleContracts";
-import { getMockContractData } from "@/utils/contractTestData";
+import { 
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
+import { useContracts } from '@/hooks/use-contracts';
+import { ContractRecord } from '@/types/contract-types';
+import TabulatorTable from '@/components/contracts/TabulatorTable';
+import { ColumnDefinition } from '@/types/tabulator-types';
+import { toast } from 'sonner';
 
-export default function Contracts() {
-  const { contracts, isLoadingContracts, contractsError, refetchContracts } = useContracts();
-  const [selectedContracts, setSelectedContracts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("tabulator");
-  const [useMockData, setUseMockData] = useState(false);
-  const [mockContracts, setMockContracts] = useState<any[]>([]);
+const Contracts = () => {
   const navigate = useNavigate();
+  const { data: contractsData, isLoading, error, refetch } = useContracts();
+  const [contracts, setContracts] = useState<ContractRecord[]>([]);
 
   useEffect(() => {
-    // If there's a permission error, load mock data for visualization
-    if (contractsError && contractsError.message?.includes('permission')) {
-      const sampleData = getMockContractData(5);
-      setMockContracts(sampleData);
-      setUseMockData(true);
-      console.log('Using mock data due to permission error');
+    if (contractsData) {
+      setContracts(contractsData);
     }
-  }, [contractsError]);
+  }, [contractsData]);
 
-  const handleContractsSelected = (contracts: any[]) => {
-    setSelectedContracts(contracts);
+  const columns: ColumnDefinition[] = useMemo(() => [
+    { title: "Contract Name", field: "contract_name", sorter: "string", headerFilter: true },
+    { title: "Client", field: "client_name", sorter: "string", headerFilter: true },
+    { title: "Start Date", field: "start_date", sorter: "date", headerFilter: true },
+    { title: "End Date", field: "end_date", sorter: "date", headerFilter: true },
+    { title: "Status", field: "status", sorter: "string", headerFilter: true },
+    { title: "Value", field: "contract_value", sorter: "number", formatter: "money" }
+  ], []);
+
+  const handleRowClick = (e: React.MouseEvent<HTMLElement>, row: any) => {
+    navigate(`/contracts/${row.getData().id}`);
   };
 
-  const handleCreateContract = () => {
-    navigate("/contracts/new");
-  };
-
-  if (isLoadingContracts) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary m-auto"></div>
-          <p className="mt-4 text-muted-foreground">Loading contracts data...</p>
-        </div>
-      </div>
-    );
+  if (isLoading) {
+    return <div>Loading contracts...</div>;
   }
 
-  // Consider the data available if we have real contracts or mock contracts
-  const hasContracts = (contracts && contracts.length > 0) || mockContracts.length > 0;
-  const displayContracts = useMockData ? mockContracts : (contracts || []);
-
-  if (contractsError && !useMockData) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center p-6 bg-destructive/10 rounded-lg max-w-md">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Failed to load contracts</h2>
-          <p className="text-muted-foreground mb-4">
-            There was an error loading the contracts data. {contractsError.message}
-          </p>
-          <div className="space-y-2">
-            <Button onClick={() => refetchContracts()}>Retry</Button>
-            <Button 
-              variant="secondary" 
-              className="ml-2"
-              onClick={() => setUseMockData(true)}
-            >
-              Use Sample Data
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+  if (error) {
+    return <div>Error: {error.message}</div>;
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      <header className="mb-6 flex justify-between items-center">
-        <div>
-          <Heading title="Contract Management" description="Manage and assign contracts" />
-          <Separator className="my-4" />
-        </div>
-        
-        <div className="flex space-x-2">
-          <Button 
-            variant="default" 
-            onClick={handleCreateContract}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            New Contract
-          </Button>
-          
-          {!hasContracts && (
-            <LoadSampleContracts onContractsLoaded={refetchContracts} />
+    <div className="container mx-auto px-4 py-8">
+      {/* Breadcrumb Navigation */}
+      <Breadcrumb className="my-4">
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink asChild>
+              <Link to="/dashboard">Dashboard</Link>
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Contracts</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
+
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Contracts</h1>
+        <Button asChild>
+          <Link to="/contracts/new">
+            <Plus className="mr-2 h-4 w-4" /> New Contract
+          </Link>
+        </Button>
+      </div>
+
+      <Card className="mb-8">
+        <CardHeader className="pb-2">
+          <CardTitle>Contract Management</CardTitle>
+          <CardDescription>
+            Manage contracts, clients, and related information
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {contracts && contracts.length > 0 ? (
+            <TabulatorTable 
+              columns={columns}
+              data={contracts} // Changed from "contracts" prop to "data" prop
+              onRowClick={handleRowClick}
+            />
+          ) : (
+            <div>No contracts found.</div>
           )}
-        </div>
-
-        {useMockData && (
-          <div className="flex items-center">
-            <Button
-              variant="ghost" 
-              onClick={() => {
-                setUseMockData(false);
-                refetchContracts();
-              }}
-            >
-              Try Real Data
-            </Button>
-            <span className="ml-2 text-amber-500 text-sm">
-              Showing visualization data only
-            </span>
-          </div>
-        )}
-      </header>
-
-      {!hasContracts ? (
-        <Card className="p-6 text-center">
-          <div className="py-12">
-            <h3 className="text-xl font-medium mb-2">No Contracts Found</h3>
-            <p className="text-muted-foreground mb-6">
-              There are no contracts in the system yet. Click the button above to create a new contract or generate sample contracts.
-            </p>
-          </div>
-        </Card>
-      ) : (
-        <Tabs defaultValue="tabulator" value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="mb-4">
-            <TabsTrigger value="tabulator">Tabulator View</TabsTrigger>
-            <TabsTrigger value="standard">Standard View</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="tabulator" className="space-y-4">
-            <Card className="p-6">
-              {selectedContracts.length > 0 && (
-                <div className="mb-4">
-                  <BulkManagerAssign 
-                    selectedContracts={selectedContracts}
-                    onUpdate={() => {
-                      // Force a refresh of the table after updates
-                      refetchContracts();
-                      toast.success(`Updated ${selectedContracts.length} contracts`);
-                      setSelectedContracts([]);
-                    }}
-                  />
-                </div>
-              )}
-              <TabulatorTable 
-                contracts={displayContracts} 
-                onSelectionChange={handleContractsSelected}
-              />
-            </Card>
-          </TabsContent>
-
-          <TabsContent value="standard" className="space-y-4">
-            <Card className="p-6">
-              <ContractsTable contracts={displayContracts} />
-            </Card>
-          </TabsContent>
-        </Tabs>
-      )}
+        </CardContent>
+      </Card>
     </div>
   );
-}
+};
+
+export default Contracts;

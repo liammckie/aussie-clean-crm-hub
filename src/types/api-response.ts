@@ -32,6 +32,13 @@ export function isApiError(response: any): response is ApiErrorResponse {
 }
 
 /**
+ * Type guard to check if response is a success
+ */
+export function isApiSuccess<T>(response: any): response is ApiSuccessResponse<T> {
+  return response && 'data' in response && !('category' in response);
+}
+
+/**
  * Helper to create standardized success response
  */
 export function createSuccessResponse<T>(data: T, message: string): ApiSuccessResponse<T> {

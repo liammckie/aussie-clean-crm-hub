@@ -24,6 +24,7 @@ export interface ClientRecord {
   postcode?: string;
   country?: string;
   client_contacts?: any[];
+  client_addresses?: any[];
   updated_at?: string;
   created_at?: string;
   phone?: string;

@@ -7,6 +7,8 @@ import type { LogEntry } from './types';
  * Application logger service
  */
 export class AppLogger {
+  private static logs: LogEntry[] = [];
+  
   /**
    * Log at debug level
    */
@@ -47,6 +49,9 @@ export class AppLogger {
       data
     };
 
+    // Add to internal logs array for testing purposes
+    AppLogger.logs.push(logEntry);
+
     switch (level) {
       case LogLevel.ERROR:
         console.error(logEntry);
@@ -61,5 +66,19 @@ export class AppLogger {
       default:
         console.info(logEntry);
     }
+  }
+
+  /**
+   * Clear all logs (useful for testing)
+   */
+  static clearLogs(): void {
+    AppLogger.logs = [];
+  }
+
+  /**
+   * Get all logs (useful for testing)
+   */
+  static getLogs(): LogEntry[] {
+    return [...AppLogger.logs];
   }
 }

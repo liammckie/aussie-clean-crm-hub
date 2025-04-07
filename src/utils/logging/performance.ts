@@ -56,4 +56,28 @@ export class PerformanceTracker {
 
     return duration;
   }
+
+  /**
+   * Static method to track an async function
+   * @param name Name of the operation being tracked
+   * @param fn Function to track
+   * @param thresholdMs Threshold in milliseconds
+   * @param data Additional data to include in the log
+   */
+  static async trackAsync<T>(
+    name: string, 
+    fn: () => Promise<T>, 
+    thresholdMs = 100, 
+    data?: Record<string, any>
+  ): Promise<T> {
+    const tracker = new PerformanceTracker(name, thresholdMs, data);
+    try {
+      const result = await fn();
+      tracker.end({ success: true });
+      return result;
+    } catch (error) {
+      tracker.end({ success: false, error });
+      throw error;
+    }
+  }
 }

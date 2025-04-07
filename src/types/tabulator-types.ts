@@ -1,17 +1,10 @@
 
 // Import Tabulator correctly
-import type { 
-  ColumnDefinition as TabulatorColumnDefinition,
-  ColumnComponent as TabulatorColumnComponent, 
-  CellComponent as TabulatorCellComponent,
-  RowComponent as TabulatorRowComponent
-} from 'tabulator-tables';
+import type { ColumnDefinitionConfig, ColumnComponent, CellComponent, RowComponent } from 'tabulator-tables';
 
 // Define types correctly - these should match what's exported by the library
-export type ColumnDefinition = TabulatorColumnDefinition;
-export type ColumnComponent = TabulatorColumnComponent;
-export type CellComponent = TabulatorCellComponent;
-export type RowComponent = TabulatorRowComponent;
+export type ColumnDefinition = ColumnDefinitionConfig;
+export type { ColumnComponent, CellComponent, RowComponent };
 
 // Define proper sorter type
 export type TabulatorSorter = {

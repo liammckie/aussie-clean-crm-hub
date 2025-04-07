@@ -13,7 +13,7 @@ import { SiteForm, SiteFormData } from '@/components/site/SiteForm';
 import { toast } from 'sonner';
 import { useSites, useCreateSite } from '@/hooks/use-sites';
 import { SiteInsertData } from '@/services/site/types';
-import { isApiSuccess } from '@/types/api-response';
+import { isApiError } from '@/types/api-response';
 
 interface ClientSitesTabProps {
   clientId: string;
@@ -58,7 +58,7 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
 
   // Handle API response safely
   const clientSites = React.useMemo(() => {
-    if (sitesResponse && isApiSuccess(sitesResponse)) {
+    if (sitesResponse && !isApiError(sitesResponse)) {
       return sitesResponse.data.filter(site => site.client_id === clientId);
     }
     return [];

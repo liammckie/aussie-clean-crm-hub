@@ -1,11 +1,10 @@
-
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { unifiedService } from '@/services/unified';
 import { UnifiedContactFormData, EntityType } from '@/types/form-types';
 import { ValidationErrorResponse } from '@/services/unified/types';
-import { isApiError, isApiSuccess } from '@/types/api-response';
+import { isApiError } from '@/types/api-response';
 
 /**
  * Hook for contact mutations (create, update, delete)
@@ -51,6 +50,7 @@ export function useContactMutations() {
       if (data && !('category' in data)) {
         console.log('Invalidating contacts query after successful creation');
         queryClient.invalidateQueries({ queryKey: ['unified-contacts', variables.entityType, variables.entityId] });
+        toast.success('Contact created successfully!');
       }
       return data;
     },

@@ -23,7 +23,7 @@ function TabulatorTable({
 }: TabulatorTableProps) {
   const defaultOptions: Partial<TabulatorOptions> = {
     layout: 'fitColumns',
-    pagination: 'local',
+    pagination: true,
     paginationSize: 10,
     placeholder: 'No Data Available'
   };
