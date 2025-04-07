@@ -1,4 +1,5 @@
 
+import { ApiResponse } from '@/types/api-response';
 import { Tables } from '@/types/supabase';
 import { SiteStatus, SiteType } from '@/types/database-schema';
 
@@ -26,31 +27,9 @@ export type SiteInsertData = {
 };
 export type SiteUpdateData = Partial<SiteInsertData>;
 
-// Response types
-export interface SiteResponse {
-  data: SiteData | null;
-  error: string | null;
-}
-
-export interface SitesResponse {
-  data: SiteData[] | null;
-  error: string | null;
-}
-
-export interface SiteSuccessResponse {
-  data: SiteData;
-  message: string;
-}
-
-export interface SiteErrorResponse {
-  category: 'validation' | 'not_found' | 'permission' | 'server';
-  message: string;
-  details?: any;
-}
-
-// Union type for all site API responses
-export type SiteApiResponse = SiteSuccessResponse | SiteErrorResponse;
-export type SitesApiResponse = SiteSuccessResponse[] | SiteErrorResponse;
+// API response types using centralized ApiResponse
+export type SiteApiResponse = ApiResponse<SiteData>;
+export type SitesApiResponse = ApiResponse<SiteData[]>;
 
 // Re-export the database schema types
 export { SiteStatus, SiteType };
