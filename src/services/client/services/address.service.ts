@@ -26,10 +26,10 @@ export const clientAddressService = {
     // Add client ID to address data
     const address: AddressFormData = {
       client_id: clientId,
-      street: addressData.street || '', // Ensure required field has non-empty string value
-      suburb: addressData.suburb || '', // Ensure required field has non-empty string value
-      state: addressData.state || '',   // Ensure required field has non-empty string value
-      postcode: addressData.postcode || '', // Ensure required field has non-empty string value
+      street: addressData.street || '', // Ensure required field is not optional
+      suburb: addressData.suburb || '', // Ensure required field is not optional
+      state: addressData.state || '',   // Ensure required field is not optional
+      postcode: addressData.postcode || '', // Ensure required field is not optional
       address_type: addressData.address_type || 'physical', // Ensure required field has default value
       street_2: addressData.street_2,
       country: addressData.country || 'Australia'

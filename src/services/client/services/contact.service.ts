@@ -26,9 +26,9 @@ export const clientContactService = {
     // Add client ID to contact data and ensure required fields have values
     const contact: ContactFormData = {
       client_id: clientId,
-      name: contactData.name || '',     // Ensure required field has a value
-      email: contactData.email || '',   // Ensure required field has a value
-      contact_type: contactData.contact_type || 'Primary', // Ensure required field has a value
+      name: contactData.name || '',     // Ensure required field has a non-optional string value
+      email: contactData.email || '',   // Ensure required field has a non-optional string value
+      contact_type: contactData.contact_type || 'Primary', // Ensure required field has a default value
       is_primary: contactData.is_primary !== undefined ? contactData.is_primary : false,
       position: contactData.position,
       phone: contactData.phone,
