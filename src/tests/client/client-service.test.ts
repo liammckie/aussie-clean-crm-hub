@@ -1,7 +1,7 @@
 
 import { describe, expect, it, jest } from '@jest/globals';
 import { clientService } from '../../services/client';
-import { createSuccessResponse, createErrorResponse } from '@/types/api-response';
+import { createSuccessResponse, createErrorResponse, ApiResponse, ApiSuccessResponse, ApiErrorResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
 import { ClientRecord, ClientStatus } from '@/types/database-schema';
 
@@ -34,6 +34,8 @@ describe('Client Service', () => {
     status: ClientStatus.ACTIVE
   };
 
+  type MockClientType = typeof mockClientData;
+  
   const mockClientId = 'test-client-id';
 
   afterEach(() => {
@@ -41,72 +43,92 @@ describe('Client Service', () => {
   });
 
   it('should successfully get all clients', async () => {
-    (clientService.getAllClients as jest.Mock).mockResolvedValue(createSuccessResponse([mockClientData], 'Clients retrieved successfully'));
+    const mockResponse: ApiSuccessResponse<MockClientType[]> = createSuccessResponse([mockClientData], 'Clients retrieved successfully');
+    (clientService.getAllClients as jest.Mock).mockResolvedValue(mockResponse);
+    
     const result = await clientService.getAllClients();
     expect(clientService.getAllClients).toHaveBeenCalled();
-    expect(result).toEqual(createSuccessResponse([mockClientData], 'Clients retrieved successfully'));
+    expect(result).toEqual(mockResponse);
   });
 
   it('should successfully get a client by ID', async () => {
-    (clientService.getClientById as jest.Mock).mockResolvedValue(createSuccessResponse(mockClientData, 'Client retrieved successfully'));
+    const mockResponse: ApiSuccessResponse<MockClientType> = createSuccessResponse(mockClientData, 'Client retrieved successfully');
+    (clientService.getClientById as jest.Mock).mockResolvedValue(mockResponse);
+    
     const result = await clientService.getClientById(mockClientId);
     expect(clientService.getClientById).toHaveBeenCalledWith(mockClientId);
-    expect(result).toEqual(createSuccessResponse(mockClientData, 'Client retrieved successfully'));
+    expect(result).toEqual(mockResponse);
   });
 
   it('should successfully create a new client', async () => {
-    (clientService.createClient as jest.Mock).mockResolvedValue(createSuccessResponse(mockClientData, 'Client created successfully'));
+    const mockResponse: ApiSuccessResponse<MockClientType> = createSuccessResponse(mockClientData, 'Client created successfully');
+    (clientService.createClient as jest.Mock).mockResolvedValue(mockResponse);
+    
     const result = await clientService.createClient(mockClientData);
     expect(clientService.createClient).toHaveBeenCalledWith(mockClientData);
-    expect(result).toEqual(createSuccessResponse(mockClientData, 'Client created successfully'));
+    expect(result).toEqual(mockResponse);
   });
 
   it('should successfully update an existing client', async () => {
-    (clientService.updateClient as jest.Mock).mockResolvedValue(createSuccessResponse(mockClientData, 'Client updated successfully'));
+    const mockResponse: ApiSuccessResponse<MockClientType> = createSuccessResponse(mockClientData, 'Client updated successfully');
+    (clientService.updateClient as jest.Mock).mockResolvedValue(mockResponse);
+    
     const result = await clientService.updateClient(mockClientId, mockClientData);
     expect(clientService.updateClient).toHaveBeenCalledWith(mockClientId, mockClientData);
-    expect(result).toEqual(createSuccessResponse(mockClientData, 'Client updated successfully'));
+    expect(result).toEqual(mockResponse);
   });
 
   it('should successfully delete a client', async () => {
-    (clientService.deleteClient as jest.Mock).mockResolvedValue(createSuccessResponse(true, 'Client deleted successfully'));
+    const mockResponse: ApiSuccessResponse<boolean> = createSuccessResponse(true, 'Client deleted successfully');
+    (clientService.deleteClient as jest.Mock).mockResolvedValue(mockResponse);
+    
     const result = await clientService.deleteClient(mockClientId);
     expect(clientService.deleteClient).toHaveBeenCalledWith(mockClientId);
-    expect(result).toEqual(createSuccessResponse(true, 'Client deleted successfully'));
+    expect(result).toEqual(mockResponse);
   });
 
   it('should handle errors when getting all clients', async () => {
     const mockError = { message: 'Failed to retrieve clients' };
-    (clientService.getAllClients as jest.Mock).mockResolvedValue(createErrorResponse(ErrorCategory.SERVER, mockError.message, mockError));
+    const errorResponse: ApiErrorResponse = createErrorResponse(ErrorCategory.SERVER, mockError.message, mockError);
+    (clientService.getAllClients as jest.Mock).mockResolvedValue(errorResponse);
+    
     const result = await clientService.getAllClients();
-    expect(result).toEqual(createErrorResponse(ErrorCategory.SERVER, mockError.message, mockError));
+    expect(result).toEqual(errorResponse);
   });
 
   it('should handle errors when getting a client by ID', async () => {
     const mockError = { message: 'Client not found' };
-    (clientService.getClientById as jest.Mock).mockResolvedValue(createErrorResponse(ErrorCategory.NOT_FOUND, mockError.message, mockError));
+    const errorResponse: ApiErrorResponse = createErrorResponse(ErrorCategory.NOT_FOUND, mockError.message, mockError);
+    (clientService.getClientById as jest.Mock).mockResolvedValue(errorResponse);
+    
     const result = await clientService.getClientById(mockClientId);
-    expect(result).toEqual(createErrorResponse(ErrorCategory.NOT_FOUND, mockError.message, mockError));
+    expect(result).toEqual(errorResponse);
   });
 
   it('should handle errors when creating a client', async () => {
     const mockError = { message: 'Failed to create client' };
-    (clientService.createClient as jest.Mock).mockResolvedValue(createErrorResponse(ErrorCategory.DATABASE, mockError.message, mockError));
+    const errorResponse: ApiErrorResponse = createErrorResponse(ErrorCategory.DATABASE, mockError.message, mockError);
+    (clientService.createClient as jest.Mock).mockResolvedValue(errorResponse);
+    
     const result = await clientService.createClient(mockClientData);
-    expect(result).toEqual(createErrorResponse(ErrorCategory.DATABASE, mockError.message, mockError));
+    expect(result).toEqual(errorResponse);
   });
 
   it('should handle errors when updating a client', async () => {
     const mockError = { message: 'Failed to update client' };
-    (clientService.updateClient as jest.Mock).mockResolvedValue(createErrorResponse(ErrorCategory.SERVER, mockError.message, mockError));
+    const errorResponse: ApiErrorResponse = createErrorResponse(ErrorCategory.SERVER, mockError.message, mockError);
+    (clientService.updateClient as jest.Mock).mockResolvedValue(errorResponse);
+    
     const result = await clientService.updateClient(mockClientId, mockClientData);
-    expect(result).toEqual(createErrorResponse(ErrorCategory.SERVER, mockError.message, mockError));
+    expect(result).toEqual(errorResponse);
   });
 
   it('should handle errors when deleting a client', async () => {
     const mockError = { message: 'Failed to delete client' };
-    (clientService.deleteClient as jest.Mock).mockResolvedValue(createErrorResponse(ErrorCategory.DATABASE, mockError.message, mockError));
+    const errorResponse: ApiErrorResponse = createErrorResponse(ErrorCategory.DATABASE, mockError.message, mockError);
+    (clientService.deleteClient as jest.Mock).mockResolvedValue(errorResponse);
+    
     const result = await clientService.deleteClient(mockClientId);
-    expect(result).toEqual(createErrorResponse(ErrorCategory.DATABASE, mockError.message, mockError));
+    expect(result).toEqual(errorResponse);
   });
 });

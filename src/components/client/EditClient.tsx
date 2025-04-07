@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ClientFormData } from '@/services/client';
@@ -13,7 +12,7 @@ import { ClientContactsTab } from '@/components/client/ClientContactsTab';
 import { ClientSitesTab } from '@/components/client/ClientSitesTab';
 import { ClientContractsTab } from '@/components/client/ClientContractsTab';
 import { ClientStatus } from '@/types/database-schema';
-import { isApiError } from '@/types/api-response';
+import { isApiError, isApiSuccess } from '@/types/api-response';
 import { ClientRecord } from '@/types/clients';
 
 const EditClient = () => {
@@ -45,7 +44,7 @@ const EditClient = () => {
   });
   
   const { useClientDetails } = useClients();
-  const { data: client, isLoading: isLoadingClient, refetch: refetchClient } = useClientDetails(clientId);
+  const { data: clientDetailsData, isLoading: isLoadingClient, refetch: refetchClient } = useClientDetails(clientId);
 
   useEffect(() => {
     if (clientId && !isLoaded) {
@@ -56,28 +55,28 @@ const EditClient = () => {
             return;
           }
 
-          const clientData = response.data as ClientRecord;
+          const typedClientData = response.data as ClientRecord;
           setClientData({
-            business_name: clientData.business_name,
-            trading_name: clientData.trading_name || '',
-            abn: clientData.abn || '',
-            acn: clientData.acn || '',
-            industry: clientData.industry || '',
-            status: clientData.status,
-            onboarding_date: clientData.onboarding_date || undefined,
-            source: clientData.source || '',
-            billing_cycle: clientData.billing_cycle || '',
-            payment_terms: clientData.payment_terms || '',
-            payment_method: clientData.payment_method || '',
-            tax_status: clientData.tax_status || '',
-            credit_limit: clientData.credit_limit || undefined,
+            business_name: typedClientData.business_name,
+            trading_name: typedClientData.trading_name || '',
+            abn: typedClientData.abn || '',
+            acn: typedClientData.acn || '',
+            industry: typedClientData.industry || '',
+            status: typedClientData.status,
+            onboarding_date: typedClientData.onboarding_date || undefined,
+            source: typedClientData.source || '',
+            billing_cycle: typedClientData.billing_cycle || '',
+            payment_terms: typedClientData.payment_terms || '',
+            payment_method: typedClientData.payment_method || '',
+            tax_status: typedClientData.tax_status || '',
+            credit_limit: typedClientData.credit_limit || undefined,
             // Load address fields - use null coalescing to handle potentially undefined fields
-            address_line_1: clientData.address_line_1 || '',
-            address_line_2: clientData.address_line_2 || '',
-            suburb: clientData.suburb || '',
-            state: clientData.state || '',
-            postcode: clientData.postcode || '',
-            country: clientData.country || 'Australia',
+            address_line_1: typedClientData.address_line_1 || '',
+            address_line_2: typedClientData.address_line_2 || '',
+            suburb: typedClientData.suburb || '',
+            state: typedClientData.state || '',
+            postcode: typedClientData.postcode || '',
+            country: typedClientData.country || 'Australia',
           });
           setIsLoaded(true);
         })
@@ -85,33 +84,33 @@ const EditClient = () => {
           console.error('Error loading client data:', error);
           toast.error(`Failed to load client data: ${error.message}`);
         });
-    } else if (client && !isLoaded) {
+    } else if (clientDetailsData && !isLoaded) {
       // Use client data from React Query if available
-      const clientData = client as ClientRecord;
+      const typedClientData = clientDetailsData as ClientRecord;
       setClientData({
-        business_name: clientData.business_name,
-        trading_name: clientData.trading_name || '',
-        abn: clientData.abn || '',
-        acn: clientData.acn || '',
-        industry: clientData.industry || '',
-        status: clientData.status,
-        onboarding_date: clientData.onboarding_date || undefined,
-        source: clientData.source || '',
-        billing_cycle: clientData.billing_cycle || '',
-        payment_terms: clientData.payment_terms || '',
-        payment_method: clientData.payment_method || '',
-        tax_status: clientData.tax_status || '',
-        credit_limit: clientData.credit_limit || undefined,
-        address_line_1: clientData.address_line_1 || '',
-        address_line_2: clientData.address_line_2 || '',
-        suburb: clientData.suburb || '',
-        state: clientData.state || '',
-        postcode: clientData.postcode || '',
-        country: clientData.country || 'Australia',
+        business_name: typedClientData.business_name,
+        trading_name: typedClientData.trading_name || '',
+        abn: typedClientData.abn || '',
+        acn: typedClientData.acn || '',
+        industry: typedClientData.industry || '',
+        status: typedClientData.status,
+        onboarding_date: typedClientData.onboarding_date || undefined,
+        source: typedClientData.source || '',
+        billing_cycle: typedClientData.billing_cycle || '',
+        payment_terms: typedClientData.payment_terms || '',
+        payment_method: typedClientData.payment_method || '',
+        tax_status: typedClientData.tax_status || '',
+        credit_limit: typedClientData.credit_limit || undefined,
+        address_line_1: typedClientData.address_line_1 || '',
+        address_line_2: typedClientData.address_line_2 || '',
+        suburb: typedClientData.suburb || '',
+        state: typedClientData.state || '',
+        postcode: typedClientData.postcode || '',
+        country: typedClientData.country || 'Australia',
       });
       setIsLoaded(true);
     }
-  }, [clientId, client, isLoaded]);
+  }, [clientId, clientDetailsData, isLoaded]);
 
   if (!isLoaded && isLoadingClient) {
     return (
@@ -169,7 +168,9 @@ const EditClient = () => {
       </div>
       
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{client?.business_name || clientData.business_name || 'Edit Client'}</h1>
+        <h1 className="text-2xl font-bold">
+          {clientDetailsData ? (clientDetailsData as ClientRecord).business_name : clientData.business_name || 'Edit Client'}
+        </h1>
       </div>
       
       <Tabs value={activeTab} onValueChange={setActiveTab}>

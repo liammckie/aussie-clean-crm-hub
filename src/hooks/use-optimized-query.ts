@@ -1,108 +1,100 @@
 
-import { useQuery, useMutation, QueryKey, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
-import { STALE_TIMES, CACHE_TIMES } from '@/utils/query/queryConfig';
-import { PerformanceTracker } from '@/utils/logging';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Cache } from '@/utils/caching/cache';
+import { useCallback } from 'react';
+import type { UseQueryOptions, QueryClient, QueryKey, MutationOptions } from '@tanstack/react-query';
+
+// Cache instance for query results
+const queryCache = new Cache({ namespace: 'query', ttl: 5 * 60 * 1000 }); // 5 min TTL
 
 /**
- * Hook for optimized data fetching with built-in performance tracking
+ * Optimized version of useQuery that implements caching
  */
-export function useOptimizedQuery<TQueryFnData = unknown, TError = Error, TData = TQueryFnData>(
+export function useOptimizedQuery<TData = unknown, TError = Error>(
   queryKey: QueryKey,
-  queryFn: () => Promise<TQueryFnData>,
-  options?: Omit<UseQueryOptions<TQueryFnData, TError, TData>, 'queryKey' | 'queryFn'> & {
-    /**
-     * Performance tracking options
-     */
-    performance?: {
-      /** Enable performance tracking */
-      track?: boolean;
-      /** Custom operation name for tracking */
-      operationName?: string;
-    };
-    /**
-     * Caching strategy options
-     */
-    caching?: {
-      /** Custom stale time */
-      staleTime?: number;
-      /** Custom cache time */
-      gcTime?: number;
-    }
-  }
+  queryFn: () => Promise<TData>,
+  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>
 ) {
-  const {
-    performance = { track: true },
-    caching = {},
-    ...queryOptions
-  } = options || {};
-  
-  const operationName = performance?.operationName || `query:${queryKey.join(':')}`;
-  const trackPerformance = performance?.track !== false;
-  
-  // Wrap query function with performance tracking
-  const wrappedQueryFn = async () => {
-    if (!trackPerformance) {
-      return queryFn();
+  const cacheKey = JSON.stringify(queryKey);
+
+  const optimizedQueryFn = useCallback(async () => {
+    // Check cache first
+    const cachedData = queryCache.get<TData>(cacheKey);
+    if (cachedData) {
+      return cachedData;
     }
-    
-    // Use PerformanceTracker.trackAsync
-    return PerformanceTracker.trackAsync(
-      operationName,
-      queryFn,
-      { queryKey }
-    );
-  };
-  
-  return useQuery({
+
+    // If not in cache, fetch and store
+    const data = await queryFn();
+    queryCache.set(cacheKey, data);
+    return data;
+  }, [cacheKey, queryFn]);
+
+  const queryInfo = useQuery<TData, TError>({
     queryKey,
-    queryFn: wrappedQueryFn,
-    staleTime: caching?.staleTime || STALE_TIMES.STANDARD,
-    gcTime: caching?.gcTime || CACHE_TIMES.STANDARD,
-    ...queryOptions
+    queryFn: optimizedQueryFn,
+    ...options,
+  });
+
+  // Manual cache invalidation method
+  const invalidateCache = useCallback(() => {
+    queryCache.delete(cacheKey);
+  }, [cacheKey]);
+
+  return {
+    ...queryInfo,
+    invalidateCache,
+  };
+}
+
+/**
+ * Helper to perform cache invalidation by key pattern
+ */
+export function invalidateQueryCache(pattern: string): void {
+  queryCache.deletePattern(pattern);
+}
+
+/**
+ * Helper to clear entire query cache
+ */
+export function clearQueryCache(): void {
+  queryCache.clear();
+}
+
+/**
+ * Optimized version of useMutation that automatically invalidates related queries
+ */
+export function useOptimizedMutation<TData = unknown, TError = Error, TVariables = void, TContext = unknown>(
+  mutationFn: (variables: TVariables) => Promise<TData>,
+  options?: Omit<MutationOptions<TData, TError, TVariables, TContext>, 'mutationFn'>
+) {
+  const queryClient = useQueryClient();
+
+  return useMutation<TData, TError, TVariables, TContext>({
+    mutationFn,
+    ...options,
+    onSuccess: (data, variables, context) => {
+      // Call original onSuccess if provided
+      if (options?.onSuccess) {
+        options.onSuccess(data, variables, context);
+      }
+    },
+    onError: (error, variables, context) => {
+      // Call original onError if provided
+      if (options?.onError) {
+        options.onError(error, variables, context);
+      }
+    }
   });
 }
 
 /**
- * Hook for optimized data mutations with built-in performance tracking
+ * Helper function to safely use the query client
  */
-export function useOptimizedMutation<TData = unknown, TError = Error, TVariables = void, TContext = unknown>(
-  mutationFn: (variables: TVariables) => Promise<TData>,
-  options?: Omit<UseMutationOptions<TData, TError, TVariables, TContext>, 'mutationFn'> & {
-    /**
-     * Performance tracking options
-     */
-    performance?: {
-      /** Enable performance tracking */
-      track?: boolean;
-      /** Custom operation name for tracking */
-      operationName?: string;
-    };
+export function withQueryClient(queryClient: QueryClient, fn: (qc: QueryClient) => void): void {
+  try {
+    fn(queryClient);
+  } catch (err) {
+    console.error('Error while using QueryClient:', err);
   }
-) {
-  const {
-    performance = { track: true },
-    ...mutationOptions
-  } = options || {};
-  
-  const operationName = performance?.operationName || 'mutation';
-  const trackPerformance = performance?.track !== false;
-  
-  // Wrap mutation function with performance tracking
-  const wrappedMutationFn = async (variables: TVariables) => {
-    if (!trackPerformance) {
-      return mutationFn(variables);
-    }
-    
-    // Use PerformanceTracker.trackAsync
-    return PerformanceTracker.trackAsync(
-      operationName,
-      () => mutationFn(variables),
-      { variables }
-    );
-  };
-  
-  return useMutation({
-    mutationFn: wrappedMutationFn,
-    ...mutationOptions
-  });
 }

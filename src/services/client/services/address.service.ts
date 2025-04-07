@@ -1,49 +1,71 @@
 
-import { clientApi } from '../api';
-import { AddressFormData, AddressApiResponse } from '../types';
-import { AppLogger } from '@/utils/logging';
-import { LogCategory } from '@/utils/logging/LogCategory';
+import { supabase } from '@/integrations/supabase/client';
+import { createSuccessResponse, createErrorResponse, ApiResponse } from '@/types/api-response';
+import { handleSupabaseError } from '@/utils/supabaseErrors';
+import { ClientAddressRecord } from '@/services/client/types';
+import { AddressApiResponse } from '@/services/client/types';
 
-/**
- * Address-related service functions
- */
-export const clientAddressService = {
-  /**
-   * Get addresses for a client
-   */
-  getClientAddresses: async (clientId: string): Promise<AddressApiResponse> => {
+export const addressService = {
+  fetchClientAddresses: async (clientId: string): Promise<ApiResponse<ClientAddressRecord[]>> => {
     try {
-      AppLogger.info(LogCategory.CLIENT, `Fetching addresses for client ${clientId}`);
-      return await clientApi.fetchClientAddresses(clientId);
+      const { data, error } = await supabase
+        .from('client_addresses')
+        .select('*')
+        .eq('client_id', clientId);
+
+      if (error) return handleSupabaseError(error);
+
+      return createSuccessResponse(data as ClientAddressRecord[], 'Client addresses retrieved successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.CLIENT, `Error fetching addresses for client ${clientId}`, { error });
-      throw error;
+      return handleSupabaseError(error);
     }
   },
 
-  /**
-   * Create a new client address
-   */
-  createClientAddress: async (addressData: AddressFormData): Promise<AddressApiResponse> => {
+  createClientAddress: async (addressData: Partial<ClientAddressRecord>): Promise<AddressApiResponse> => {
     try {
-      AppLogger.info(LogCategory.CLIENT, `Creating address for client ${addressData.client_id}`);
-      return await clientApi.createClientAddress(addressData);
+      const { data, error } = await supabase
+        .from('client_addresses')
+        .insert([addressData])
+        .select()
+        .single();
+
+      if (error) return handleSupabaseError(error);
+
+      return createSuccessResponse(data as ClientAddressRecord, 'Client address created successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.CLIENT, `Error creating address for client ${addressData.client_id}`, { error });
-      throw error;
+      return handleSupabaseError(error);
     }
   },
 
-  /**
-   * Delete a client address
-   */
-  deleteClientAddress: async (addressId: string): Promise<any> => {
+  updateClientAddress: async (addressId: string, addressData: Partial<ClientAddressRecord>): Promise<AddressApiResponse> => {
     try {
-      AppLogger.info(LogCategory.CLIENT, `Deleting address ${addressId}`);
-      return await clientApi.deleteClientAddress(addressId);
+      const { data, error } = await supabase
+        .from('client_addresses')
+        .update(addressData)
+        .eq('id', addressId)
+        .select()
+        .single();
+
+      if (error) return handleSupabaseError(error);
+
+      return createSuccessResponse(data as ClientAddressRecord, 'Client address updated successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.CLIENT, `Error deleting address ${addressId}`, { error });
-      throw error;
+      return handleSupabaseError(error);
+    }
+  },
+
+  deleteClientAddress: async (addressId: string): Promise<ApiResponse<boolean>> => {
+    try {
+      const { error } = await supabase
+        .from('client_addresses')
+        .delete()
+        .eq('id', addressId);
+
+      if (error) return handleSupabaseError(error);
+
+      return createSuccessResponse(true, 'Client address deleted successfully');
+    } catch (error) {
+      return handleSupabaseError(error);
     }
   }
 };

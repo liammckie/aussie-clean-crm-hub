@@ -25,7 +25,8 @@ import { toast } from 'sonner';
 
 const Contracts = () => {
   const navigate = useNavigate();
-  const { data: contractsData, isLoading, error, refetch } = useContracts();
+  const contractsHook = useContracts();
+  const { contracts: contractsData, isLoadingContracts: isLoading, contractsError: error, refetchContracts: refetch } = contractsHook;
   const [contracts, setContracts] = useState<ContractRecord[]>([]);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ const Contracts = () => {
     { title: "Value", field: "contract_value", sorter: "number", formatter: "money" }
   ], []);
 
-  const handleRowClick = (e: React.MouseEvent<HTMLElement>, row: any) => {
+  const handleRowClick = (_e: Event, row: any) => {
     navigate(`/contracts/${row.getData().id}`);
   };
 
@@ -57,7 +58,6 @@ const Contracts = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumb Navigation */}
       <Breadcrumb className="my-4">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -92,7 +92,7 @@ const Contracts = () => {
           {contracts && contracts.length > 0 ? (
             <TabulatorTable 
               columns={columns}
-              data={contracts} // Changed from "contracts" prop to "data" prop
+              data={contracts}
               onRowClick={handleRowClick}
             />
           ) : (
