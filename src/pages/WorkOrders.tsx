@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { WorkOrderActionsDropdown } from '@/components/work-orders/WorkOrderActionsDropdown';
 import { WorkOrderHeaderActions } from '@/components/work-orders/WorkOrderHeaderActions';
+import { WorkOrderFilters } from '@/components/work-orders/WorkOrderFilters';
 
 // Dummy data for work orders
 const dummyWorkOrders = [
@@ -83,81 +84,6 @@ const dummyWorkOrders = [
   },
 ];
 
-// Work Order Filter component
-interface WorkOrderFiltersProps {
-  onFilterChange: (filters: Record<string, any>) => void;
-  initialFilters: Record<string, any>;
-}
-
-const WorkOrderFilters: React.FC<WorkOrderFiltersProps> = ({ onFilterChange, initialFilters }) => {
-  const [filters, setFilters] = useState(initialFilters);
-  
-  const handleFilterChange = (key: string, value: any) => {
-    const newFilters = { ...filters, [key]: value };
-    setFilters(newFilters);
-    onFilterChange(newFilters);
-  };
-  
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Filters</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div>
-          <h4 className="text-sm font-medium mb-2">Status</h4>
-          <div className="flex flex-wrap gap-2">
-            {['all', 'pending', 'in_progress', 'completed', 'cancelled'].map(status => (
-              <Button
-                key={status}
-                variant={filters.status === status ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleFilterChange('status', status)}
-              >
-                {status === 'all' ? 'All' : status.replace('_', ' ')}
-              </Button>
-            ))}
-          </div>
-        </div>
-        
-        <div>
-          <h4 className="text-sm font-medium mb-2">Priority</h4>
-          <div className="flex flex-wrap gap-2">
-            {['all', 'low', 'medium', 'high'].map(priority => (
-              <Button
-                key={priority}
-                variant={filters.priority === priority ? "default" : "outline"}
-                size="sm"
-                onClick={() => handleFilterChange('priority', priority)}
-              >
-                {priority === 'all' ? 'All' : priority}
-              </Button>
-            ))}
-          </div>
-        </div>
-        
-        <div>
-          <h4 className="text-sm font-medium mb-2">Date Range</h4>
-          <div className="grid grid-cols-2 gap-2">
-            <div>
-              <label className="text-xs">From</label>
-              <Input type="date" value={filters.dateFrom || ''} onChange={(e) => handleFilterChange('dateFrom', e.target.value)} />
-            </div>
-            <div>
-              <label className="text-xs">To</label>
-              <Input type="date" value={filters.dateTo || ''} onChange={(e) => handleFilterChange('dateTo', e.target.value)} />
-            </div>
-          </div>
-        </div>
-        
-        <Button variant="outline" className="w-full" onClick={() => onFilterChange({ status: 'all', priority: 'all', dateFrom: '', dateTo: '' })}>
-          Reset Filters
-        </Button>
-      </CardContent>
-    </Card>
-  );
-};
-
 // Function to get the status badge color
 const getStatusBadgeProps = (status: string) => {
   switch (status) {
@@ -205,8 +131,8 @@ const WorkOrders = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
-    status: 'all',
-    priority: 'all',
+    status: '',
+    priority: '',
     dateFrom: '',
     dateTo: ''
   });
@@ -218,9 +144,9 @@ const WorkOrders = () => {
       workOrder.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workOrder.site.toLowerCase().includes(searchQuery.toLowerCase());
     
-    const statusMatch = activeFilters.status === 'all' || workOrder.status === activeFilters.status;
+    const statusMatch = activeFilters.status === '' || workOrder.status === activeFilters.status;
     
-    const priorityMatch = activeFilters.priority === 'all' || workOrder.priority === activeFilters.priority;
+    const priorityMatch = activeFilters.priority === '' || workOrder.priority === activeFilters.priority;
     
     let dateMatch = true;
     if (activeFilters.dateFrom) {
@@ -265,8 +191,9 @@ const WorkOrders = () => {
         {showFilters && (
           <div className="lg:hidden">
             <WorkOrderFilters
-              onFilterChange={setActiveFilters}
+              onApplyFilters={setActiveFilters}
               initialFilters={activeFilters}
+              onCancel={() => setShowFilters(false)}
             />
           </div>
         )}
@@ -274,8 +201,9 @@ const WorkOrders = () => {
         {/* Filters sidebar - always visible on larger screens */}
         <div className="hidden lg:block">
           <WorkOrderFilters
-            onFilterChange={setActiveFilters}
+            onApplyFilters={setActiveFilters}
             initialFilters={activeFilters}
+            onCancel={() => {}}
           />
         </div>
 
@@ -301,7 +229,7 @@ const WorkOrders = () => {
                   <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <CardTitle className="mb-2">No work orders found</CardTitle>
                   <CardDescription className="mb-4">
-                    {searchQuery || activeFilters.status !== 'all' || activeFilters.priority !== 'all'
+                    {searchQuery || activeFilters.status !== '' || activeFilters.priority !== ''
                       ? "No work orders match your search criteria"
                       : "You haven't created any work orders yet"}
                   </CardDescription>

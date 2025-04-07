@@ -1,58 +1,60 @@
 
-import { ApiResponse, createSuccessResponse, createErrorResponse } from "@/types/api-response";
-import { fetchSiteById, fetchSites, createSite, updateSite, deleteSite, fetchClientSites } from "./api";
-import { SiteInsertData, SiteUpdateData, SiteData, SiteApiResponse, SitesApiResponse } from "./types";
+import { SiteCreateData, SiteData, SiteUpdateData } from './types';
+import { siteApi } from './api';
+import { createErrorResponse, createSuccessResponse } from '@/types/api-response';
+import { ApiResponse } from '@/types/api-response';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
-export const getSites = async (): Promise<ApiResponse<SiteData[]>> => {
+export async function getSites(): Promise<ApiResponse<SiteData[]>> {
   try {
-    const response = await fetchSites();
-    return createSuccessResponse(response.data, response.message);
-  } catch (error: any) {
-    return createErrorResponse('server', error.message);
+    const sites = await siteApi.fetchAllSites();
+    return createSuccessResponse(sites, 'Sites retrieved successfully');
+  } catch (error) {
+    return createErrorResponse(ErrorCategory.SERVER, 'Failed to retrieve sites', { error });
   }
-};
+}
 
-export const getSiteById = async (id: string): Promise<ApiResponse<SiteData>> => {
+export async function getSiteById(siteId: string): Promise<ApiResponse<SiteData>> {
   try {
-    const response = await fetchSiteById(id);
-    return createSuccessResponse(response.data, response.message);
-  } catch (error: any) {
-    return createErrorResponse('server', error.message);
+    const site = await siteApi.fetchSiteById(siteId);
+    return createSuccessResponse(site, 'Site retrieved successfully');
+  } catch (error) {
+    return createErrorResponse(ErrorCategory.SERVER, 'Failed to retrieve site', { error });
   }
-};
+}
 
-export const addSite = async (site: SiteInsertData): Promise<ApiResponse<SiteData>> => {
+export async function getClientSites(clientId: string): Promise<ApiResponse<SiteData[]>> {
   try {
-    const response = await createSite(site);
-    return createSuccessResponse(response.data, response.message);
-  } catch (error: any) {
-    return createErrorResponse('server', error.message);
+    const sites = await siteApi.fetchClientSites(clientId);
+    return createSuccessResponse(sites, 'Client sites retrieved successfully');
+  } catch (error) {
+    return createErrorResponse(ErrorCategory.SERVER, 'Failed to retrieve client sites', { error });
   }
-};
+}
 
-export const editSite = async (id: string, site: SiteUpdateData): Promise<ApiResponse<SiteData>> => {
+export async function createSite(siteData: SiteCreateData): Promise<ApiResponse<SiteData>> {
   try {
-    const response = await updateSite(id, site);
-    return createSuccessResponse(response.data, response.message);
-  } catch (error: any) {
-    return createErrorResponse('server', error.message);
+    const site = await siteApi.createSite(siteData);
+    return createSuccessResponse(site, 'Site created successfully');
+  } catch (error) {
+    return createErrorResponse(ErrorCategory.SERVER, 'Failed to create site', { error });
   }
-};
+}
 
-export const removeSite = async (id: string): Promise<ApiResponse<void>> => {
+export async function updateSite(siteId: string, siteData: SiteUpdateData): Promise<ApiResponse<SiteData>> {
   try {
-    const response = await deleteSite(id);
-    return createSuccessResponse(undefined, response.message);
-  } catch (error: any) {
-    return createErrorResponse('server', error.message);
+    const site = await siteApi.updateSite(siteId, siteData);
+    return createSuccessResponse(site, 'Site updated successfully');
+  } catch (error) {
+    return createErrorResponse(ErrorCategory.SERVER, 'Failed to update site', { error });
   }
-};
+}
 
-export const getClientSites = async (clientId: string): Promise<ApiResponse<SiteData[]>> => {
+export async function deleteSite(siteId: string): Promise<ApiResponse<boolean>> {
   try {
-    const response = await fetchClientSites(clientId);
-    return createSuccessResponse(response.data, response.message);
-  } catch (error: any) {
-    return createErrorResponse('server', error.message);
+    await siteApi.deleteSite(siteId);
+    return createSuccessResponse(true, 'Site deleted successfully');
+  } catch (error) {
+    return createErrorResponse(ErrorCategory.SERVER, 'Failed to delete site', { error });
   }
-};
+}
