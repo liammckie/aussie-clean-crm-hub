@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthRoutes } from './route-groups/AuthRoutes';
@@ -28,21 +28,30 @@ export function AppRoutes() {
   AppLogger.debug(LogCategory.UI, "Rendering AppRoutes");
 
   return (
-    <Routes>
-      {/* Ensure we have a default route */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      
-      {/* Auth routes come first */}
-      <Route path="/auth/*" element={<AuthRoutes />} />
-      
-      {/* Feature routes */}
-      <Route path="/clients/*" element={<ClientRoutes />} />
-      <Route path="/contracts/*" element={<ContractRoutes />} />
-      <Route path="/suppliers/*" element={<SupplierRoutes />} />
-      <Route path="/work-orders/*" element={<WorkOrderRoutes />} />
-      
-      {/* Dashboard and other routes */}
-      <Route path="/*" element={<MiscRoutes />} />
-    </Routes>
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-pulse flex flex-col items-center gap-2">
+          <div className="h-8 w-8 rounded-full bg-slate-700"></div>
+          <div className="h-4 w-32 rounded bg-slate-700"></div>
+        </div>
+      </div>
+    }>
+      <Routes>
+        {/* Ensure we have a default route */}
+        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        
+        {/* Auth routes come first */}
+        <Route path="/auth/*" element={<AuthRoutes />} />
+        
+        {/* Feature routes */}
+        <Route path="/clients/*" element={<ClientRoutes />} />
+        <Route path="/contracts/*" element={<ContractRoutes />} />
+        <Route path="/suppliers/*" element={<SupplierRoutes />} />
+        <Route path="/work-orders/*" element={<WorkOrderRoutes />} />
+        
+        {/* Dashboard and other routes */}
+        <Route path="/*" element={<MiscRoutes />} />
+      </Routes>
+    </Suspense>
   );
 }

@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useTransition } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { 
@@ -27,9 +27,11 @@ import LoadingState from "@/components/clients/LoadingState";
 import ErrorState from "@/components/clients/ErrorState";
 import { getStatusColor, formatDate } from "@/components/clients/utils/StatusBadgeUtil";
 import { ClientRecord } from "@/types/clients";
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [isPending, startTransition] = useTransition();
   const { clients, isLoadingClients, clientsError, refetchClients } = useClients();
   const [filteredClients, setFilteredClients] = useState<ClientRecord[]>([]);
   const [activeStatusFilter, setActiveStatusFilter] = useState<string | null>(null);
@@ -38,43 +40,51 @@ const Clients = () => {
   const filterClients = () => {
     if (!clients) return;
     
-    let filtered = [...(clients as ClientRecord[])];
-    
-    // Apply search filter
-    if (searchTerm) {
-      const search = searchTerm.toLowerCase();
-      filtered = filtered.filter(
-        client => 
-          client.business_name?.toLowerCase().includes(search) ||
-          client.trading_name?.toLowerCase().includes(search) ||
-          client.abn?.includes(search) ||
-          client.industry?.toLowerCase().includes(search) ||
-          // Address fields for search
-          client.address_line_1?.toLowerCase().includes(search) ||
-          client.address_line_2?.toLowerCase().includes(search) ||
-          client.suburb?.toLowerCase().includes(search) ||
-          client.state?.toLowerCase().includes(search) ||
-          client.postcode?.includes(search) ||
-          // Client address relation search
-          client.client_addresses?.some(addr => 
-            addr.street?.toLowerCase().includes(search) || 
-            addr.suburb?.toLowerCase().includes(search) ||
-            addr.state?.toLowerCase().includes(search) ||
-            addr.postcode?.includes(search)
-          )
-      );
-    }
-    
-    // Apply status filter
-    if (activeStatusFilter) {
-      filtered = filtered.filter(client => client.status === activeStatusFilter);
-    }
-    
-    setFilteredClients(filtered);
+    startTransition(() => {
+      let filtered = [...(clients as ClientRecord[])];
+      
+      // Apply search filter
+      if (searchTerm) {
+        const search = searchTerm.toLowerCase();
+        filtered = filtered.filter(
+          client => 
+            client.business_name?.toLowerCase().includes(search) ||
+            client.trading_name?.toLowerCase().includes(search) ||
+            client.abn?.includes(search) ||
+            client.industry?.toLowerCase().includes(search) ||
+            // Address fields for search
+            client.address_line_1?.toLowerCase().includes(search) ||
+            client.address_line_2?.toLowerCase().includes(search) ||
+            client.suburb?.toLowerCase().includes(search) ||
+            client.state?.toLowerCase().includes(search) ||
+            client.postcode?.includes(search) ||
+            // Client address relation search
+            client.client_addresses?.some(addr => 
+              addr.street?.toLowerCase().includes(search) || 
+              addr.suburb?.toLowerCase().includes(search) ||
+              addr.state?.toLowerCase().includes(search) ||
+              addr.postcode?.includes(search)
+            )
+        );
+      }
+      
+      // Apply status filter
+      if (activeStatusFilter) {
+        filtered = filtered.filter(client => client.status === activeStatusFilter);
+      }
+      
+      setFilteredClients(filtered);
+    });
   };
 
   // Update filters when clients data or filters change
   useEffect(() => {
+    AppLogger.debug(LogCategory.UI, "Updating client filters", { 
+      clientsCount: clients?.length || 0,
+      searchTerm,
+      activeStatusFilter
+    });
+    
     if (clients) {
       filterClients();
     }
@@ -96,6 +106,17 @@ const Clients = () => {
     setActiveStatusFilter(null);
   };
 
+  // Process clients for display - wrapped in transition
+  const displayClients = React.useMemo(() => {
+    if (filteredClients.length === 0) return [];
+    
+    return filteredClients.map(client => ({
+      ...client,
+      displayAddress: getClientPrimaryAddress(client)
+    }));
+  }, [filteredClients]);
+
+  // Get client address helper function
   const getClientPrimaryAddress = (client: any) => {
     if (client.address_line_1) {
       let address = client.address_line_1;
@@ -114,17 +135,12 @@ const Clients = () => {
     return "No address";
   };
 
-  // Process clients to include address information for display
-  const processClientsForDisplay = (clients: any[]) => {
-    return clients.map(client => ({
-      ...client,
-      displayAddress: getClientPrimaryAddress(client)
-    }));
+  // Handle safe refetching
+  const handleRefetch = () => {
+    startTransition(() => {
+      refetchClients();
+    });
   };
-
-  // Process filtered clients for display
-  const displayClients = filteredClients.length > 0 ? 
-    processClientsForDisplay(filteredClients) : [];
 
   return (
     <div className="container mx-auto px-0 max-w-full">
@@ -166,17 +182,17 @@ const Clients = () => {
             activeStatusFilter={activeStatusFilter}
             handleSearch={handleSearch}
             handleStatusFilter={handleStatusFilter}
-            refetchClients={refetchClients}
+            refetchClients={handleRefetch}
           />
 
           {/* Loading State */}
-          {isLoadingClients && <LoadingState />}
+          {(isLoadingClients || isPending) && <LoadingState />}
 
           {/* Error State */}
-          {clientsError && <ErrorState error={clientsError} refetch={refetchClients} />}
+          {clientsError && !isPending && <ErrorState error={clientsError} refetch={handleRefetch} />}
 
           {/* Client Table */}
-          {!isLoadingClients && !clientsError && displayClients.length > 0 ? (
+          {!isLoadingClients && !clientsError && !isPending && displayClients.length > 0 ? (
             <div>
               {/* Desktop View */}
               <div className="hidden sm:block">
@@ -196,7 +212,7 @@ const Clients = () => {
                 />
               </div>
             </div>
-          ) : !isLoadingClients && !clientsError ? (
+          ) : !isLoadingClients && !clientsError && !isPending ? (
             <EmptyState clearFilters={clearFilters} />
           ) : null}
         </CardContent>

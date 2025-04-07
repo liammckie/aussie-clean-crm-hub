@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import {
@@ -9,6 +9,7 @@ import {
   EditClient
 } from '../lazyRoutes';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { LoadingState } from '@/components/clients/LoadingState';
 
 export const ClientRoutes = () => {
   // Log when these routes are being rendered
@@ -19,22 +20,30 @@ export const ClientRoutes = () => {
       {/* Client Routes */}
       <Route path="/" element={
         <ProtectedRoute>
-          <Clients />
+          <Suspense fallback={<LoadingState />}>
+            <Clients />
+          </Suspense>
         </ProtectedRoute>
       } />
       <Route path="new" element={
         <ProtectedRoute>
-          <NewClient />
+          <Suspense fallback={<LoadingState />}>
+            <NewClient />
+          </Suspense>
         </ProtectedRoute>
       } />
       <Route path=":clientId" element={
         <ProtectedRoute>
-          <ClientDetail />
+          <Suspense fallback={<LoadingState />}>
+            <ClientDetail />
+          </Suspense>
         </ProtectedRoute>
       } />
       <Route path="edit/:clientId" element={
         <ProtectedRoute>
-          <EditClient />
+          <Suspense fallback={<LoadingState />}>
+            <EditClient />
+          </Suspense>
         </ProtectedRoute>
       } />
     </Routes>

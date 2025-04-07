@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+
+import React, { useEffect, useState, Suspense, useTransition } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ClientFormData } from '@/services/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -15,11 +16,13 @@ import { ClientStatus } from '@/types/database-schema';
 import { isApiError } from '@/types/api-response';
 import { ClientRecord } from '@/types/clients';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import LoadingState from '@/components/clients/LoadingState';
 
 const EditClient = () => {
   const { clientId } = useParams<{ clientId: string }>();
   const navigate = useNavigate();
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [activeTab, setActiveTab] = useState('details');
   const [clientData, setClientData] = useState<ClientFormData>({
     business_name: '',
@@ -51,87 +54,85 @@ const EditClient = () => {
     if (clientId && !isLoaded) {
       AppLogger.info(LogCategory.UI, `Loading client details for ID: ${clientId}`);
       
-      clientService.getClientById(clientId)
-        .then(response => {
-          if (isApiError(response)) {
-            AppLogger.error(LogCategory.API, `Failed to load client data: ${response.message}`, { 
-              clientId, 
-              errorCategory: response.category 
-            });
-            toast.error(`Failed to load client data: ${response.message}`);
-            return;
-          }
+      startTransition(() => {
+        clientService.getClientById(clientId)
+          .then(response => {
+            if (isApiError(response)) {
+              AppLogger.error(LogCategory.API, `Failed to load client data: ${response.message}`, { 
+                clientId, 
+                errorCategory: response.category 
+              });
+              toast.error(`Failed to load client data: ${response.message}`);
+              return;
+            }
 
-          const typedClientData = response.data as ClientRecord;
-          AppLogger.info(LogCategory.DATA, `Client data loaded successfully`, { clientId });
-          
-          setClientData({
-            business_name: typedClientData.business_name,
-            trading_name: typedClientData.trading_name || '',
-            abn: typedClientData.abn || '',
-            acn: typedClientData.acn || '',
-            industry: typedClientData.industry || '',
-            status: typedClientData.status || ClientStatus.PROSPECT,
-            onboarding_date: typedClientData.onboarding_date || undefined,
-            source: typedClientData.source || '',
-            billing_cycle: typedClientData.billing_cycle || '',
-            payment_terms: typedClientData.payment_terms || '',
-            payment_method: typedClientData.payment_method || '',
-            tax_status: typedClientData.tax_status || '',
-            credit_limit: typedClientData.credit_limit || undefined,
-            // Load address fields - use null coalescing to handle potentially undefined fields
-            address_line_1: typedClientData.address_line_1 || '',
-            address_line_2: typedClientData.address_line_2 || '',
-            suburb: typedClientData.suburb || '',
-            state: typedClientData.state || '',
-            postcode: typedClientData.postcode || '',
-            country: typedClientData.country || 'Australia',
+            const typedClientData = response.data as ClientRecord;
+            AppLogger.info(LogCategory.DATA, `Client data loaded successfully`, { clientId });
+            
+            setClientData({
+              business_name: typedClientData.business_name,
+              trading_name: typedClientData.trading_name || '',
+              abn: typedClientData.abn || '',
+              acn: typedClientData.acn || '',
+              industry: typedClientData.industry || '',
+              status: typedClientData.status || ClientStatus.PROSPECT,
+              onboarding_date: typedClientData.onboarding_date || undefined,
+              source: typedClientData.source || '',
+              billing_cycle: typedClientData.billing_cycle || '',
+              payment_terms: typedClientData.payment_terms || '',
+              payment_method: typedClientData.payment_method || '',
+              tax_status: typedClientData.tax_status || '',
+              credit_limit: typedClientData.credit_limit || undefined,
+              // Load address fields - use null coalescing to handle potentially undefined fields
+              address_line_1: typedClientData.address_line_1 || '',
+              address_line_2: typedClientData.address_line_2 || '',
+              suburb: typedClientData.suburb || '',
+              state: typedClientData.state || '',
+              postcode: typedClientData.postcode || '',
+              country: typedClientData.country || 'Australia',
+            });
+            setIsLoaded(true);
+          })
+          .catch(error => {
+            AppLogger.error(LogCategory.ERROR, `Error loading client data: ${error.message}`, { clientId, error });
+            console.error('Error loading client data:', error);
+            toast.error(`Failed to load client data: ${error.message}`);
           });
-          setIsLoaded(true);
-        })
-        .catch(error => {
-          AppLogger.error(LogCategory.ERROR, `Error loading client data: ${error.message}`, { clientId, error });
-          console.error('Error loading client data:', error);
-          toast.error(`Failed to load client data: ${error.message}`);
-        });
+      });
     } else if (clientDetailsData && !isLoaded) {
       // Use client data from React Query if available
-      AppLogger.info(LogCategory.DATA, `Using client data from React Query cache`, { clientId });
-      
-      const typedClientData = clientDetailsData as ClientRecord;
-      setClientData({
-        business_name: typedClientData.business_name,
-        trading_name: typedClientData.trading_name || '',
-        abn: typedClientData.abn || '',
-        acn: typedClientData.acn || '',
-        industry: typedClientData.industry || '',
-        status: typedClientData.status || ClientStatus.PROSPECT,
-        onboarding_date: typedClientData.onboarding_date || undefined,
-        source: typedClientData.source || '',
-        billing_cycle: typedClientData.billing_cycle || '',
-        payment_terms: typedClientData.payment_terms || '',
-        payment_method: typedClientData.payment_method || '',
-        tax_status: typedClientData.tax_status || '',
-        credit_limit: typedClientData.credit_limit || undefined,
-        address_line_1: typedClientData.address_line_1 || '',
-        address_line_2: typedClientData.address_line_2 || '',
-        suburb: typedClientData.suburb || '',
-        state: typedClientData.state || '',
-        postcode: typedClientData.postcode || '',
-        country: typedClientData.country || 'Australia',
+      startTransition(() => {
+        AppLogger.info(LogCategory.DATA, `Using client data from React Query cache`, { clientId });
+        
+        const typedClientData = clientDetailsData as ClientRecord;
+        setClientData({
+          business_name: typedClientData.business_name,
+          trading_name: typedClientData.trading_name || '',
+          abn: typedClientData.abn || '',
+          acn: typedClientData.acn || '',
+          industry: typedClientData.industry || '',
+          status: typedClientData.status || ClientStatus.PROSPECT,
+          onboarding_date: typedClientData.onboarding_date || undefined,
+          source: typedClientData.source || '',
+          billing_cycle: typedClientData.billing_cycle || '',
+          payment_terms: typedClientData.payment_terms || '',
+          payment_method: typedClientData.payment_method || '',
+          tax_status: typedClientData.tax_status || '',
+          credit_limit: typedClientData.credit_limit || undefined,
+          address_line_1: typedClientData.address_line_1 || '',
+          address_line_2: typedClientData.address_line_2 || '',
+          suburb: typedClientData.suburb || '',
+          state: typedClientData.state || '',
+          postcode: typedClientData.postcode || '',
+          country: typedClientData.country || 'Australia',
+        });
+        setIsLoaded(true);
       });
-      setIsLoaded(true);
     }
   }, [clientId, clientDetailsData, isLoaded]);
 
-  if (!isLoaded && isLoadingClient) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-        </div>
-      </div>
-    );
+  if (!isLoaded && (isLoadingClient || isPending)) {
+    return <LoadingState />;
   }
 
   if (!clientId) {
@@ -205,28 +206,30 @@ const EditClient = () => {
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="details">
-          <ClientDetailsTab 
-            clientId={clientId} 
-            initialData={clientData}
-            onSaveSuccess={() => navigate('/clients')} 
-          />
-        </TabsContent>
-        
-        <TabsContent value="contacts">
-          <ClientContactsTab 
-            clientId={clientId} 
-            onContactAdded={() => refetchClient()} 
-          />
-        </TabsContent>
-        
-        <TabsContent value="sites">
-          <ClientSitesTab clientId={clientId} />
-        </TabsContent>
-        
-        <TabsContent value="contracts">
-          <ClientContractsTab clientId={clientId} />
-        </TabsContent>
+        <Suspense fallback={<LoadingState />}>
+          <TabsContent value="details">
+            <ClientDetailsTab 
+              clientId={clientId} 
+              initialData={clientData}
+              onSaveSuccess={() => navigate('/clients')} 
+            />
+          </TabsContent>
+          
+          <TabsContent value="contacts">
+            <ClientContactsTab 
+              clientId={clientId} 
+              onContactAdded={() => refetchClient()} 
+            />
+          </TabsContent>
+          
+          <TabsContent value="sites">
+            <ClientSitesTab clientId={clientId} />
+          </TabsContent>
+          
+          <TabsContent value="contracts">
+            <ClientContractsTab clientId={clientId} />
+          </TabsContent>
+        </Suspense>
       </Tabs>
     </div>
   );

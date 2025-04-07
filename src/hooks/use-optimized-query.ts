@@ -1,100 +1,46 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Cache } from '@/utils/caching/cache';
-import { useCallback } from 'react';
-import type { UseQueryOptions, QueryClient, QueryKey, MutationOptions } from '@tanstack/react-query';
-
-// Create a cache instance for query results
-const queryCache = new Cache();
+import { useQuery, UseQueryOptions, UseQueryResult } from '@tanstack/react-query';
+import { startTransition } from 'react';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 /**
- * Optimized version of useQuery that implements caching
+ * Wrapper around useQuery that optimizes the query with default settings
+ * and error handling, and uses React's startTransition to avoid suspense issues
  */
-export function useOptimizedQuery<TData = unknown, TError = Error>(
-  queryKey: QueryKey,
+export function useOptimizedQuery<TData, TError = Error>(
+  queryKey: readonly unknown[],
   queryFn: () => Promise<TData>,
-  options?: Omit<UseQueryOptions<TData, TError>, 'queryKey' | 'queryFn'>
-) {
-  const cacheKey = JSON.stringify(queryKey);
-
-  const optimizedQueryFn = useCallback(async () => {
-    // Check cache first
-    const cachedData = queryCache.get<TData>(cacheKey);
-    if (cachedData) {
-      return cachedData;
-    }
-
-    // If not in cache, fetch and store
-    const data = await queryFn();
-    queryCache.set(cacheKey, data);
-    return data;
-  }, [cacheKey, queryFn]);
-
-  const queryInfo = useQuery<TData, TError>({
+  options?: Omit<UseQueryOptions<TData, TError, TData, readonly unknown[]>, 'queryKey' | 'queryFn'>
+): UseQueryResult<TData, TError> {
+  return useQuery({
+    // Base properties
     queryKey,
-    queryFn: optimizedQueryFn,
-    ...options,
-  });
-
-  // Manual cache invalidation method
-  const invalidateCache = useCallback(() => {
-    queryCache.delete(cacheKey);
-  }, [cacheKey]);
-
-  return {
-    ...queryInfo,
-    invalidateCache,
-  };
-}
-
-/**
- * Helper to perform cache invalidation by key pattern
- */
-export function invalidateQueryCache(pattern: string): void {
-  queryCache.deletePattern(pattern);
-}
-
-/**
- * Helper to clear entire query cache
- */
-export function clearQueryCache(): void {
-  queryCache.clear();
-}
-
-/**
- * Optimized version of useMutation that automatically invalidates related queries
- */
-export function useOptimizedMutation<TData = unknown, TError = Error, TVariables = void, TContext = unknown>(
-  mutationFn: (variables: TVariables) => Promise<TData>,
-  options?: Omit<MutationOptions<TData, TError, TVariables, TContext>, 'mutationFn'>
-) {
-  const queryClient = useQueryClient();
-
-  return useMutation<TData, TError, TVariables, TContext>({
-    mutationFn,
-    ...options,
-    onSuccess: (data, variables, context) => {
-      // Call original onSuccess if provided
-      if (options?.onSuccess) {
-        options.onSuccess(data, variables, context);
-      }
+    queryFn: () => {
+      return new Promise<TData>((resolve, reject) => {
+        // Use startTransition to avoid suspense errors with synchronous state updates
+        startTransition(() => {
+          queryFn()
+            .then((data) => {
+              AppLogger.debug(LogCategory.DATA, `Query successful for key: ${queryKey[0]}`);
+              resolve(data);
+            })
+            .catch((error) => {
+              AppLogger.error(LogCategory.DATA, `Query error for key: ${queryKey[0]}`, { error });
+              reject(error);
+            });
+        });
+      });
     },
-    onError: (error, variables, context) => {
-      // Call original onError if provided
-      if (options?.onError) {
-        options.onError(error, variables, context);
-      }
-    }
+    
+    // Default options for all queries
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 15, // 15 minutes
+    retry: 1,
+    
+    // Advanced options with defaults
+    refetchOnWindowFocus: false,
+    
+    // Spread the user options at the end to allow overriding defaults
+    ...options,
   });
-}
-
-/**
- * Helper function to safely use the query client
- */
-export function withQueryClient(queryClient: QueryClient, fn: (qc: QueryClient) => void): void {
-  try {
-    fn(queryClient);
-  } catch (err) {
-    console.error('Error while using QueryClient:', err);
-  }
 }
