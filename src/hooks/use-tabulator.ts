@@ -1,7 +1,7 @@
 
 import { useState, useRef, useCallback } from 'react';
 import Tabulator from 'tabulator-tables';
-import { ColumnDefinition, TabulatorOptions } from '@/types/tabulator-types';
+import { ColumnDefinition, TabulatorOptions, TabulatorColumn } from '@/types/tabulator-types';
 
 export function useTabulator() {
   const [tabulator, setTabulator] = useState<Tabulator | null>(null);
@@ -24,7 +24,8 @@ export function useTabulator() {
     placeholder: "No data available",
     initialSort: [
       { column: "name", dir: "asc" }
-    ]
+    ],
+    reactiveData: true
   };
   
   // Initialize tabulator

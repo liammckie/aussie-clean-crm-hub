@@ -1,103 +1,96 @@
 
-import { ErrorCategory } from '@/utils/logging/error-types';
-import { 
-  AddressType,
-  ContactType,
-  PreferredCommunication,
-} from '@/types/form-types';
+import { ApiResponse } from '@/types/api-response';
+import { EntityType, AddressType, ContactType } from '@/services/client/types';
 
-export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
+export { EntityType, AddressType, ContactType };
 
-export interface UnifiedAddressRecord {
-  id: string;
-  entity_type: EntityType;
+/**
+ * Unified address form data structure
+ */
+export interface UnifiedAddressFormData {
   entity_id: string;
-  name?: string;
-  address_line_1: string;
-  address_line_2?: string;
+  entity_type: EntityType;
+  address_type: AddressType;
+  street: string;
   suburb: string;
   state: string;
   postcode: string;
   country: string;
-  address_type: AddressType;
-  is_primary: boolean;
-  latitude?: number;
-  longitude?: number;
-  created_at?: string;
-  updated_at?: string;
+  is_primary?: boolean;
 }
 
-export interface UnifiedContactRecord {
+/**
+ * Unified address record structure
+ */
+export interface UnifiedAddressRecord {
   id: string;
-  entity_type: EntityType;
   entity_id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  phone_landline?: string;
-  mobile?: string;
-  position?: string;
-  job_title?: string;
-  company?: string;
-  contact_type: ContactType;
-  preferred_communication?: PreferredCommunication;
-  is_primary: boolean;
-  account_manager?: string;
-  state_manager?: string;
-  national_manager?: string;
-  notes?: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface UnifiedAddressFormData {
   entity_type: EntityType;
-  entity_id: string;
-  name?: string;
-  address_line_1: string;
-  address_line_2?: string;
+  address_type: AddressType;
+  street: string;
   suburb: string;
   state: string;
   postcode: string;
-  country?: string;
-  address_type: AddressType;
-  is_primary?: boolean;
-  latitude?: number;
-  longitude?: number;
+  country: string;
+  is_primary: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
+/**
+ * Unified contact form data structure
+ */
 export interface UnifiedContactFormData {
-  entity_type: EntityType;
   entity_id: string;
-  name: string;
-  email: string;
+  entity_type: EntityType;
+  first_name: string;
+  last_name: string;
+  email?: string;
   phone?: string;
-  phone_landline?: string;
   mobile?: string;
   position?: string;
-  job_title?: string;
-  company?: string;
-  contact_type: ContactType;
-  preferred_communication?: PreferredCommunication;
   is_primary: boolean;
-  account_manager?: string;
-  state_manager?: string;
-  national_manager?: string;
+  contact_type?: ContactType;
   notes?: string;
 }
 
-// Error handling types
-export type ValidationErrorResponse = {
+/**
+ * Unified contact record structure
+ */
+export interface UnifiedContactRecord {
+  id: string;
+  entity_id: string;
+  entity_type: EntityType;
+  first_name: string;
+  last_name: string;
+  email?: string;
+  phone?: string;
+  mobile?: string;
+  position?: string;
+  is_primary: boolean;
+  contact_type?: ContactType;
+  notes?: string;
+  created_at?: string;
+  updated_at?: string;
+}
+
+/**
+ * Validation error response structure
+ */
+export interface ValidationErrorResponse {
   category: 'validation';
   message: string;
   details?: {
     field?: string;
     error?: string;
-    code?: string;  // Added code property explicitly
+    code?: string;
   };
-};
-
-export interface ErrorResponse {
-  status: number;
-  message: string;
 }
+
+/**
+ * API response types
+ */
+export type AddressApiResponse = ApiResponse<UnifiedAddressRecord>;
+export type AddressesApiResponse = ApiResponse<UnifiedAddressRecord[]>;
+export type ContactApiResponse = ApiResponse<UnifiedContactRecord>;
+export type ContactsApiResponse = ApiResponse<UnifiedContactRecord[]>;

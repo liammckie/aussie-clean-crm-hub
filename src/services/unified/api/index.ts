@@ -1,7 +1,7 @@
 
 import { addressApi } from './address';
 import { contactApi } from './contact';
-import { EntityType } from '@/services/unified/types';
+import { EntityType } from '@/services/client/types';
 import { UnifiedAddressFormData, UnifiedContactFormData } from '@/services/unified/types';
 
 // Unified API service for consistent data access

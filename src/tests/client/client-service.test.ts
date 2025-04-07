@@ -1,20 +1,18 @@
-import { clientService } from '@/services/client';
-import { ClientFormData } from '@/types/form-types';
-import { ClientStatus } from '@/types/database-schema';
-import { createSuccessResponse, createErrorResponse } from '@/utils/api-utils';
+import { describe, expect, it, jest } from '@jest/globals';
+import { clientService } from '../../services/client';
+import { createSuccessResponse, createErrorResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
 
-// Mock the implementation of the clientService functions
-jest.mock('@/services/client', () => ({
-  clientService: {
-    getAllClients: jest.fn(),
-    getClientById: jest.fn(),
+jest.mock('../../services/client/api', () => ({
+  clientApi: {
+    fetchAllClients: jest.fn(),
+    fetchClientById: jest.fn(),
     createClient: jest.fn(),
     updateClient: jest.fn(),
     deleteClient: jest.fn(),
-    getClientContacts: jest.fn(),
+    fetchClientContacts: jest.fn(),
     createClientContact: jest.fn(),
-    getClientAddresses: jest.fn(),
+    fetchClientAddresses: jest.fn(),
     createClientAddress: jest.fn(),
     deleteClientAddress: jest.fn()
   }

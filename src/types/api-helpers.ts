@@ -1,5 +1,6 @@
 
 import { ApiResponse, ApiErrorResponse, ApiSuccessResponse, isApiError } from '@/types/api-response';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
  * Type guard to safely check if a response has data
@@ -65,14 +66,14 @@ export function normalizeApiResponse<T>(
   
   if ('error' in response) {
     return {
-      category: 'server',
+      category: ErrorCategory.SERVER,
       message: response.error?.message || 'An error occurred',
       details: response.error
     };
   }
   
   return {
-    category: 'unknown',
+    category: ErrorCategory.UNKNOWN,
     message: 'Invalid response format',
     details: { response }
   };

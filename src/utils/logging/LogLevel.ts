@@ -6,5 +6,7 @@ export enum LogLevel {
   DEBUG = 'debug',
   INFO = 'info',
   WARN = 'warn',
-  ERROR = 'error'
+  WARNING = 'warn', // Alias for WARN for backward compatibility
+  ERROR = 'error',
+  CRITICAL = 'critical' // Added for higher severity logging
 }

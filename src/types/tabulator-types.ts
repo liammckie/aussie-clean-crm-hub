@@ -13,6 +13,12 @@ export type TabulatorSorter = {
   dir: 'asc' | 'desc';
 };
 
+export type SortDirection = 'asc' | 'desc';
+
+// Column type definition
+export type TabulatorColumn = Tabulator.ColumnDefinition;
+
+// Define proper options interface that matches the Tabulator library
 export interface TabulatorOptions {
   height?: string | number;
   layout?: 'fitColumns' | 'fitData' | 'fitDataFill' | 'fitDataStretch' | 'fitDataTable';
@@ -23,4 +29,9 @@ export interface TabulatorOptions {
   initialSort?: TabulatorSorter[];
   placeholder?: string;
   reactiveData?: boolean;
+  columns?: TabulatorColumn[];
+  data?: any[];
+  index?: string;
+  headerFilterLiveFilterDelay?: number;
+  selectableRangeMode?: string;
 }

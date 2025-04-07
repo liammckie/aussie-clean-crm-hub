@@ -1,5 +1,5 @@
 
-import { ApiErrorResponse, ApiResponse, createErrorResponse, isApiError } from '@/types/api-response';
+import { ApiErrorResponse, ApiResponse, createErrorResponse, isApiError, createSuccessResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
 import { PostgrestError } from '@supabase/supabase-js';
 
@@ -98,3 +98,6 @@ export function handleApiResponse<T, R>(
   }
   return onSuccess(response.data);
 }
+
+// Re-export the functions from api-response
+export { createSuccessResponse, createErrorResponse, isApiError };

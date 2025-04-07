@@ -1,7 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { unifiedService } from '@/services/unified';
-import { EntityType } from '@/services/unified';
+import { EntityType } from '@/services/client/types';
 import { useUnifiedAddressesRealtimeSync, useUnifiedContactsRealtimeSync } from '../use-realtime-sync';
 
 /**

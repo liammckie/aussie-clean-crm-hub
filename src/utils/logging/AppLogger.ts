@@ -1,5 +1,5 @@
 
-import { LogCategory } from './LogCategories';
+import { LogCategory } from './LogCategory';
 import { LogLevel } from './LogLevel';
 
 export type LogEntry = {
@@ -39,7 +39,7 @@ class Logger {
    * Log a warning message
    */
   warn(category: LogCategory, message: string, data?: any, context?: Record<string, any>): void {
-    this.logWithLevel(LogLevel.WARNING, category, message, data, context);
+    this.logWithLevel(LogLevel.WARN, category, message, data, context);
   }
 
   /**
@@ -124,7 +124,7 @@ class Logger {
       case LogLevel.INFO:
         console.info(prefix, entry.message, entry.data || '');
         break;
-      case LogLevel.WARNING:
+      case LogLevel.WARN:
         console.warn(prefix, entry.message, entry.data || '');
         break;
       case LogLevel.ERROR:

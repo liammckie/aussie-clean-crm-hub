@@ -10,6 +10,7 @@ export enum ErrorCategory {
   DATABASE = 'database',
   NETWORK = 'network',
   AUTHENTICATION = 'authentication',
+  STORAGE = 'storage',
   UNKNOWN = 'unknown'
 }
 
@@ -22,6 +23,7 @@ export type ErrorCategoryString =
   | 'database'
   | 'network'
   | 'authentication'
+  | 'storage'
   | 'unknown';
 
 // Helper to convert string to enum
@@ -34,6 +36,7 @@ export function toErrorCategory(category: string): ErrorCategory {
     case 'database': return ErrorCategory.DATABASE;
     case 'network': return ErrorCategory.NETWORK;
     case 'authentication': return ErrorCategory.AUTHENTICATION;
+    case 'storage': return ErrorCategory.STORAGE;
     default: return ErrorCategory.UNKNOWN;
   }
 }
