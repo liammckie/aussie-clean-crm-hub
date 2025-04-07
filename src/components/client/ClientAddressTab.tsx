@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import AddressTable from '@/components/shared/AddressTable';
+import { AddressTable } from '@/components/shared/AddressTable';
 import {
   AlertDialog,
   AlertDialogAction,

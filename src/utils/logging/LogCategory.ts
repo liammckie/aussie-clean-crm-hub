@@ -34,6 +34,12 @@ export enum LogCategory {
   // Realtime
   REALTIME = 'Realtime',
   
+  // Address related
+  ADDRESS = 'Address',
+  
+  // Server related
+  SERVER = 'Server',
+  
   // Other
   UNKNOWN = 'Unknown',
 }

@@ -4,6 +4,7 @@ import { AppLogger, LogCategory } from '@/utils/logging';
 import { ApiResponse, createErrorResponse, createSuccessResponse } from '@/types/api-response';
 import { EntityType } from '@/types/form-types';
 import { UnifiedAddressRecord } from '../types';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
  * Create a new address for an entity
@@ -17,8 +18,8 @@ export const createAddress = async (
     // Map the form field names to database column names if needed
     const processedData = {
       ...addressData,
-      address_line_1: addressData.address_line1,
-      address_line_2: addressData.address_line2,
+      address_line_1: addressData.address_line_1,
+      address_line_2: addressData.address_line_2,
       entity_type: entityType,
       entity_id: entityId
     };
@@ -29,8 +30,8 @@ export const createAddress = async (
       .from('unified_addresses')
       .insert({
         name: addressData.name,
-        address_line_1: addressData.address_line1,
-        address_line_2: addressData.address_line2,
+        address_line_1: addressData.address_line_1,
+        address_line_2: addressData.address_line_2,
         suburb: addressData.suburb,
         state: addressData.state,
         postcode: addressData.postcode,
@@ -51,7 +52,7 @@ export const createAddress = async (
       });
       
       return createErrorResponse(
-        'database',
+        ErrorCategory.DATABASE,
         `Failed to create address: ${error.message}`,
         { details: error.details }
       );
@@ -66,7 +67,7 @@ export const createAddress = async (
     });
     
     return createErrorResponse(
-      'server',
+      ErrorCategory.SERVER,
       `Failed to create address: ${error.message}`
     );
   }
@@ -83,14 +84,12 @@ export const updateAddress = async (
     // Map the form field names to database column names if needed
     const processedData: any = { ...addressData };
     
-    if (addressData.address_line1) {
-      processedData.address_line_1 = addressData.address_line1;
-      delete processedData.address_line1;
+    if (addressData.address_line_1) {
+      processedData.address_line_1 = addressData.address_line_1;
     }
     
-    if (addressData.address_line2) {
-      processedData.address_line_2 = addressData.address_line2;
-      delete processedData.address_line2;
+    if (addressData.address_line_2) {
+      processedData.address_line_2 = addressData.address_line_2;
     }
     
     AppLogger.info(LogCategory.ADDRESS, `Updating address ID: ${addressId}`);
@@ -109,7 +108,7 @@ export const updateAddress = async (
       });
       
       return createErrorResponse(
-        'database',
+        ErrorCategory.DATABASE,
         `Failed to update address: ${error.message}`,
         { details: error.details }
       );
@@ -123,7 +122,7 @@ export const updateAddress = async (
     });
     
     return createErrorResponse(
-      'server',
+      ErrorCategory.SERVER,
       `Failed to update address: ${error.message}`
     );
   }
@@ -132,7 +131,7 @@ export const updateAddress = async (
 /**
  * Get addresses for an entity
  */
-export const getAddresses = async (
+export const getEntityAddresses = async (
   entityType: EntityType,
   entityId: string
 ): Promise<ApiResponse<UnifiedAddressRecord[]>> => {
@@ -154,7 +153,7 @@ export const getAddresses = async (
       });
       
       return createErrorResponse(
-        'database',
+        ErrorCategory.DATABASE,
         `Failed to get addresses: ${error.message}`,
         { details: error.details }
       );
@@ -169,7 +168,7 @@ export const getAddresses = async (
     });
     
     return createErrorResponse(
-      'server',
+      ErrorCategory.SERVER,
       `Failed to get addresses: ${error.message}`
     );
   }
@@ -194,7 +193,7 @@ export const deleteAddress = async (addressId: string): Promise<ApiResponse<bool
       });
       
       return createErrorResponse(
-        'database',
+        ErrorCategory.DATABASE,
         `Failed to delete address: ${error.message}`,
         { details: error.details }
       );
@@ -208,8 +207,16 @@ export const deleteAddress = async (addressId: string): Promise<ApiResponse<bool
     });
     
     return createErrorResponse(
-      'server',
+      ErrorCategory.SERVER,
       `Failed to delete address: ${error.message}`
     );
   }
+};
+
+// Export all the address API methods
+export const addressApi = {
+  createAddress,
+  updateAddress,
+  getEntityAddresses,
+  deleteAddress
 };

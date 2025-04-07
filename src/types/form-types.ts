@@ -98,7 +98,7 @@ export function createDefaultContactValues(initialData?: Partial<UnifiedContactF
   };
 }
 
-// Form data for unified address form
+// Form data for unified address form - Using address_line1 naming to match form field names
 export interface UnifiedAddressFormData {
   address_line1: string;
   address_line2?: string;

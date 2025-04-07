@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, Path } from 'react-hook-form';
 import {
   FormField,
   FormItem,
@@ -12,7 +12,7 @@ import { Switch } from '@/components/ui/switch';
 
 interface IsPrimaryFieldProps<T extends Record<string, any>> {
   form: UseFormReturn<T>;
-  name: keyof T & string;
+  name: Path<T>;
   label: string;
   description?: string;
 }

@@ -1,4 +1,3 @@
-
 import { ApiResponse } from '@/types/api-response';
 import { EntityType, AddressType, ContactType } from '@/services/client/types';
 
@@ -11,17 +10,21 @@ export interface UnifiedAddressFormData {
   entity_id: string;
   entity_type: EntityType;
   address_type: AddressType;
-  address_line_1: string;
-  address_line_2?: string;
+  address_line1: string;
+  address_line2?: string;
   suburb: string;
   state: string;
   postcode: string;
   country: string;
   is_primary?: boolean;
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  notes?: string;
 }
 
 /**
- * Unified address record structure
+ * Unified address record structure - matches the database schema
  */
 export interface UnifiedAddressRecord {
   id: string;
@@ -38,6 +41,9 @@ export interface UnifiedAddressRecord {
   name?: string;
   created_at?: string;
   updated_at?: string;
+  latitude?: number;
+  longitude?: number;
+  notes?: string;
 }
 
 /**
