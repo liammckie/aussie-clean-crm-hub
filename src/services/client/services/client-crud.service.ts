@@ -55,8 +55,15 @@ export const clientCrudService = {
   // Create a new client
   createClient: async (client: ClientFormData): Promise<ApiResponse<any>> => {
     try {
+      // Ensure required fields are present
+      const clientWithDefaults: ClientFormData = {
+        business_name: client.business_name || '', // Ensure required field has non-empty string value
+        status: client.status || ClientStatus.PROSPECT, // Ensure required field has default value
+        ...client,
+      };
+
       // Validate client data using our Zod schema
-      const validationResult = validateWithZod(clientSchema, client);
+      const validationResult = validateWithZod(clientSchema, clientWithDefaults);
       if ('category' in validationResult) {
         return formatError(
           ErrorCategory.VALIDATION, 

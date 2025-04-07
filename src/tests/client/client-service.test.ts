@@ -5,22 +5,22 @@ import { ClientStatus } from '@/types/database-schema';
 import { ErrorCategory } from '@/utils/logging/error-types';
 import { ClientFormData } from '@/services/client/types';
 import { 
-  ApiResponse, 
+  ApiResponse,
   ApiSuccessResponse,
   ApiErrorResponse,
   isApiError,
-  isApiSuccess, 
-  createSuccessResponse, 
+  isApiSuccess,
+  createSuccessResponse,
   createErrorResponse 
 } from '@/types/api-response';
 
-// Create mock client service
+// Create mock client service with properly typed mock functions
 const mockClientService = {
-  getAllClients: jest.fn(),
-  getClientById: jest.fn(),
-  createClient: jest.fn(),
-  updateClient: jest.fn(),
-  deleteClient: jest.fn(),
+  getAllClients: jest.fn<() => Promise<ApiResponse<any>>>(),
+  getClientById: jest.fn<(id: string) => Promise<ApiResponse<any>>>(),
+  createClient: jest.fn<(data: ClientFormData) => Promise<ApiResponse<any>>>(),
+  updateClient: jest.fn<(id: string, data: Partial<ClientFormData>) => Promise<ApiResponse<any>>>(),
+  deleteClient: jest.fn<(id: string) => Promise<ApiResponse<any>>>(),
 };
 
 // Mock the client service module
@@ -53,7 +53,7 @@ describe('Client Service', () => {
     ];
     
     // Create typed success response
-    const mockResponse = createSuccessResponse(mockClients, 'Clients retrieved successfully');
+    const mockResponse: ApiSuccessResponse<typeof mockClients> = createSuccessResponse(mockClients, 'Clients retrieved successfully');
     
     // Set up the mock implementation with correct typing
     mockClientService.getAllClients.mockResolvedValue(mockResponse);
@@ -74,7 +74,7 @@ describe('Client Service', () => {
   });
 
   it('handles error when getting all clients', async () => {
-    const mockError = createErrorResponse(
+    const mockError: ApiErrorResponse = createErrorResponse(
       ErrorCategory.SERVER, 
       'Database error'
     );
@@ -94,7 +94,7 @@ describe('Client Service', () => {
     const mockClient = { id: '123', business_name: 'Test Company' };
     
     // Create typed success response
-    const mockResponse = createSuccessResponse(mockClient, 'Client retrieved successfully');
+    const mockResponse: ApiSuccessResponse<typeof mockClient> = createSuccessResponse(mockClient, 'Client retrieved successfully');
     
     // Set up the mock implementation
     mockClientService.getClientById.mockResolvedValue(mockResponse);
@@ -114,7 +114,7 @@ describe('Client Service', () => {
   });
 
   it('handles error when getting client by ID', async () => {
-    const mockError = createErrorResponse(
+    const mockError: ApiErrorResponse = createErrorResponse(
       ErrorCategory.NOT_FOUND, 
       'Client not found'
     );
@@ -138,7 +138,7 @@ describe('Client Service', () => {
     };
 
     // Create typed success response
-    const mockResponse = createSuccessResponse(newClientData, 'Client created successfully');
+    const mockResponse: ApiSuccessResponse<typeof newClientData> = createSuccessResponse(newClientData, 'Client created successfully');
     
     // Set up the mock implementation
     mockClientService.createClient.mockResolvedValue(mockResponse);
@@ -163,7 +163,7 @@ describe('Client Service', () => {
   });
 
   it('handles error when creating client', async () => {
-    const mockError = createErrorResponse(
+    const mockError: ApiErrorResponse = createErrorResponse(
       ErrorCategory.VALIDATION, 
       'Failed to create client'
     );
@@ -192,7 +192,7 @@ describe('Client Service', () => {
     };
 
     // Create typed success response
-    const mockResponse = createSuccessResponse(updatedClientData, 'Client updated successfully');
+    const mockResponse: ApiSuccessResponse<typeof updatedClientData> = createSuccessResponse(updatedClientData, 'Client updated successfully');
     
     // Set up the mock implementation
     mockClientService.updateClient.mockResolvedValue(mockResponse);
@@ -215,7 +215,7 @@ describe('Client Service', () => {
 
   it('deletes a client', async () => {
     // Create typed success response
-    const mockResponse = createSuccessResponse({ success: true }, 'Client deleted successfully');
+    const mockResponse: ApiSuccessResponse<{success: boolean}> = createSuccessResponse({ success: true }, 'Client deleted successfully');
     
     // Set up the mock implementation
     mockClientService.deleteClient.mockResolvedValue(mockResponse);
