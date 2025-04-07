@@ -1,45 +1,84 @@
 
-import { AppLogger } from './AppLogger';
-import { LogCategory } from './LogCategory';
-import { Cache } from '../caching/cache';
-
 /**
- * Cache wrapper utility options
+ * Cache wrapper with logging capabilities
  */
-export interface CacheOptions {
-  ttl: number;
-  tag: string;
-}
 
-/**
- * Wrapper function to handle caching data with a function that returns a promise
- */
-export async function withCache<T>(
-  cacheKey: string,
-  fn: () => Promise<T>,
-  options: CacheOptions
-): Promise<T> {
-  // Try to get data from cache first
-  const cachedData = Cache.get<T>(cacheKey);
-  
-  if (cachedData !== null) {
-    AppLogger.debug(
-      LogCategory.CACHE,
-      `Cache hit for ${cacheKey} (tag: ${options.tag})`
-    );
-    return cachedData;
+// Create a proper cache implementation that doesn't rely on browser Cache API
+class CacheWrapper {
+  private cacheStore = new Map<string, any>();
+  private logger: any;
+
+  constructor(logger?: any) {
+    this.logger = logger;
   }
 
-  AppLogger.debug(
-    LogCategory.CACHE,
-    `Cache miss for ${cacheKey} (tag: ${options.tag}), fetching data`
-  );
+  /**
+   * Get value from cache
+   * @param key Cache key
+   * @returns Cached value or undefined
+   */
+  get<T>(key: string): T | undefined {
+    const value = this.cacheStore.get(key);
+    if (this.logger) {
+      this.logger.debug(`Cache get: ${key}`, { hit: value !== undefined });
+    }
+    return value as T;
+  }
 
-  // Execute the function to get fresh data
-  const data = await fn();
-  
-  // Store in cache with the provided TTL
-  Cache.set(cacheKey, data, options.ttl, options.tag);
+  /**
+   * Store value in cache
+   * @param key Cache key
+   * @param value Value to store
+   */
+  set<T>(key: string, value: T): void {
+    this.cacheStore.set(key, value);
+    if (this.logger) {
+      this.logger.debug(`Cache set: ${key}`);
+    }
+  }
 
-  return data;
+  /**
+   * Delete entry from cache
+   * @param key Cache key
+   */
+  delete(key: string): void {
+    this.cacheStore.delete(key);
+    if (this.logger) {
+      this.logger.debug(`Cache delete: ${key}`);
+    }
+  }
+
+  /**
+   * Delete entries matching pattern
+   * @param pattern Pattern to match against keys
+   */
+  deletePattern(pattern: string): void {
+    const regex = new RegExp(pattern);
+    const deletedKeys: string[] = [];
+    
+    this.cacheStore.forEach((_, key) => {
+      if (regex.test(key)) {
+        this.cacheStore.delete(key);
+        deletedKeys.push(key);
+      }
+    });
+    
+    if (this.logger && deletedKeys.length > 0) {
+      this.logger.debug(`Cache deletePattern: ${pattern}`, { deletedKeys });
+    }
+  }
+
+  /**
+   * Clear the entire cache
+   */
+  clear(): void {
+    const size = this.cacheStore.size;
+    this.cacheStore.clear();
+    if (this.logger) {
+      this.logger.debug(`Cache cleared. Entries removed: ${size}`);
+    }
+  }
 }
+
+// Export a singleton instance
+export const cache = new CacheWrapper();

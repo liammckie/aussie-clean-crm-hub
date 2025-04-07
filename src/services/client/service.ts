@@ -1,7 +1,6 @@
-
 import { clientApi } from './api';
 import { addressService, contactService } from './services';
-import { ApiResponse, createSuccessResponse } from '@/types/api-response';
+import { ApiResponse, createSuccessResponse, isApiSuccess } from '@/types/api-response';
 import { ClientRecord } from '@/types/clients';
 import { ContactRecord } from './types';
 
@@ -32,7 +31,6 @@ export const clientService = {
    * @returns Promise<ApiResponse<ClientRecord>>
    */
   createClient: async (clientData: any): Promise<ApiResponse<ClientRecord>> => {
-    // Ensure data is properly formatted
     const preparedData = { ...clientData };
     return clientApi.createClient(preparedData);
   },
@@ -44,7 +42,6 @@ export const clientService = {
    * @returns Promise<ApiResponse<ClientRecord>>
    */
   updateClient: async (clientId: string, updateData: any): Promise<ApiResponse<ClientRecord>> => {
-    // Ensure data is properly formatted
     const preparedData = { ...updateData };
     return clientApi.updateClient(clientId, preparedData);
   },
@@ -56,8 +53,8 @@ export const clientService = {
    */
   deleteClient: async (clientId: string): Promise<ApiResponse<boolean>> => {
     const response = await clientApi.deleteClient(clientId);
-    if ('success' in response.data) {
-      return createSuccessResponse(true, response.message);
+    if (isApiSuccess(response) && response.data && 'success' in response.data) {
+      return createSuccessResponse(Boolean(response.data.success), response.message);
     }
     return response as ApiResponse<boolean>;
   },

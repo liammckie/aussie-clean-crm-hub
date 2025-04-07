@@ -59,10 +59,8 @@ export function validateClientContactInfo({ phone, email }: { phone?: string, em
  * - Validates contact information
  */
 export function prepareClientDataForSubmission(data: ClientFormData): ClientFormData {
-  // Create a new object to avoid mutating the original
   const preparedData: ClientFormData = { ...data };
 
-  // Clean business identifiers
   if (preparedData.abn) {
     preparedData.abn = validationService.cleanBusinessIdentifier(preparedData.abn);
   }
@@ -71,53 +69,52 @@ export function prepareClientDataForSubmission(data: ClientFormData): ClientForm
     preparedData.acn = validationService.cleanBusinessIdentifier(preparedData.acn);
   }
 
-  // Clean phone field if present
   if (preparedData.phone) {
     preparedData.phone = preparedData.phone.trim();
   }
 
-  // Ensure required fields have values to match database schema
   if (!preparedData.status) {
     preparedData.status = ClientStatus.PROSPECT;
   }
 
-  // Handle onboarding date
   if (!preparedData.onboarding_date) {
-    // Set current date if not provided
     const today = new Date();
     preparedData.onboarding_date = today.toISOString().split('T')[0];
   } else if (typeof preparedData.onboarding_date === 'string') {
-    // Ensure date is in YYYY-MM-DD format for database
     try {
-      // Check if the string is already in YYYY-MM-DD format
       const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
       if (dateRegex.test(preparedData.onboarding_date)) {
-        // It's already in the correct format
       } else {
         const dateObj = new Date(preparedData.onboarding_date);
         if (!isNaN(dateObj.getTime())) {
           preparedData.onboarding_date = dateObj.toISOString().split('T')[0];
         } else {
           console.warn('Invalid date format for onboarding_date:', preparedData.onboarding_date);
-          // If date parsing fails, use current date
           const today = new Date();
           preparedData.onboarding_date = today.toISOString().split('T')[0];
         }
       }
     } catch (error) {
       console.error('Error formatting date:', error);
-      // If date parsing fails, use current date
       const today = new Date();
       preparedData.onboarding_date = today.toISOString().split('T')[0];
     }
   }
 
-  // Ensure country has a default value
   if (!preparedData.country) {
     preparedData.country = 'Australia';
   }
 
   return preparedData;
+}
+
+/**
+ * Alias function for prepareClientDataForSubmission, used for form data preparation
+ * @param data Client form data to prepare
+ * @returns Prepared client form data
+ */
+export function prepareClientFormData(data: ClientFormData): ClientFormData {
+  return prepareClientDataForSubmission(data);
 }
 
 /**
@@ -132,7 +129,7 @@ export function loadSampleClientData(setFormData: (data: ClientFormData) => void
     acn: '000 000 019',
     industry: 'Commercial Cleaning',
     status: ClientStatus.PROSPECT,
-    onboarding_date: new Date().toISOString().split('T')[0], // Today's date in YYYY-MM-DD
+    onboarding_date: new Date().toISOString().split('T')[0],
     source: 'Trade Show',
     billing_cycle: 'Monthly',
     payment_terms: 'Net 30',
@@ -145,8 +142,8 @@ export function loadSampleClientData(setFormData: (data: ClientFormData) => void
     state: 'VIC',
     postcode: '3000',
     country: 'Australia',
-    phone: '+61 2 9876 5432', // Added sample phone
-    address: 'Corporate Park, Building C', // Added sample address
+    phone: '+61 2 9876 5432',
+    address: 'Corporate Park, Building C',
   };
 
   setFormData(sampleClient);

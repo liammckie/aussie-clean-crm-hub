@@ -1,11 +1,38 @@
 
-// Import Tabulator types correctly
-import type { ColumnDefinition, SorterFromTable } from 'tabulator-tables';
+// Define types based on Tabulator library
+// We need to define our own because Tabulator's type exports are not consistent
+import type { RowComponent as TabulatorRowComponent, CellComponent as TabulatorCellComponent } from 'tabulator-tables';
 
-// Use proper type imports
-export type { ColumnDefinition } from 'tabulator-tables';
+// Column definition is a common pattern, define it directly
+export interface ColumnDefinition {
+  title?: string;
+  field?: string;
+  headerFilter?: boolean | string;
+  hozAlign?: string;
+  formatter?: string | ((cell: any, params: any) => any);
+  formatterParams?: any;
+  width?: number | string;
+  minWidth?: number;
+  widthGrow?: number;
+  headerSort?: boolean;
+  sorter?: string | ((a: any, b: any, aRow: any, bRow: any, column: any, dir: any, sorterParams: any) => number);
+  sorterParams?: any;
+  cssClass?: string;
+  cellClick?: (e: any, cell: any) => void;
+  resizable?: boolean;
+  frozen?: boolean;
+  responsive?: number;
+  headerTooltip?: string;
+  tooltip?: boolean | string;
+  editable?: boolean | ((cell: any) => boolean);
+  editor?: string;
+  editorParams?: any;
+  visible?: boolean;
+  download?: boolean;
+  [key: string]: any;
+}
 
-// Define custom component types based on Tabulator types
+// Define custom component types to avoid import issues
 export interface ColumnComponent {
   getField(): string;
   getDefinition(): ColumnDefinition;
