@@ -1,10 +1,11 @@
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { useClientSites } from '@/hooks/use-sites';
-import { siteService } from '@/services/site';
+import { getClientSites } from '@/services/site/service';
 import { SiteData } from '@/services/site/types';
 import { SiteStatus, SiteType } from '@/types/database-schema';
 import { createQueryClientWrapper, resetMocks } from './test-utils';
+import { createSuccessResponse } from '@/types/api-response';
 
 describe('useClientSites Hook', () => {
   beforeEach(() => {
@@ -25,7 +26,9 @@ describe('useClientSites Hook', () => {
       },
     ] as SiteData[];
 
-    (siteService.getClientSites as jest.Mock).mockResolvedValueOnce(mockSites);
+    const mockResponse = createSuccessResponse(mockSites, "Sites fetched successfully");
+    
+    (getClientSites as jest.Mock).mockResolvedValueOnce(mockResponse);
 
     const { wrapper } = createQueryClientWrapper();
     const { result } = renderHook(() => useClientSites(clientId), { wrapper });
@@ -35,7 +38,7 @@ describe('useClientSites Hook', () => {
 
     // Check if data is returned correctly
     expect(result.current.sites).toEqual(mockSites);
-    expect(siteService.getClientSites).toHaveBeenCalledWith(clientId);
-    expect(siteService.getClientSites).toHaveBeenCalledTimes(1);
+    expect(getClientSites).toHaveBeenCalledWith(clientId);
+    expect(getClientSites).toHaveBeenCalledTimes(1);
   });
 });

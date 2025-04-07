@@ -2,9 +2,10 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { act } from '@testing-library/react';
 import { useCreateSite, useUpdateSite, useDeleteSite } from '@/hooks/use-sites';
-import { siteService } from '@/services/site';
+import { addSite, editSite, removeSite } from '@/services/site/service';
 import { SiteStatus, SiteType } from '@/types/database-schema';
 import { createQueryClientWrapper, resetMocks } from './test-utils';
+import { createSuccessResponse } from '@/types/api-response';
 
 describe('Site Mutation Hooks', () => {
   beforeEach(() => {
@@ -32,7 +33,9 @@ describe('Site Mutation Hooks', () => {
         updated_at: '2023-01-15'
       };
 
-      (siteService.createSite as jest.Mock).mockResolvedValueOnce(mockCreatedSite);
+      const mockResponse = createSuccessResponse(mockCreatedSite, "Site created successfully");
+      
+      (addSite as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       const { wrapper } = createQueryClientWrapper();
       const { result } = renderHook(() => useCreateSite(), { wrapper });
@@ -46,8 +49,8 @@ describe('Site Mutation Hooks', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       // Check if mutation was successful
-      expect(siteService.createSite).toHaveBeenCalledWith(newSite);
-      expect(result.current.data).toEqual(mockCreatedSite);
+      expect(addSite).toHaveBeenCalledWith(newSite);
+      expect(result.current.data).toEqual(mockResponse);
     });
   });
 
@@ -66,22 +69,24 @@ describe('Site Mutation Hooks', () => {
         updated_at: '2023-01-20'
       };
 
-      (siteService.updateSite as jest.Mock).mockResolvedValueOnce(mockUpdatedSite);
+      const mockResponse = createSuccessResponse(mockUpdatedSite, "Site updated successfully");
+      
+      (editSite as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       const { wrapper } = createQueryClientWrapper();
       const { result } = renderHook(() => useUpdateSite(), { wrapper });
 
       // Execute the mutation
       act(() => {
-        result.current.mutate({ siteId, siteData: updates });
+        result.current.mutate({ id: siteId, site: updates });
       });
 
       // Wait for the mutation to complete
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       // Check if mutation was successful
-      expect(siteService.updateSite).toHaveBeenCalledWith(siteId, updates);
-      expect(result.current.data).toEqual(mockUpdatedSite);
+      expect(editSite).toHaveBeenCalledWith(siteId, updates);
+      expect(result.current.data).toEqual(mockResponse);
     });
   });
 
@@ -89,7 +94,9 @@ describe('Site Mutation Hooks', () => {
     it('deletes a site', async () => {
       const siteId = 'site-id-to-delete';
       
-      (siteService.deleteSite as jest.Mock).mockResolvedValueOnce(true);
+      const mockResponse = createSuccessResponse(undefined, "Site deleted successfully");
+      
+      (removeSite as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       const { wrapper } = createQueryClientWrapper();
       const { result } = renderHook(() => useDeleteSite(), { wrapper });
@@ -103,8 +110,8 @@ describe('Site Mutation Hooks', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       // Check if mutation was successful
-      expect(siteService.deleteSite).toHaveBeenCalledWith(siteId);
-      expect(result.current.data).toBe(true);
+      expect(removeSite).toHaveBeenCalledWith(siteId);
+      expect(result.current.data).toEqual(mockResponse);
     });
   });
 });

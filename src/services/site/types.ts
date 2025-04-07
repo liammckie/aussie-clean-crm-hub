@@ -21,7 +21,17 @@ export interface SiteData {
   updated_at: string;
   induction_required?: boolean;
   notes?: string;
-  region?: string; // Add region field to support existing code
+  region?: string;
+}
+
+export interface SiteApiResponse {
+  data: SiteData;
+  message: string;
+}
+
+export interface SitesApiResponse {
+  data: SiteData[];
+  message: string;
 }
 
 export interface SiteInsertData {
@@ -43,7 +53,7 @@ export interface SiteInsertData {
   square_meters?: number;
   induction_required?: boolean;
   notes?: string;
-  region?: string; // Add region field to support existing code
+  region?: string;
 }
 
 export interface SiteUpdateData {
@@ -65,7 +75,7 @@ export interface SiteUpdateData {
   square_meters?: number;
   induction_required?: boolean;
   notes?: string;
-  region?: string; // Add region field to support existing code
+  region?: string;
 }
 
 // Alias for backward compatibility

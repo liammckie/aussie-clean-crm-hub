@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Plus, Building } from 'lucide-react';
 import { SiteForm } from '@/components/site/SiteForm';
 import { useClientSites } from '@/hooks/use-sites';
-import { SiteInsertData } from '@/services/site/types';
+import { SiteInsertData, SiteData } from '@/services/site/types';
 import { SiteListTable } from '@/components/site/SiteListTable';
 import { toast } from 'sonner';
 import { useCreateSite } from '@/hooks/use-sites';
@@ -20,13 +20,15 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
   const { sites, isLoadingSites, errorSites, refetchSites } = useClientSites(clientId);
   const createSiteMutation = useCreateSite();
   
-  const handleCreateSite = async (siteData: SiteInsertData) => {
+  const handleCreateSite = async (formData: any) => {
     try {
-      await createSiteMutation.mutateAsync({
-        ...siteData,
+      const siteData: SiteInsertData = {
+        ...formData,
         client_id: clientId,
-        region: siteData.region || 'Default', // Support the region field
-      });
+        region: formData.region || 'Default',
+      };
+      
+      await createSiteMutation.mutateAsync(siteData);
       toast.success('Site added successfully');
       setIsNewSiteDialogOpen(false);
       refetchSites();
@@ -84,13 +86,13 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
             <DialogHeader>
               <DialogTitle>Add New Site</DialogTitle>
             </DialogHeader>
-            <SiteForm clientId={clientId} onSubmit={handleCreateSite} />
+            <SiteForm onSubmit={handleCreateSite} />
           </DialogContent>
         </Dialog>
       </CardHeader>
       <CardContent>
         {sitesList.length > 0 ? (
-          <SiteListTable sites={sitesList} />
+          <SiteListTable sites={sitesList} clientId={clientId} onSiteUpdated={refetchSites} />
         ) : (
           <div className="flex flex-col items-center justify-center py-8 px-4 text-center">
             <Building className="h-12 w-12 text-muted-foreground mb-4" />

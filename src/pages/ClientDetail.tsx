@@ -31,13 +31,16 @@ import {
   Mail, 
   FileText,
   Clock,
-  CalendarClock
+  CalendarClock,
+  DollarSign,
+  Percent,
 } from 'lucide-react';
 import { useClients } from '@/hooks/use-clients';
 import { ClientRecord } from '@/types/clients';
 import { isApiError } from '@/types/api-response';
 import { toast } from 'sonner';
 import { clientService } from '@/services';
+import { useClientSites } from '@/hooks/use-sites';
 
 const ClientDetail = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -46,6 +49,39 @@ const ClientDetail = () => {
   const [loading, setLoading] = useState(true);
 
   const { isLoading: isLoadingClient } = useClients();
+  const { sites } = useClientSites(clientId || '');
+  
+  // Calculate financial metrics for the client
+  const [financialMetrics, setFinancialMetrics] = useState({
+    totalSites: 0,
+    annualRevenue: 0,
+    annualCost: 0,
+    grossProfit: 0,
+    grossProfitMargin: 0
+  });
+
+  useEffect(() => {
+    if (sites && sites.length > 0) {
+      // In a real application, we would calculate these metrics based on actual data
+      // For now, let's use dummy values based on the number of sites
+      const siteCount = sites.length;
+      const avgRevenuePerSite = 50000;  // Example average annual revenue per site
+      const avgCostPerSite = 35000;     // Example average annual cost per site
+      
+      const totalRevenue = siteCount * avgRevenuePerSite;
+      const totalCost = siteCount * avgCostPerSite;
+      const profit = totalRevenue - totalCost;
+      const profitMargin = totalRevenue > 0 ? (profit / totalRevenue) * 100 : 0;
+      
+      setFinancialMetrics({
+        totalSites: siteCount,
+        annualRevenue: totalRevenue,
+        annualCost: totalCost,
+        grossProfit: profit,
+        grossProfitMargin: profitMargin
+      });
+    }
+  }, [sites]);
 
   useEffect(() => {
     if (!clientId) return;
@@ -91,7 +127,6 @@ const ClientDetail = () => {
     );
   }
 
-  // Now clientData is properly typed as ClientRecord
   return (
     <div className="container mx-auto px-4 py-8">
       <Breadcrumb className="mb-4">
@@ -142,7 +177,7 @@ const ClientDetail = () => {
               {clientData.trading_name && (
                 <div>
                   <h3 className="text-sm font-medium text-muted-foreground">Trading Name</h3>
-                  <p className="mt-1">{clientData.trading_name || clientData.business_name}</p>
+                  <p className="mt-1">{clientData.trading_name}</p>
                 </div>
               )}
               <div>
@@ -158,16 +193,6 @@ const ClientDetail = () => {
                   </span>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">ABN</h3>
-                  <p className="mt-1">{clientData.abn || 'Not provided'}</p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-muted-foreground">ACN</h3>
-                  <p className="mt-1">{clientData.acn || 'Not provided'}</p>
-                </div>
-              </div>
               <div>
                 <h3 className="text-sm font-medium text-muted-foreground">Industry</h3>
                 <p className="mt-1">{clientData.industry || 'Not specified'}</p>
@@ -178,61 +203,60 @@ const ClientDetail = () => {
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-lg font-medium">Key Details</CardTitle>
+            <CardTitle className="text-lg font-medium">Key Metrics</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5">
-                  <Building className="h-5 w-5 text-muted-foreground" />
+                  <Map className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium">Status</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">{clientData.status}</p>
+                  <h3 className="text-sm font-medium">Sites</h3>
+                  <p className="mt-1 text-lg font-semibold">{financialMetrics.totalSites}</p>
                 </div>
               </div>
               
               <div className="flex items-start gap-3">
                 <div className="mt-0.5">
-                  <CalendarClock className="h-5 w-5 text-muted-foreground" />
+                  <DollarSign className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium">Onboarding Date</h3>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {clientData.onboarding_date 
-                      ? new Date(clientData.onboarding_date).toLocaleDateString() 
-                      : 'Not specified'}
+                  <h3 className="text-sm font-medium">Annual Revenue</h3>
+                  <p className="mt-1 text-lg font-semibold text-green-600">
+                    ${financialMetrics.annualRevenue.toLocaleString()}
                   </p>
                 </div>
               </div>
               
-              {clientData.phone && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">
-                    <Phone className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium">Phone</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{clientData.phone}</p>
-                  </div>
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5">
+                  <DollarSign className="h-5 w-5 text-muted-foreground" />
                 </div>
-              )}
+                <div>
+                  <h3 className="text-sm font-medium">Annual Cost</h3>
+                  <p className="mt-1 text-lg font-semibold text-red-600">
+                    ${financialMetrics.annualCost.toLocaleString()}
+                  </p>
+                </div>
+              </div>
               
-              {/* Display primary contact if available */}
-              {clientData.client_contacts && clientData.client_contacts.length > 0 && (
-                <div className="flex items-start gap-3">
-                  <div className="mt-0.5">
-                    <Users className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-medium">Primary Contact</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {clientData.client_contacts.find(c => c.is_primary)?.name || 
-                       clientData.client_contacts[0]?.name || 'No contacts'}
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5">
+                  <Percent className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium">Gross Profit</h3>
+                  <div className="flex items-center gap-2 mt-1">
+                    <p className="text-lg font-semibold">
+                      ${financialMetrics.grossProfit.toLocaleString()}
                     </p>
+                    <span className="text-sm font-medium bg-green-100 text-green-800 px-2 py-0.5 rounded">
+                      {financialMetrics.grossProfitMargin.toFixed(1)}%
+                    </span>
                   </div>
                 </div>
-              )}
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -321,6 +345,33 @@ const ClientDetail = () => {
               <CardTitle>Client Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Detailed Information */}
+              <div>
+                <h3 className="text-lg font-medium mb-4">Business Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">ABN</h4>
+                    <p className="mt-1">{clientData.abn || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">ACN</h4>
+                    <p className="mt-1">{clientData.acn || 'Not provided'}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Industry</h4>
+                    <p className="mt-1">{clientData.industry || 'Not specified'}</p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-muted-foreground">Onboarding Date</h4>
+                    <p className="mt-1">
+                      {clientData.onboarding_date 
+                        ? new Date(clientData.onboarding_date).toLocaleDateString() 
+                        : 'Not specified'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
               {/* Contact Information */}
               <div>
                 <h3 className="text-lg font-medium mb-4">Contact Information</h3>
@@ -446,7 +497,59 @@ const ClientDetail = () => {
                 </Button>
               </div>
               
-              <p>Site information not available.</p>
+              {sites && sites.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead>
+                      <tr>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Site Name</th>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                        <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 bg-gray-50 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {sites.map((site) => (
+                        <tr key={site.id}>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="font-medium text-gray-900">{site.site_name}</div>
+                            <div className="text-sm text-gray-500">{site.site_code}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">{site.address_line_1}</div>
+                            <div className="text-sm text-gray-500">{site.suburb}, {site.state}</div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                              site.status === 'active' ? 'bg-green-100 text-green-800' : 
+                              site.status === 'inactive' ? 'bg-gray-100 text-gray-800' : 
+                              'bg-blue-100 text-blue-800'
+                            }`}>
+                              {site.status}
+                            </span>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <Link 
+                              to={`/sites/${site.id}`} 
+                              className="text-blue-600 hover:text-blue-900 mr-3"
+                            >
+                              View
+                            </Link>
+                            <Link 
+                              to={`/sites/${site.id}/edit`}
+                              className="text-indigo-600 hover:text-indigo-900"
+                            >
+                              Edit
+                            </Link>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <p>No sites found for this client.</p>
+              )}
             </CardContent>
           </Card>
         </TabsContent>

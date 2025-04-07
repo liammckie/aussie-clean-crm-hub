@@ -3,34 +3,16 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MapPin, Building, Calendar, Users, ArrowRight, Edit, Trash2 } from 'lucide-react';
+import { MapPin, Building, Users, ArrowRight, Edit, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { SiteData } from '@/services/site/types';
 
 interface SiteCardProps {
-  id: string;
-  siteName: string;
-  address: string;
-  suburb: string;
-  state: string;
-  status: string;
-  type?: string;
-  contactName?: string;
-  onEdit?: () => void;
-  onDelete?: () => void;
+  site: SiteData;
+  onDelete: () => Promise<void>;
 }
 
-export function SiteCard({
-  id,
-  siteName,
-  address,
-  suburb,
-  state,
-  status,
-  type = 'Commercial',
-  contactName,
-  onEdit,
-  onDelete
-}: SiteCardProps) {
+export function SiteCard({ site, onDelete }: SiteCardProps) {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
@@ -49,9 +31,9 @@ export function SiteCard({
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-md">
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg line-clamp-1">{siteName}</CardTitle>
-          <Badge className={getStatusColor(status)}>
-            {status.replace('_', ' ')}
+          <CardTitle className="text-lg line-clamp-1">{site.site_name}</CardTitle>
+          <Badge className={getStatusColor(site.status)}>
+            {site.status.replace('_', ' ')}
           </Badge>
         </div>
       </CardHeader>
@@ -60,34 +42,43 @@ export function SiteCard({
           <div className="flex items-start gap-2">
             <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
             <p className="text-sm line-clamp-2">
-              {address}, {suburb}, {state}
+              {site.address_line_1}, {site.suburb}, {site.state}
             </p>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Building className="h-4 w-4 text-muted-foreground" />
-            <p className="text-sm">{type}</p>
-          </div>
+          {site.site_type && (
+            <div className="flex items-center gap-2">
+              <Building className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm">{site.site_type}</p>
+            </div>
+          )}
           
-          {contactName && (
+          {site.site_contact_name && (
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">{contactName}</p>
+              <p className="text-sm">{site.site_contact_name}</p>
             </div>
           )}
         </div>
       </CardContent>
       <CardFooter className="flex justify-between border-t pt-4">
         <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={onEdit}>
-            <Edit className="h-4 w-4 mr-1" /> Edit
+          <Button variant="ghost" size="sm" asChild>
+            <Link to={`/sites/${site.id}/edit`}>
+              <Edit className="h-4 w-4 mr-1" /> Edit
+            </Link>
           </Button>
-          <Button variant="ghost" size="sm" onClick={onDelete} className="text-red-500 hover:text-red-600">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => onDelete()} 
+            className="text-red-500 hover:text-red-600"
+          >
             <Trash2 className="h-4 w-4 mr-1" /> Delete
           </Button>
         </div>
         <Button asChild variant="outline" size="sm">
-          <Link to={`/sites/${id}`}>
+          <Link to={`/sites/${site.id}`}>
             View <ArrowRight className="ml-1 h-4 w-4" />
           </Link>
         </Button>

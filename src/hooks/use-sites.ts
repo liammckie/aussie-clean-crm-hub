@@ -1,42 +1,39 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSites, getSiteById, addSite, editSite, removeSite } from "@/services/site/service";
+import { getSites, getSiteById, addSite, editSite, removeSite, getClientSites } from "@/services/site/service";
 import { SiteInsertData, SiteUpdateData, SiteData } from "@/services/site/types";
-import { ApiResponse } from "@/types/api-response";
+import { ApiResponse, isApiError } from "@/types/api-response";
 
 export const useSites = () => {
-  const { data, isLoading, error, refetch } = useQuery({
+  const query = useQuery({
     queryKey: ['sites'],
     queryFn: getSites
   });
   
-  // Safely extract sites from the API response
-  const sites = data && 'data' in data ? data.data : [];
+  // Extract data safely
+  const sites = query.data && !isApiError(query.data) ? query.data.data : [];
   
   return {
     sites,
-    isLoadingSites: isLoading,
-    errorSites: error,
-    refetchSites: refetch
+    isLoadingSites: query.isLoading,
+    errorSites: query.error,
+    refetchSites: query.refetch,
+    query
   };
 };
 
 export const useClientSites = (clientId: string) => {
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['sites', 'client', clientId],
-    queryFn: () => getSites(), // In a real app, you might have a getClientSites function
-    enabled: !!clientId,
-    select: (response) => {
-      if (response && 'data' in response) {
-        // Filter sites for this client
-        return response.data.filter(site => site.client_id === clientId);
-      }
-      return [];
-    }
+    queryFn: () => getClientSites(clientId),
+    enabled: !!clientId
   });
   
+  // Safely extract sites from the API response
+  const sites = data && !isApiError(data) ? data.data : [];
+  
   return {
-    sites: data || [],
+    sites,
     isLoadingSites: isLoading,
     errorSites: error,
     refetchSites: refetch

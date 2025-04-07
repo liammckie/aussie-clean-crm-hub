@@ -1,16 +1,6 @@
 
-import { supabase } from "../client/api"; // Use client's supabase import
-import { SiteData, SiteInsertData, SiteUpdateData } from "./types";
-
-interface SiteApiResponse {
-  data: SiteData;
-  message: string;
-}
-
-interface SitesApiResponse {
-  data: SiteData[];
-  message: string;
-}
+import { supabase } from "@/integrations/supabase/client";
+import { SiteData, SiteInsertData, SiteUpdateData, SiteApiResponse, SitesApiResponse } from "./types";
 
 export const fetchSites = async (): Promise<SitesApiResponse> => {
   const { data, error } = await supabase
@@ -92,5 +82,21 @@ export const deleteSite = async (id: string): Promise<{ success: boolean; messag
   return {
     success: true,
     message: "Site deleted successfully"
+  };
+};
+
+export const fetchClientSites = async (clientId: string): Promise<SitesApiResponse> => {
+  const { data, error } = await supabase
+    .from('sites')
+    .select('*')
+    .eq('client_id', clientId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return {
+    data: data as SiteData[],
+    message: "Client sites fetched successfully"
   };
 };

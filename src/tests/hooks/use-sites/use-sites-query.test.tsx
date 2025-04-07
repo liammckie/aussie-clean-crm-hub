@@ -1,10 +1,11 @@
 
 import { renderHook, waitFor } from '@testing-library/react';
 import { useSites } from '@/hooks/use-sites';
-import { siteService } from '@/services/site';
+import { getSites } from '@/services/site/service';
 import { SiteData } from '@/services/site/types';
 import { SiteStatus, SiteType } from '@/types/database-schema';
 import { createQueryClientWrapper, resetMocks } from './test-utils';
+import { createSuccessResponse } from '@/types/api-response';
 
 describe('useSites Hook', () => {
   beforeEach(() => {
@@ -33,16 +34,18 @@ describe('useSites Hook', () => {
       },
     ] as SiteData[];
 
-    (siteService.getAllSites as jest.Mock).mockResolvedValueOnce(mockSites);
+    const mockResponse = createSuccessResponse(mockSites, "Sites fetched successfully");
+    
+    (getSites as jest.Mock).mockResolvedValueOnce(mockResponse);
 
     const { wrapper } = createQueryClientWrapper();
     const { result } = renderHook(() => useSites(), { wrapper });
 
     // Wait for the query to resolve
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    await waitFor(() => expect(result.current.isLoadingSites).toBe(false));
 
     // Check if data is returned correctly
-    expect(result.current.data).toEqual(mockSites);
-    expect(siteService.getAllSites).toHaveBeenCalledTimes(1);
+    expect(result.current.sites).toEqual(mockSites);
+    expect(getSites).toHaveBeenCalledTimes(1);
   });
 });

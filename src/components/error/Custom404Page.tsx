@@ -1,65 +1,41 @@
 
-import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Heading } from "@/components/ui/heading";
-import { Button } from "@/components/ui/button";
-import { HomeIcon } from "lucide-react";
-import { getErrorPageTranslations, getBrowserLanguage } from "@/utils/i18n";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { AlertCircle, ArrowLeft } from 'lucide-react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 interface Custom404PageProps {
-  title?: string;
-  description?: string;
-  returnToHomepageLink?: string;
+  title: string;
+  description: string;
+  returnToHomepageLink: string;
 }
 
-export function Custom404Page({
+export const Custom404Page: React.FC<Custom404PageProps> = ({
   title,
   description,
-  returnToHomepageLink = "/",
-}: Custom404PageProps) {
-  const navigate = useNavigate();
-  const [translations, setTranslations] = useState(getErrorPageTranslations());
-  
-  useEffect(() => {
-    // Set translations based on browser language
-    setTranslations(getErrorPageTranslations());
-  }, []);
-  
-  const handleReturnHome = () => {
-    navigate(returnToHomepageLink);
-  };
-
-  const pageTitle = title || translations.pageNotFound;
-  const pageDescription = description || translations.pageNotFoundDescription;
-
+  returnToHomepageLink
+}) => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-900 to-slate-950 p-4">
-      <div className="max-w-md w-full">
-        <div className="bg-white/5 backdrop-blur-lg border border-white/10 rounded-lg p-8 shadow-xl text-center animate-fade-in">
-          <div className="flex justify-center mb-6">
-            <div className="h-20 w-20 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20 animate-float">
-              <span className="text-4xl font-bold text-red-500">404</span>
-            </div>
+    <div className="container flex items-center justify-center min-h-[80vh]">
+      <Card className="w-full max-w-md">
+        <CardHeader className="text-center">
+          <div className="flex justify-center mb-4">
+            <AlertCircle className="h-16 w-16 text-red-500" />
           </div>
-          
-          <Heading title={pageTitle} />
-          
-          <p className="mt-3 text-muted-foreground">
-            {pageDescription}
-          </p>
-          
-          <div className="mt-8">
-            <Button 
-              onClick={handleReturnHome}
-              className="gap-2"
-              variant="gradient"
-            >
-              <HomeIcon className="h-4 w-4" />
-              {translations.returnToHomepage}
-            </Button>
-          </div>
-        </div>
-      </div>
+          <CardTitle className="text-2xl">{title}</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-muted-foreground">{description}</p>
+        </CardContent>
+        <CardFooter className="flex justify-center">
+          <Button asChild>
+            <Link to={returnToHomepageLink}>
+              <ArrowLeft className="mr-2 h-4 w-4" /> Return to Homepage
+            </Link>
+          </Button>
+        </CardFooter>
+      </Card>
     </div>
   );
-}
+};
