@@ -11,7 +11,8 @@ export interface UnifiedAddressFormData {
   entity_id: string;
   entity_type: EntityType;
   address_type: AddressType;
-  street: string;
+  address_line_1: string;
+  address_line_2?: string;
   suburb: string;
   state: string;
   postcode: string;
@@ -27,12 +28,14 @@ export interface UnifiedAddressRecord {
   entity_id: string;
   entity_type: EntityType;
   address_type: AddressType;
-  street: string;
+  address_line_1: string;
+  address_line_2?: string;
   suburb: string;
   state: string;
   postcode: string;
   country: string;
   is_primary: boolean;
+  name?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -43,8 +46,7 @@ export interface UnifiedAddressRecord {
 export interface UnifiedContactFormData {
   entity_id: string;
   entity_type: EntityType;
-  first_name: string;
-  last_name: string;
+  name: string;
   email?: string;
   phone?: string;
   mobile?: string;
@@ -61,15 +63,18 @@ export interface UnifiedContactRecord {
   id: string;
   entity_id: string;
   entity_type: EntityType;
-  first_name: string;
-  last_name: string;
+  name: string;
   email?: string;
   phone?: string;
   mobile?: string;
   position?: string;
+  company?: string;
   is_primary: boolean;
   contact_type?: ContactType;
   notes?: string;
+  account_manager?: string;
+  state_manager?: string;
+  national_manager?: string;
   created_at?: string;
   updated_at?: string;
 }

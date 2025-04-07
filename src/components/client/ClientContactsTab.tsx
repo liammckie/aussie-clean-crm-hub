@@ -138,7 +138,27 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
   // Safely type the contacts data
   const typedContacts = React.useMemo(() => {
     if (!contacts) return [] as UnifiedContactRecord[];
-    return contacts as UnifiedContactRecord[];
+    
+    // Cast to UnifiedContactRecord[] with proper type checks
+    return (contacts as any[]).map((contact: any): UnifiedContactRecord => ({
+      id: contact.id,
+      entity_id: contact.entity_id,
+      entity_type: contact.entity_type,
+      name: contact.name,
+      email: contact.email,
+      phone: contact.phone,
+      mobile: contact.mobile,
+      position: contact.position,
+      company: contact.company,
+      is_primary: Boolean(contact.is_primary),
+      contact_type: contact.contact_type,
+      notes: contact.notes,
+      account_manager: contact.account_manager,
+      state_manager: contact.state_manager,
+      national_manager: contact.national_manager,
+      created_at: contact.created_at,
+      updated_at: contact.updated_at
+    }));
   }, [contacts]);
 
   return (

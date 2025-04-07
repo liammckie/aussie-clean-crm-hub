@@ -1,9 +1,11 @@
+
 import { supabase } from '@/lib/supabase';
 import { handleApiError } from '@/utils/api-utils';
-import { SiteApiResponse, SitesApiResponse, SiteInsertData, SiteUpdateData, SiteRecord, SiteData } from './types';
+import { SiteApiResponse, SitesApiResponse, SiteInsertData, SiteUpdateData, SiteRecord } from './types';
 import { createSuccessResponse } from '@/types/api-response';
 import { AppLogger } from '@/utils/logging/AppLogger';
 import { LogCategory } from '@/utils/logging/LogCategory';
+import { mapDbResponse } from '@/utils/db-type-helpers';
 
 // Site service with CRUD operations
 export const siteService = {
@@ -17,7 +19,7 @@ export const siteService = {
 
       if (error) throw error;
 
-      return createSuccessResponse(data, 'Sites retrieved successfully');
+      return createSuccessResponse(mapDbResponse<SiteRecord[]>(data || []), 'Sites retrieved successfully');
     } catch (error) {
       AppLogger.debug(LogCategory.SITE, 'Fetching sites');
       AppLogger.error(LogCategory.SITE, 'Error getting all sites', { error });
@@ -36,7 +38,7 @@ export const siteService = {
 
       if (error) throw error;
 
-      return createSuccessResponse(data, 'Site retrieved successfully');
+      return createSuccessResponse(mapDbResponse<SiteRecord>(data), 'Site retrieved successfully');
     } catch (error) {
       AppLogger.debug(LogCategory.SITE, `Fetching site ${siteId}`);
       AppLogger.error(LogCategory.SITE, `Error getting site ${siteId}`, { error });
@@ -60,7 +62,7 @@ export const siteService = {
 
       if (error) throw error;
 
-      return createSuccessResponse(data, 'Client sites retrieved successfully');
+      return createSuccessResponse(mapDbResponse<SiteRecord[]>(data || []), 'Client sites retrieved successfully');
     } catch (error) {
       AppLogger.debug(LogCategory.SITE, `Fetching sites for client ${clientId}`);
       AppLogger.error(LogCategory.SITE, `Error getting sites for client ${clientId}`, { error });
@@ -73,13 +75,13 @@ export const siteService = {
     try {
       const { data, error } = await supabase
         .from('sites')
-        .insert([siteData])
+        .insert([siteData] as any) // Cast to any to avoid TS error
         .select()
         .single();
 
       if (error) throw error;
 
-      return createSuccessResponse(data, 'Site created successfully');
+      return createSuccessResponse(mapDbResponse<SiteRecord>(data), 'Site created successfully');
     } catch (error) {
       AppLogger.debug(LogCategory.SITE, 'Creating site');
       AppLogger.error(LogCategory.SITE, 'Error creating site', { error, siteData });
@@ -99,7 +101,7 @@ export const siteService = {
 
       if (error) throw error;
 
-      return createSuccessResponse(data, 'Site updated successfully');
+      return createSuccessResponse(mapDbResponse<SiteRecord>(data), 'Site updated successfully');
     } catch (error) {
       AppLogger.debug(LogCategory.SITE, `Updating site ${siteId}`);
       AppLogger.error(LogCategory.SITE, `Error updating site ${siteId}`, { error, siteData });
@@ -119,7 +121,7 @@ export const siteService = {
 
       if (error) throw error;
 
-      return createSuccessResponse(data, 'Site deleted successfully');
+      return createSuccessResponse(mapDbResponse<SiteRecord>(data), 'Site deleted successfully');
     } catch (error) {
       AppLogger.debug(LogCategory.SITE, `Deleting site ${siteId}`);
       AppLogger.error(LogCategory.SITE, `Error deleting site ${siteId}`, { error });

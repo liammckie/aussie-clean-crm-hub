@@ -129,7 +129,24 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
   // Safely type the addresses data
   const typedAddresses = React.useMemo(() => {
     if (!addresses) return [] as UnifiedAddressRecord[];
-    return addresses as UnifiedAddressRecord[];
+    
+    // Cast to UnifiedAddressRecord[] with proper type checks
+    return (addresses as any[]).map((address: any): UnifiedAddressRecord => ({
+      id: address.id,
+      entity_id: address.entity_id,
+      entity_type: address.entity_type,
+      address_type: address.address_type,
+      address_line_1: address.address_line_1,
+      address_line_2: address.address_line_2,
+      suburb: address.suburb,
+      state: address.state,
+      postcode: address.postcode,
+      country: address.country || 'Australia',
+      is_primary: Boolean(address.is_primary),
+      name: address.name,
+      created_at: address.created_at,
+      updated_at: address.updated_at
+    }));
   }, [addresses]);
 
   return (

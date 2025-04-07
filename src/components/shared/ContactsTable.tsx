@@ -28,26 +28,10 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityType } from '@/services/client/types';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { UnifiedContactRecord as ImportedUnifiedContactRecord } from '@/services/unified/types';
 
-// Define the unified contact record structure
-export interface UnifiedContactRecord {
-  id: string;
-  entity_type: EntityType;
-  entity_id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  mobile?: string;
-  position?: string;
-  company?: string;
-  contact_type: string;
-  is_primary: boolean;
-  account_manager?: string;
-  state_manager?: string;
-  national_manager?: string;
-  created_at?: string;
-  updated_at?: string;
-}
+// Define the unified contact record structure - using the imported type
+export type UnifiedContactRecord = ImportedUnifiedContactRecord;
 
 interface ContactsTableProps {
   contacts: UnifiedContactRecord[];

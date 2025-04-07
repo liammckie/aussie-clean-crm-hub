@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Table,
@@ -18,24 +19,10 @@ import { PlusCircle, MoreHorizontal, Pencil, Trash2, MapPin } from 'lucide-react
 import { Card, CardContent } from '@/components/ui/card';
 import { EntityType } from '@/services/client/types';
 import { AddressType } from '@/types/form-types';
+import { UnifiedAddressRecord as ImportedUnifiedAddressRecord } from '@/services/unified/types';
 
-// Define the unified address record structure
-export interface UnifiedAddressRecord {
-  id: string;
-  entity_type: EntityType;
-  entity_id: string;
-  name?: string;
-  address_line_1: string;
-  address_line_2?: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  country: string;
-  address_type: AddressType;
-  is_primary?: boolean;
-  created_at?: string;
-  updated_at?: string;
-}
+// Define the unified address record structure - using the imported type
+export type UnifiedAddressRecord = ImportedUnifiedAddressRecord;
 
 interface AddressTableProps {
   addresses: UnifiedAddressRecord[];
