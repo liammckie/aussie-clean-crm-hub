@@ -23,6 +23,11 @@ export const getClientPrimaryAddress = (client: ClientRecord) => {
   return addressParts.length > 0 ? addressParts.join(", ") : "-";
 };
 
+// Define the props interface for children components that can accept isPending
+interface ChildComponentProps {
+  isPending?: boolean;
+}
+
 const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) => {
   const { clients: fetchedClients, setFilteredClients, setClients } = useClientFilters();
   const [isProcessing, setIsProcessing] = useState(true);
@@ -69,7 +74,10 @@ const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) =
     <>
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child, { isPending: isProcessing });
+          // Cast the child.props to include the isPending property
+          return React.cloneElement(child, { 
+            isPending: isProcessing 
+          } as React.ComponentProps<typeof child.type>);
         }
         return child;
       })}
