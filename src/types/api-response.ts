@@ -1,15 +1,9 @@
+
+// Import ErrorCategory enum from error-types.ts
 import { ErrorCategory } from '@/utils/logging/error-types';
 
-// Explicitly define ErrorCategory to match the imported enum
-export type ErrorCategory = 
-  | 'validation' 
-  | 'permission' 
-  | 'server' 
-  | 'not_found' 
-  | 'authentication'
-  | 'auth'
-  | 'database'
-  | 'unknown';
+// Use the ErrorCategory enum type
+export type ErrorCategoryType = ErrorCategory;
 
 /**
  * Interface for successful API responses

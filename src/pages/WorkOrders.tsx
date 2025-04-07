@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
@@ -17,20 +16,13 @@ import {
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Search, 
-  Plus, 
-  Filter, 
-  MoreHorizontal,
+  Search,
   ClipboardList,
 } from 'lucide-react';
+import { WorkOrderActionsDropdown } from '@/components/work-orders/WorkOrderActionsDropdown';
+import { WorkOrderHeaderActions } from '@/components/work-orders/WorkOrderHeaderActions';
 
 // Dummy data for work orders
 const dummyWorkOrders = [
@@ -219,22 +211,17 @@ const WorkOrders = () => {
     dateTo: ''
   });
   
-  // Filter work orders based on search query and active filters
   const filteredWorkOrders = dummyWorkOrders.filter(workOrder => {
-    // Search filter
     const searchMatch =
       workOrder.work_order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workOrder.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workOrder.client.toLowerCase().includes(searchQuery.toLowerCase()) ||
       workOrder.site.toLowerCase().includes(searchQuery.toLowerCase());
     
-    // Status filter
     const statusMatch = activeFilters.status === 'all' || workOrder.status === activeFilters.status;
     
-    // Priority filter
     const priorityMatch = activeFilters.priority === 'all' || workOrder.priority === activeFilters.priority;
     
-    // Date filter
     let dateMatch = true;
     if (activeFilters.dateFrom) {
       const fromDate = new Date(activeFilters.dateFrom);
@@ -250,6 +237,12 @@ const WorkOrders = () => {
     return searchMatch && statusMatch && priorityMatch && dateMatch;
   });
 
+  const handleViewDetails = (workOrderId: string) => {
+    console.log(`View details for work order ${workOrderId}`);
+    // Navigate to work order detail page
+    // history.push(`/work-orders/${workOrderId}`);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
@@ -259,10 +252,12 @@ const WorkOrders = () => {
             View and manage all service requests and tasks.
           </p>
         </div>
-        <Button>
-          <Plus className="h-4 w-4 mr-2" />
-          Create Work Order
-        </Button>
+        
+        <WorkOrderHeaderActions 
+          onToggleFilters={() => setShowFilters(!showFilters)} 
+          showFilters={showFilters}
+          onRefresh={() => console.log("Refreshing work orders")}
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -297,30 +292,6 @@ const WorkOrders = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => setShowFilters(!showFilters)}
-                className="lg:hidden"
-              >
-                <Filter className="h-4 w-4" />
-                <span className="sr-only">Toggle filters</span>
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <ClipboardList className="h-4 w-4 mr-2" />
-                    Export
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem>Export as CSV</DropdownMenuItem>
-                  <DropdownMenuItem>Export as PDF</DropdownMenuItem>
-                  <DropdownMenuItem>Print Work Orders</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
           </div>
 
           {filteredWorkOrders.length === 0 ? (
@@ -335,7 +306,7 @@ const WorkOrders = () => {
                       : "You haven't created any work orders yet"}
                   </CardDescription>
                   <Button>
-                    <Plus className="h-4 w-4 mr-2" />
+                    <ClipboardList className="h-4 w-4 mr-2" />
                     Create Work Order
                   </Button>
                 </div>
@@ -381,20 +352,17 @@ const WorkOrders = () => {
                         </TableCell>
                         <TableCell>{formatDate(workOrder.scheduled_start)}</TableCell>
                         <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Open menu</span>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>View details</DropdownMenuItem>
-                              <DropdownMenuItem>Edit work order</DropdownMenuItem>
-                              <DropdownMenuItem>Assign technician</DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">Cancel order</DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                          <WorkOrderActionsDropdown 
+                            workOrderId={workOrder.id}
+                            status={workOrder.status}
+                            onViewDetails={() => handleViewDetails(workOrder.id)}
+                            onEdit={() => console.log(`Edit work order ${workOrder.id}`)}
+                            onAssignTechnician={() => console.log(`Assign technician to ${workOrder.id}`)}
+                            onGenerateReport={() => console.log(`Generate report for ${workOrder.id}`)}
+                            onMarkComplete={() => console.log(`Mark ${workOrder.id} as complete`)}
+                            onCancel={() => console.log(`Cancel order ${workOrder.id}`)}
+                            onDelete={() => console.log(`Delete work order ${workOrder.id}`)}
+                          />
                         </TableCell>
                       </TableRow>
                     );
