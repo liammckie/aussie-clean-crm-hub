@@ -1,105 +1,180 @@
 
 import { Activity } from '@/types/activity-types';
-import { faker } from '@faker-js/faker';
 
-// Helper to create a random activity
-const createRandomActivity = (): Activity => {
-  const types = [
-    'client_created',
-    'client_updated',
-    'contract_signed',
-    'task_completed',
-    'invoice_paid',
-    'work_order_created',
-    'site_added',
-    'supplier_added',
-    'user_login',
-    'system_event',
-  ] as const;
-  
-  const statuses = ['success', 'warning', 'error', 'info'] as const;
-  const entityTypes = ['client', 'contract', 'work_order', 'supplier', 'site', 'invoice', 'system'];
-  
-  const type = faker.helpers.arrayElement(types);
-  const entityType = type.split('_')[0] === 'system' 
-    ? 'system'
-    : type.split('_')[0];
-  
-  let title = '';
-  let description = '';
-  
-  switch (type) {
-    case 'client_created':
-      title = `New client created`;
-      description = `${faker.company.name()} was added to the system`;
-      break;
-    case 'client_updated':
-      title = 'Client information updated';
-      description = `${faker.company.name()} details were updated`;
-      break;
-    case 'contract_signed':
-      title = 'Contract signed';
-      description = `Contract #${faker.string.alphanumeric(6).toUpperCase()} was signed`;
-      break;
-    case 'task_completed':
-      title = 'Task completed';
-      description = `${faker.lorem.sentence(3)} task was marked as complete`;
-      break;
-    case 'invoice_paid':
-      title = 'Invoice payment received';
-      description = `Invoice #${faker.string.alphanumeric(6).toUpperCase()} was paid - $${faker.finance.amount(100, 10000, 2)}`;
-      break;
-    case 'work_order_created':
-      title = 'New work order';
-      description = `Work order #${faker.string.alphanumeric(6).toUpperCase()} was created`;
-      break;
-    case 'site_added':
-      title = 'New site added';
-      description = `${faker.location.streetAddress()} site was added`;
-      break;
-    case 'supplier_added':
-      title = 'New supplier';
-      description = `${faker.company.name()} was added as a supplier`;
-      break;
-    case 'user_login':
-      title = 'User login detected';
-      description = `${faker.person.fullName()} logged in from ${faker.location.city()}`;
-      break;
-    case 'system_event':
-      title = 'System notification';
-      description = `${faker.lorem.sentence(5)}`;
-      break;
-  }
-  
-  return {
-    id: faker.string.uuid(),
-    type,
-    title,
-    description,
-    timestamp: faker.date.recent({ days: 14 }).toISOString(),
+// Sample mock activities data
+export const mockActivities: Activity[] = [
+  {
+    id: '1',
+    type: 'client_created',
+    title: 'New client added',
+    description: 'A new client "ABC Corporation" was added to the system',
+    timestamp: new Date(Date.now() - 3600000).toISOString(),
     user: {
-      id: faker.string.uuid(),
-      name: faker.person.fullName(),
-      avatar: faker.image.avatar()
+      id: 'user1',
+      name: 'Jane Smith',
+      avatar: '/placeholder.svg'
     },
-    status: faker.helpers.arrayElement(statuses),
+    status: 'success',
     entity: {
-      type: entityType,
-      id: faker.string.uuid(),
-      name: entityType === 'client' || entityType === 'supplier' 
-        ? faker.company.name() 
-        : `${entityType.charAt(0).toUpperCase() + entityType.slice(1)} #${faker.string.alphanumeric(6).toUpperCase()}`
-    },
-    metadata: {
-      ip: faker.internet.ip(),
-      browser: faker.internet.userAgent(),
-      location: faker.location.city() + ', ' + faker.location.country()
+      type: 'client',
+      id: 'client1',
+      name: 'ABC Corporation'
     }
-  };
-};
-
-// Generate mock activities
-export const mockActivities: Activity[] = Array.from(
-  { length: 50 }, 
-  () => createRandomActivity()
-).sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+  },
+  {
+    id: '2',
+    type: 'contract_signed',
+    title: 'Contract signed with XYZ Ltd',
+    description: 'Annual maintenance contract #CT-2023-004 was signed',
+    timestamp: new Date(Date.now() - 7200000).toISOString(),
+    user: {
+      id: 'user2',
+      name: 'John Doe',
+      avatar: '/placeholder.svg'
+    },
+    status: 'success',
+    entity: {
+      type: 'contract',
+      id: 'contract1',
+      name: 'Annual Maintenance Agreement'
+    }
+  },
+  {
+    id: '3',
+    type: 'work_order_created',
+    title: 'Work order created',
+    description: 'New work order #WO-2023-089 for emergency repair',
+    timestamp: new Date(Date.now() - 10800000).toISOString(),
+    user: {
+      id: 'user3',
+      name: 'David Johnson',
+    },
+    status: 'info',
+    entity: {
+      type: 'work_order',
+      id: 'wo1',
+      name: 'Emergency Repair - Site #45'
+    }
+  },
+  {
+    id: '4',
+    type: 'invoice_paid',
+    title: 'Invoice payment received',
+    description: 'Payment received for invoice #INV-2023-156',
+    timestamp: new Date(Date.now() - 86400000).toISOString(),
+    user: {
+      id: 'user4',
+      name: 'Sarah Williams',
+    },
+    status: 'success',
+    entity: {
+      type: 'invoice',
+      id: 'inv1',
+      name: 'Invoice #INV-2023-156'
+    }
+  },
+  {
+    id: '5',
+    type: 'site_added',
+    title: 'New site registered',
+    description: 'Added new site location for client FastTrack Inc',
+    timestamp: new Date(Date.now() - 172800000).toISOString(),
+    user: {
+      id: 'user1',
+      name: 'Jane Smith',
+      avatar: '/placeholder.svg'
+    },
+    status: 'success',
+    entity: {
+      type: 'site',
+      id: 'site1',
+      name: 'FastTrack HQ Building'
+    }
+  },
+  {
+    id: '6',
+    type: 'system_event',
+    title: 'System backup completed',
+    description: 'Automated system backup completed successfully',
+    timestamp: new Date(Date.now() - 259200000).toISOString(),
+    user: {
+      id: 'system',
+      name: 'System',
+    },
+    status: 'info',
+    entity: {
+      type: 'system',
+      id: 'backup1',
+      name: 'Database Backup'
+    }
+  },
+  {
+    id: '7',
+    type: 'task_completed',
+    title: 'Maintenance task completed',
+    description: 'Scheduled maintenance task completed for client Acme Inc',
+    timestamp: new Date(Date.now() - 345600000).toISOString(),
+    user: {
+      id: 'user5',
+      name: 'Michael Brown',
+    },
+    status: 'success',
+    entity: {
+      type: 'task',
+      id: 'task1',
+      name: 'Quarterly Maintenance Check'
+    }
+  },
+  {
+    id: '8',
+    type: 'client_updated',
+    title: 'Client information updated',
+    description: 'Contact information updated for Global Enterprises',
+    timestamp: new Date(Date.now() - 432000000).toISOString(),
+    user: {
+      id: 'user2',
+      name: 'John Doe',
+      avatar: '/placeholder.svg'
+    },
+    status: 'warning',
+    entity: {
+      type: 'client',
+      id: 'client2',
+      name: 'Global Enterprises'
+    }
+  },
+  {
+    id: '9',
+    type: 'supplier_added',
+    title: 'New supplier onboarded',
+    description: 'Supplier "Quality Parts Ltd" has been added',
+    timestamp: new Date(Date.now() - 518400000).toISOString(),
+    user: {
+      id: 'user3',
+      name: 'David Johnson',
+    },
+    status: 'success',
+    entity: {
+      type: 'supplier',
+      id: 'supplier1',
+      name: 'Quality Parts Ltd'
+    }
+  },
+  {
+    id: '10',
+    type: 'user_login',
+    title: 'User login detected',
+    description: 'Unusual login time detected for user Adam Wilson',
+    timestamp: new Date(Date.now() - 604800000).toISOString(),
+    user: {
+      id: 'user6',
+      name: 'Adam Wilson',
+    },
+    status: 'warning',
+    entity: {
+      type: 'user',
+      id: 'user6',
+      name: 'Adam Wilson'
+    }
+  }
+];

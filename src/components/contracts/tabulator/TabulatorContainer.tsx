@@ -23,7 +23,7 @@ const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
   const [tableInstance, setTableInstance] = useState<any>(null);
   const { initializeTabulator } = useTabulator();
   
-  const tabulatorOptions: TabulatorOptions = {
+  const tabulatorOptions: Partial<TabulatorOptions> = {
     ...options,
     columns,
     data,
