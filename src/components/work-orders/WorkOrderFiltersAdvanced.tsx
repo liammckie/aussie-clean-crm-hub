@@ -16,7 +16,7 @@ import {
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Search, X, Filter, Calendar } from 'lucide-react';
+import { Search, X, Filter } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 
 export interface WorkOrderFiltersProps {
