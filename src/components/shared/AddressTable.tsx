@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { UnifiedAddressRecord } from '@/services/unified/types';
-import { AddressType } from '@/types/form-types';
+import { AddressType } from '@/types/database-schema'; // Import from database schema
 import { Badge } from '@/components/ui/badge';
 import { Edit, MapPin, Trash } from 'lucide-react';
 
@@ -52,7 +52,7 @@ export function AddressTable({
     );
   }
 
-  const getAddressTypeLabel = (type: AddressType) => {
+  const getAddressTypeLabel = (type: string) => {
     return type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ');
   };
 
@@ -81,7 +81,7 @@ export function AddressTable({
             <TableRow key={address.id}>
               <TableCell>
                 <div className="flex items-center gap-2">
-                  <span>{getAddressTypeLabel(address.address_type as AddressType)}</span>
+                  <span>{getAddressTypeLabel(address.address_type as string)}</span>
                   {address.is_primary && (
                     <Badge variant="outline" className="bg-primary/10">Primary</Badge>
                   )}

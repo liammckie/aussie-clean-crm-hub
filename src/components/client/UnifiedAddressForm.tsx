@@ -12,7 +12,7 @@ import {
 import { AddressTypeField } from './form/AddressTypeField';
 import { AddressFields } from './form/AddressFields';
 import { IsPrimaryField } from '../shared/IsPrimaryField';
-import { AddressType as DbAddressType } from '@/types/database-schema';
+import { AddressType } from '@/types/database-schema';
 
 interface UnifiedAddressFormProps {
   onSubmit: (data: UnifiedAddressFormData) => void;
@@ -35,7 +35,7 @@ export function UnifiedAddressForm({
   const formInitialData = createDefaultAddressValues({
     ...initialData,
     // Ensure address_type is set to a valid enum value
-    address_type: initialData.address_type || DbAddressType.BILLING,
+    address_type: initialData.address_type || AddressType.BILLING,
     // Ensure is_primary is always defined as a boolean
     is_primary: initialData.is_primary === undefined ? false : Boolean(initialData.is_primary)
   });

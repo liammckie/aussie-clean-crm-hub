@@ -1,11 +1,11 @@
 
 import { z } from 'zod';
-import { AddressType as DbAddressType } from './database-schema';
+import { AddressType, EntityType as DbEntityType, ContactType as DbContactType } from './database-schema';
 
-// Type for entity types
-export type EntityType = 'client' | 'supplier' | 'site' | 'work_order' | 'contract';
+// Type for entity types - use the database schema enum
+export type EntityType = DbEntityType | 'client' | 'supplier' | 'site' | 'work_order' | 'contract';
 
-// Type for contact types
+// Type for contact types - consolidate with database enum eventually
 export type ContactType = 
   | 'Primary'
   | 'Billing'
@@ -22,10 +22,11 @@ export type ContactType =
   | 'hr_payroll'
   | 'emergency'
   | 'sales_lead'
-  | 'subcontractor';
+  | 'subcontractor'
+  | DbContactType; // Include database enum values
 
 // Use the database schema's AddressType enum to ensure consistency
-export type AddressType = DbAddressType;
+export { AddressType };
 
 // Define preferred communication type
 export type PreferredCommunication = 'email' | 'phone' | 'portal';
@@ -113,7 +114,7 @@ export const unifiedAddressSchema = z.object({
   state: z.string().min(1, { message: "State is required" }),
   postcode: z.string().min(1, { message: "Postcode is required" }),
   country: z.string().min(1, { message: "Country is required" }),
-  address_type: z.nativeEnum(DbAddressType),
+  address_type: z.nativeEnum(AddressType),
   is_primary: z.boolean().default(false),
   latitude: z.number().optional(),
   longitude: z.number().optional(),

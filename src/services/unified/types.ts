@@ -1,7 +1,8 @@
-import { ApiResponse } from '@/types/api-response';
-import { EntityType, AddressType, ContactType } from '@/services/client/types';
 
-export { EntityType, AddressType, ContactType };
+import { ApiResponse } from '@/types/api-response';
+import { EntityType, AddressType, ContactType } from '@/types/database-schema';
+
+export type { EntityType, AddressType, ContactType };
 
 /**
  * Unified address form data structure

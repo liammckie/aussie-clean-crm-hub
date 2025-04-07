@@ -1,9 +1,7 @@
-
 import { ApiResponse } from '@/types/api-response';
 import { 
   UnifiedAddressFormData,
   UnifiedContactFormData,
-  AddressType as FormAddressType,
   EntityType
 } from '@/types/form-types';
 import { 
@@ -12,7 +10,7 @@ import {
 } from './types';
 import { addressApi, contactApi } from './api';
 import { MutationOptions } from '@/hooks/use-unified-entities';
-import { AddressType as DbAddressType } from '@/types/database-schema';
+import { AddressType } from '@/types/database-schema';
 
 /**
  * Create a new address for an entity
@@ -32,7 +30,7 @@ export const createUnifiedAddress = async (
       state: addressData.state,
       postcode: addressData.postcode,
       country: addressData.country,
-      address_type: addressData.address_type, // Type is now aligned between form and db
+      address_type: addressData.address_type as AddressType, // Explicitly cast to database enum type
       is_primary: addressData.is_primary || false,
       name: addressData.name,
       latitude: addressData.latitude,
@@ -82,7 +80,7 @@ export const updateUnifiedAddress = async (
     }
     
     if ('address_type' in addressData) {
-      processedData.address_type = addressData.address_type; // Type is now aligned
+      processedData.address_type = addressData.address_type as AddressType; // Explicitly cast to database enum type
     }
     
     if ('is_primary' in addressData) {
@@ -131,7 +129,7 @@ export const unifiedService = {
       state: addressData.state,
       postcode: addressData.postcode,
       country: addressData.country,
-      address_type: addressData.address_type, // Now aligned with database type
+      address_type: addressData.address_type as AddressType, // Explicitly cast to database enum type
       is_primary: addressData.is_primary || false,
       name: addressData.name,
       latitude: addressData.latitude,
@@ -181,7 +179,7 @@ export const unifiedService = {
     }
     
     if ('address_type' in addressData) {
-      dbAddressData.address_type = addressData.address_type as unknown as DbAddressType;
+      dbAddressData.address_type = addressData.address_type as AddressType; // Explicitly cast to database enum type
     }
     
     if ('is_primary' in addressData) {

@@ -8,7 +8,7 @@ import {
   FormMessage
 } from '@/components/ui/form';
 import { UseFormReturn } from 'react-hook-form';
-import { AddressType, UnifiedAddressFormData } from '@/types/form-types';
+import { UnifiedAddressFormData } from '@/types/form-types';
 import {
   Select,
   SelectContent,
@@ -16,15 +16,15 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { AddressType as DbAddressType } from '@/types/database-schema';
+import { AddressType } from '@/types/database-schema';
 
 interface AddressTypeFieldProps {
   form: UseFormReturn<UnifiedAddressFormData>;
 }
 
 export function AddressTypeField({ form }: AddressTypeFieldProps) {
-  // Address types from the enum
-  const addressTypes: AddressType[] = Object.values(DbAddressType);
+  // Address types from the enum - use the database schema enum to ensure consistency
+  const addressTypes: AddressType[] = Object.values(AddressType);
 
   return (
     <FormField
@@ -36,7 +36,7 @@ export function AddressTypeField({ form }: AddressTypeFieldProps) {
           <Select
             onValueChange={field.onChange}
             value={field.value}
-            defaultValue={DbAddressType.BILLING}
+            defaultValue={AddressType.BILLING}
           >
             <FormControl>
               <SelectTrigger>
