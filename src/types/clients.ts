@@ -10,7 +10,7 @@ export interface ClientRecord {
   acn?: string;
   industry?: string;
   status?: string;
-  onboarding_date?: string;
+  onboarding_date?: string; // Always a string in db
   source?: string;
   billing_cycle?: string;
   payment_terms?: string;
@@ -39,7 +39,7 @@ export interface ClientFormData {
   acn?: string;
   industry?: string;
   status: string;
-  onboarding_date?: string; // Make sure it's string only
+  onboarding_date?: string; // String only, no Date object
   source?: string;
   billing_cycle?: string;
   payment_terms?: string;
@@ -57,11 +57,18 @@ export interface ClientFormData {
 }
 
 // Helper function to convert Date objects to strings in client data
-export function prepareClientFormData(data: any): ClientFormData {
+export function prepareClientDataForSubmission(data: any): ClientFormData {
   return {
     ...data,
-    onboarding_date: data.onboarding_date instanceof Date 
-      ? data.onboarding_date.toISOString().split('T')[0] 
-      : data.onboarding_date
+    onboarding_date: data.onboarding_date 
+      ? (typeof data.onboarding_date === 'string' 
+          ? data.onboarding_date 
+          : data.onboarding_date.toISOString().split('T')[0])
+      : undefined
   };
+}
+
+// Helper function to format client data with date strings
+export function prepareClientFormData(data: any): ClientFormData {
+  return prepareClientDataForSubmission(data);
 }

@@ -1,43 +1,73 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { createSuccessResponse, createErrorResponse, ApiResponse } from '@/types/api-response';
-import { handleSupabaseError } from '@/utils/supabaseErrors';
-import { ClientAddressRecord } from '@/services/client/types';
-import { AddressApiResponse } from '@/services/client/types';
+import { ApiResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
+/**
+ * Service for client address operations
+ */
 export const addressService = {
-  fetchClientAddresses: async (clientId: string): Promise<ApiResponse<ClientAddressRecord[]>> => {
+  /**
+   * Fetch addresses for a client
+   */
+  fetchClientAddresses: async (clientId: string): Promise<ApiResponse<any[]>> => {
     try {
       const { data, error } = await supabase
         .from('client_addresses')
         .select('*')
         .eq('client_id', clientId);
 
-      if (error) return handleSupabaseError(error);
+      if (error) {
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message,
+          { error }
+        );
+      }
 
-      return createSuccessResponse(data as ClientAddressRecord[], 'Client addresses retrieved successfully');
-    } catch (error) {
-      return handleSupabaseError(error);
+      return createSuccessResponse(data || [], `Addresses for client ID ${clientId} fetched successfully`);
+    } catch (error: any) {
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        `Failed to fetch addresses for client with ID ${clientId}`,
+        { error: error.message }
+      );
     }
   },
 
-  createClientAddress: async (addressData: Partial<ClientAddressRecord>): Promise<AddressApiResponse> => {
+  /**
+   * Create a client address
+   */
+  createClientAddress: async (addressData: any): Promise<ApiResponse<any>> => {
     try {
       const { data, error } = await supabase
         .from('client_addresses')
-        .insert([addressData])
+        .insert(addressData)
         .select()
         .single();
 
-      if (error) return handleSupabaseError(error);
+      if (error) {
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message,
+          { error }
+        );
+      }
 
-      return createSuccessResponse(data as ClientAddressRecord, 'Client address created successfully');
-    } catch (error) {
-      return handleSupabaseError(error);
+      return createSuccessResponse(data, 'Client address created successfully');
+    } catch (error: any) {
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'Failed to create client address',
+        { error: error.message }
+      );
     }
   },
 
-  updateClientAddress: async (addressId: string, addressData: Partial<ClientAddressRecord>): Promise<AddressApiResponse> => {
+  /**
+   * Update client address
+   */
+  updateClientAddress: async (addressId: string, addressData: any): Promise<ApiResponse<any>> => {
     try {
       const { data, error } = await supabase
         .from('client_addresses')
@@ -46,14 +76,27 @@ export const addressService = {
         .select()
         .single();
 
-      if (error) return handleSupabaseError(error);
+      if (error) {
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message,
+          { error }
+        );
+      }
 
-      return createSuccessResponse(data as ClientAddressRecord, 'Client address updated successfully');
-    } catch (error) {
-      return handleSupabaseError(error);
+      return createSuccessResponse(data, `Address with ID ${addressId} updated successfully`);
+    } catch (error: any) {
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        `Failed to update address with ID ${addressId}`,
+        { error: error.message }
+      );
     }
   },
 
+  /**
+   * Delete a client address
+   */
   deleteClientAddress: async (addressId: string): Promise<ApiResponse<boolean>> => {
     try {
       const { error } = await supabase
@@ -61,11 +104,21 @@ export const addressService = {
         .delete()
         .eq('id', addressId);
 
-      if (error) return handleSupabaseError(error);
+      if (error) {
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message,
+          { error }
+        );
+      }
 
-      return createSuccessResponse(true, 'Client address deleted successfully');
-    } catch (error) {
-      return handleSupabaseError(error);
+      return createSuccessResponse(true, `Address with ID ${addressId} deleted successfully`);
+    } catch (error: any) {
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        `Failed to delete client address`,
+        { error: error.message }
+      );
     }
   }
 };

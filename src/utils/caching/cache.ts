@@ -87,3 +87,6 @@ export class Cache {
     return Array.from(this.cacheStore.keys());
   }
 }
+
+// Create a singleton instance for the application to use
+export const appCache = new Cache();

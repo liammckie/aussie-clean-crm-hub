@@ -1,12 +1,31 @@
 
-// Import Tabulator correctly using type imports
-import type Tabulator from 'tabulator-tables';
+// Import Tabulator types correctly
+import type { ColumnDefinition, SorterFromTable } from 'tabulator-tables';
 
-// Export the correct types using proper imports
-export type ColumnDefinition = Tabulator.ColumnDefinition;
-export type ColumnComponent = Tabulator.ColumnComponent;
-export type CellComponent = Tabulator.CellComponent;
-export type RowComponent = Tabulator.RowComponent;
+// Use proper type imports
+export type { ColumnDefinition } from 'tabulator-tables';
+
+// Define custom component types based on Tabulator types
+export interface ColumnComponent {
+  getField(): string;
+  getDefinition(): ColumnDefinition;
+  getElement(): HTMLElement;
+}
+
+export interface CellComponent {
+  getValue(): any;
+  getElement(): HTMLElement;
+  getRow(): RowComponent;
+  getColumn(): ColumnComponent;
+  getData(): any;
+}
+
+export interface RowComponent {
+  getData(): any;
+  getElement(): HTMLElement;
+  getCells(): CellComponent[];
+  getCell(column: string): CellComponent;
+}
 
 // Define proper sorter type
 export type TabulatorSorter = {
@@ -25,8 +44,8 @@ export interface TabulatorOptions {
   layout?: 'fitColumns' | 'fitData' | 'fitDataFill' | 'fitDataStretch' | 'fitDataTable';
   selectable?: boolean | number;
   movableRows?: boolean;
-  pagination?: boolean; // Fixed pagination type to be just boolean
-  paginationMode?: 'local' | 'remote'; // Added separate property for pagination mode
+  pagination?: boolean; 
+  paginationMode?: 'local' | 'remote'; 
   paginationSize?: number;
   initialSort?: TabulatorSorter[];
   placeholder?: string;

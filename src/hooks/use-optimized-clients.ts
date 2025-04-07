@@ -1,6 +1,7 @@
 
 import { useOptimizedQuery } from './use-optimized-query';
 import { clientService } from '@/services/client';
+import { isApiSuccess } from '@/types/api-response';
 
 // Constants for stale times and cache times
 const STALE_TIMES = {
@@ -20,7 +21,13 @@ const CACHE_TIMES = {
 export function useOptimizedClients(options = {}) {
   return useOptimizedQuery(
     ['clients'], 
-    () => clientService.getAllClients(),
+    async () => {
+      const response = await clientService.getAllClients();
+      if (!isApiSuccess(response)) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
     {
       staleTime: STALE_TIMES.SHORT, // Clients data should be relatively fresh
       gcTime: CACHE_TIMES.STANDARD,
@@ -35,7 +42,14 @@ export function useOptimizedClients(options = {}) {
 export function useOptimizedClientById(clientId: string | undefined, options = {}) {
   return useOptimizedQuery(
     ['client', clientId],
-    () => clientId ? clientService.getClientById(clientId) : Promise.resolve(null),
+    async () => {
+      if (!clientId) return null;
+      const response = await clientService.getClientById(clientId);
+      if (!isApiSuccess(response)) {
+        throw new Error(response.message);
+      }
+      return response.data;
+    },
     {
       enabled: !!clientId,
       staleTime: STALE_TIMES.SHORT,

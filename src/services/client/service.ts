@@ -1,9 +1,8 @@
 
 import { clientApi } from './api';
-import { addressService } from './services/address.service';
-import { contactService } from './services/contact.service';
-import { ApiResponse } from '@/types/api-response';
-import { ClientRecord, ClientFormData } from '@/types/clients';
+import { addressService, contactService } from './services';
+import { ApiResponse, createSuccessResponse } from '@/types/api-response';
+import { ClientRecord } from '@/types/clients';
 import { ContactRecord } from './types';
 
 /**
@@ -32,16 +31,10 @@ export const clientService = {
    * @param clientData Client data
    * @returns Promise<ApiResponse<ClientRecord>>
    */
-  createClient: async (clientData: ClientFormData): Promise<ApiResponse<ClientRecord>> => {
-    // Ensure onboarding_date is a string if it's a Date object
-    const preparedData = {
-      ...clientData,
-      onboarding_date: clientData.onboarding_date instanceof Date 
-        ? clientData.onboarding_date.toISOString().split('T')[0] 
-        : clientData.onboarding_date
-    };
-    
-    return clientApi.createClient(preparedData as ClientRecord);
+  createClient: async (clientData: any): Promise<ApiResponse<ClientRecord>> => {
+    // Ensure data is properly formatted
+    const preparedData = { ...clientData };
+    return clientApi.createClient(preparedData);
   },
 
   /**
@@ -50,16 +43,10 @@ export const clientService = {
    * @param updateData Client data to update
    * @returns Promise<ApiResponse<ClientRecord>>
    */
-  updateClient: async (clientId: string, updateData: Partial<ClientFormData>): Promise<ApiResponse<ClientRecord>> => {
-    // Ensure onboarding_date is a string if it's a Date object
-    const preparedData = {
-      ...updateData,
-      onboarding_date: updateData.onboarding_date instanceof Date 
-        ? updateData.onboarding_date.toISOString().split('T')[0] 
-        : updateData.onboarding_date
-    };
-    
-    return clientApi.updateClient(clientId, preparedData as Partial<ClientRecord>);
+  updateClient: async (clientId: string, updateData: any): Promise<ApiResponse<ClientRecord>> => {
+    // Ensure data is properly formatted
+    const preparedData = { ...updateData };
+    return clientApi.updateClient(clientId, preparedData);
   },
 
   /**
@@ -68,7 +55,11 @@ export const clientService = {
    * @returns Promise<ApiResponse<boolean>>
    */
   deleteClient: async (clientId: string): Promise<ApiResponse<boolean>> => {
-    return clientApi.deleteClient(clientId);
+    const response = await clientApi.deleteClient(clientId);
+    if ('success' in response.data) {
+      return createSuccessResponse(true, response.message);
+    }
+    return response as ApiResponse<boolean>;
   },
 
   /**

@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientService } from '@/services/client';
 import { useOptimizedQuery } from './use-optimized-query';
-import { ClientFormData, ClientRecord } from '@/types/clients';
+import { ClientFormData, ClientRecord, prepareClientDataForSubmission } from '@/types/clients';
 import { isApiSuccess } from '@/types/api-response';
 import { toast } from 'sonner';
 
@@ -69,13 +69,8 @@ export function useClients() {
   const useCreateClient = () => {
     return useMutation({
       mutationFn: async (clientData: ClientFormData) => {
-        // Convert Date to string for API submission
-        const processedData = {
-          ...clientData,
-          onboarding_date: clientData.onboarding_date instanceof Date 
-            ? clientData.onboarding_date.toISOString().split('T')[0]
-            : clientData.onboarding_date
-        };
+        // Convert data to proper format for API submission
+        const processedData = prepareClientDataForSubmission(clientData);
         
         const response = await clientService.createClient(processedData);
         if (!isApiSuccess(response)) {
@@ -99,13 +94,8 @@ export function useClients() {
   const useUpdateClient = () => {
     return useMutation({
       mutationFn: async ({ clientId, clientData }: { clientId: string, clientData: Partial<ClientFormData> }) => {
-        // Convert Date to string for API submission
-        const processedData = {
-          ...clientData,
-          onboarding_date: clientData.onboarding_date instanceof Date 
-            ? clientData.onboarding_date.toISOString().split('T')[0]
-            : clientData.onboarding_date
-        };
+        // Convert data to proper format for API submission
+        const processedData = prepareClientDataForSubmission(clientData);
         
         const response = await clientService.updateClient(clientId, processedData);
         if (!isApiSuccess(response)) {
@@ -224,9 +214,10 @@ export function useClients() {
     useClientAddresses,
     
     // Direct access to client data (for backward compatibility)
-    clients: allClients.data,
+    clients: allClients.data || [],
+    isLoading: allClients.isLoading,
     isLoadingClients: allClients.isLoading,
-    clientsError: allClients.error,
+    clientsError: allClients.error as Error,
     refetchClients: allClients.refetch
   };
 }

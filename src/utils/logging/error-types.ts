@@ -10,7 +10,10 @@ export enum ErrorCategory {
   DATABASE = 'database',
   NOT_FOUND = 'not_found',
   NETWORK = 'network',
-  UNKNOWN = 'unknown'
+  UNKNOWN = 'unknown',
+  CLIENT = 'client',
+  CONFLICT = 'conflict',
+  AUTHORIZATION = 'authorization'
 }
 
 /**
@@ -36,6 +39,8 @@ export function getErrorCategoryFromStatus(statusCode: number): ErrorCategory {
         return ErrorCategory.NOT_FOUND;
       } else if (statusCode === 422) {
         return ErrorCategory.VALIDATION;
+      } else if (statusCode === 409) {
+        return ErrorCategory.CONFLICT;
       }
       return ErrorCategory.PERMISSION;
     case statusCode >= 500:

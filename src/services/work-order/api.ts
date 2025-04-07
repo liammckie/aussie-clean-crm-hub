@@ -1,6 +1,7 @@
 
-import { ApiResponse } from '@/types/api-response';
+import { ApiResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
 import { supabase } from '@/integrations/supabase/client';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
  * Get all work orders
@@ -12,23 +13,20 @@ export const getAllWorkOrders = async (): Promise<ApiResponse<any[]>> => {
       .select('*');
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: data || [],
-      message: 'Work orders retrieved successfully'
-    };
+    return createSuccessResponse(data || [], 'Work orders retrieved successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error retrieving work orders: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error retrieving work orders: ${error.message}`,
+      { error }
+    );
   }
 };
 
@@ -44,23 +42,20 @@ export const getWorkOrderById = async (workOrderId: string): Promise<ApiResponse
       .single();
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: data || null,
-      message: 'Work order retrieved successfully'
-    };
+    return createSuccessResponse(data || null, 'Work order retrieved successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error retrieving work order: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error retrieving work order: ${error.message}`,
+      { error }
+    );
   }
 };
 
@@ -76,23 +71,20 @@ export const createWorkOrder = async (workOrderData: any): Promise<ApiResponse<a
       .single();
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: data,
-      message: 'Work order created successfully'
-    };
+    return createSuccessResponse(data, 'Work order created successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error creating work order: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error creating work order: ${error.message}`,
+      { error }
+    );
   }
 };
 
@@ -109,23 +101,20 @@ export const updateWorkOrder = async (workOrderId: string, updateData: any): Pro
       .single();
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: data,
-      message: 'Work order updated successfully'
-    };
+    return createSuccessResponse(data, 'Work order updated successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error updating work order: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error updating work order: ${error.message}`,
+      { error }
+    );
   }
 };
 
@@ -140,23 +129,20 @@ export const deleteWorkOrder = async (workOrderId: string): Promise<ApiResponse<
       .eq('id', workOrderId);
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: true,
-      message: 'Work order deleted successfully'
-    };
+    return createSuccessResponse(true, 'Work order deleted successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error deleting work order: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error deleting work order: ${error.message}`,
+      { error }
+    );
   }
 };
 
@@ -171,23 +157,20 @@ export const getWorkOrderTasks = async (workOrderId: string): Promise<ApiRespons
       .eq('work_order_id', workOrderId);
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: data || [],
-      message: 'Work order tasks retrieved successfully'
-    };
+    return createSuccessResponse(data || [], 'Work order tasks retrieved successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error retrieving work order tasks: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error retrieving work order tasks: ${error.message}`,
+      { error }
+    );
   }
 };
 
@@ -203,23 +186,20 @@ export const createWorkOrderTask = async (workOrderId: string, taskData: any): P
       .single();
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: data,
-      message: 'Task created successfully'
-    };
+    return createSuccessResponse(data, 'Task created successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error creating task: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error creating task: ${error.message}`,
+      { error }
+    );
   }
 };
 
@@ -236,23 +216,20 @@ export const updateWorkOrderTask = async (taskId: string, updateData: any): Prom
       .single();
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: data,
-      message: 'Task updated successfully'
-    };
+    return createSuccessResponse(data, 'Task updated successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error updating task: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error updating task: ${error.message}`,
+      { error }
+    );
   }
 };
 
@@ -267,23 +244,20 @@ export const deleteWorkOrderTask = async (taskId: string): Promise<ApiResponse<b
       .eq('id', taskId);
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: true,
-      message: 'Task deleted successfully'
-    };
+    return createSuccessResponse(true, 'Task deleted successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error deleting task: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error deleting task: ${error.message}`,
+      { error }
+    );
   }
 };
 
@@ -299,22 +273,19 @@ export const getWorkOrderBilling = async (workOrderId: string): Promise<ApiRespo
       .single();
 
     if (error) {
-      return {
-        category: 'database',
-        message: error.message,
-        details: error
-      };
+      return createErrorResponse(
+        ErrorCategory.DATABASE,
+        error.message,
+        { error }
+      );
     }
 
-    return {
-      data: data || null,
-      message: 'Billing information retrieved successfully'
-    };
+    return createSuccessResponse(data || null, 'Billing information retrieved successfully');
   } catch (error: any) {
-    return {
-      category: 'server',
-      message: `Error retrieving billing information: ${error.message}`,
-      details: error
-    };
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      `Error retrieving billing information: ${error.message}`,
+      { error }
+    );
   }
 };
