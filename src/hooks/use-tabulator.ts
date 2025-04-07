@@ -11,13 +11,17 @@ interface UseTabulatorProps {
 const useTabulator = ({ options, tableRef }: UseTabulatorProps) => {
   const [table, setTable] = useState<Tabulator | null>(null);
   const initialOptions = useRef(options);
+  const configuredOptions = useRef<TabulatorOptions | null>(null);
 
   useEffect(() => {
     if (tableRef.current) {
+      // Combine initial options with current options
       const tabulatorConfiguration = {
         ...initialOptions.current,
         ...options,
       };
+      
+      configuredOptions.current = tabulatorConfiguration;
 
       // Cast as any to avoid type errors with Tabulator's complex options
       const newTable = new Tabulator(tableRef.current, tabulatorConfiguration as any);
@@ -32,17 +36,28 @@ const useTabulator = ({ options, tableRef }: UseTabulatorProps) => {
 
   useEffect(() => {
     if (table) {
-      // Update any options that can be changed after initialization
-      if (options.data) {
+      // Update data if it changed
+      if (options.data && options.data !== configuredOptions.current?.data) {
         table.setData(options.data);
       }
       
-      // Handle other option updates depending on what Tabulator supports
-      if (options.height) {
+      // Update height if changed
+      if (options.height && options.height !== configuredOptions.current?.height) {
         table.setHeight(options.height);
       }
       
-      // Additional option updates can be added as needed
+      // Update layout if changed
+      if (options.layout && options.layout !== configuredOptions.current?.layout) {
+        table.redraw(true);
+      }
+      
+      // Update responsive columns
+      if (JSON.stringify(options.columns) !== JSON.stringify(configuredOptions.current?.columns)) {
+        table.setColumns(options.columns || []);
+      }
+      
+      // Store the current options
+      configuredOptions.current = { ...options };
     }
   }, [options, table]);
 

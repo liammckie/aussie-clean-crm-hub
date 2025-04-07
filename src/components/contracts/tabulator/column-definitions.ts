@@ -1,5 +1,5 @@
 
-import { formatMoneyColumn } from './formatters';
+import { formatMoneyColumn, statusFormatter, dateFormatter } from './formatters';
 import { contractService } from '@/services/contract';
 import { toast } from 'sonner';
 
@@ -12,23 +12,27 @@ export const getColumnDefinitions = (onCellEdited: (cell: any) => void) => [
     field: "client_name", 
     headerFilter: "input",
     headerFilterLiveFilter: true,
+    headerFilterPlaceholder: "Filter by client...",
     formatter: "text",
-    resizable: true
+    resizable: true,
+    tooltip: true
   },
   {
     title: "Contract",
     field: "contract_name",
     headerFilter: "input",
     headerFilterLiveFilter: true,
+    headerFilterPlaceholder: "Filter by name...",
     formatter: "text",
-    resizable: true
+    resizable: true,
+    tooltip: true
   },
   {
     title: "Status",
     field: "status",
     headerFilter: "select",
-    headerFilterParams: { valuesLookup: true },
-    formatter: "text",
+    headerFilterParams: { values: { "active": "Active", "pending": "Pending", "completed": "Completed", "cancelled": "Cancelled", "draft": "Draft", "expired": "Expired" } },
+    formatter: statusFormatter,
     width: 120,
     resizable: true
   },
@@ -38,6 +42,26 @@ export const getColumnDefinitions = (onCellEdited: (cell: any) => void) => [
     headerFilter: "select",
     headerFilterParams: { valuesLookup: true },
     formatter: "text",
+    width: 120,
+    resizable: true
+  },
+  {
+    title: "Start Date",
+    field: "start_date",
+    headerFilter: "input",
+    headerFilterPlaceholder: "YYYY-MM-DD",
+    formatter: dateFormatter,
+    sorter: "date",
+    width: 120,
+    resizable: true
+  },
+  {
+    title: "End Date",
+    field: "end_date",
+    headerFilter: "input",
+    headerFilterPlaceholder: "YYYY-MM-DD",
+    formatter: dateFormatter,
+    sorter: "date",
     width: 120,
     resizable: true
   },
@@ -53,28 +77,32 @@ export const getColumnDefinitions = (onCellEdited: (cell: any) => void) => [
       values: {"employee": "Employee", "contractor": "Contractor", "hybrid": "Hybrid"}
     },
     width: 150,
-    resizable: true
+    resizable: true,
+    editable: true
   },
   {
     title: "Account Manager",
     field: "account_manager",
     headerFilter: "input",
     editor: "input", 
-    resizable: true
+    resizable: true,
+    editable: true
   },
   {
     title: "State Manager",
     field: "state_manager",
     headerFilter: "input",
     editor: "input",
-    resizable: true
+    resizable: true,
+    editable: true
   },
   {
     title: "National Manager",
     field: "national_manager",
     headerFilter: "input",
     editor: "input",
-    resizable: true
+    resizable: true,
+    editable: true
   },
   {
     title: "Weekly Value",
@@ -83,6 +111,7 @@ export const getColumnDefinitions = (onCellEdited: (cell: any) => void) => [
     bottomCalc: "sum",
     bottomCalcFormatter: formatMoneyColumn,
     hozAlign: "right",
+    sorter: "number",
     resizable: true
   },
   {
@@ -92,6 +121,7 @@ export const getColumnDefinitions = (onCellEdited: (cell: any) => void) => [
     bottomCalc: "sum",
     bottomCalcFormatter: formatMoneyColumn,
     hozAlign: "right",
+    sorter: "number",
     resizable: true
   },
   {
@@ -101,6 +131,7 @@ export const getColumnDefinitions = (onCellEdited: (cell: any) => void) => [
     bottomCalc: "sum",
     bottomCalcFormatter: formatMoneyColumn,
     hozAlign: "right",
+    sorter: "number",
     resizable: true
   }
 ];

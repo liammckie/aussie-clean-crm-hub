@@ -14,6 +14,7 @@ declare module 'tabulator-tables' {
     deleteRow(row: TabulatorRow | number | number[]): Promise<void>;
     clearData(): Promise<void>;
     on(event: string, callback: Function): void;
+    off(event: string, callback: Function): void;
     getElement(): HTMLElement;
     setColumns(columns: TabulatorColumn[]): void;
     getColumns(): TabulatorColumn[];
@@ -26,6 +27,9 @@ declare module 'tabulator-tables' {
     setSort(sorters: string | TabulatorSorter[]): void;
     setFilter(filters: TabulatorFilter[]): void;
     clearFilter(trigger?: boolean): void;
+    setGroupBy(field: string | string[]): void;
+    setGroupStartOpen(values: boolean | Function): void;
+    getGroups(): any[];
     destroy(): void;
   }
 
@@ -38,7 +42,6 @@ declare module 'tabulator-tables' {
     paginationSize?: number;
     selectable?: boolean | number;
     selectableRangeMode?: string;
-    initialSort?: TabulatorSorter[];
     movableColumns?: boolean;
     movableRows?: boolean;
     resizableRows?: boolean;
@@ -48,6 +51,8 @@ declare module 'tabulator-tables' {
     headerFilterLiveFilter?: boolean;
     headerFilterLiveFilterDelay?: number;
     headerVisible?: boolean;
+    responsiveLayout?: 'hide' | 'collapse';
+    tooltips?: boolean;
     rowFormatter?: (row: TabulatorRow) => void;
     rowClick?: (e: Event, row: TabulatorRow) => void;
     rowSelectionChanged?: (data: Record<string, unknown>[], rows: TabulatorRow[]) => void;
@@ -58,6 +63,11 @@ declare module 'tabulator-tables' {
     paginationCounter?: string;
     footerElement?: string | HTMLElement;
     downloadConfig?: Record<string, unknown>;
+    groupBy?: string | string[];
+    groupHeader?: (value: any, count: number, data: any[], group: any) => string;
+    groupStartOpen?: boolean | Function;
+    columnDefaults?: Record<string, unknown>;
+    index?: string;
   }
 
   export interface TabulatorColumn {
@@ -81,7 +91,7 @@ declare module 'tabulator-tables' {
     hozAlign?: string;
     vertAlign?: string;
     cssClass?: string;
-    tooltip?: string | ((cell: TabulatorCell) => string);
+    tooltip?: boolean | string | ((cell: TabulatorCell) => string);
     headerTooltip?: string;
     clickMenu?: TabulatorMenuItem[];
     contextMenu?: TabulatorMenuItem[];
@@ -99,6 +109,9 @@ declare module 'tabulator-tables' {
     cellMouseOver?: (e: Event, cell: TabulatorCell) => void;
     cellMouseOut?: (e: Event, cell: TabulatorCell) => void;
     cellMouseMove?: (e: Event, cell: TabulatorCell) => void;
+    bottomCalc?: string | Function;
+    bottomCalcFormatter?: string | Function;
+    bottomCalcParams?: any;
   }
 
   export interface TabulatorFilter {
@@ -131,6 +144,7 @@ declare module 'tabulator-tables' {
     getTable(): Tabulator;
     checkHeight(): void;
     delete(): void;
+    restoreOldValue(): void;
     nav(): {
       next: () => TabulatorCell;
       prev: () => TabulatorCell;

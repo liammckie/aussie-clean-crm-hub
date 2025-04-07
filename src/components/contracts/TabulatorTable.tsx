@@ -11,6 +11,7 @@ interface TabulatorTableProps {
   className?: string;
   onRowClick?: (e: Event, row: any) => void;
   title?: string;
+  loading?: boolean;
 }
 
 function TabulatorTable({ 
@@ -19,13 +20,18 @@ function TabulatorTable({
   options = {}, 
   className = "", 
   onRowClick,
-  title
+  title,
+  loading
 }: TabulatorTableProps) {
   const defaultOptions: Partial<TabulatorOptions> = {
     layout: 'fitColumns',
     pagination: true,
     paginationSize: 10,
-    placeholder: 'No Data Available'
+    placeholder: loading ? 'Loading data...' : 'No Data Available',
+    responsiveLayout: 'hide',
+    height: '100%',
+    movableColumns: true,
+    tooltips: true,
   };
   
   const tableOptions: Partial<TabulatorOptions> = {
@@ -43,7 +49,7 @@ function TabulatorTable({
       <div className="p-0">
         <TabulatorContainer 
           columns={columns} 
-          data={data}
+          data={loading ? [] : data}
           options={tableOptions}
           className={`w-full ${className}`}
           onRowClick={onRowClick}

@@ -1,6 +1,5 @@
 
-import { useMemo } from 'react';
-import { Tabulator } from 'tabulator-tables';
+import { useMemo, useRef } from 'react';
 import { TabulatorOptions, TabulatorColumn, SortDirection } from '@/types/tabulator-types';
 
 // Type for Tabulator's sorter
@@ -17,7 +16,10 @@ export function useTabulator() {
     selectable: true,
     selectableRangeMode: "click",
     placeholder: "No data available",
-    headerFilterLiveFilterDelay: 300
+    headerFilterLiveFilterDelay: 300,
+    responsiveLayout: 'hide',
+    movableColumns: true,
+    tooltips: true
   }), []);
 
   const defaultColumns: TabulatorColumn[] = useMemo(() => [
@@ -28,25 +30,38 @@ export function useTabulator() {
     { title: "Value", field: "value", sorter: "number", formatter: "money" }
   ], []);
   
+  const tableInstanceRef = useRef<any>(null);
+  
   // Initialize the tabulator instance with provided columns and options
   const initializeTabulator = async (
     element: HTMLElement,
     columns: TabulatorColumn[] = defaultColumns,
     options: Partial<TabulatorOptions> = {}
-  ): Promise<Tabulator> => {
-    // Merge default options with provided options
-    const mergedOptions: TabulatorOptions = {
-      ...defaultOptions,
-      ...options,
-      columns: columns || defaultColumns,
-    };
+  ): Promise<any> => {
+    // Only import Tabulator if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      const { Tabulator } = await import('tabulator-tables');
+      
+      // Merge default options with provided options
+      const mergedOptions: TabulatorOptions = {
+        ...defaultOptions,
+        ...options,
+        columns: columns || defaultColumns,
+      };
+      
+      tableInstanceRef.current = new Tabulator(element, mergedOptions);
+      return tableInstanceRef.current;
+    }
     
-    return new Tabulator(element, mergedOptions);
+    return null;
   };
 
   return { 
     defaultColumns, 
     defaultOptions,
-    initializeTabulator 
+    initializeTabulator,
+    tableInstance: tableInstanceRef.current
   };
 }
+
+export default useTabulator;

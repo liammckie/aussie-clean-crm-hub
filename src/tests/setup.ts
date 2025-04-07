@@ -26,11 +26,15 @@ global.ResizeObserver = MockResizeObserver as unknown as typeof ResizeObserver;
 jest.mock('tabulator-tables', () => {
   const MockTabulator = class {
     on = jest.fn();
+    off = jest.fn();
     setData = jest.fn().mockReturnThis();
     setSort = jest.fn().mockReturnThis();
     setFilter = jest.fn().mockReturnThis();
     setGroupBy = jest.fn().mockReturnThis();
+    setColumns = jest.fn().mockReturnThis();
     getSelectedRows = jest.fn().mockReturnValue([]);
+    setHeight = jest.fn().mockReturnThis();
+    redraw = jest.fn().mockReturnThis();
     destroy = jest.fn();
   };
 
@@ -38,6 +42,9 @@ jest.mock('tabulator-tables', () => {
     Tabulator: MockTabulator
   };
 });
+
+// Mock CSS imports for Tabulator
+jest.mock('tabulator-tables/dist/css/tabulator.min.css', () => ({}), { virtual: true });
 
 // Mock fetch
 global.fetch = jest.fn(() =>
