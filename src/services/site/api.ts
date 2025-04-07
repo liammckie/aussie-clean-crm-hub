@@ -100,3 +100,13 @@ export const fetchClientSites = async (clientId: string): Promise<SitesApiRespon
     message: "Client sites fetched successfully"
   };
 };
+
+// Export as a single object for easier mocking in tests
+export const siteApi = {
+  fetchAllSites: fetchSites,
+  fetchSiteById,
+  createSite,
+  updateSite,
+  deleteSite,
+  fetchClientSites
+};

@@ -1,43 +1,43 @@
 
-import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { getSites, getSiteById, addSite, editSite, removeSite, getClientSites } from '@/services/site/service';
+import { ReactNode } from 'react';
+import { createSite, updateSite, deleteSite } from '@/services/site/service';
 
-// Mock the site service
+// Create mock functions for the site services
 jest.mock('@/services/site/service', () => ({
   getSites: jest.fn(),
   getSiteById: jest.fn(),
+  getClientSites: jest.fn(),
+  createSite: jest.fn(),
+  updateSite: jest.fn(),
+  deleteSite: jest.fn(),
+  // Add aliases for backward compatibility
   addSite: jest.fn(),
   editSite: jest.fn(),
   removeSite: jest.fn(),
-  getClientSites: jest.fn()
 }));
 
-// Mock Sonner to avoid test errors
-jest.mock('sonner', () => ({
-  toast: {
-    success: jest.fn(),
-    error: jest.fn()
-  }
-}));
-
-export const resetMocks = () => {
-  jest.clearAllMocks();
-};
-
-export const createQueryClientWrapper = () => {
+export function createQueryClientWrapper() {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
         retry: false,
       },
     },
+    logger: {
+      log: console.log,
+      warn: console.warn,
+      error: () => {},
+    },
   });
-
-  const wrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  
+  const wrapper = ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   );
+  
+  return { wrapper, queryClient };
+}
 
-  return { queryClient, wrapper };
-};
-
+export function resetMocks() {
+  jest.resetAllMocks();
+}

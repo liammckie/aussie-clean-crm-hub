@@ -2,10 +2,11 @@
 import { renderHook, waitFor } from '@testing-library/react';
 import { act } from '@testing-library/react';
 import { useCreateSite, useUpdateSite, useDeleteSite } from '@/hooks/use-sites';
-import { addSite, editSite, removeSite } from '@/services/site/service';
-import { SiteStatus, SiteType } from '@/types/database-schema';
+import { createSite, updateSite, deleteSite } from '@/services/site/service';
 import { createQueryClientWrapper, resetMocks } from './test-utils';
 import { createSuccessResponse } from '@/types/api-response';
+
+// Mock implementation will be provided by test-utils.tsx
 
 describe('Site Mutation Hooks', () => {
   beforeEach(() => {
@@ -22,8 +23,8 @@ describe('Site Mutation Hooks', () => {
         suburb: 'Newville',
         state: 'NSW',
         postcode: '2000',
-        status: SiteStatus.ACTIVE,
-        site_type: SiteType.OFFICE
+        status: 'active',
+        site_type: 'office'
       };
 
       const mockCreatedSite = {
@@ -35,7 +36,7 @@ describe('Site Mutation Hooks', () => {
 
       const mockResponse = createSuccessResponse(mockCreatedSite, "Site created successfully");
       
-      (addSite as jest.Mock).mockResolvedValueOnce(mockResponse);
+      (createSite as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       const { wrapper } = createQueryClientWrapper();
       const { result } = renderHook(() => useCreateSite(), { wrapper });
@@ -49,7 +50,7 @@ describe('Site Mutation Hooks', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       // Check if mutation was successful
-      expect(addSite).toHaveBeenCalledWith(newSite);
+      expect(createSite).toHaveBeenCalledWith(newSite);
       expect(result.current.data).toEqual(mockResponse);
     });
   });
@@ -59,19 +60,19 @@ describe('Site Mutation Hooks', () => {
       const siteId = 'site-id-123';
       const updates = {
         site_name: 'Updated Site Name',
-        status: SiteStatus.INACTIVE
+        status: 'inactive'
       };
 
       const mockUpdatedSite = {
         id: siteId,
         site_name: 'Updated Site Name',
-        status: SiteStatus.INACTIVE,
+        status: 'inactive',
         updated_at: '2023-01-20'
       };
 
       const mockResponse = createSuccessResponse(mockUpdatedSite, "Site updated successfully");
       
-      (editSite as jest.Mock).mockResolvedValueOnce(mockResponse);
+      (updateSite as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       const { wrapper } = createQueryClientWrapper();
       const { result } = renderHook(() => useUpdateSite(), { wrapper });
@@ -85,7 +86,7 @@ describe('Site Mutation Hooks', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       // Check if mutation was successful
-      expect(editSite).toHaveBeenCalledWith(siteId, updates);
+      expect(updateSite).toHaveBeenCalledWith(siteId, updates);
       expect(result.current.data).toEqual(mockResponse);
     });
   });
@@ -94,9 +95,9 @@ describe('Site Mutation Hooks', () => {
     it('deletes a site', async () => {
       const siteId = 'site-id-to-delete';
       
-      const mockResponse = createSuccessResponse(undefined, "Site deleted successfully");
+      const mockResponse = createSuccessResponse(true, "Site deleted successfully");
       
-      (removeSite as jest.Mock).mockResolvedValueOnce(mockResponse);
+      (deleteSite as jest.Mock).mockResolvedValueOnce(mockResponse);
 
       const { wrapper } = createQueryClientWrapper();
       const { result } = renderHook(() => useDeleteSite(), { wrapper });
@@ -110,7 +111,7 @@ describe('Site Mutation Hooks', () => {
       await waitFor(() => expect(result.current.isSuccess).toBe(true));
 
       // Check if mutation was successful
-      expect(removeSite).toHaveBeenCalledWith(siteId);
+      expect(deleteSite).toHaveBeenCalledWith(siteId);
       expect(result.current.data).toEqual(mockResponse);
     });
   });

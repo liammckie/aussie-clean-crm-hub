@@ -1,21 +1,21 @@
 
-import { describe, it, expect, vi, beforeEach } from '@jest/globals';
+import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import { createSite, getSiteById } from '@/services/site/service';
 import { siteApi } from '@/services/site/api';
-import { SiteData, SiteStatus, SiteType } from '@/services/site/types';
-import { ApiResponse, createSuccessResponse, isApiSuccess } from '@/types/api-response';
+import { SiteData } from '@/services/site/types';
+import { ApiResponse, isApiSuccess } from '@/types/api-response';
 
 // Mock the site API
-vi.mock('@/services/site/api', () => ({
+jest.mock('@/services/site/api', () => ({
   siteApi: {
-    createSite: vi.fn(),
-    fetchSiteById: vi.fn(),
+    createSite: jest.fn(),
+    fetchSiteById: jest.fn(),
   }
 }));
 
 describe('Site Service', () => {
   beforeEach(() => {
-    vi.resetAllMocks();
+    jest.resetAllMocks();
   });
 
   describe('createSite', () => {
@@ -35,19 +35,22 @@ describe('Site Service', () => {
         site_contact_email: 'john@test.com',
         site_contact_phone: '0400000000',
         site_contact_mobile: '0400000000',
-        status: 'active' as SiteStatus,
-        site_type: 'retail' as SiteType,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        status: 'active',
+        site_type: 'retail',
       };
 
       // Mock the successful response
       const mockSite: SiteData = {
         id: '1',
         ...siteData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      (siteApi.createSite as any).mockResolvedValue(mockSite);
+      (siteApi.createSite as jest.Mock).mockResolvedValue({
+        data: mockSite,
+        message: 'Site created successfully'
+      });
 
       // Call the service
       const result = await createSite(siteData);
@@ -55,7 +58,7 @@ describe('Site Service', () => {
       // Verify siteApi.createSite was called with the site data
       expect(siteApi.createSite).toHaveBeenCalledWith(siteData);
 
-      // Verify the service returns a successful response
+      // Verify the service returns a successful response using type guard
       expect(isApiSuccess(result)).toBe(true);
       
       if (isApiSuccess(result)) {
@@ -78,13 +81,16 @@ describe('Site Service', () => {
         state: 'NSW',
         postcode: '2000',
         country: 'Australia',
-        status: 'active' as SiteStatus,
-        site_type: 'retail' as SiteType,
+        status: 'active',
+        site_type: 'retail',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
 
-      (siteApi.fetchSiteById as any).mockResolvedValue(mockSite);
+      (siteApi.fetchSiteById as jest.Mock).mockResolvedValue({
+        data: mockSite,
+        message: 'Site fetched successfully'
+      });
 
       // Call the service
       const result = await getSiteById('1');
@@ -92,7 +98,7 @@ describe('Site Service', () => {
       // Verify siteApi.fetchSiteById was called with the site ID
       expect(siteApi.fetchSiteById).toHaveBeenCalledWith('1');
 
-      // Verify the service returns a successful response
+      // Verify the service returns a successful response using type guard
       expect(isApiSuccess(result)).toBe(true);
       
       if (isApiSuccess(result)) {

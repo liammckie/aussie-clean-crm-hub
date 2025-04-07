@@ -1,7 +1,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getSites, getSiteById, addSite, editSite, removeSite, getClientSites } from "@/services/site/service";
-import { SiteInsertData, SiteUpdateData, SiteData } from "@/services/site/types";
+import { getSites, getSiteById, getClientSites, createSite, updateSite, deleteSite } from "@/services/site/service";
+import { SiteInsertData, SiteUpdateData } from "@/services/site/types";
 import { ApiResponse, isApiError } from "@/types/api-response";
 
 export const useSites = () => {
@@ -51,7 +51,7 @@ export const useSiteById = (id: string) => {
 export const useCreateSite = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (site: SiteInsertData) => addSite(site),
+    mutationFn: (site: SiteInsertData) => createSite(site),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sites'] });
     }
@@ -61,7 +61,7 @@ export const useCreateSite = () => {
 export const useUpdateSite = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, site }: { id: string; site: SiteUpdateData }) => editSite(id, site),
+    mutationFn: ({ id, site }: { id: string; site: SiteUpdateData }) => updateSite(id, site),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['sites'] });
       queryClient.invalidateQueries({ queryKey: ['site', variables.id] });
@@ -72,7 +72,7 @@ export const useUpdateSite = () => {
 export const useDeleteSite = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => removeSite(id),
+    mutationFn: (id: string) => deleteSite(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sites'] });
     }
