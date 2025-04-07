@@ -69,10 +69,10 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
         )}
       />
       
-      {/* Handle the job_title field with proper type verification */}
+      {/* Use title instead of job_title */}
       <FormField
         control={form.control}
-        name="job_title"
+        name="title"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Job Title (Optional)</FormLabel>

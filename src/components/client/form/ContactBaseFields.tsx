@@ -20,12 +20,26 @@ export function ContactBaseFields({ form }: ContactBaseFieldsProps) {
     <>
       <FormField
         control={form.control}
-        name="name"
+        name="first_name"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Full Name</FormLabel>
+            <FormLabel>First Name</FormLabel>
             <FormControl>
-              <Input placeholder="Contact name" {...field} />
+              <Input placeholder="First name" {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      
+      <FormField
+        control={form.control}
+        name="last_name"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Last Name</FormLabel>
+            <FormControl>
+              <Input placeholder="Last name" {...field} value={field.value || ''} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -53,7 +67,7 @@ export function ContactBaseFields({ form }: ContactBaseFieldsProps) {
           <FormItem>
             <FormLabel>Position</FormLabel>
             <FormControl>
-              <Input placeholder="Position" {...field} />
+              <Input placeholder="Position" {...field} value={field.value || ''} />
             </FormControl>
             <FormMessage />
           </FormItem>
