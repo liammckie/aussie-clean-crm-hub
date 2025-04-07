@@ -20,7 +20,7 @@ import { getClientPrimaryAddress } from "./ClientDataProcessor";
 import { useTransition } from "react";
 
 interface ClientsContentProps {
-  isPending?: boolean;
+  isPending?: boolean;  // This prop exists and is correctly typed
 }
 
 const ClientsContent: React.FC<ClientsContentProps> = ({ isPending = false }) => {

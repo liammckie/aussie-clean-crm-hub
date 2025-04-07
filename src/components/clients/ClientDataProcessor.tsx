@@ -4,12 +4,13 @@ import { useClients } from "@/hooks/use-clients";
 import { useContracts } from "@/hooks/use-contracts";
 import { useSites } from "@/hooks/use-sites";
 import { useClientFilters } from "@/contexts/ClientFiltersContext";
+import { ClientRecord } from "@/types/clients";
 
 interface ClientDataProcessorProps {
   children: React.ReactNode;
 }
 
-export const getClientPrimaryAddress = (client: any) => {
+export const getClientPrimaryAddress = (client: ClientRecord) => {
   // Extract address parts
   const addressParts = [
     client.address_line_1,
@@ -23,15 +24,23 @@ export const getClientPrimaryAddress = (client: any) => {
 };
 
 const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) => {
-  const { clients, setFilteredClients } = useClientFilters();
-  const [isPending, setIsPending] = useState(true);
+  const { clients: fetchedClients, setFilteredClients, setClients } = useClientFilters();
+  const [isProcessing, setIsProcessing] = useState(true);
   const { contracts } = useContracts();
   const { sites } = useSites();
+  const { clients: apiClients } = useClients();
+  
+  // Set the initial clients from the API
+  useEffect(() => {
+    if (apiClients && apiClients.length > 0) {
+      setClients(apiClients);
+    }
+  }, [apiClients, setClients]);
   
   useEffect(() => {
-    if (!clients || !contracts || !sites) return;
+    if (!fetchedClients || !contracts || !sites) return;
     
-    const enhancedClients = clients.map(client => {
+    const enhancedClients = fetchedClients.map(client => {
       // Calculate annual revenue (sum of all contracts' total_annual_value)
       const clientContracts = contracts ? contracts.filter(c => c.client_id === client.id) : [];
       const annual_revenue = clientContracts.reduce((sum, contract) => {
@@ -52,14 +61,15 @@ const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) =
     });
     
     setFilteredClients(enhancedClients);
-    setIsPending(false);
-  }, [clients, contracts, sites, setFilteredClients]);
+    setIsProcessing(false);
+  }, [fetchedClients, contracts, sites, setFilteredClients]);
 
+  // Clone children and pass isProcessing instead of isPending
   return (
     <>
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-          return React.cloneElement(child, { isPending });
+          return React.cloneElement(child, { isPending: isProcessing });
         }
         return child;
       })}

@@ -10,6 +10,8 @@ interface ClientFiltersContextType {
   setActiveStatusFilter: (status: string | null) => void;
   filteredClients: ClientRecord[];
   setFilteredClients: (clients: ClientRecord[]) => void;
+  clients: ClientRecord[]; // Add this missing property
+  setClients: (clients: ClientRecord[]) => void; // Add setter for clients
   clearFilters: () => void;
 }
 
@@ -31,6 +33,7 @@ export const ClientFiltersProvider: React.FC<ClientFiltersProviderProps> = ({ ch
   const [searchTerm, setSearchTerm] = useState("");
   const [activeStatusFilter, setActiveStatusFilter] = useState<string | null>(null);
   const [filteredClients, setFilteredClients] = useState<ClientRecord[]>([]);
+  const [clients, setClients] = useState<ClientRecord[]>([]); // Add clients state
 
   const clearFilters = () => {
     setSearchTerm("");
@@ -40,7 +43,8 @@ export const ClientFiltersProvider: React.FC<ClientFiltersProviderProps> = ({ ch
   AppLogger.debug(LogCategory.UI, "ClientFiltersProvider state", { 
     searchTerm, 
     activeStatusFilter, 
-    filteredClientsCount: filteredClients.length 
+    filteredClientsCount: filteredClients.length,
+    clientsCount: clients.length // Add clients count to debug logging
   });
 
   return (
@@ -52,6 +56,8 @@ export const ClientFiltersProvider: React.FC<ClientFiltersProviderProps> = ({ ch
         setActiveStatusFilter,
         filteredClients,
         setFilteredClients,
+        clients, // Include clients in the context value
+        setClients, // Include setter for clients
         clearFilters,
       }}
     >
