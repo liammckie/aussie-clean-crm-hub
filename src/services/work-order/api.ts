@@ -1,8 +1,8 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { WorkOrderData, WorkOrderCreateData, WorkOrderTask, WorkbillData } from '@/types/work-order-types';
-import { ApiResponse, formatError } from '@/utils/api-utils';
+import { ApiResponse, createSuccessResponse, formatError } from '@/types/api-response';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 // Fetch all work orders with pagination and filtering
 export const getWorkOrders = async (
@@ -81,7 +81,7 @@ export const getWorkOrders = async (
     
     if (error) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error fetching work orders', { error });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
     // Transform the data to match our interface
@@ -92,15 +92,11 @@ export const getWorkOrders = async (
       supplier_name: item.suppliers?.business_name
     }));
     
-    return {
-      data: workOrders,
-      message: 'Work orders retrieved successfully',
-      count: count || 0
-    };
+    return createSuccessResponse(workOrders, 'Work orders retrieved successfully', count || 0);
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception fetching work orders', { error });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };
 
@@ -123,10 +119,10 @@ export const getWorkOrderById = async (id: string): Promise<ApiResponse<WorkOrde
     if (error) {
       if (error.code === 'PGRST116') {
         AppLogger.warn(LogCategory.WORK_ORDER, `Work order not found: ${id}`);
-        return formatError('not_found', `Work order with ID ${id} not found`);
+        return formatError(ErrorCategory.NOT_FOUND, `Work order with ID ${id} not found`);
       }
       AppLogger.error(LogCategory.WORK_ORDER, 'Error fetching work order', { error, id });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
     const workOrder: WorkOrderData = {
@@ -136,14 +132,11 @@ export const getWorkOrderById = async (id: string): Promise<ApiResponse<WorkOrde
       supplier_name: data.suppliers?.business_name
     };
     
-    return {
-      data: workOrder,
-      message: 'Work order retrieved successfully'
-    };
+    return createSuccessResponse(workOrder, 'Work order retrieved successfully');
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception fetching work order', { error, id });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };
 
@@ -165,7 +158,7 @@ export const createWorkOrder = async (workOrderData: WorkOrderCreateData): Promi
     
     if (countError) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error getting work order count', { error: countError });
-      return formatError('server', countError.message);
+      return formatError(ErrorCategory.SERVER, countError.message);
     }
     
     const sequence = String(count ? count + 1 : 1).padStart(3, '0');
@@ -182,17 +175,14 @@ export const createWorkOrder = async (workOrderData: WorkOrderCreateData): Promi
     
     if (error) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error creating work order', { error });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
-    return {
-      data,
-      message: 'Work order created successfully'
-    };
+    return createSuccessResponse(data, 'Work order created successfully');
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception creating work order', { error });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };
 
@@ -210,17 +200,14 @@ export const updateWorkOrder = async (id: string, workOrderData: Partial<WorkOrd
     
     if (error) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error updating work order', { error, id });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
-    return {
-      data,
-      message: 'Work order updated successfully'
-    };
+    return createSuccessResponse(data, 'Work order updated successfully');
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception updating work order', { error, id });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };
 
@@ -236,17 +223,14 @@ export const deleteWorkOrder = async (id: string): Promise<ApiResponse<boolean>>
     
     if (error) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error deleting work order', { error, id });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
-    return {
-      data: true,
-      message: 'Work order deleted successfully'
-    };
+    return createSuccessResponse(true, 'Work order deleted successfully');
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception deleting work order', { error, id });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };
 
@@ -263,17 +247,14 @@ export const getWorkOrderTasks = async (workOrderId: string): Promise<ApiRespons
     
     if (error) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error fetching work order tasks', { error, workOrderId });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
-    return {
-      data,
-      message: 'Work order tasks retrieved successfully'
-    };
+    return createSuccessResponse(data, 'Work order tasks retrieved successfully');
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception fetching work order tasks', { error, workOrderId });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };
 
@@ -290,17 +271,14 @@ export const createWorkOrderTask = async (task: Omit<WorkOrderTask, 'id' | 'crea
     
     if (error) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error creating work order task', { error });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
-    return {
-      data,
-      message: 'Task created successfully'
-    };
+    return createSuccessResponse(data, 'Task created successfully');
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception creating work order task', { error });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };
 
@@ -318,17 +296,14 @@ export const updateWorkOrderTask = async (id: string, taskData: Partial<WorkOrde
     
     if (error) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error updating work order task', { error, id });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
-    return {
-      data,
-      message: 'Task updated successfully'
-    };
+    return createSuccessResponse(data, 'Task updated successfully');
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception updating work order task', { error, id });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };
 
@@ -344,17 +319,14 @@ export const deleteWorkOrderTask = async (id: string): Promise<ApiResponse<boole
     
     if (error) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error deleting work order task', { error, id });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
-    return {
-      data: true,
-      message: 'Task deleted successfully'
-    };
+    return createSuccessResponse(true, 'Task deleted successfully');
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception deleting work order task', { error, id });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };
 
@@ -373,16 +345,13 @@ export const getWorkOrderBilling = async (workOrderId: string): Promise<ApiRespo
     
     if (error) {
       AppLogger.error(LogCategory.WORK_ORDER, 'Error fetching work order billing', { error, workOrderId });
-      return formatError('server', error.message);
+      return formatError(ErrorCategory.SERVER, error.message);
     }
     
-    return {
-      data,
-      message: 'Work order billing retrieved successfully'
-    };
+    return createSuccessResponse(data, 'Work order billing retrieved successfully');
     
   } catch (error: any) {
     AppLogger.error(LogCategory.WORK_ORDER, 'Exception fetching work order billing', { error, workOrderId });
-    return formatError('server', error.message);
+    return formatError(ErrorCategory.SERVER, error.message);
   }
 };

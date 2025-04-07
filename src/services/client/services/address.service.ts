@@ -3,7 +3,7 @@ import { clientApi } from '../api';
 import { AddressFormData } from '../types';
 import { logSuccess } from '@/utils/supabaseErrors';
 import { clientAddressSchema, validateWithZod } from '../validation';
-import { ApiResponse, createSuccessResponse } from '@/types/api-response';
+import { ApiResponse, createSuccessResponse, isApiError, formatError, ErrorCategory } from '@/types/api-response';
 
 /**
  * Client address management service
@@ -13,12 +13,12 @@ export const clientAddressService = {
   getClientAddresses: async (clientId: string): Promise<ApiResponse<any>> => {
     const response = await clientApi.fetchClientAddresses(clientId);
     
-    if ('category' in response) {
+    if (isApiError(response)) {
       return response;
     }
 
     logSuccess('fetch', 'client_addresses', response.data);
-    return createSuccessResponse(response.data);
+    return createSuccessResponse(response.data, 'Client addresses retrieved successfully');
   },
 
   // Create a new client address
@@ -26,34 +26,43 @@ export const clientAddressService = {
     // Add client ID to address data
     const address: AddressFormData = {
       ...addressData,
-      client_id: clientId
+      client_id: clientId,
+      street: addressData.street || '',  // Ensure required fields are set
+      suburb: addressData.suburb || '',  // Ensure required fields are set
+      state: addressData.state || '',    // Ensure required fields are set
+      postcode: addressData.postcode || '',  // Ensure required fields are set
+      address_type: addressData.address_type || 'physical'  // Ensure required fields are set
     };
 
     // Validate the address data using Zod schema
     const validationResult = validateWithZod(clientAddressSchema, address);
     if ('category' in validationResult) {
-      return validationResult;
+      return formatError(
+        ErrorCategory.VALIDATION, 
+        validationResult.message, 
+        validationResult.details
+      );
     }
 
     const response = await clientApi.createClientAddress(validationResult.data);
     
-    if ('category' in response) {
+    if (isApiError(response)) {
       return response;
     }
 
     logSuccess('create', 'client_address', response.data);
-    return createSuccessResponse(response.data);
+    return createSuccessResponse(response.data, 'Address created successfully');
   },
 
   // Delete a client address
   deleteClientAddress: async (addressId: string): Promise<ApiResponse<any>> => {
     const response = await clientApi.deleteClientAddress(addressId);
     
-    if ('category' in response) {
+    if (isApiError(response)) {
       return response;
     }
 
     logSuccess('delete', 'client_address', { addressId });
-    return createSuccessResponse({ success: true });
+    return createSuccessResponse({ success: true }, 'Address deleted successfully');
   }
 };

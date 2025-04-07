@@ -1,12 +1,8 @@
-
 import { isSupabaseError } from '@/integrations/supabase/client';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
 import { ErrorCategory } from '@/utils/logging/error-types';
-import { ApiErrorResponse } from '@/types/api-response';
-
-// Re-export ErrorCategory to maintain backwards compatibility
-export { ErrorCategory } from '@/utils/logging/error-types';
+import { ApiErrorResponse, createErrorResponse } from '@/types/api-response';
 
 /**
  * Structured error response for API operations
@@ -178,12 +174,7 @@ export function handleSupabaseError(
   }
 
   // Return structured error response
-  return {
-    message,
-    category,
-    code,
-    details
-  };
+  return createErrorResponse(category, message, details as Record<string, any>, code);
 }
 
 /**

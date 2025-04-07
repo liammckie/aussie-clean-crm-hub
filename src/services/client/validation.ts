@@ -1,7 +1,7 @@
-
 import { z } from 'zod';
 import { ClientStatus } from '@/types/database-schema';
 import { AddressType } from '@/types/form-types';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
  * Client validation schemas using Zod
@@ -120,13 +120,13 @@ export const clientSchema = z.object({
  * Helper function to convert validation errors to standardized format
  */
 export function handleValidationError(error: z.ZodError): { 
-  category: 'validation'; 
+  category: ErrorCategory.VALIDATION; 
   message: string;
   details: { field: string; }
 } {
   const firstError = error.errors[0];
   return {
-    category: 'validation',
+    category: ErrorCategory.VALIDATION,
     message: firstError.message,
     details: { field: firstError.path.join('.') }
   };
@@ -139,7 +139,7 @@ export function validateWithZod<T extends z.ZodType<any, any>, Output = z.infer<
   schema: T,
   data: unknown
 ): { data: Output } | { 
-  category: 'validation'; 
+  category: ErrorCategory.VALIDATION; 
   message: string;
   details: { field: string; }
 } {
@@ -151,7 +151,7 @@ export function validateWithZod<T extends z.ZodType<any, any>, Output = z.infer<
       return handleValidationError(error);
     }
     return {
-      category: 'validation',
+      category: ErrorCategory.VALIDATION,
       message: 'Unknown validation error occurred',
       details: { field: 'unknown' }
     };

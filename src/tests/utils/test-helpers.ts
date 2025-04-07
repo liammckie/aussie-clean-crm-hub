@@ -19,11 +19,17 @@ export { isApiError as isErrorResponse, isApiSuccess as isSuccessResponse } from
 /**
  * Helper to create a success response for tests
  */
-export function createSuccessResponse<T>(data: T): ApiSuccessResponse<T> {
-  return {
+export function createSuccessResponse<T>(data: T, message: string = 'Operation successful', count?: number): ApiSuccessResponse<T> {
+  const response: ApiSuccessResponse<T> = {
     data,
-    error: null
+    message
   };
+  
+  if (count !== undefined) {
+    response.count = count;
+  }
+  
+  return response;
 }
 
 /**
@@ -32,7 +38,7 @@ export function createSuccessResponse<T>(data: T): ApiSuccessResponse<T> {
 export function createErrorResponse(
   category: ErrorCategory,
   message: string,
-  details?: { field?: string; error?: string }
+  details?: { field?: string; error?: string } | Record<string, any>
 ): ApiErrorResponse {
   return {
     category,

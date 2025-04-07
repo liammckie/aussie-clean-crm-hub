@@ -5,11 +5,12 @@ import { ClientStatus } from '@/types/database-schema';
 import { 
   ApiResponse, 
   SuccessResponse,
+  ErrorResponse,
   isSuccessResponse, 
   createSuccessResponse, 
   createErrorResponse 
 } from '../utils/test-helpers';
-import { ErrorCategory } from '@/utils/supabaseErrors';
+import { ErrorCategory } from '@/utils/logging/error-types';
 import { ClientFormData } from '@/services/client/types';
 
 // Mock the client service module
@@ -50,10 +51,10 @@ describe('Client Service', () => {
     ];
     
     // Create typed success response
-    const mockResponse = createSuccessResponse(mockClients);
+    const mockResponse: ApiResponse<typeof mockClients> = createSuccessResponse(mockClients, 'Clients retrieved successfully');
     
     // Set up the mock implementation
-    (clientService.getAllClients as jest.Mock).mockResolvedValue(mockResponse);
+    (clientService.getAllClients as jest.Mock<Promise<ApiResponse<typeof mockClients>>>).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.getAllClients();
@@ -71,13 +72,13 @@ describe('Client Service', () => {
   });
 
   it('handles error when getting all clients', async () => {
-    const mockError = createErrorResponse(
+    const mockError: ApiResponse<any> = createErrorResponse(
       ErrorCategory.SERVER, 
       'Database error'
     );
     
     // Set up the mock implementation to return an error
-    (clientService.getAllClients as jest.Mock).mockResolvedValue(mockError);
+    (clientService.getAllClients as jest.Mock<Promise<ApiResponse<any>>>).mockResolvedValue(mockError);
 
     // Call the service function
     const result = await clientService.getAllClients();
@@ -91,10 +92,10 @@ describe('Client Service', () => {
     const mockClient = { id: '123', business_name: 'Test Company' };
     
     // Create typed success response
-    const mockResponse = createSuccessResponse(mockClient);
+    const mockResponse: ApiResponse<typeof mockClient> = createSuccessResponse(mockClient, 'Client retrieved successfully');
     
     // Set up the mock implementation
-    (clientService.getClientById as jest.Mock).mockResolvedValue(mockResponse);
+    (clientService.getClientById as jest.Mock<Promise<ApiResponse<typeof mockClient>>>).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.getClientById('123');
@@ -111,13 +112,13 @@ describe('Client Service', () => {
   });
 
   it('handles error when getting client by ID', async () => {
-    const mockError = createErrorResponse(
+    const mockError: ApiResponse<any> = createErrorResponse(
       ErrorCategory.NOT_FOUND, 
       'Client not found'
     );
     
     // Set up the mock implementation to return an error
-    (clientService.getClientById as jest.Mock).mockResolvedValue(mockError);
+    (clientService.getClientById as jest.Mock<Promise<ApiResponse<any>>>).mockResolvedValue(mockError);
 
     // Call the service function
     const result = await clientService.getClientById('invalid-id');
@@ -135,10 +136,10 @@ describe('Client Service', () => {
     };
 
     // Create typed success response
-    const mockResponse = createSuccessResponse(newClientData);
+    const mockResponse: ApiResponse<typeof newClientData> = createSuccessResponse(newClientData, 'Client created successfully');
     
     // Set up the mock implementation
-    (clientService.createClient as jest.Mock).mockResolvedValue(mockResponse);
+    (clientService.createClient as jest.Mock<Promise<ApiResponse<typeof newClientData>>>).mockResolvedValue(mockResponse);
 
     const newClient: ClientFormData = {
       business_name: 'New Company',
@@ -160,13 +161,13 @@ describe('Client Service', () => {
   });
 
   it('handles error when creating client', async () => {
-    const mockError = createErrorResponse(
+    const mockError: ApiResponse<any> = createErrorResponse(
       ErrorCategory.VALIDATION, 
       'Failed to create client'
     );
     
     // Set up the mock implementation to return an error
-    (clientService.createClient as jest.Mock).mockResolvedValue(mockError);
+    (clientService.createClient as jest.Mock<Promise<ApiResponse<any>>>).mockResolvedValue(mockError);
 
     const newClient: ClientFormData = {
       business_name: 'New Company',
@@ -189,10 +190,10 @@ describe('Client Service', () => {
     };
 
     // Create typed success response
-    const mockResponse = createSuccessResponse(updatedClientData);
+    const mockResponse: ApiResponse<typeof updatedClientData> = createSuccessResponse(updatedClientData, 'Client updated successfully');
     
     // Set up the mock implementation
-    (clientService.updateClient as jest.Mock).mockResolvedValue(mockResponse);
+    (clientService.updateClient as jest.Mock<Promise<ApiResponse<typeof updatedClientData>>>).mockResolvedValue(mockResponse);
 
     const updates = { business_name: 'Updated Company' };
 
@@ -212,10 +213,10 @@ describe('Client Service', () => {
 
   it('deletes a client', async () => {
     // Create typed success response
-    const mockResponse = createSuccessResponse({ success: true });
+    const mockResponse: ApiResponse<{success: true}> = createSuccessResponse({ success: true }, 'Client deleted successfully');
     
     // Set up the mock implementation
-    (clientService.deleteClient as jest.Mock).mockResolvedValue(mockResponse);
+    (clientService.deleteClient as jest.Mock<Promise<ApiResponse<{success: true}>>>).mockResolvedValue(mockResponse);
 
     // Call the service function
     const result = await clientService.deleteClient('123');

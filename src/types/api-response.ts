@@ -7,7 +7,7 @@ import { ErrorCategory } from '@/utils/logging/error-types';
 export interface ApiErrorResponse {
   category: ErrorCategory;
   message: string;
-  details?: any;
+  details?: Record<string, any>;
   code?: string;
   status?: number;
 }
@@ -17,7 +17,8 @@ export interface ApiErrorResponse {
  */
 export interface ApiSuccessResponse<T> {
   data: T;
-  error: null;
+  message: string;
+  count?: number; // Optional for pagination results
 }
 
 /**
@@ -29,24 +30,30 @@ export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
  * Type guard to check if a response is an error
  */
 export function isApiError<T>(response: ApiResponse<T>): response is ApiErrorResponse {
-  return 'category' in response && !('error' in response);
+  return 'category' in response;
 }
 
 /**
  * Type guard to check if a response is a success
  */
 export function isApiSuccess<T>(response: ApiResponse<T>): response is ApiSuccessResponse<T> {
-  return 'data' in response && 'error' in response && response.error === null;
+  return 'data' in response && 'message' in response;
 }
 
 /**
  * Helper for creating a standardized success response
  */
-export function createSuccessResponse<T>(data: T): ApiSuccessResponse<T> {
-  return {
+export function createSuccessResponse<T>(data: T, message: string = 'Operation successful', count?: number): ApiSuccessResponse<T> {
+  const response: ApiSuccessResponse<T> = {
     data,
-    error: null
+    message
   };
+  
+  if (count !== undefined) {
+    response.count = count;
+  }
+  
+  return response;
 }
 
 /**
@@ -55,11 +62,37 @@ export function createSuccessResponse<T>(data: T): ApiSuccessResponse<T> {
 export function createErrorResponse(
   category: ErrorCategory,
   message: string,
-  details?: any
+  details?: Record<string, any>,
+  code?: string,
+  status?: number
 ): ApiErrorResponse {
-  return {
+  const response: ApiErrorResponse = {
     category,
-    message,
-    details
+    message
   };
+  
+  if (details) {
+    response.details = details;
+  }
+  
+  if (code) {
+    response.code = code;
+  }
+  
+  if (status) {
+    response.status = status;
+  }
+  
+  return response;
+}
+
+/**
+ * Helper for formatting an error with a specific category
+ */
+export function formatError(
+  category: ErrorCategory,
+  message: string,
+  details?: Record<string, any>
+): ApiErrorResponse {
+  return createErrorResponse(category, message, details);
 }

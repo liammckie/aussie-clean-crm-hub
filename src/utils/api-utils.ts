@@ -1,4 +1,3 @@
-
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { isSupabaseError } from '@/integrations/supabase/client';
@@ -11,20 +10,14 @@ import {
   isApiError, 
   isApiSuccess, 
   createSuccessResponse, 
-  createErrorResponse 
+  createErrorResponse,
+  formatError
 } from '@/types/api-response';
 
 // Re-export types and utilities from centralized file
-export {
-  ErrorCategory,
-  ApiErrorResponse,
-  ApiSuccessResponse,
-  ApiResponse,
-  isApiError,
-  isApiSuccess,
-  createSuccessResponse,
-  createErrorResponse
-};
+export { ErrorCategory };
+export type { ApiErrorResponse, ApiSuccessResponse, ApiResponse };
+export { isApiError, isApiSuccess, createSuccessResponse, createErrorResponse, formatError };
 
 /**
  * Helper for categorizing Supabase errors
