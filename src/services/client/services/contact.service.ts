@@ -23,13 +23,16 @@ export const clientContactService = {
 
   // Create a new client contact
   createClientContact: async (clientId: string, contactData: Omit<ContactFormData, 'client_id'>): Promise<ApiResponse<any>> => {
-    // Add client ID to contact data
+    // Add client ID to contact data and ensure required fields have values
     const contact: ContactFormData = {
-      ...contactData,
       client_id: clientId,
-      name: contactData.name || '',     // Ensure required fields are set
-      email: contactData.email || '',   // Ensure required fields are set
-      contact_type: contactData.contact_type || 'primary' // Ensure required fields are set
+      name: contactData.name || '',     // Ensure required field has a value
+      email: contactData.email || '',   // Ensure required field has a value
+      contact_type: contactData.contact_type || 'Primary', // Ensure required field has a value
+      is_primary: contactData.is_primary !== undefined ? contactData.is_primary : false,
+      position: contactData.position,
+      phone: contactData.phone,
+      mobile: contactData.mobile
     };
 
     // Validate the contact data using Zod schema

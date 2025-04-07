@@ -77,6 +77,15 @@ export const clientCrudService = {
         formattedClient.onboarding_date = new Date().toISOString().split('T')[0];
       }
 
+      // Ensure business_name is not undefined (required field)
+      if (!formattedClient.business_name) {
+        return formatError(
+          ErrorCategory.VALIDATION,
+          'Business name is required',
+          { field: 'business_name' }
+        );
+      }
+
       console.log('Submitting client data to Supabase:', formattedClient);
       const response = await clientApi.createClient(formattedClient);
 
