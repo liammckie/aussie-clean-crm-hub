@@ -1,7 +1,8 @@
+
 import { ApiResponse } from '@/types/api-response';
 import { EntityType, AddressType, ContactType } from '@/types/database-schema';
 
-export { EntityType, AddressType, ContactType };
+export type { EntityType, AddressType, ContactType };
 
 /**
  * Client data record structure from database

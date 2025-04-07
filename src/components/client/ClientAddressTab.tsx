@@ -22,12 +22,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AddressType } from '@/types/form-types';
-import { EntityType } from '@/services/client/types';
+import { AddressType } from '@/types/database-schema';
+import { EntityType } from '@/types/database-schema';
 import { UnifiedAddressRecord } from '@/services/unified/types';
 import { useTypedTransition } from '@/hooks/use-suspense-transition';
 import { AppLogger, LogCategory } from '@/utils/logging';
-import { AddressType as DbAddressType } from '@/types/database-schema';
 
 interface ClientAddressTabProps {
   clientId: string;
@@ -36,7 +35,7 @@ interface ClientAddressTabProps {
 
 export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabProps) {
   const [openDialog, setOpenDialog] = useState(false);
-  const [selectedAddressType, setSelectedAddressType] = useState<AddressType>(DbAddressType.BILLING);
+  const [selectedAddressType, setSelectedAddressType] = useState<AddressType>(AddressType.BILLING);
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
   const { isPending, startTypedTransition } = useTypedTransition<void>();

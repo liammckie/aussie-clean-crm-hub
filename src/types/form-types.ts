@@ -1,6 +1,6 @@
 
 import { z } from 'zod';
-import { AddressType, EntityType as DbEntityType, ContactType as DbContactType } from './database-schema';
+import { AddressType as DbAddressType, EntityType as DbEntityType, ContactType as DbContactType } from './database-schema';
 
 // Type for entity types - use the database schema enum
 export type EntityType = DbEntityType | 'client' | 'supplier' | 'site' | 'work_order' | 'contract';
@@ -26,7 +26,7 @@ export type ContactType =
   | DbContactType; // Include database enum values
 
 // Use the database schema's AddressType enum to ensure consistency
-export { AddressType };
+export type { AddressType } from './database-schema';
 
 // Define preferred communication type
 export type PreferredCommunication = 'email' | 'phone' | 'portal';
