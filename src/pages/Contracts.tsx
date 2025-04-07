@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Plus } from 'lucide-react';
@@ -20,13 +21,18 @@ import {
 import { useContracts } from '@/hooks/use-contracts';
 import { ContractRecord } from '@/types/contract-types';
 import TabulatorTable from '@/components/contracts/TabulatorTable';
-import { ColumnDefinition } from '@/types/tabulator-types';
+import { ColumnDefinition, RowComponent } from '@/types/tabulator-types';
 import { toast } from 'sonner';
 
 const Contracts = () => {
   const navigate = useNavigate();
-  const contractsHook = useContracts();
-  const { contracts: contractsData, isLoadingContracts: isLoading, contractsError: error, refetchContracts: refetch } = contractsHook;
+  const { 
+    data: contractsData, 
+    isLoading, 
+    error, 
+    refetch 
+  } = useContracts();
+  
   const [contracts, setContracts] = useState<ContractRecord[]>([]);
 
   useEffect(() => {
@@ -44,7 +50,8 @@ const Contracts = () => {
     { title: "Value", field: "contract_value", sorter: "number", formatter: "money" }
   ], []);
 
-  const handleRowClick = (_e: Event, row: any) => {
+  // Explicitly type the event and row for TypeScript
+  const handleRowClick = (_e: Event, row: RowComponent) => {
     navigate(`/contracts/${row.getData().id}`);
   };
 

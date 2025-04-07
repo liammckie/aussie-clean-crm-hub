@@ -1,106 +1,110 @@
+
+import { ContractData } from '@/types/contract-types';
+import type { ContractCreateData } from '@/types/contract-types';
+import { ApiResponse } from '@/types/api-response';
 import * as contractApi from './api';
-import { ContractCreateData } from '@/types/contract-types';
-import { ContractData, BillingLineData, ContractBudgetData } from './types';
 
 /**
- * Service wrapper for contract-related operations
+ * Contract service implementation
  */
 export const contractService = {
   /**
    * Get all contracts
    */
-  getAllContracts: async () => {
-    return contractApi.getAllContracts();
+  getAllContracts: async (): Promise<ApiResponse<ContractData[]>> => {
+    return (contractApi as any).getAllContracts();
   },
 
   /**
    * Get contracts for a specific client
    */
-  getClientContracts: async (clientId: string) => {
-    return contractApi.getClientContracts(clientId);
+  getClientContracts: async (clientId: string): Promise<ApiResponse<ContractData[]>> => {
+    return (contractApi as any).getClientContracts(clientId);
   },
 
   /**
    * Get a contract by ID
    */
-  getContractById: async (contractId: string) => {
-    return contractApi.getContractById(contractId);
+  getContractById: async (contractId: string): Promise<ApiResponse<ContractData>> => {
+    return (contractApi as any).getContractById(contractId);
   },
 
   /**
    * Create a new contract
    */
-  createContract: async (contractData: ContractCreateData) => {
-    return contractApi.createContract(contractData);
+  createContract: async (contractData: ContractCreateData): Promise<ApiResponse<ContractData>> => {
+    return (contractApi as any).createContract(contractData);
   },
 
   /**
    * Update an existing contract
    */
-  updateContract: async (contractId: string, contractData: Partial<ContractData>) => {
-    return contractApi.updateContract(contractId, contractData);
+  updateContract: async (contractId: string, updateData: Partial<ContractData>): Promise<ApiResponse<ContractData>> => {
+    return (contractApi as any).updateContract(contractId, updateData);
   },
 
   /**
    * Delete a contract
    */
-  deleteContract: async (contractId: string) => {
-    return contractApi.deleteContract(contractId);
+  deleteContract: async (contractId: string): Promise<ApiResponse<boolean>> => {
+    return (contractApi as any).deleteContract(contractId);
   },
 
   /**
    * Get billing lines for a contract
    */
-  getContractBillingLines: async (contractId: string) => {
-    return contractApi.getContractBillingLines(contractId);
+  getContractBillingLines: async (contractId: string): Promise<ApiResponse<any[]>> => {
+    return (contractApi as any).getContractBillingLines(contractId);
   },
 
   /**
-   * Create a new billing line
+   * Create billing line for a contract
    */
-  createBillingLine: async (billingData: Omit<BillingLineData, 'id' | 'created_at' | 'updated_at'>) => {
-    return contractApi.createBillingLine(billingData);
+  createBillingLine: async (contractId: string, billingLineData: any): Promise<ApiResponse<any>> => {
+    return (contractApi as any).createBillingLine(contractId, billingLineData);
   },
 
   /**
-   * Update an existing billing line
+   * Update billing line
    */
-  updateBillingLine: async (lineId: string, billingData: Partial<BillingLineData>) => {
-    return contractApi.updateBillingLine(lineId, billingData);
+  updateBillingLine: async (billingLineId: string, updateData: any): Promise<ApiResponse<any>> => {
+    return (contractApi as any).updateBillingLine(billingLineId, updateData);
   },
 
   /**
-   * Delete a billing line
+   * Delete billing line
    */
-  deleteBillingLine: async (lineId: string) => {
-    return contractApi.deleteBillingLine(lineId);
+  deleteBillingLine: async (billingLineId: string): Promise<ApiResponse<boolean>> => {
+    return (contractApi as any).deleteBillingLine(billingLineId);
   },
 
   /**
-   * Get contract budget entries
+   * Get budget items for a contract
    */
-  getContractBudgets: async (contractId: string) => {
-    return contractApi.getContractBudgets(contractId);
+  getContractBudgets: async (contractId: string): Promise<ApiResponse<any[]>> => {
+    return (contractApi as any).getContractBudgets(contractId);
   },
 
   /**
-   * Create a new contract budget entry
+   * Create budget item for a contract
    */
-  createContractBudget: async (budgetData: Omit<ContractBudgetData, 'id' | 'created_at' | 'updated_at'>) => {
-    return contractApi.createContractBudget(budgetData);
+  createContractBudget: async (contractId: string, budgetData: any): Promise<ApiResponse<any>> => {
+    return (contractApi as any).createContractBudget(contractId, budgetData);
   },
 
   /**
-   * Update an existing contract budget entry
+   * Update budget item
    */
-  updateContractBudget: async (budgetId: string, budgetData: Partial<ContractBudgetData>) => {
-    return contractApi.updateContractBudget(budgetId, budgetData);
+  updateContractBudget: async (budgetId: string, updateData: any): Promise<ApiResponse<any>> => {
+    return (contractApi as any).updateContractBudget(budgetId, updateData);
   },
 
   /**
-   * Delete a contract budget entry
+   * Delete budget item
    */
-  deleteContractBudget: async (budgetId: string) => {
-    return contractApi.deleteContractBudget(budgetId);
+  deleteContractBudget: async (budgetId: string): Promise<ApiResponse<boolean>> => {
+    return (contractApi as any).deleteContractBudget(budgetId);
   }
 };
+
+export default contractService;

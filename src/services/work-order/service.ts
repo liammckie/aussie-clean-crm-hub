@@ -1,58 +1,80 @@
 
-import * as api from './api';
-import { WorkOrderCreateData, WorkOrderData } from '@/types/work-order-types';
+import { ApiResponse } from '@/types/api-response';
+import * as workOrderApi from './api';
 
 /**
- * Service for managing work orders
+ * Work order service implementation
  */
 export const workOrderService = {
   /**
-   * Get all work orders with pagination and filtering
+   * Get all work orders
    */
-  getWorkOrders: api.getWorkOrders,
-  
+  getAllWorkOrders: async (): Promise<ApiResponse<any[]>> => {
+    return (workOrderApi as any).getWorkOrders();
+  },
+
   /**
-   * Get a single work order by ID
+   * Get work order by ID
    */
-  getWorkOrderById: api.getWorkOrderById,
-  
+  getWorkOrderById: async (workOrderId: string): Promise<ApiResponse<any>> => {
+    return (workOrderApi as any).getWorkOrderById(workOrderId);
+  },
+
   /**
    * Create a new work order
    */
-  createWorkOrder: api.createWorkOrder,
-  
+  createWorkOrder: async (workOrderData: any): Promise<ApiResponse<any>> => {
+    return (workOrderApi as any).createWorkOrder(workOrderData);
+  },
+
   /**
    * Update an existing work order
    */
-  updateWorkOrder: api.updateWorkOrder,
-  
+  updateWorkOrder: async (workOrderId: string, updateData: any): Promise<ApiResponse<any>> => {
+    return (workOrderApi as any).updateWorkOrder(workOrderId, updateData);
+  },
+
   /**
    * Delete a work order
    */
-  deleteWorkOrder: api.deleteWorkOrder,
-  
+  deleteWorkOrder: async (workOrderId: string): Promise<ApiResponse<boolean>> => {
+    return (workOrderApi as any).deleteWorkOrder(workOrderId);
+  },
+
   /**
    * Get tasks for a work order
    */
-  getWorkOrderTasks: api.getWorkOrderTasks,
-  
+  getWorkOrderTasks: async (workOrderId: string): Promise<ApiResponse<any[]>> => {
+    return (workOrderApi as any).getWorkOrderTasks(workOrderId);
+  },
+
   /**
-   * Create a task for a work order
+   * Create task for a work order
    */
-  createWorkOrderTask: api.createWorkOrderTask,
-  
+  createWorkOrderTask: async (workOrderId: string, taskData: any): Promise<ApiResponse<any>> => {
+    return (workOrderApi as any).createWorkOrderTask(workOrderId, taskData);
+  },
+
   /**
    * Update a work order task
    */
-  updateWorkOrderTask: api.updateWorkOrderTask,
-  
+  updateWorkOrderTask: async (taskId: string, updateData: any): Promise<ApiResponse<any>> => {
+    return (workOrderApi as any).updateWorkOrderTask(taskId, updateData);
+  },
+
   /**
    * Delete a work order task
    */
-  deleteWorkOrderTask: api.deleteWorkOrderTask,
-  
+  deleteWorkOrderTask: async (taskId: string): Promise<ApiResponse<boolean>> => {
+    return (workOrderApi as any).deleteWorkOrderTask(taskId);
+  },
+
   /**
    * Get billing information for a work order
    */
-  getWorkOrderBilling: api.getWorkOrderBilling,
+  getWorkOrderBilling: async (workOrderId: string): Promise<ApiResponse<any>> => {
+    return (workOrderApi as any).getWorkOrderBilling(workOrderId);
+  }
 };
+
+export default workOrderService;

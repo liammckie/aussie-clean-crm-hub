@@ -3,5 +3,7 @@
 export type { ContractData, BillingLineData, ContractBudgetData } from './types';
 export * from './service';
 export * from './api';
-export type { ContractCreateData } from '@/types/contract-types';
-export { contractFormSchema } from '@/types/contract-types';
+
+// Re-export types from contract-types
+export type { ContractCreateData, ContractFormData } from '@/types/contract-types';
+export { contractFormSchema, ServiceType, createDefaultContractValues } from '@/types/contract-types';

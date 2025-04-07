@@ -4,7 +4,7 @@ import { Cache } from '@/utils/caching/cache';
 import { useCallback } from 'react';
 import type { UseQueryOptions, QueryClient, QueryKey, MutationOptions } from '@tanstack/react-query';
 
-// Cache instance for query results
+// Create a cache instance for query results
 const queryCache = new Cache({ namespace: 'query', ttl: 5 * 60 * 1000 }); // 5 min TTL
 
 /**

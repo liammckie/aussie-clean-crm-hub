@@ -1,7 +1,8 @@
 
 import { contractService } from '@/services/contract/service';
 import * as contractApi from '@/services/contract/api';
-import { ContractCreateData } from '@/types/contract-types';
+import { ContractData } from '@/types/contract-types';
+import { ApiResponse } from '@/types/api-response';
 
 // Mock the contract API
 jest.mock('@/services/contract/api');
@@ -11,7 +12,7 @@ describe('Contract Service', () => {
     jest.clearAllMocks();
   });
 
-  const mockContract: ContractCreateData = {
+  const mockContract: Partial<ContractData> = {
     contract_name: 'Test Contract',
     contract_code: 'TEST-001',
     client_id: '123e4567-e89b-12d3-a456-426614174000',
@@ -31,106 +32,143 @@ describe('Contract Service', () => {
   };
 
   test('getAllContracts - success case', async () => {
-    // Mock successful response
-    (contractApi.getAllContracts as jest.Mock).mockResolvedValueOnce({ 
-      data: [mockContractResponse.data]
-    });
+    // Type the mock response
+    const apiResponse: ApiResponse<ContractData[]> = { 
+      data: [mockContractResponse.data], 
+      message: 'Contracts retrieved successfully' 
+    };
+    
+    // Use typed mock function
+    (contractApi as any).getAllContracts = jest.fn().mockResolvedValueOnce(apiResponse);
 
     const result = await contractService.getAllContracts();
 
-    expect(contractApi.getAllContracts).toHaveBeenCalled();
-    expect(result).toEqual({ data: [mockContractResponse.data] });
+    expect((contractApi as any).getAllContracts).toHaveBeenCalled();
+    expect(result).toEqual(apiResponse);
   });
 
   test('getClientContracts - success case', async () => {
-    // Mock successful response
-    (contractApi.getClientContracts as jest.Mock).mockResolvedValueOnce({ 
-      data: [mockContractResponse.data]
-    });
+    // Type the mock response
+    const apiResponse: ApiResponse<ContractData[]> = { 
+      data: [mockContractResponse.data],
+      message: 'Client contracts retrieved successfully'
+    };
+    
+    // Use typed mock function
+    (contractApi as any).getClientContracts = jest.fn().mockResolvedValueOnce(apiResponse);
 
     const clientId = '123e4567-e89b-12d3-a456-426614174000';
     const result = await contractService.getClientContracts(clientId);
 
-    expect(contractApi.getClientContracts).toHaveBeenCalledWith(clientId);
-    expect(result).toEqual({ data: [mockContractResponse.data] });
+    expect((contractApi as any).getClientContracts).toHaveBeenCalledWith(clientId);
+    expect(result).toEqual(apiResponse);
   });
 
   test('getContractById - success case', async () => {
-    // Mock successful response
-    (contractApi.getContractById as jest.Mock).mockResolvedValueOnce(mockContractResponse);
+    // Type the mock response
+    const apiResponse: ApiResponse<ContractData> = { 
+      data: mockContractResponse.data,
+      message: 'Contract retrieved successfully'
+    };
+    
+    // Use typed mock function
+    (contractApi as any).getContractById = jest.fn().mockResolvedValueOnce(apiResponse);
 
     const contractId = '123e4567-e89b-12d3-a456-426614174002';
     const result = await contractService.getContractById(contractId);
 
-    expect(contractApi.getContractById).toHaveBeenCalledWith(contractId);
-    expect(result).toEqual(mockContractResponse);
+    expect((contractApi as any).getContractById).toHaveBeenCalledWith(contractId);
+    expect(result).toEqual(apiResponse);
   });
 
   test('createContract - success case', async () => {
-    // Mock successful response
-    (contractApi.createContract as jest.Mock).mockResolvedValueOnce(mockContractResponse);
+    // Type the mock response
+    const apiResponse: ApiResponse<ContractData> = { 
+      data: mockContractResponse.data,
+      message: 'Contract created successfully'
+    };
+    
+    // Use typed mock function
+    (contractApi as any).createContract = jest.fn().mockResolvedValueOnce(apiResponse);
     
     const result = await contractService.createContract(mockContract);
 
-    expect(contractApi.createContract).toHaveBeenCalledWith(mockContract);
-    expect(result).toEqual(mockContractResponse);
+    expect((contractApi as any).createContract).toHaveBeenCalledWith(mockContract);
+    expect(result).toEqual(apiResponse);
   });
 
   test('updateContract - success case', async () => {
-    // Mock successful response
-    (contractApi.updateContract as jest.Mock).mockResolvedValueOnce(mockContractResponse);
+    // Type the mock response
+    const apiResponse: ApiResponse<ContractData> = { 
+      data: mockContractResponse.data,
+      message: 'Contract updated successfully'
+    };
+    
+    // Use typed mock function
+    (contractApi as any).updateContract = jest.fn().mockResolvedValueOnce(apiResponse);
 
     const contractId = '123e4567-e89b-12d3-a456-426614174002';
     const updateData = { contract_name: 'Updated Contract Name' };
     
     const result = await contractService.updateContract(contractId, updateData);
 
-    expect(contractApi.updateContract).toHaveBeenCalledWith(contractId, updateData);
-    expect(result).toEqual(mockContractResponse);
+    expect((contractApi as any).updateContract).toHaveBeenCalledWith(contractId, updateData);
+    expect(result).toEqual(apiResponse);
   });
 
   test('deleteContract - success case', async () => {
-    // Mock successful response
-    (contractApi.deleteContract as jest.Mock).mockResolvedValueOnce({ data: true });
+    // Type the mock response
+    const apiResponse: ApiResponse<boolean> = { 
+      data: true,
+      message: 'Contract deleted successfully'
+    };
+    
+    // Use typed mock function
+    (contractApi as any).deleteContract = jest.fn().mockResolvedValueOnce(apiResponse);
 
     const contractId = '123e4567-e89b-12d3-a456-426614174002';
     
     const result = await contractService.deleteContract(contractId);
 
-    expect(contractApi.deleteContract).toHaveBeenCalledWith(contractId);
-    expect(result).toEqual({ data: true });
+    expect((contractApi as any).deleteContract).toHaveBeenCalledWith(contractId);
+    expect(result).toEqual(apiResponse);
   });
 
   test('getContractBillingLines - success case', async () => {
-    // Mock successful response
+    // Type the mock response with billing lines
     const mockBillingLines = [
       { id: 'line1', description: 'Regular Cleaning', client_charge: 1000 }
     ];
     
-    (contractApi.getContractBillingLines as jest.Mock).mockResolvedValueOnce({ 
-      data: mockBillingLines
-    });
+    const apiResponse: ApiResponse<any[]> = {
+      data: mockBillingLines,
+      message: 'Contract billing lines retrieved successfully'
+    };
+    
+    // Use typed mock function
+    (contractApi as any).getContractBillingLines = jest.fn().mockResolvedValueOnce(apiResponse);
 
     const contractId = '123e4567-e89b-12d3-a456-426614174002';
     const result = await contractService.getContractBillingLines(contractId);
 
-    expect(contractApi.getContractBillingLines).toHaveBeenCalledWith(contractId);
-    expect(result).toEqual({ data: mockBillingLines });
+    expect((contractApi as any).getContractBillingLines).toHaveBeenCalledWith(contractId);
+    expect(result).toEqual(apiResponse);
   });
 
   test('createContract - error case with validation failure', async () => {
-    // Mock error response for validation failure
-    const errorResponse = {
+    // Type the mock error response
+    const errorResponse: ApiResponse<never> = {
       category: 'validation',
       message: 'Contract code must be unique',
       details: { field: 'contract_code' }
     };
     
-    (contractApi.createContract as jest.Mock).mockResolvedValueOnce(errorResponse);
+    // Use typed mock function
+    (contractApi as any).createContract = jest.fn().mockResolvedValueOnce(errorResponse);
 
     const result = await contractService.createContract(mockContract);
 
-    expect(contractApi.createContract).toHaveBeenCalledWith(mockContract);
+    expect((contractApi as any).createContract).toHaveBeenCalledWith(mockContract);
     expect(result).toEqual(errorResponse);
   });
 });
