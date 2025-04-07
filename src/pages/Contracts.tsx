@@ -27,19 +27,19 @@ import { toast } from 'sonner';
 const Contracts = () => {
   const navigate = useNavigate();
   const { 
-    data: contractsData, 
-    isLoading, 
-    error, 
-    refetch 
+    contracts, 
+    isLoadingContracts, 
+    contractsError, 
+    refetchContracts 
   } = useContracts();
   
-  const [contracts, setContracts] = useState<ContractRecord[]>([]);
+  const [contractsData, setContractsData] = useState<ContractRecord[]>([]);
 
   useEffect(() => {
-    if (contractsData) {
-      setContracts(contractsData);
+    if (contracts) {
+      setContractsData(contracts);
     }
-  }, [contractsData]);
+  }, [contracts]);
 
   const columns: ColumnDefinition[] = useMemo(() => [
     { title: "Contract Name", field: "contract_name", sorter: "string", headerFilter: true },
@@ -55,12 +55,12 @@ const Contracts = () => {
     navigate(`/contracts/${row.getData().id}`);
   };
 
-  if (isLoading) {
+  if (isLoadingContracts) {
     return <div>Loading contracts...</div>;
   }
 
-  if (error) {
-    return <div>Error: {error.message}</div>;
+  if (contractsError) {
+    return <div>Error: {contractsError.message}</div>;
   }
 
   return (
@@ -96,10 +96,10 @@ const Contracts = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {contracts && contracts.length > 0 ? (
+          {contractsData && contractsData.length > 0 ? (
             <TabulatorTable 
               columns={columns}
-              data={contracts}
+              data={contractsData}
               onRowClick={handleRowClick}
             />
           ) : (

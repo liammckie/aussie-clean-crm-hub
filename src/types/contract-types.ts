@@ -19,6 +19,27 @@ export interface ContractData {
   contract_code: string;
   service_type?: string;
   is_ongoing?: boolean;
+  description?: string;
+  delivery_mode?: string;
+  account_manager?: string;
+  state_manager?: string;
+  national_manager?: string;
+  billing_frequency?: string;
+  billing_type?: string;
+  payment_terms?: string;
+  payment_method?: string;
+  total_weekly_value?: number;
+  total_monthly_value?: number;
+  total_annual_value?: number;
+  supplier_cost_weekly?: number;
+  supplier_cost_monthly?: number;
+  supplier_cost_annual?: number;
+  profit_margin_percentage?: number;
+  sla_requirements?: string;
+  billing_cycle?: string;
+  client_representative_name?: string;
+  client_representative_contact?: string;
+  notes?: string;
 }
 
 /**
@@ -44,6 +65,23 @@ export interface ContractRecord {
   contract_code: string;
   service_type?: string;
   is_ongoing?: boolean;
+  delivery_mode?: string;
+  account_manager?: string;
+  state_manager?: string;
+  national_manager?: string;
+  billing_frequency?: string;
+  billing_type?: string;
+  total_weekly_value?: number;
+  total_monthly_value?: number;
+  total_annual_value?: number;
+  supplier_cost_weekly?: number;
+  supplier_cost_monthly?: number;
+  supplier_cost_annual?: number;
+  profit_margin_percentage?: number;
+  sla_requirements?: string;
+  client_representative_name?: string;
+  client_representative_contact?: string;
+  notes?: string;
 }
 
 // Type alias for creating contracts (backward compatibility)
@@ -70,21 +108,61 @@ export const contractFormSchema = z.object({
   end_date: z.string().optional(),
   is_ongoing: z.boolean().optional().default(false),
   contract_value: z.number().optional(),
-  description: z.string().optional()
+  description: z.string().optional(),
+  delivery_mode: z.string().optional(),
+  account_manager: z.string().optional(),
+  state_manager: z.string().optional(),
+  national_manager: z.string().optional(),
+  billing_frequency: z.string().optional(),
+  billing_type: z.string().optional(),
+  payment_terms: z.string().optional(),
+  payment_method: z.string().optional(),
+  total_weekly_value: z.number().optional(),
+  total_monthly_value: z.number().optional(),
+  total_annual_value: z.number().optional(),
+  supplier_cost_weekly: z.number().optional(),
+  supplier_cost_monthly: z.number().optional(),
+  supplier_cost_annual: z.number().optional(),
+  profit_margin_percentage: z.number().optional(),
+  sla_requirements: z.string().optional(),
+  client_representative_name: z.string().optional(),
+  client_representative_contact: z.string().optional(),
+  notes: z.string().optional()
 });
 
 // Type inferred from schema
 export type ContractFormData = z.infer<typeof contractFormSchema>;
 
 // Helper to create default values
-export const createDefaultContractValues = (): ContractFormData => ({
+export const createDefaultContractValues = (initialValues: Partial<ContractFormData> = {}): ContractFormData => ({
   contract_name: "",
   contract_code: "",
   client_id: "",
   service_type: ServiceType.COMMERCIAL_CLEANING,
   status: "draft",
   start_date: new Date().toISOString().split("T")[0],
-  is_ongoing: false
+  is_ongoing: false,
+  description: "",
+  delivery_mode: "",
+  account_manager: "",
+  state_manager: "",
+  national_manager: "",
+  billing_frequency: "",
+  billing_type: "",
+  payment_terms: "",
+  payment_method: "",
+  total_weekly_value: undefined,
+  total_monthly_value: undefined,
+  total_annual_value: undefined,
+  supplier_cost_weekly: undefined,
+  supplier_cost_monthly: undefined,
+  supplier_cost_annual: undefined,
+  profit_margin_percentage: undefined,
+  sla_requirements: "",
+  client_representative_name: "",
+  client_representative_contact: "",
+  notes: "",
+  ...initialValues
 });
 
 // API response types

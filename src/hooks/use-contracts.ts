@@ -194,8 +194,8 @@ export const useContracts = (clientId?: string) => {
 
   // Mutation to create a new billing line
   const createBillingLineMutation = useMutation({
-    mutationFn: async (data: Omit<BillingLineData, 'id' | 'created_at' | 'updated_at'>) => {
-      const response = await contractService.createBillingLine(data);
+    mutationFn: async (data: { contract_id: string } & Partial<BillingLineData>) => {
+      const response = await contractService.createBillingLine(data.contract_id, data);
       
       if ('category' in response) {
         AppLogger.error(LogCategory.CONTRACT, `Error creating billing line: ${response.message}`);

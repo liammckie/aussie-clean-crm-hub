@@ -33,7 +33,13 @@ export function ClientDetailsTab({ clientId, onSaveSuccess, initialData }: Clien
       return;
     }
 
-    const preparedData = prepareClientDataForSubmission(data);
+    // Convert potential Date object to string for API
+    const preparedData = {
+      ...prepareClientDataForSubmission(data),
+      onboarding_date: data.onboarding_date instanceof Date 
+        ? data.onboarding_date.toISOString().split('T')[0]
+        : data.onboarding_date
+    };
 
     clientService.updateClient(clientId, preparedData)
       .then(response => {

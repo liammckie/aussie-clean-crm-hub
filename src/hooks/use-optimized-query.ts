@@ -5,7 +5,7 @@ import { useCallback } from 'react';
 import type { UseQueryOptions, QueryClient, QueryKey, MutationOptions } from '@tanstack/react-query';
 
 // Create a cache instance for query results
-const queryCache = new Cache({ namespace: 'query', ttl: 5 * 60 * 1000 }); // 5 min TTL
+const queryCache = new Cache();
 
 /**
  * Optimized version of useQuery that implements caching

@@ -1,19 +1,20 @@
 
-// Import Tabulator correctly using namespace import
+// Import Tabulator correctly using type imports
 import type Tabulator from 'tabulator-tables';
 
 // Import specific component types from the declaration file
 import type { 
   TabulatorColumn as TabulatorColumnDefinition,
-  TabulatorCell,
-  TabulatorRow
+  ColumnComponent,
+  CellComponent,
+  RowComponent
 } from 'tabulator-tables';
 
 // Export the correct types
 export type ColumnDefinition = TabulatorColumnDefinition;
-export type ColumnComponent = Tabulator.ColumnComponent;
-export type CellComponent = TabulatorCell;
-export type RowComponent = TabulatorRow;
+export type ColumnComponent = ColumnComponent;
+export type CellComponent = CellComponent;
+export type RowComponent = RowComponent;
 
 // Define proper sorter type
 export type TabulatorSorter = {

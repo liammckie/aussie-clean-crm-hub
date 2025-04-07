@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { ContractData } from '@/services/contract/types';
 
 interface ClientContractsTabProps {
   clientId: string;
@@ -129,7 +130,7 @@ export function ClientContractsTab({ clientId }: ClientContractsTabProps) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {contracts.map((contract) => (
+                {contracts.map((contract: ContractData) => (
                   <TableRow 
                     key={contract.id}
                     className="cursor-pointer hover:bg-muted/50"
