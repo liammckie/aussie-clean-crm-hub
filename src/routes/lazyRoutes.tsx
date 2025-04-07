@@ -17,7 +17,8 @@ export const NewSupplier = lazy(() => import('@/pages/NewSupplier'));
 export const SupplierDetail = lazy(() => import('@/pages/SupplierDetail'));
 export const EditSupplier = lazy(() => import('@/pages/EditSupplier'));
 export const NotFound = lazy(() => import('@/pages/NotFound'));
-export const Sites = lazy(() => import('@/pages/Sites')); // Add Sites page
+export const Sites = lazy(() => import('@/pages/Sites'));
+export const Activities = lazy(() => import('@/pages/Activities')); // Add Activities page
 
 // Work Order routes
 export const WorkOrders = lazy(() => import('@/pages/WorkOrders'));

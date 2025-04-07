@@ -1,5 +1,5 @@
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import useTabulator from '@/hooks/use-tabulator';
 import type { TabulatorOptions, TabulatorColumn, RowComponent } from '@/types/tabulator-types';
 import 'tabulator-tables/dist/css/tabulator.min.css';
@@ -20,6 +20,8 @@ const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
   onRowClick
 }) => {
   const tableRef = useRef<HTMLDivElement>(null);
+  const [tableInstance, setTableInstance] = useState<any>(null);
+  const { initializeTabulator } = useTabulator();
   
   const tabulatorOptions: TabulatorOptions = {
     ...options,
@@ -37,28 +39,39 @@ const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
     }
   };
   
-  const table = useTabulator({
-    options: tabulatorOptions,
-    tableRef
-  });
+  // Initialize the table
+  useEffect(() => {
+    if (tableRef.current) {
+      initializeTabulator(tableRef.current, columns, tabulatorOptions)
+        .then(instance => {
+          setTableInstance(instance);
+        });
+    }
+    
+    return () => {
+      if (tableInstance) {
+        tableInstance.destroy();
+      }
+    };
+  }, [tableRef.current]);  // Only run on mount
   
   // Register row click handler
   useEffect(() => {
-    if (table && onRowClick) {
-      table.on('rowClick', onRowClick);
+    if (tableInstance && onRowClick) {
+      tableInstance.on('rowClick', onRowClick);
       
       return () => {
-        table.off('rowClick', onRowClick);
+        tableInstance.off('rowClick', onRowClick);
       };
     }
-  }, [table, onRowClick]);
+  }, [tableInstance, onRowClick]);
   
   // Update data when it changes
   useEffect(() => {
-    if (table && data) {
-      table.setData(data);
+    if (tableInstance && data) {
+      tableInstance.setData(data);
     }
-  }, [data, table]);
+  }, [data, tableInstance]);
   
   return <div ref={tableRef} className={className} />;
 };

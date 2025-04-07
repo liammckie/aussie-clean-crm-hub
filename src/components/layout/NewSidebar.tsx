@@ -16,7 +16,8 @@ import {
   ClipboardList,
   BarChart4,
   LogOut,
-  Clipboard
+  Clipboard,
+  Activity
 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
@@ -149,6 +150,13 @@ export const NewSidebar: React.FC<NewSidebarProps> = ({
               icon={<Clipboard size={20} />} 
               label="Work Orders" 
               expanded={expanded} 
+            />
+            <NavItem 
+              to="/activities" 
+              icon={<Activity size={20} />} 
+              label="Activities" 
+              expanded={expanded} 
+              badge={3}
             />
             <NavItem 
               to="/inventory" 

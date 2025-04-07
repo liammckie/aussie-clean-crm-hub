@@ -2,7 +2,7 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
-import { NotFound, Sites, Dashboard } from '../lazyRoutes';
+import { NotFound, Sites, Dashboard, Activities } from '../lazyRoutes';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const MiscRoutes = () => {
@@ -21,6 +21,13 @@ export const MiscRoutes = () => {
       <Route path="sites" element={
         <ProtectedRoute>
           <Sites />
+        </ProtectedRoute>
+      } />
+      
+      {/* Activities route */}
+      <Route path="activities" element={
+        <ProtectedRoute>
+          <Activities />
         </ProtectedRoute>
       } />
 
