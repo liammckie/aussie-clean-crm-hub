@@ -1,7 +1,9 @@
 
 import { isSupabaseError } from '@/integrations/supabase/client';
-import { ErrorCategory, ApiErrorResponse, handleApiError } from '@/utils/api-utils';
-import { AppLogger, LogCategory } from '@/utils/logging';
+import { ErrorCategory } from '@/utils/logging/error-types';
+import { ApiErrorResponse, createErrorResponse } from '@/types/api-response';
+import { AppLogger } from '@/utils/logging/AppLogger';
+import { LogCategory } from '@/utils/logging/LogCategory';
 
 /**
  * Specialized handler for Supabase authentication errors
@@ -46,7 +48,7 @@ export function handleAuthError(error: any, operation: string): ApiErrorResponse
   // Log the specific auth error
   AppLogger.error(LogCategory.AUTH, message, { error, operation });
   
-  return handleApiError(error, message, context, LogCategory.AUTH);
+  return createErrorResponse(ErrorCategory.AUTHENTICATION, message, { ...context });
 }
 
 /**
@@ -99,7 +101,7 @@ export function handleDatabaseError(
   // Log the specific database error
   AppLogger.error(LogCategory.DATABASE, message, { error, operation, table });
   
-  return handleApiError(error, message, context, LogCategory.DATABASE);
+  return createErrorResponse(ErrorCategory.DATABASE, message, { ...context });
 }
 
 /**
@@ -120,24 +122,23 @@ export function handleSupabaseError(
     return handleDatabaseError(error, operation, context.table);
   } else {
     // Use general handler for other types of errors
-    return handleApiError(
-      error, 
-      `Error during ${operation}`, 
-      context,
-      determineLogCategory(context?.type)
+    return createErrorResponse(
+      determineErrorCategory(context?.type),
+      `Error during ${operation}`,
+      { ...context, error }
     );
   }
 }
 
 /**
- * Determine appropriate log category based on operation type
+ * Determine appropriate error category based on operation type
  */
-function determineLogCategory(type?: string): LogCategory {
+function determineErrorCategory(type?: string): ErrorCategory {
   switch (type) {
-    case 'auth': return LogCategory.AUTH;
-    case 'database': return LogCategory.DATABASE;
-    case 'storage': return LogCategory.STORAGE;
-    case 'api': return LogCategory.API;
-    default: return LogCategory.APPLICATION;
+    case 'auth': return ErrorCategory.AUTHENTICATION;
+    case 'database': return ErrorCategory.DATABASE;
+    case 'storage': return ErrorCategory.STORAGE;
+    case 'api': return ErrorCategory.NETWORK;
+    default: return ErrorCategory.UNKNOWN;
   }
 }

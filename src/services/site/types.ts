@@ -29,7 +29,11 @@ export interface SiteRecord {
   latitude?: number;
   longitude?: number;
   business_unit?: string;
+  description?: string; // Added to match schema
 }
+
+// Alias for backward compatibility
+export type SiteData = SiteRecord;
 
 /**
  * Data required to insert a new site
@@ -52,6 +56,7 @@ export interface SiteInsertData {
   region?: string | null;
   notes?: string | null;
   induction_required?: boolean;
+  description?: string | null; // Added to match schema
 }
 
 /**

@@ -25,7 +25,7 @@ export function validateServerData<T>(
         details: {
           field: firstError.path.join('.'),
           error: firstError.message,
-          code: 'VALIDATION_ERROR'
+          code: 'validation_error'  // Now properly typed
         }
       };
     }

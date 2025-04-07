@@ -1,7 +1,8 @@
 
 import { addressApi } from './address';
 import { contactApi } from './contact';
-import { EntityType, UnifiedAddressFormData, UnifiedContactFormData } from '@/types/form-types';
+import { EntityType } from '@/services/unified/types';
+import { UnifiedAddressFormData, UnifiedContactFormData } from '@/services/unified/types';
 
 // Unified API service for consistent data access
 export const unifiedApi = {
@@ -11,7 +12,7 @@ export const unifiedApi = {
   updateAddress: addressApi.updateAddress,
   deleteAddress: addressApi.deleteAddress,
   
-  // Make these functions available too (renamed from 'fetchAddresses' to match usage)
+  // Make these functions available with consistent naming
   getAddresses: addressApi.getEntityAddresses,
   
   // Contact API methods
@@ -20,6 +21,6 @@ export const unifiedApi = {
   updateContact: contactApi.updateContact,
   deleteContact: contactApi.deleteContact,
   
-  // Make these functions available too (renamed from 'fetchContacts' to match usage)
+  // Make these functions available with consistent naming
   getContacts: contactApi.getEntityContacts
 };

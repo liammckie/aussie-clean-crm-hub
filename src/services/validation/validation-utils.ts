@@ -1,3 +1,4 @@
+
 import { z, ZodSchema } from 'zod';
 import { ValidationErrorResponse } from '@/services/unified/types';
 
@@ -19,7 +20,8 @@ export function createSchemaValidator<T>(schema: ZodSchema) {
           message: firstError.message,
           details: {
             field: firstError.path.join('.'),
-            code: 'invalid_input'
+            error: firstError.message,
+            code: 'invalid_input'  // Now properly typed
           }
         };
       }
@@ -38,13 +40,18 @@ export function createSchemaValidator<T>(schema: ZodSchema) {
  * @param message The error message
  * @returns A ValidationErrorResponse object
  */
-export function createValidationError(field: string, message: string): ValidationErrorResponse {
+export function createValidationError(
+  field: string, 
+  message: string, 
+  code: string = 'invalid_input'
+): ValidationErrorResponse {
   return {
     category: 'validation',
     message,
     details: {
       field,
-      code: 'invalid_input'
+      error: message,
+      code // Now properly typed
     }
   };
 }
@@ -69,7 +76,8 @@ export function checkRequiredFields<T extends Record<string, any>>(
       
       return createValidationError(
         fieldName,
-        `${readableField} is required`
+        `${readableField} is required`,
+        'required_field' // Now properly typed
       );
     }
   }

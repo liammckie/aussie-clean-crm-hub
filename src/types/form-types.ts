@@ -11,6 +11,12 @@ export type AddressType = 'billing' | 'shipping' | 'site' | 'warehouse' | 'posta
 // Entity types for relational references
 export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
 
+// Contact types - updated to include custom types needed by components
+export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary' | 'Technical' | 'Management' | 
+  'client_primary' | 'client_site' | 'hr_payroll' | 'emergency';
+
+export type PreferredCommunication = 'email' | 'phone' | 'mobile' | 'post';
+
 // Define unified address form data
 export interface UnifiedAddressFormData {
   entity_type: EntityType;
@@ -27,13 +33,6 @@ export interface UnifiedAddressFormData {
   latitude?: number;
   longitude?: number;
 }
-
-// Contact types
-export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary' | 'Technical' | 'Management' | 
-  // Adding custom types needed in the app
-  'client_primary' | 'client_site' | 'hr_payroll' | 'emergency';
-
-export type PreferredCommunication = 'email' | 'phone' | 'mobile' | 'post';
 
 // Define unified contact form data
 export interface UnifiedContactFormData {
@@ -149,8 +148,6 @@ export const unifiedContactSchema = z.object({
   national_manager: z.string().optional(),
   notes: z.string().optional(),
 });
-
-// Helper functions for form default values
 
 /**
  * Create default values for address forms

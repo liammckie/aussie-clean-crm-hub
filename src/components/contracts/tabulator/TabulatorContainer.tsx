@@ -2,25 +2,46 @@
 import React, { useEffect, useRef } from 'react';
 import Tabulator from 'tabulator-tables';
 import { useTabulator } from '@/hooks/use-tabulator';
+import { RowComponent, ColumnDefinition, TabulatorOptions } from '@/types/tabulator-types';
 
 // Make sure to import styles in your main CSS file
 // import 'tabulator-tables/dist/css/tabulator.min.css';
 
 type TabulatorContainerProps = {
   data: any[];
-  onRowClick?: (e: UIEvent, row: Tabulator.RowComponent) => void;
+  columns?: ColumnDefinition[];
+  options?: Partial<TabulatorOptions>;
+  onRowClick?: (e: UIEvent, row: RowComponent) => void;
 };
 
-export default function TabulatorContainer({ data, onRowClick }: TabulatorContainerProps) {
+const TabulatorContainer: React.FC<TabulatorContainerProps> = ({ 
+  data, 
+  columns,
+  options,
+  onRowClick 
+}) => {
   const tableRef = useRef<HTMLDivElement>(null);
-  const { defaultColumns, defaultOptions, initializeTabulator } = useTabulator();
+  const { initializeTabulator, destroyTabulator } = useTabulator();
   const tabulatorRef = useRef<Tabulator | null>(null);
 
   useEffect(() => {
     if (tableRef.current) {
       const initTable = async () => {
-        // Initialize with defaultColumns and defaultOptions
-        tabulatorRef.current = await initializeTabulator(tableRef.current!, defaultColumns, defaultOptions);
+        // Initialize with provided or default columns and options
+        tabulatorRef.current = await initializeTabulator(tableRef.current!);
+        
+        // Configure the table with provided options
+        if (columns) {
+          tabulatorRef.current.setColumns(columns);
+        }
+        
+        if (options) {
+          // Apply any custom options
+          Object.entries(options).forEach(([key, value]) => {
+            // @ts-expect-error - Tabulator options are dynamic
+            tabulatorRef.current?.setOption(key, value);
+          });
+        }
         
         // Set data
         if (data && data.length > 0) {
@@ -37,9 +58,8 @@ export default function TabulatorContainer({ data, onRowClick }: TabulatorContai
     }
 
     return () => {
-      if (tabulatorRef.current) {
-        tabulatorRef.current.destroy();
-      }
+      destroyTabulator();
+      tabulatorRef.current = null;
     };
   }, []);
 
@@ -55,4 +75,6 @@ export default function TabulatorContainer({ data, onRowClick }: TabulatorContai
       <div ref={tableRef} className="tabulator"></div>
     </div>
   );
-}
+};
+
+export default TabulatorContainer;
