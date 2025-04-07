@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
+
+import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 type SyncConfig = {
   table: string;
@@ -13,6 +15,7 @@ type SyncConfig = {
   onDataChange?: (payload: any) => void;
   retries?: number;
   maxRetries?: number;
+  quietMode?: boolean;
 };
 
 /**
@@ -28,98 +31,124 @@ export function useRealtimeSync(config: SyncConfig) {
     enabled = true,
     onDataChange,
     retries = 0,
-    maxRetries = 3
+    maxRetries = 3,
+    quietMode = false
   } = config;
   
   const queryClient = useQueryClient();
   const queryKeyArray = Array.isArray(queryKey) ? queryKey : [queryKey];
+  const channelRef = useRef<RealtimeChannel | null>(null);
   
   useEffect(() => {
     if (!enabled) return;
     
+    let retryTimeoutId: number | undefined;
     let channel: RealtimeChannel | null = null;
 
-    try {
-      channel = supabase
-        .channel(`${table}-changes-${Date.now()}`) // Use unique channel name to avoid conflicts
-        .on(
-          'postgres_changes',
-          {
-            event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
-            schema,
-            table
-          },
-          (payload) => {
-            console.log(`Realtime sync: ${payload.eventType} in ${table}`, payload);
-            
-            // Add breadcrumb for debugging
-            ErrorReporting.addBreadcrumb({
-              category: 'realtime',
-              message: `${payload.eventType} in ${table}`,
-              level: 'info',
-              data: {
-                table,
-                operation: payload.eventType,
-                record: payload.new || payload.old
-              }
-            });
-            
-            // Invalidate the relevant queries
-            queryClient.invalidateQueries({ queryKey: queryKeyArray });
-            
-            // Call custom handler if provided
-            if (onDataChange) {
-              onDataChange(payload);
-            }
-          }
-        )
-        .subscribe((status) => {
-          console.log(`Realtime subscription status for ${table}:`, status);
-          
-          if (status === 'SUBSCRIBED') {
-            console.log(`Realtime sync enabled for ${table}`);
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error(`Error subscribing to ${table} changes`);
-            
-            // Only show toast on final retry
-            if (retries >= maxRetries) {
-              toast.error(`Failed to establish real-time connection`, {
-                description: `Updates to ${table} may not appear automatically. Try refreshing the page.`
+    const setupChannel = () => {
+      try {
+        // Generate unique channel name with timestamp to avoid conflicts
+        const channelName = `${table}-changes-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        
+        AppLogger.debug(LogCategory.REALTIME, `Setting up realtime sync for ${table}`, { channelName });
+        
+        channel = supabase
+          .channel(channelName)
+          .on(
+            'postgres_changes',
+            {
+              event: '*', // Listen for all events (INSERT, UPDATE, DELETE)
+              schema,
+              table
+            },
+            (payload) => {
+              AppLogger.debug(LogCategory.REALTIME, `Realtime sync: ${payload.eventType} in ${table}`, payload);
+              
+              // Add breadcrumb for debugging
+              ErrorReporting.addBreadcrumb({
+                category: 'realtime',
+                message: `${payload.eventType} in ${table}`,
+                level: 'info',
+                data: {
+                  table,
+                  operation: payload.eventType,
+                  record: payload.new || payload.old
+                }
               });
               
-              ErrorReporting.captureMessage(
-                `Failed to subscribe to real-time updates for ${table} after ${retries} attempts`,
-                { table, schema },
-                'error'
-              );
-            } else if (retries < maxRetries) {
-              // Retry with exponential backoff
-              const retryDelay = Math.min(1000 * Math.pow(2, retries), 10000);
-              console.log(`Will retry ${table} subscription in ${retryDelay}ms (attempt ${retries + 1})`);
+              // Invalidate the relevant queries
+              queryClient.invalidateQueries({ queryKey: queryKeyArray });
               
-              setTimeout(() => {
-                useRealtimeSync({...config, retries: retries + 1, maxRetries});
-              }, retryDelay);
+              // Call custom handler if provided
+              if (onDataChange) {
+                onDataChange(payload);
+              }
             }
-          }
-        });
-    } catch (error) {
-      console.error('Error setting up realtime sync:', error);
-      
-      ErrorReporting.captureException(
-        error instanceof Error ? error : new Error(`Failed to set up real-time sync for ${table}`),
-        { table, schema }
-      );
-    }
+          )
+          .subscribe((status) => {
+            AppLogger.debug(LogCategory.REALTIME, `Realtime subscription status for ${table}: ${status}`);
+            
+            if (status === 'SUBSCRIBED') {
+              AppLogger.info(LogCategory.REALTIME, `Realtime sync enabled for ${table}`);
+            } else if (status === 'CHANNEL_ERROR') {
+              AppLogger.error(LogCategory.REALTIME, `Error subscribing to ${table} changes`);
+              
+              // Only show toast on final retry and if not in quiet mode
+              if (retries >= maxRetries && !quietMode) {
+                toast.error(`Failed to establish real-time connection`, {
+                  description: `Updates to ${table} may not appear automatically. Try refreshing the page.`
+                });
+                
+                ErrorReporting.captureMessage(
+                  `Failed to subscribe to real-time updates for ${table} after ${retries} attempts`,
+                  { table, schema },
+                  'error'
+                );
+              } else if (retries < maxRetries) {
+                // Retry with exponential backoff
+                const retryDelay = Math.min(1000 * Math.pow(2, retries), 10000);
+                AppLogger.info(LogCategory.REALTIME, `Will retry ${table} subscription in ${retryDelay}ms (attempt ${retries + 1})`);
+                
+                retryTimeoutId = window.setTimeout(() => {
+                  if (channel) {
+                    supabase.removeChannel(channel);
+                  }
+                  setupChannel(); // Retry setup
+                }, retryDelay);
+              }
+            }
+          });
+          
+        channelRef.current = channel;
+        return channel;
+      } catch (error) {
+        AppLogger.error(LogCategory.ERROR, 'Error setting up realtime sync:', error);
+        
+        ErrorReporting.captureException(
+          error instanceof Error ? error : new Error(`Failed to set up real-time sync for ${table}`),
+          { table, schema }
+        );
+        return null;
+      }
+    };
+
+    // Initial setup
+    channel = setupChannel();
 
     // Cleanup function
     return () => {
+      if (retryTimeoutId) {
+        window.clearTimeout(retryTimeoutId);
+      }
+      
       if (channel) {
-        console.log(`Removing realtime subscription for ${table}`);
+        AppLogger.debug(LogCategory.REALTIME, `Removing realtime subscription for ${table}`);
         supabase.removeChannel(channel);
       }
     };
-  }, [table, schema, queryKeyArray.join(','), enabled, queryClient, onDataChange, retries, maxRetries]);
+  }, [table, schema, queryKeyArray.join(','), enabled, queryClient, onDataChange, retries, maxRetries, quietMode]);
+  
+  return channelRef.current;
 }
 
 /**
@@ -128,7 +157,9 @@ export function useRealtimeSync(config: SyncConfig) {
 export function useClientsRealtimeSync() {
   return useRealtimeSync({
     table: 'clients',
-    queryKey: ['clients']
+    queryKey: ['clients'],
+    // Use quiet mode to reduce error messages in the UI for non-critical updates
+    quietMode: true
   });
 }
 
@@ -176,7 +207,8 @@ export function useUnifiedAddressesRealtimeSync(entityType?: string, entityId?: 
   return useRealtimeSync({
     table: 'unified_addresses',
     queryKey,
-    enabled: true
+    enabled: true,
+    quietMode: true
   });
 }
 
@@ -191,6 +223,7 @@ export function useUnifiedContactsRealtimeSync(entityType?: string, entityId?: s
   return useRealtimeSync({
     table: 'unified_contacts',
     queryKey,
-    enabled: true
+    enabled: true,
+    quietMode: true
   });
 }

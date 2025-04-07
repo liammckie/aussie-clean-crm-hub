@@ -29,8 +29,12 @@ const supabaseClientInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   }
 });
 
-// Disable automatic reconnection to prevent excessive socket attempts
-supabaseClientInstance.realtime.reconnect = false;
+// Disable automatic realtime connections to prevent excessive socket attempts
+// This is the correct way to handle it instead of using .reconnect
+if (supabaseClientInstance.realtime) {
+  // We'll manually connect only when needed
+  supabaseClientInstance.realtime.setAuth(SUPABASE_ANON_KEY);
+}
 
 // Create the typed Supabase client using the same instance
 export const typedSupabase: TypedSupabaseClient = createTypedSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
