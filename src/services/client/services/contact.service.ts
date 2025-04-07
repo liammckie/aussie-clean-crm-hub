@@ -23,13 +23,16 @@ export const clientContactService = {
 
   // Create a new client contact
   createClientContact: async (clientId: string, contactData: Omit<ContactFormData, 'client_id'>): Promise<ApiResponse<any>> => {
-    // Add client ID to contact data and ensure required fields have values
+    // Add client ID to contact data and ensure all required fields are explicitly set
     const contact: ContactFormData = {
       client_id: clientId,
-      name: contactData.name || '',     // Ensure required field has a non-optional string value
-      email: contactData.email || '',   // Ensure required field has a non-optional string value
-      contact_type: contactData.contact_type || 'Primary', // Ensure required field has a default value
-      is_primary: contactData.is_primary !== undefined ? contactData.is_primary : false,
+      // Ensure required fields have non-nullable values
+      name: contactData.name ?? '', // Use nullish coalescing for more robust handling
+      email: contactData.email ?? '',
+      contact_type: contactData.contact_type ?? 'Primary',
+      // Ensure boolean field has a default
+      is_primary: contactData.is_primary ?? false,
+      // Optional fields passed through
       position: contactData.position,
       phone: contactData.phone,
       mobile: contactData.mobile

@@ -55,11 +55,13 @@ export const clientCrudService = {
   // Create a new client
   createClient: async (client: ClientFormData): Promise<ApiResponse<any>> => {
     try {
-      // Ensure required fields are present
+      // Explicitly create a new object with required fields and default values
       const clientWithDefaults: ClientFormData = {
-        business_name: client.business_name || '', // Ensure required field has non-empty string value
-        status: client.status || ClientStatus.PROSPECT, // Ensure required field has default value
-        ...client,
+        // Ensure required fields have explicit non-nullable values
+        business_name: client.business_name ?? '', 
+        status: client.status ?? ClientStatus.PROSPECT,
+        // Copy all other fields from the input
+        ...client
       };
 
       // Validate client data using our Zod schema

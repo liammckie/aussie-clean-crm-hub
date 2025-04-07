@@ -23,16 +23,18 @@ export const clientAddressService = {
 
   // Create a new client address
   createClientAddress: async (clientId: string, addressData: Omit<AddressFormData, 'client_id'>): Promise<ApiResponse<any>> => {
-    // Add client ID to address data
+    // Add client ID to address data with required fields explicitly set
     const address: AddressFormData = {
       client_id: clientId,
-      street: addressData.street || '', // Ensure required field is not optional
-      suburb: addressData.suburb || '', // Ensure required field is not optional
-      state: addressData.state || '',   // Ensure required field is not optional
-      postcode: addressData.postcode || '', // Ensure required field is not optional
-      address_type: addressData.address_type || 'physical', // Ensure required field has default value
+      // Ensure required fields are explicitly set with default values
+      street: addressData.street ?? '', // Use nullish coalescing for more robust handling
+      suburb: addressData.suburb ?? '',
+      state: addressData.state ?? '',
+      postcode: addressData.postcode ?? '',
+      address_type: addressData.address_type ?? 'physical',
+      // Optional fields
       street_2: addressData.street_2,
-      country: addressData.country || 'Australia'
+      country: addressData.country ?? 'Australia'
     };
 
     // Validate the address data using Zod schema
