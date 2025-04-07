@@ -4,8 +4,9 @@
  */
 
 export { LogLevel } from './LogLevel';
-export type { LogCategory } from './LogCategory';
-export { AppLogger, LogEntry } from './AppLogger';
+export { LogCategory } from './LogCategory';
+export type { LogEntry } from './types';
+export { AppLogger } from './AppLogger';
 export { ErrorCategory } from './error-types';
 
 // Also export performance and other logging utilities

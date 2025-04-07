@@ -73,7 +73,7 @@ export function createSuccessResponse<T>(data: T, message = 'Success'): ApiSucce
 }
 
 /**
- * Create an error response (this was missing)
+ * Create an error response
  */
 export function createErrorResponse(
   category: ErrorCategory,

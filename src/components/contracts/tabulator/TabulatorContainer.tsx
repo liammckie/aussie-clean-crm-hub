@@ -29,9 +29,9 @@ const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
         ...options,
         columns,
         data
-        // Do not include reactiveData here as it's not in the core Options type
       };
       
+      // Cast to any to avoid TypeScript errors with the complex Tabulator options
       const table = new Tabulator(tableRef.current, tabulatorOptions as any);
       
       tabulatorRef.current = table;

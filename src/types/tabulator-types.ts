@@ -1,11 +1,16 @@
 
-import type { Options, ColumnDefinition, ColumnComponent, CellComponent, RowComponent } from 'tabulator-tables';
+// Import types correctly from Tabulator
+import Tabulator from 'tabulator-tables';
+import type { ColumnDefinition as TabulatorColumnDefinition } from 'tabulator-tables';
+import type { ColumnComponent as TabulatorColumnComponent } from 'tabulator-tables';
+import type { CellComponent as TabulatorCellComponent } from 'tabulator-tables';
+import type { RowComponent as TabulatorRowComponent } from 'tabulator-tables';
 
 // Re-export the types properly
-export type { ColumnDefinition };
-export type { ColumnComponent };
-export type { CellComponent };
-export type { RowComponent };
+export type ColumnDefinition = TabulatorColumnDefinition;
+export type ColumnComponent = TabulatorColumnComponent;
+export type CellComponent = TabulatorCellComponent;
+export type RowComponent = TabulatorRowComponent;
 
 // Define proper sorter type
 export type TabulatorSorter = {
@@ -16,15 +21,16 @@ export type TabulatorSorter = {
 export type SortDirection = 'asc' | 'desc';
 
 // Column type definition
-export type TabulatorColumn = ColumnDefinition;
+export type TabulatorColumn = TabulatorColumnDefinition;
 
 // Define proper options interface that matches the Tabulator library
-export interface TabulatorOptions extends Partial<Options> {
+export interface TabulatorOptions {
   height?: string | number;
   layout?: 'fitColumns' | 'fitData' | 'fitDataFill' | 'fitDataStretch' | 'fitDataTable';
   selectable?: boolean | number;
   movableRows?: boolean;
-  pagination?: 'local' | 'remote' | boolean;
+  pagination?: boolean; // Fixed pagination type to be just boolean
+  paginationMode?: 'local' | 'remote'; // Added separate property for pagination mode
   paginationSize?: number;
   initialSort?: TabulatorSorter[];
   placeholder?: string;

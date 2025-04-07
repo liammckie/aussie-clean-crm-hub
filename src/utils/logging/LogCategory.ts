@@ -23,5 +23,6 @@ export enum LogCategory {
   ERROR = 'error',
   APPLICATION = 'application',
   STORAGE = 'storage',
-  FINANCIAL = 'financial'
+  FINANCIAL = 'financial',
+  SUPPLIER_CONTRACT = 'supplier_contract'
 }
