@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useCallback } from 'react';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -10,7 +11,6 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import AddressTable from '@/components/shared/AddressTable';
 import {
@@ -25,6 +25,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { AddressType } from '@/types/form-types';
 import { EntityType } from '@/services/client/types';
+import { UnifiedAddressRecord } from '@/services/unified/types';
+import { useTypedTransition } from '@/hooks/use-suspense-transition';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 interface ClientAddressTabProps {
   clientId: string;
@@ -36,6 +39,7 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
   const [selectedAddressType, setSelectedAddressType] = useState<AddressType>('billing');
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const { isPending, startTypedTransition } = useTypedTransition<void>();
   
   const { 
     useEntityAddresses, 
@@ -52,33 +56,38 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
     refetch 
   } = useEntityAddresses(EntityType.CLIENT, clientId);
 
-  const handleAddAddress = async (formData: any) => {
-    createAddress(
-      { 
-        entityType: EntityType.CLIENT, 
-        entityId: clientId, 
-        addressData: {
-          ...formData,
-          is_primary: formData.is_primary || false
-        }
-      },
-      {
-        onSuccess: () => {
-          setOpenDialog(false);
-          if (onAddressAdded) {
-            onAddressAdded();
+  const handleAddAddress = useCallback((formData: any) => {
+    AppLogger.debug(LogCategory.CLIENT, `Creating address for client ${clientId}`, { formData });
+    
+    startTypedTransition(() => {
+      createAddress(
+        { 
+          entityType: EntityType.CLIENT, 
+          entityId: clientId, 
+          addressData: {
+            ...formData,
+            is_primary: formData.is_primary || false
           }
-          refetch();
-          toast.success("Address added successfully");
         },
-        onError: (error: any) => {
-          toast.error(`Failed to add address: ${error.message}`);
+        {
+          onSuccess: () => {
+            setOpenDialog(false);
+            if (onAddressAdded) {
+              onAddressAdded();
+            }
+            refetch();
+            toast.success("Address added successfully");
+          },
+          onError: (error: Error) => {
+            AppLogger.error(LogCategory.ERROR, `Failed to add address: ${error.message}`, { clientId, error });
+            toast.error(`Failed to add address: ${error.message}`);
+          }
         }
-      }
-    );
-  };
+      );
+    });
+  }, [clientId, createAddress, onAddressAdded, refetch, startTypedTransition]);
 
-  const handleEditAddress = (address: any) => {
+  const handleEditAddress = (address: UnifiedAddressRecord) => {
     toast.info("Edit functionality will be implemented in future sprint");
   };
 
@@ -87,30 +96,41 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
     setDeleteAlertOpen(true);
   };
 
-  const confirmDeleteAddress = async () => {
+  const confirmDeleteAddress = useCallback(() => {
     if (!addressToDelete) return;
     
-    deleteAddress(
-      { addressId: addressToDelete },
-      {
-        onSuccess: () => {
-          toast.success("Address deleted successfully");
-          refetch();
-          setDeleteAlertOpen(false);
-          setAddressToDelete(null);
-        },
-        onError: (error: any) => {
-          toast.error(`Failed to delete address: ${error.message}`);
-          setDeleteAlertOpen(false);
-          setAddressToDelete(null);
+    AppLogger.debug(LogCategory.CLIENT, `Deleting address ${addressToDelete} for client ${clientId}`);
+    
+    startTypedTransition(() => {
+      deleteAddress(
+        { addressId: addressToDelete },
+        {
+          onSuccess: () => {
+            toast.success("Address deleted successfully");
+            refetch();
+            setDeleteAlertOpen(false);
+            setAddressToDelete(null);
+          },
+          onError: (error: Error) => {
+            AppLogger.error(LogCategory.ERROR, `Failed to delete address: ${error.message}`, { clientId, addressId: addressToDelete, error });
+            toast.error(`Failed to delete address: ${error.message}`);
+            setDeleteAlertOpen(false);
+            setAddressToDelete(null);
+          }
         }
-      }
-    );
-  };
+      );
+    });
+  }, [addressToDelete, clientId, deleteAddress, refetch, startTypedTransition]);
 
   const handleAddClick = () => {
     setOpenDialog(true);
   };
+
+  // Safely type the addresses data
+  const typedAddresses = React.useMemo(() => {
+    if (!addresses) return [] as UnifiedAddressRecord[];
+    return addresses as UnifiedAddressRecord[];
+  }, [addresses]);
 
   return (
     <Card>
@@ -119,9 +139,12 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
           <CardTitle>Client Addresses</CardTitle>
           <CardDescription>Manage addresses for this client</CardDescription>
         </div>
+        <Button variant="default" onClick={handleAddClick} disabled={isPending}>
+          Add Address
+        </Button>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {isLoading || isPending ? (
           <div className="text-center py-4">Loading addresses...</div>
         ) : error ? (
           <div className="p-4 border rounded bg-red-50 text-red-800">
@@ -129,12 +152,12 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
           </div>
         ) : (
           <AddressTable 
-            addresses={addresses || []}
+            addresses={typedAddresses}
             onEdit={handleEditAddress}
             onDelete={handleDeleteAddress}
             onAdd={handleAddClick}
             showEntityType={false}
-            isLoading={isLoading || isDeletingAddress}
+            isLoading={isLoading || isDeletingAddress || isPending}
           />
         )}
 
@@ -148,7 +171,7 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
             </DialogHeader>
             <UnifiedAddressForm 
               onSubmit={handleAddAddress} 
-              isLoading={isCreatingAddress}
+              isLoading={isCreatingAddress || isPending}
               initialData={{ address_type: selectedAddressType }}
               buttonText="Add Address"
             />
@@ -168,9 +191,9 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
               <AlertDialogAction 
                 onClick={confirmDeleteAddress}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                disabled={isDeletingAddress}
+                disabled={isDeletingAddress || isPending}
               >
-                {isDeletingAddress ? "Deleting..." : "Delete"}
+                {isDeletingAddress || isPending ? "Deleting..." : "Delete"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

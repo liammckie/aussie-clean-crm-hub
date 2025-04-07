@@ -1,23 +1,27 @@
 
-import { useState, useCallback, startTransition } from 'react';
+import { useState, useCallback, startTransition, useTransition } from 'react';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 /**
  * Hook to safely handle suspense with startTransition
  * This helps prevent the "suspended while responding to synchronous input" error
  */
 export function useSuspenseTransition() {
-  const [isPending, setIsPending] = useState(false);
+  // Use React's built-in useTransition hook
+  const [isPending, startLocalTransition] = useTransition();
   
   const startSuspenseTransition = useCallback((callback: () => void) => {
-    setIsPending(true);
-    startTransition(() => {
+    AppLogger.debug(LogCategory.UI, 'Starting suspense transition');
+    
+    // Use React's built-in startTransition to prevent synchronous suspense errors
+    startLocalTransition(() => {
       try {
         callback();
-      } finally {
-        setIsPending(false);
+      } catch (error) {
+        AppLogger.error(LogCategory.ERROR, 'Error in suspense transition', { error });
       }
     });
-  }, []);
+  }, [startLocalTransition]);
   
   return { isPending, startSuspenseTransition };
 }
@@ -30,10 +34,39 @@ export const wrapWithTransition = <T,>(
   dataFetchingFn: () => Promise<T>
 ): Promise<T> => {
   return new Promise((resolve, reject) => {
+    AppLogger.debug(LogCategory.DATA, 'Wrapping data fetch with transition');
+    
+    // Use startTransition to wrap the data fetching
     startTransition(() => {
       dataFetchingFn()
-        .then(resolve)
-        .catch(reject);
+        .then(result => {
+          AppLogger.debug(LogCategory.DATA, 'Data fetch completed successfully');
+          resolve(result);
+        })
+        .catch(error => {
+          AppLogger.error(LogCategory.ERROR, 'Error in data fetch within transition', { error });
+          reject(error);
+        });
     });
   });
 };
+
+/**
+ * Hook to provide a strongly typed wrapper for useTransition
+ * This is a convenience hook for components that need to use transitions
+ */
+export function useTypedTransition<T>() {
+  const [isPending, startTransitionRaw] = useTransition();
+  
+  const startTypedTransition = useCallback((callback: () => T): void => {
+    startTransitionRaw(() => {
+      try {
+        callback();
+      } catch (error) {
+        AppLogger.error(LogCategory.ERROR, 'Error in typed transition', { error });
+      }
+    });
+  }, [startTransitionRaw]);
+  
+  return { isPending, startTypedTransition };
+}

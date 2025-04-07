@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -25,6 +25,9 @@ import {
 } from "@/components/ui/alert-dialog";
 import { ContactType } from '@/types/form-types';
 import { EntityType } from '@/services/client/types';
+import { UnifiedContactRecord } from '@/services/unified/types';
+import { useTypedTransition } from '@/hooks/use-suspense-transition';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 interface ClientContactsTabProps {
   clientId: string;
@@ -35,6 +38,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
   const [isContactDialogOpen, setIsContactDialogOpen] = useState(false);
   const [contactToDelete, setContactToDelete] = useState<string | null>(null);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const { isPending, startTypedTransition } = useTypedTransition<void>();
   
   const { 
     useEntityContacts, 
@@ -60,35 +64,38 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     'Technical'
   ];
 
-  const handleContactSubmit = (formData: any) => {
-    console.log("Submitting contact form data:", formData);
-    createContact(
-      {
-        entityType: EntityType.CLIENT,
-        entityId: clientId,
-        contactData: {
-          ...formData,
-          is_primary: Boolean(formData.is_primary)
-        }
-      },
-      {
-        onSuccess: () => {
-          setIsContactDialogOpen(false);
-          refetch();
-          if (onContactAdded) {
-            onContactAdded();
+  const handleContactSubmit = useCallback((formData: any) => {
+    AppLogger.debug(LogCategory.CLIENT, `Creating contact for client ${clientId}`, { formData });
+    
+    startTypedTransition(() => {
+      createContact(
+        {
+          entityType: EntityType.CLIENT,
+          entityId: clientId,
+          contactData: {
+            ...formData,
+            is_primary: Boolean(formData.is_primary)
           }
-          toast.success('Contact added successfully!');
         },
-        onError: (error: any) => {
-          console.error("Contact creation error:", error);
-          toast.error(`Failed to add contact: ${error.message || "Unknown error"}`);
+        {
+          onSuccess: () => {
+            setIsContactDialogOpen(false);
+            refetch();
+            if (onContactAdded) {
+              onContactAdded();
+            }
+            toast.success('Contact added successfully!');
+          },
+          onError: (error: Error) => {
+            AppLogger.error(LogCategory.ERROR, `Failed to add contact: ${error.message}`, { clientId, error });
+            toast.error(`Failed to add contact: ${error.message}`);
+          }
         }
-      }
-    );
-  };
+      );
+    });
+  }, [clientId, createContact, refetch, onContactAdded, startTypedTransition]);
 
-  const handleEditContact = (contact: any) => {
+  const handleEditContact = (contact: UnifiedContactRecord) => {
     // Implementation for editing - would open a dialog with the form pre-populated
     toast.info("Edit functionality will be implemented in future sprint");
   };
@@ -98,31 +105,41 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     setDeleteAlertOpen(true);
   };
 
-  const confirmDeleteContact = async () => {
+  const confirmDeleteContact = useCallback(() => {
     if (!contactToDelete) return;
     
-    deleteContact(
-      { contactId: contactToDelete },
-      {
-        onSuccess: () => {
-          toast.success("Contact deleted successfully");
-          refetch();
-          setDeleteAlertOpen(false);
-          setContactToDelete(null);
-        },
-        onError: (error: any) => {
-          console.error("Contact deletion error:", error);
-          toast.error(`Failed to delete contact: ${error.message || "Unknown error"}`);
-          setDeleteAlertOpen(false);
-          setContactToDelete(null);
+    AppLogger.debug(LogCategory.CLIENT, `Deleting contact ${contactToDelete} for client ${clientId}`);
+    
+    startTypedTransition(() => {
+      deleteContact(
+        { contactId: contactToDelete },
+        {
+          onSuccess: () => {
+            toast.success("Contact deleted successfully");
+            refetch();
+            setDeleteAlertOpen(false);
+            setContactToDelete(null);
+          },
+          onError: (error: Error) => {
+            AppLogger.error(LogCategory.ERROR, `Failed to delete contact: ${error.message}`, { clientId, contactId: contactToDelete, error });
+            toast.error(`Failed to delete contact: ${error.message}`);
+            setDeleteAlertOpen(false);
+            setContactToDelete(null);
+          }
         }
-      }
-    );
-  };
+      );
+    });
+  }, [contactToDelete, clientId, deleteContact, refetch, startTypedTransition]);
 
   const handleAddClick = () => {
     setIsContactDialogOpen(true);
   };
+
+  // Safely type the contacts data
+  const typedContacts = React.useMemo(() => {
+    if (!contacts) return [] as UnifiedContactRecord[];
+    return contacts as UnifiedContactRecord[];
+  }, [contacts]);
 
   return (
     <Card>
@@ -131,12 +148,12 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           <CardTitle>Client Contacts</CardTitle>
           <CardDescription>Manage contacts for this client</CardDescription>
         </div>
-        <Button variant="default" onClick={handleAddClick}>
+        <Button variant="default" onClick={handleAddClick} disabled={isPending}>
           Add Contact
         </Button>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {isLoading || isPending ? (
           <div className="text-center py-4">Loading contacts...</div>
         ) : error ? (
           <div className="p-4 border rounded bg-red-50 text-red-800">
@@ -144,12 +161,12 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           </div>
         ) : (
           <ContactsTable
-            contacts={contacts || []}
+            contacts={typedContacts}
             onEdit={handleEditContact}
             onDelete={handleDeleteContact}
             onAdd={handleAddClick}
             showEntityType={false}
-            isLoading={isLoading || isDeletingContact}
+            isLoading={isLoading || isDeletingContact || isPending}
           />
         )}
 
@@ -160,7 +177,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
             </DialogHeader>
             <UnifiedContactForm 
               onSubmit={handleContactSubmit}
-              isLoading={isCreatingContact}
+              isLoading={isCreatingContact || isPending}
               contactTypes={clientContactTypes}
               buttonText="Add Contact"
             />
@@ -180,9 +197,9 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
               <AlertDialogAction 
                 onClick={confirmDeleteContact}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                disabled={isDeletingContact}
+                disabled={isDeletingContact || isPending}
               >
-                {isDeletingContact ? "Deleting..." : "Delete"}
+                {isDeletingContact || isPending ? "Deleting..." : "Delete"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

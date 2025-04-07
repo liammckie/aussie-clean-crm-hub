@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { 
   Card, 
   CardContent, 
@@ -12,8 +12,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { SiteForm, SiteFormData } from '@/components/site/SiteForm';
 import { toast } from 'sonner';
 import { useSites, useCreateSite } from '@/hooks/use-sites';
-import { SiteInsertData } from '@/services/site/types';
+import { SiteInsertData, SiteRecord } from '@/services/site/types';
 import { isApiSuccess } from '@/types/api-response';
+import { useTypedTransition } from '@/hooks/use-suspense-transition';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 interface ClientSitesTabProps {
   clientId: string;
@@ -21,11 +23,12 @@ interface ClientSitesTabProps {
 
 export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
   const [isSiteDialogOpen, setIsSiteDialogOpen] = useState(false);
+  const { isPending, startTypedTransition } = useTypedTransition<void>();
   
   const { data: sitesResponse, isLoading: isLoadingSites, refetch: refetchSites } = useSites();
   const createSiteMutation = useCreateSite();
 
-  const handleSiteSubmit = async (data: SiteFormData) => {
+  const handleSiteSubmit = useCallback((data: SiteFormData) => {
     if (!clientId) return;
     
     const siteData: SiteInsertData = {
@@ -48,19 +51,28 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
       induction_required: data.induction_required
     };
     
-    createSiteMutation.mutate(siteData, {
-      onSuccess: () => {
-        setIsSiteDialogOpen(false);
-        refetchSites();
-      }
+    AppLogger.debug(LogCategory.CLIENT, `Creating site for client ${clientId}`, { siteData });
+    
+    startTypedTransition(() => {
+      createSiteMutation.mutate(siteData, {
+        onSuccess: () => {
+          setIsSiteDialogOpen(false);
+          refetchSites();
+          toast.success('Site created successfully!');
+        },
+        onError: (error: Error) => {
+          AppLogger.error(LogCategory.ERROR, `Failed to create site: ${error.message}`, { clientId, error });
+          toast.error(`Failed to create site: ${error.message}`);
+        }
+      });
     });
-  };
+  }, [clientId, createSiteMutation, refetchSites, startTypedTransition]);
 
   // Handle API response safely
   const clientSites = React.useMemo(() => {
     if (!sitesResponse) return [];
     if (isApiSuccess(sitesResponse)) {
-      return sitesResponse.data.filter(site => site.client_id === clientId);
+      return sitesResponse.data.filter((site: SiteRecord) => site.client_id === clientId);
     }
     return [];
   }, [sitesResponse, clientId]);
@@ -71,7 +83,7 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
         <CardTitle>Client Sites</CardTitle>
         <Dialog open={isSiteDialogOpen} onOpenChange={setIsSiteDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="ml-2" size="sm">
+            <Button className="ml-2" size="sm" disabled={isPending}>
               <Plus className="h-4 w-4 mr-1" /> Add Site
             </Button>
           </DialogTrigger>
@@ -82,18 +94,18 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
             <div className="max-h-[80vh] overflow-y-auto py-4">
               <SiteForm 
                 onSubmit={handleSiteSubmit} 
-                isLoading={createSiteMutation.isPending} 
+                isLoading={createSiteMutation.isPending || isPending} 
               />
             </div>
           </DialogContent>
         </Dialog>
       </CardHeader>
       <CardContent>
-        {isLoadingSites ? (
+        {isLoadingSites || isPending ? (
           <div className="text-center py-8">Loading sites...</div>
         ) : clientSites && clientSites.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {clientSites.map((site) => (
+            {clientSites.map((site: SiteRecord) => (
               <Card key={site.id} className="overflow-hidden">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-lg">{site.site_name}</CardTitle>
@@ -121,6 +133,7 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
               variant="outline" 
               className="mt-4"
               onClick={() => setIsSiteDialogOpen(true)}
+              disabled={isPending}
             >
               <Plus className="h-4 w-4 mr-2" />
               Add your first site
