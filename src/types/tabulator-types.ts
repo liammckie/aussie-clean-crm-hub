@@ -1,56 +1,62 @@
 
-import { ColumnDefinition, ColumnComponent, CellComponent } from 'tabulator-tables';
+import Tabulator from 'tabulator-tables';
 
-/**
- * Type definitions for Tabulator options and methods
- */
+// Use proper types for Tabulator - use type imports to avoid direct dependency issues
+type ColumnDefinition = Tabulator.ColumnDefinitionSorterParams;
+type ColumnComponent = Tabulator.ColumnComponent;  
+type CellComponent = Tabulator.CellComponent;
 
-export type SortDirection = "asc" | "desc";
+// Re-export the types we're using
+export type { ColumnDefinition, ColumnComponent, CellComponent };
 
-export interface TabulatorSorter {
-  column: string;
-  dir: SortDirection;
+// Define custom types for our Tabulator implementation
+export interface TabulatorOptions {
+  columns: TabulatorColumn[];
+  data?: any[];
+  layout?: string;
+  height?: string | number;
+  pagination?: boolean;
+  paginationSize?: number;
+  ajaxURL?: string;
+  ajaxParams?: Record<string, any>;
+  placeholder?: string;
+  headerFilterLiveFilterDelay?: number;
+  selectable?: boolean;
+  selectableRangeMode?: string;
+  index?: string;
+  [key: string]: any;
 }
 
-// Custom formatter function type
-export type FormatterFunction = (
-  cell: CellComponent, 
-  formatterParams: any, 
-  onRendered: (callback: () => void) => void
-) => string | HTMLElement;
-
-// Custom editor function type
-export type EditorFunction = (
-  cell: CellComponent, 
-  onRendered: (callback: () => void) => void, 
-  success: (value: any) => void, 
-  cancel: () => void, 
-  editorParams: any
-) => HTMLElement;
-
-// Enhanced column definition with improved typing
-export interface EnhancedColumnDefinition extends ColumnDefinition {
-  formatter?: string | FormatterFunction;
-  editor?: string | EditorFunction;
+export interface TabulatorColumn {
+  title: string;
+  field: string;
+  sorter?: string;
+  formatter?: string | ((cell: CellComponent, formatterParams: {}, onRendered: Function) => any);
   headerFilter?: boolean | string;
   headerFilterPlaceholder?: string;
-  headerFilterParams?: any;
-  headerSort?: boolean;
-  sorter?: string | ((a: any, b: any, aRow: any, bRow: any, column: ColumnComponent, dir: SortDirection, sorterParams: any) => number);
-  sorterParams?: any;
+  headerFilterFunc?: string;
+  headerFilterParams?: Record<string, any>;
+  headerFilterLiveFilter?: boolean;
   width?: number | string;
-  minWidth?: number | string;
-  maxWidth?: number | string;
+  minWidth?: number;
+  maxWidth?: number;
   widthGrow?: number;
   widthShrink?: number;
   resizable?: boolean;
   frozen?: boolean;
   responsive?: number;
-  tooltip?: string | ((cell: CellComponent) => string);
-  cssClass?: string;
-  rowHandle?: boolean;
-  editable?: boolean | ((cell: CellComponent) => boolean);
-  validator?: string | ((cell: CellComponent, value: any, validators: any) => boolean | string);
-  mutator?: (value: any, data: any, type: "data" | "edit" | "clipboard", mutatorParams: any, cell?: CellComponent) => any;
-  accessor?: (value: any, data: any, type: "data" | "download" | "clipboard", accessorParams: any, column?: ColumnComponent) => any;
+  align?: string;
+  editor?: boolean | string;
+  editorParams?: Record<string, any>;
+  cellClick?: (e: UIEvent, cell: CellComponent) => void;
+  [key: string]: any;
+}
+
+// Define a proper type for the sort direction
+export type SortDirection = "asc" | "desc";
+
+// Type for Tabulator's sorter
+export interface TabulatorSorter {
+  column: string;
+  dir: SortDirection;
 }

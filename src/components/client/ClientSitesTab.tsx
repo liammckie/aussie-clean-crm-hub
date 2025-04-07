@@ -13,6 +13,7 @@ import { SiteForm, SiteFormData } from '@/components/site/SiteForm';
 import { toast } from 'sonner';
 import { useSites, useCreateSite } from '@/hooks/use-sites';
 import { SiteInsertData } from '@/services/site/types';
+import { isApiSuccess } from '@/types/api-response';
 
 interface ClientSitesTabProps {
   clientId: string;
@@ -21,7 +22,7 @@ interface ClientSitesTabProps {
 export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
   const [isSiteDialogOpen, setIsSiteDialogOpen] = useState(false);
   
-  const { data: sites, isLoading: isLoadingSites, refetch: refetchSites } = useSites();
+  const { data: sitesResponse, isLoading: isLoadingSites, refetch: refetchSites } = useSites();
   const createSiteMutation = useCreateSite();
 
   const handleSiteSubmit = async (data: SiteFormData) => {
@@ -55,8 +56,14 @@ export function ClientSitesTab({ clientId }: ClientSitesTabProps) {
     });
   };
 
-  // Filter sites to only show those for the current client
-  const clientSites = sites ? sites.filter(site => site.client_id === clientId) : [];
+  // Handle API response safely
+  const clientSites = React.useMemo(() => {
+    if (!sitesResponse) return [];
+    if (isApiSuccess(sitesResponse)) {
+      return sitesResponse.data.filter(site => site.client_id === clientId);
+    }
+    return [];
+  }, [sitesResponse, clientId]);
 
   return (
     <Card>

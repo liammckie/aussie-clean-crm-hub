@@ -58,7 +58,7 @@ export type ValidationErrorResponse = {
   details?: {
     field?: string;
     error?: string;
-    code?: string;  // Added code property
+    code?: string;  // Added code property explicitly
   };
 };
 

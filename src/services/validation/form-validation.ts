@@ -23,7 +23,9 @@ export function validateServerData<T>(
         category: 'validation',
         message: firstError.message,
         details: {
-          field: firstError.path.join('.')
+          field: firstError.path.join('.'),
+          error: firstError.message,
+          code: 'VALIDATION_ERROR'
         }
       };
     }

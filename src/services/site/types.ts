@@ -1,11 +1,40 @@
 
 import { ApiResponse } from '@/types/api-response';
-import { Tables } from '@/types/supabase';
 import { SiteStatus, SiteType } from '@/types/database-schema';
 
-// Site entity data types
-export type SiteData = Tables<'sites'>;
-export type SiteInsertData = {
+/**
+ * Site data record structure from database
+ */
+export interface SiteRecord {
+  id: string;
+  client_id: string;
+  site_name: string;
+  site_code: string;
+  address_line_1: string;
+  address_line_2?: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  site_contact_name?: string;
+  site_contact_email?: string;
+  site_contact_phone?: string;
+  status: SiteStatus;
+  site_type?: SiteType;
+  square_meters?: number;
+  region?: string;
+  notes?: string;
+  induction_required?: boolean;
+  created_at?: string;
+  updated_at?: string;
+  latitude?: number;
+  longitude?: number;
+  business_unit?: string;
+}
+
+/**
+ * Data required to insert a new site
+ */
+export interface SiteInsertData {
   client_id: string;
   site_name: string;
   site_code: string;
@@ -17,19 +46,23 @@ export type SiteInsertData = {
   site_contact_name?: string | null;
   site_contact_email?: string | null;
   site_contact_phone?: string | null;
-  notes?: string | null;
-  region?: string | null;
-  induction_required?: boolean;
-  status: SiteStatus;
-  site_type?: SiteType | null;
+  status: string; 
+  site_type?: string | null;
   square_meters?: number | null;
-  description?: string | null;
-};
-export type SiteUpdateData = Partial<SiteInsertData>;
+  region?: string | null;
+  notes?: string | null;
+  induction_required?: boolean;
+}
 
-// API response types using centralized ApiResponse
-export type SiteApiResponse = ApiResponse<SiteData>;
-export type SitesApiResponse = ApiResponse<SiteData[]>;
+/**
+ * Data for updating an existing site
+ */
+export interface SiteUpdateData extends Partial<SiteInsertData> {
+  // Same as SiteInsertData but all fields are optional
+}
 
-// Re-export the database schema types
-export { SiteStatus, SiteType };
+/**
+ * API response types
+ */
+export type SiteApiResponse = ApiResponse<SiteRecord>;
+export type SitesApiResponse = ApiResponse<SiteRecord[]>;

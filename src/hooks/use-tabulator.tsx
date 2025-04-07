@@ -1,9 +1,7 @@
 
 import { useMemo } from 'react';
-import Tabulator, { TabulatorOptions, TabulatorColumn, ColumnDefinition, SorterFromTable } from 'tabulator-tables';
-
-// Define a proper type for the sort direction
-type SortDirection = "asc" | "desc";
+import Tabulator from 'tabulator-tables';
+import { TabulatorOptions, TabulatorColumn, SortDirection } from '@/types/tabulator-types';
 
 // Type for Tabulator's sorter
 export interface TabulatorSorter {
@@ -29,6 +27,26 @@ export function useTabulator() {
     { title: "Status", field: "status", sorter: "string", headerFilter: true },
     { title: "Value", field: "value", sorter: "number", formatter: "money" }
   ], []);
+  
+  // Initialize the tabulator instance with provided columns and options
+  const initializeTabulator = async (
+    element: HTMLElement,
+    columns: TabulatorColumn[] = defaultColumns,
+    options: Partial<TabulatorOptions> = {}
+  ): Promise<Tabulator> => {
+    // Merge default options with provided options
+    const mergedOptions: TabulatorOptions = {
+      ...defaultOptions,
+      ...options,
+      columns: columns || defaultColumns,
+    };
+    
+    return new Tabulator(element, mergedOptions);
+  };
 
-  return { defaultColumns, defaultOptions };
+  return { 
+    defaultColumns, 
+    defaultOptions,
+    initializeTabulator 
+  };
 }

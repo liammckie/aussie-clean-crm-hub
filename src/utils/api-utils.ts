@@ -1,145 +1,100 @@
-import { AppLogger, LogCategory } from '@/utils/logging';
-import { ErrorReporting } from '@/utils/errorReporting';
-import { isSupabaseError } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+
+import { ApiErrorResponse, ApiResponse, createErrorResponse, isApiError } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
-import { 
-  ApiErrorResponse, 
-  ApiSuccessResponse, 
-  ApiResponse, 
-  isApiError, 
-  isApiSuccess, 
-  createSuccessResponse, 
-  createErrorResponse
-} from '@/types/api-response';
-
-// Re-export types and utilities from centralized file
-export { ErrorCategory };
-export type { ApiErrorResponse, ApiSuccessResponse, ApiResponse };
-export { isApiError, isApiSuccess, createSuccessResponse, createErrorResponse };
+import { PostgrestError } from '@supabase/supabase-js';
 
 /**
- * Helper for formatting an error with a specific category
- */
-export function formatError(
-  category: ErrorCategory,
-  message: string,
-  details?: Record<string, any>
-): ApiErrorResponse {
-  return createErrorResponse(category, message, details);
-}
-
-/**
- * Helper for categorizing Supabase errors
- */
-function categorizeError(error: any): ErrorCategory {
-  if (!error) return ErrorCategory.UNKNOWN;
-  
-  // Handle Supabase-specific errors
-  if (isSupabaseError(error)) {
-    const code = error?.code || '';
-    const message = error?.message || '';
-    
-    // Authentication errors
-    if (code.includes('auth/') || message.includes('JWT') || message.includes('token')) {
-      return ErrorCategory.AUTHENTICATION;
-    }
-    
-    // Permission errors
-    if (code === 'PGRST116' || code === '42501' || message.includes('permission')) {
-      return ErrorCategory.PERMISSION;
-    }
-    
-    // Not found errors
-    if (code === '42P01' || message.includes('does not exist')) {
-      return ErrorCategory.NOT_FOUND;
-    }
-    
-    // Validation errors
-    if (code.startsWith('22') || code.startsWith('23')) {
-      return ErrorCategory.VALIDATION;
-    }
-    
-    // Database errors
-    if (code.startsWith('P') || code.startsWith('42')) {
-      return ErrorCategory.DATABASE;
-    }
-    
-    return ErrorCategory.SERVER;
-  }
-  
-  // Handle standard Error objects
-  if (error instanceof Error) {
-    const message = error.message.toLowerCase();
-    if (message.includes('not authenticated') || message.includes('jwt') || message.includes('token')) {
-      return ErrorCategory.AUTHENTICATION;
-    }
-    if (message.includes('not found') || message.includes('404')) {
-      return ErrorCategory.NOT_FOUND;
-    }
-    if (message.includes('permission') || message.includes('forbidden') || message.includes('403')) {
-      return ErrorCategory.PERMISSION;
-    }
-  }
-  
-  return ErrorCategory.UNKNOWN;
-}
-
-/**
- * Helper for handling API errors in a consistent manner
- * 
- * @param error The error object from Supabase or other source
- * @param message A user-friendly error message
- * @param context Additional context for logging
- * @param category The log category
- * @returns A standardized error response object
+ * Handles Supabase API errors and converts them to consistent error responses
  */
 export function handleApiError(
-  error: any, 
-  message: string, 
-  context?: Record<string, any>,
-  category: LogCategory = LogCategory.API
+  error: Error | PostgrestError | unknown,
+  message: string,
+  context: Record<string, any> = {}
 ): ApiErrorResponse {
-  // Log the error with context
-  AppLogger.error(category, message, { error, ...context });
-  
-  // Capture exception for monitoring
-  ErrorReporting.captureException(error);
-  
-  // Determine error category based on the error object
-  const errorCategory = categorizeError(error);
-  
-  let errorMessage = message;
-  let errorCode: string | undefined;
-  
-  // Extract more specific information from error if available
-  if (isSupabaseError(error)) {
-    errorCode = error.code;
+  // If it's a PostgrestError from Supabase
+  if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error) {
+    const pgError = error as PostgrestError;
     
-    // Add more specific details to error message when available
-    if (error.message) {
-      errorMessage = `${message}: ${error.message}`;
-    } else if (error.error) {
-      errorMessage = `${message}: ${error.error}`;
+    // Handle specific PostgreSQL error codes
+    switch (pgError.code) {
+      case '23505': // Unique violation
+        return createErrorResponse(
+          ErrorCategory.VALIDATION,
+          'Record already exists with this value',
+          { supabase_error: pgError, ...context }
+        );
+      case '23503': // Foreign key violation
+        return createErrorResponse(
+          ErrorCategory.VALIDATION,
+          'Referenced record does not exist',
+          { supabase_error: pgError, ...context }
+        );
+      case '42P01': // Undefined table
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          'Database configuration error',
+          { supabase_error: pgError, ...context }
+        );
+      case '42501': // Permission denied
+      case '42503': // Permission denied
+        return createErrorResponse(
+          ErrorCategory.PERMISSION,
+          'You do not have permission to perform this action',
+          { supabase_error: pgError, ...context }
+        );
+      case '28P01': // Invalid password
+        return createErrorResponse(
+          ErrorCategory.AUTHENTICATION,
+          'Invalid credentials',
+          { supabase_error: pgError, ...context }
+        );
+      default:
+        return createErrorResponse(
+          ErrorCategory.SERVER,
+          message || 'An error occurred with the database',
+          { supabase_error: pgError, ...context }
+        );
     }
-  } else if (error instanceof Error) {
-    errorMessage = `${message}: ${error.message}`;
   }
   
-  // Show toast for critical errors
-  if (errorCategory === ErrorCategory.AUTHENTICATION) {
-    toast.error("Authentication error", {
-      description: "Please log in to continue"
-    });
-    
-    // Could add auto-redirect to login page after delay
-    // setTimeout(() => window.location.href = '/login', 2000);
-  } else if (errorCategory === ErrorCategory.PERMISSION) {
-    toast.error("Permission denied", {
-      description: "You don't have permission to perform this action"
-    });
+  // If it's an Error object
+  if (error instanceof Error) {
+    return createErrorResponse(
+      ErrorCategory.SERVER,
+      message || error.message,
+      { error: error.message, stack: error.stack, ...context }
+    );
   }
   
-  // Return standardized error response
-  return createErrorResponse(errorCategory, errorMessage, error);
+  // Fallback for unknown error types
+  return createErrorResponse(
+    ErrorCategory.UNKNOWN,
+    message || 'An unknown error occurred',
+    { error, ...context }
+  );
+}
+
+/**
+ * Type guard for checking API responses with possible data property
+ */
+export function hasData<T>(response: unknown): response is { data: T } {
+  return typeof response === 'object' && 
+         response !== null && 
+         'data' in response && 
+         response.data !== undefined && 
+         response.data !== null;
+}
+
+/**
+ * Safe way to handle API responses - useful for component code
+ */
+export function handleApiResponse<T, R>(
+  response: ApiResponse<T>,
+  onSuccess: (data: T) => R,
+  onError?: (error: ApiErrorResponse) => R
+): R | undefined {
+  if (isApiError(response)) {
+    return onError ? onError(response) : undefined;
+  }
+  return onSuccess(response.data);
 }

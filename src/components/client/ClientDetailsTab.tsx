@@ -10,6 +10,7 @@ import { prepareClientDataForSubmission, validateBusinessIdentifiers } from '@/u
 import { toast } from 'sonner';
 import { clientService } from '@/services';
 import { ClientFormFields } from './ClientFormFields';
+import { isApiError } from '@/types/api-response';
 
 interface ClientDetailsTabProps {
   clientId: string;
@@ -37,7 +38,7 @@ export function ClientDetailsTab({ clientId, onSaveSuccess, initialData }: Clien
 
     clientService.updateClient(clientId, preparedData)
       .then(response => {
-        if ('category' in response) {
+        if (isApiError(response)) {
           toast.error(response.message);
           return;
         }

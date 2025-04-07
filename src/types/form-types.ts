@@ -56,6 +56,32 @@ export interface UnifiedContactFormData {
   notes?: string;
 }
 
+// Export ClientFormData type which is imported in many places
+export interface ClientFormData {
+  business_name: string;
+  trading_name?: string;
+  abn?: string;
+  acn?: string;
+  industry?: string;
+  status: string;
+  onboarding_date?: string | Date;
+  source?: string;
+  address?: string;
+  phone?: string;
+  billing_cycle?: string;
+  payment_terms?: string;
+  payment_method?: string;
+  tax_status?: string;
+  credit_limit?: number;
+  // Address fields
+  address_line_1?: string;
+  address_line_2?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+}
+
 // Common form schemas
 export const emailSchema = z.string().email({ message: "Invalid email format" }).or(z.literal(''));
 export const phoneSchema = z.string().regex(/^[+]?[(]?[0-9]{3}[)]?[-\s.]?[0-9]{3}[-\s.]?[0-9]{4,6}$/, { message: "Invalid phone number format" }).optional();
@@ -87,7 +113,7 @@ export const contactSchema = z.object({
   is_primary: z.boolean().default(false)
 });
 
-// Add the missing schemas for unified address and contact forms
+// Add missing schemas needed to fix errors:
 export const unifiedAddressSchema = z.object({
   entity_type: z.string() as z.ZodType<EntityType>,
   entity_id: z.string().min(1, { message: "Entity ID is required" }),

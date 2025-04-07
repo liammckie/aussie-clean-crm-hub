@@ -1,18 +1,13 @@
-// If this file doesn't exist yet, we'll create it with the address types needed
+
+import { ContactType, AddressType } from '@/types/form-types';
+import { ApiResponse } from '@/types/api-response';
 import { ClientStatus } from '@/types/database-schema';
 
-// Import the AddressType from form-types instead of redefining it
-import type { AddressType } from '@/types/form-types';
+/**
+ * Client types for consistent type usage across client-related code
+ */
 
-// Entity types for cross-referencing
-export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
-
-// Use the same ContactType as defined in form-types or map to it
-export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary';
-
-// Re-export AddressType from form-types for backward compatibility
-export type { AddressType };
-
+// Client database record as retrieved from Supabase
 export interface ClientRecord {
   id: string;
   business_name: string;
@@ -23,7 +18,13 @@ export interface ClientRecord {
   status: ClientStatus;
   onboarding_date?: string;
   source?: string;
-  
+  billing_cycle?: string;
+  payment_terms?: string;
+  payment_method?: string;
+  tax_status?: string;
+  credit_limit?: number;
+  created_at?: string;
+  updated_at?: string;
   // Address fields
   address_line_1?: string;
   address_line_2?: string;
@@ -31,37 +32,30 @@ export interface ClientRecord {
   state?: string;
   postcode?: string;
   country?: string;
-  address?: string; // Added new field
-  
-  // Contact fields
-  phone?: string; // Added new field
-  
-  // Financial fields
-  billing_cycle?: string;
-  payment_terms?: string;
-  payment_method?: string;
-  tax_status?: string;
-  credit_limit?: number;
-  
-  // Timestamps
-  created_at?: string;
-  updated_at?: string;
-  
-  // Relations
-  client_contacts?: ContactRecord[];
-  client_addresses?: AddressRecord[];
+  // Legacy fields
+  address?: string;
+  phone?: string;
+  account_manager_id?: string;
+  relationship_rating?: number;
 }
 
+// Client form data for create/update operations
 export interface ClientFormData {
-  business_name: string; // Required field
+  business_name: string;
   trading_name?: string;
   abn?: string;
   acn?: string;
   industry?: string;
-  status: ClientStatus;  // Required field
-  onboarding_date?: string;
+  status?: ClientStatus | string;
+  onboarding_date?: string | Date;
   source?: string;
-  
+  address?: string;
+  phone?: string;
+  billing_cycle?: string;
+  payment_terms?: string;
+  payment_method?: string;
+  tax_status?: string;
+  credit_limit?: number;
   // Address fields
   address_line_1?: string;
   address_line_2?: string;
@@ -69,118 +63,82 @@ export interface ClientFormData {
   state?: string;
   postcode?: string;
   country?: string;
-  address?: string;
-  
-  // Contact fields
-  phone?: string;
-  
-  // Financial fields
-  billing_cycle?: string;
-  payment_terms?: string;
-  payment_method?: string;
-  tax_status?: string;
-  credit_limit?: number;
 }
 
+// Client with all relationships
 export interface ClientWithContacts extends ClientRecord {
-  client_contacts: ContactRecord[];
+  contacts: ClientContactRecord[];
+  addresses: ClientAddressRecord[];
 }
 
-export interface ContactRecord {
+// Client contact record as retrieved from Supabase
+export interface ClientContactRecord {
   id: string;
+  client_id: string;
   name: string;
-  position?: string;
   email: string;
   phone?: string;
   mobile?: string;
+  position?: string;
+  contact_type: ContactType;
   is_primary: boolean;
-  client_id: string;
-  contact_type: string;
   created_at?: string;
   updated_at?: string;
 }
 
+// Client contact form data for create/update operations
 export interface ContactFormData {
+  client_id: string;
   name: string;
-  position?: string;
   email: string;
   phone?: string;
   mobile?: string;
-  is_primary: boolean;
-  contact_type: string;
-  client_id: string;
-}
-
-export interface AddressRecord {
-  id: string;
-  street: string;
-  street_2?: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  country: string;
-  address_type: AddressType;
-  client_id: string;
-  created_at?: string;
-  updated_at?: string;
-}
-
-export interface AddressFormData {
-  street: string;
-  street_2?: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  country: string;
-  address_type: AddressType;
-  client_id: string;
-}
-
-// New unified interfaces for reusable components
-
-export interface UnifiedAddressRecord {
-  id: string;
-  entity_type: EntityType;
-  entity_id: string;
-  name?: string;
-  address_line_1: string;
-  address_line_2?: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  country: string;
-  address_type: AddressType;
+  position?: string;
+  contact_type: ContactType | string;
   is_primary?: boolean;
-  created_at?: string;
-  updated_at?: string;
 }
 
-export interface UnifiedContactRecord {
+// Client address record as retrieved from Supabase
+export interface ClientAddressRecord {
   id: string;
-  entity_type: EntityType;
-  entity_id: string;
-  name: string;
-  email: string;
-  phone?: string;
-  mobile?: string;
-  position?: string;
-  company?: string;
-  contact_type: string;
-  is_primary: boolean;
+  client_id: string;
+  street: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  country: string;
+  address_type: AddressType;
   created_at?: string;
   updated_at?: string;
 }
 
-export interface ValidationErrorResponse {
+// Client address form data for create/update operations
+export interface AddressFormData {
+  client_id: string;
+  street: string;
+  street_2?: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  country?: string;
+  address_type?: AddressType;
+}
+
+// API response types to ensure consistent return types
+export type ClientApiResponse = ApiResponse<ClientRecord>;
+export type ClientsApiResponse = ApiResponse<ClientRecord[]>;
+export type ClientContactApiResponse = ApiResponse<ClientContactRecord>;
+export type ClientContactsApiResponse = ApiResponse<ClientContactRecord[]>;
+export type ClientAddressApiResponse = ApiResponse<ClientAddressRecord>;
+export type ClientAddressesApiResponse = ApiResponse<ClientAddressRecord[]>;
+
+// Validation error response
+export type ValidationErrorResponse = {
   category: 'validation';
   message: string;
   details?: {
     field?: string;
     error?: string;
+    code?: string;
   };
-}
-
-export interface ErrorResponse {
-  status: number;
-  message: string;
-}
+};

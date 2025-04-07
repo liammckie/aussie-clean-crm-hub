@@ -1,8 +1,10 @@
+
 import { supabase } from '@/lib/supabase';
 import { ClientRecord, ClientFormData } from '../types';
 import { validateWithZod, clientSchema } from '../validation';
 import { handleApiError } from '@/utils/api-utils';
-import { AppLogger, LogCategory } from '@/utils/logging';
+import { AppLogger } from '@/utils/logging/AppLogger';
+import { LogCategory } from '@/utils/logging/LogCategories';
 import { ClientStatus } from '@/types/database-schema';
 
 /**
@@ -54,6 +56,11 @@ export const clientCrudService = {
    * Create a new client
    */
   createClient: async (data: ClientFormData): Promise<{ data: ClientRecord } | { error: any }> => {
+    // Make sure business_name is provided as it's required
+    if (!data.business_name) {
+      return { error: handleApiError(new Error('Business name is required'), 'Validation error') };
+    }
+
     const result = validateWithZod(clientSchema, data);
 
     if (!('data' in result)) {
@@ -71,7 +78,7 @@ export const clientCrudService = {
         return { error: handleApiError(error, 'Failed to create client', { data }) };
       }
 
-      AppLogger.log(LogCategory.API, 'Client created successfully', { clientId: createdClient.id });
+      AppLogger.info(LogCategory.API, 'Client created successfully', { clientId: createdClient.id });
       return { data: createdClient as ClientRecord };
     } catch (error: any) {
       return { error: handleApiError(error, 'Unexpected error creating client', { data }) };
@@ -95,12 +102,13 @@ export const clientCrudService = {
       }
 
       if (!existingClient) {
-        return { error: handleApiError(null, 'Client not found', { clientId }) };
+        return { error: handleApiError(new Error('Client not found'), 'Client not found', { clientId }) };
       }
 
-      // Ensure required fields like business_name are included
-      const updatedClientData: ClientFormData = {
-        business_name: data.business_name || existingClient.business_name, // Ensure business_name is available
+      // Ensure business_name is always included (required field)
+      const clientDataToUpdate: ClientFormData = {
+        business_name: data.business_name || existingClient.business_name,
+        // Include other fields with optional properties
         trading_name: data.trading_name || existingClient.trading_name,
         abn: data.abn || existingClient.abn,
         acn: data.acn || existingClient.acn,
@@ -124,7 +132,7 @@ export const clientCrudService = {
       };
 
       // Validate the updated client data
-      const validationResult = validateWithZod(clientSchema, updatedClientData);
+      const validationResult = validateWithZod(clientSchema, clientDataToUpdate);
       if (!('data' in validationResult)) {
         return { error: validationResult };
       }
@@ -141,7 +149,7 @@ export const clientCrudService = {
         return { error: handleApiError(updateError, 'Failed to update client', { clientId, data }) };
       }
 
-      AppLogger.log(LogCategory.API, 'Client updated successfully', { clientId });
+      AppLogger.info(LogCategory.API, 'Client updated successfully', { clientId });
       return { data: updatedClient as ClientRecord };
     } catch (error: any) {
       return { error: handleApiError(error, 'Unexpected error updating client', { clientId, data }) };
@@ -162,7 +170,7 @@ export const clientCrudService = {
         return { error: handleApiError(error, 'Failed to delete client', { clientId }) };
       }
 
-      AppLogger.log(LogCategory.API, 'Client deleted successfully', { clientId });
+      AppLogger.info(LogCategory.API, 'Client deleted successfully', { clientId });
       return { data: true };
     } catch (error: any) {
       return { error: handleApiError(error, 'Unexpected error deleting client', { clientId }) };

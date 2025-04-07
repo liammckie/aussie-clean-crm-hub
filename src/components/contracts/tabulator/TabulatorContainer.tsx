@@ -1,54 +1,58 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef } from 'react';
 import Tabulator from 'tabulator-tables';
-import 'tabulator-tables/dist/css/tabulator.min.css';
 import { useTabulator } from '@/hooks/use-tabulator';
 
-interface TabulatorContainerProps {
-  data: Record<string, unknown>[];
-  onSelectionChange?: (selectedRows: Record<string, unknown>[]) => void;
-  tableClass?: string;
-}
+// Make sure to import styles in your main CSS file
+// import 'tabulator-tables/dist/css/tabulator.min.css';
 
-export function TabulatorContainer({ 
-  data, 
-  onSelectionChange,
-  tableClass = "table-striped"
-}: TabulatorContainerProps) {
+type TabulatorContainerProps = {
+  data: any[];
+  onRowClick?: (e: UIEvent, row: Tabulator.RowComponent) => void;
+};
+
+export default function TabulatorContainer({ data, onRowClick }: TabulatorContainerProps) {
   const tableRef = useRef<HTMLDivElement>(null);
-  const [table, setTable] = useState<Tabulator | null>(null);
-  const { defaultColumns, defaultOptions } = useTabulator();
+  const { defaultColumns, defaultOptions, initializeTabulator } = useTabulator();
+  const tabulatorRef = useRef<Tabulator | null>(null);
 
   useEffect(() => {
     if (tableRef.current) {
-      // Initialize the table with correct options
-      const newTable = new Tabulator(tableRef.current, {
-        ...defaultOptions,
-        data,
-        columns: defaultColumns,
-        rowSelectionChanged: function(data, rows) {
-          if (onSelectionChange) {
-            const selectedData = rows.map(row => row.getData());
-            onSelectionChange(selectedData);
-          }
+      const initTable = async () => {
+        // Initialize with defaultColumns and defaultOptions
+        tabulatorRef.current = await initializeTabulator(tableRef.current!, defaultColumns, defaultOptions);
+        
+        // Set data
+        if (data && data.length > 0) {
+          tabulatorRef.current.setData(data);
         }
-      });
-      
-      setTable(newTable);
-      
-      // Clean up
-      return () => {
-        newTable.destroy();
+
+        // Set row click handler if provided
+        if (onRowClick && tabulatorRef.current) {
+          tabulatorRef.current.on('rowClick', onRowClick);
+        }
       };
+
+      initTable();
     }
+
+    return () => {
+      if (tabulatorRef.current) {
+        tabulatorRef.current.destroy();
+      }
+    };
   }, []);
 
   // Update data when it changes
   useEffect(() => {
-    if (table) {
-      table.setData(data);
+    if (tabulatorRef.current && data) {
+      tabulatorRef.current.setData(data);
     }
   }, [data]);
 
-  return <div ref={tableRef} className={tableClass}></div>;
+  return (
+    <div className="tabulator-container">
+      <div ref={tableRef} className="tabulator"></div>
+    </div>
+  );
 }
