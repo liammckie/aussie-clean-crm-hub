@@ -29,7 +29,7 @@ export function IsPrimaryField<T extends FormDataWithIsPrimary>({
   return (
     <FormField
       control={form.control}
-      name="is_primary" as const
+      name={"is_primary" as Path<T>}
       render={({ field }) => (
         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
           <FormControl>

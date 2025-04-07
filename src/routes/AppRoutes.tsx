@@ -9,9 +9,11 @@ import { SupplierRoutes } from './route-groups/SupplierRoutes';
 import { WorkOrderRoutes } from './route-groups/WorkOrderRoutes';
 import { MiscRoutes } from './route-groups/MiscRoutes';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { Login } from './lazyRoutes';
+import { NotFound } from './lazyRoutes';
 
 export function AppRoutes() {
-  const { isLoading } = useAuth();
+  const { isLoading, isAuthenticated } = useAuth();
 
   if (isLoading) {
     return (
@@ -37,10 +39,17 @@ export function AppRoutes() {
       </div>
     }>
       <Routes>
-        {/* Ensure we have a default route */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
+        {/* Redirect root to login if not authenticated, otherwise to dashboard */}
+        <Route path="/" element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
+        } />
         
-        {/* Auth routes come first */}
+        {/* Login route directly in main routes for easier access */}
+        <Route path="/login" element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        } />
+        
+        {/* Auth routes */}
         <Route path="/auth/*" element={<AuthRoutes />} />
         
         {/* Feature routes */}
@@ -50,7 +59,10 @@ export function AppRoutes() {
         <Route path="/work-orders/*" element={<WorkOrderRoutes />} />
         
         {/* Dashboard and other routes */}
-        <Route path="/*" element={<MiscRoutes />} />
+        <Route path="/dashboard/*" element={<MiscRoutes />} />
+        
+        {/* Catch-all not found route */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
   );

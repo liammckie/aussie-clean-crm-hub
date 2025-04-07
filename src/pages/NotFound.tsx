@@ -9,7 +9,7 @@ const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Report 404 errors to Sentry
+    // Report 404 errors to Sentry with correct parameter count
     ErrorReporting.captureMessage(
       `404: Route not found: ${location.pathname}`, 
       "warning"

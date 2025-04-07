@@ -1,22 +1,29 @@
 
 import React, { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { AuthLayout } from "@/components/layout/AuthLayout";
 import { LoginBackground } from "@/components/login/LoginBackground";
 import { BrandSection } from "@/components/login/BrandSection";
 import { LoginForm } from "@/components/login/LoginForm";
 import { useAuth } from "@/contexts/AuthContext";
+import { AppLogger, LogCategory } from "@/utils/logging";
 
 export default function Login() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   
-  // Redirect to dashboard if already authenticated
   useEffect(() => {
+    AppLogger.info(LogCategory.AUTH, "Login page mounted", {
+      isAuthenticated,
+      path: location.pathname
+    });
+    
+    // Redirect to dashboard if already authenticated
     if (isAuthenticated) {
       navigate('/dashboard', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, location]);
 
   return (
     <AuthLayout>

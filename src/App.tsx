@@ -30,7 +30,9 @@ const queryClient = new QueryClient({
 // Check if running in Lovable's iframe
 const isInLovableIframe = () => {
   try {
-    return window.self !== window.top && window.location.hostname.includes('lovable');
+    return window.self !== window.top && 
+           (window.location.hostname.includes('lovable') ||
+            window.location.hostname.includes('lovableproject'));
   } catch (e) {
     return true; // If we can't access parent window, assume we're in an iframe for safety
   }

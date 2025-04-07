@@ -9,15 +9,18 @@ export const AuthRoutes = () => {
 
   return (
     <Routes>
-      {/* Public Routes */}
+      {/* Login route */}
       <Route path="login" element={
         isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
       } />
       
-      {/* Root path - redirect to dashboard if authenticated, otherwise login */}
+      {/* Root path of auth routes */}
       <Route path="/" element={
-        <Navigate to={isAuthenticated ? "/dashboard" : "/login"} replace />
+        <Navigate to={isAuthenticated ? "/dashboard" : "/auth/login"} replace />
       } />
+      
+      {/* Catch-all for auth routes */}
+      <Route path="*" element={<Navigate to="/auth/login" replace />} />
     </Routes>
   );
 };
