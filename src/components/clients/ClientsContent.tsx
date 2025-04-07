@@ -36,16 +36,6 @@ const ClientsContent: React.FC<ClientsContentProps> = ({ isPending = false }) =>
   
   const [_, startTransition] = useTransition();
 
-  // Process clients for display
-  const displayClients = React.useMemo(() => {
-    if (filteredClients.length === 0) return [];
-    
-    return filteredClients.map(client => ({
-      ...client,
-      displayAddress: getClientPrimaryAddress(client)
-    }));
-  }, [filteredClients]);
-
   // Handle search input change
   const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -88,12 +78,12 @@ const ClientsContent: React.FC<ClientsContentProps> = ({ isPending = false }) =>
         {clientsError && !isPending && <ErrorState error={clientsError} refetch={handleRefetch} />}
 
         {/* Client Table */}
-        {!isLoadingClients && !clientsError && !isPending && displayClients.length > 0 ? (
+        {!isLoadingClients && !clientsError && !isPending && filteredClients.length > 0 ? (
           <div>
             {/* Desktop View */}
             <div className="hidden sm:block">
               <ClientsTable 
-                clients={displayClients} 
+                clients={filteredClients} 
                 formatDate={formatDate}
                 getStatusColor={getStatusColor} 
               />
@@ -102,7 +92,7 @@ const ClientsContent: React.FC<ClientsContentProps> = ({ isPending = false }) =>
             {/* Mobile View */}
             <div className="sm:hidden">
               <ClientCards 
-                clients={displayClients}
+                clients={filteredClients}
                 formatDate={formatDate}
                 getStatusColor={getStatusColor}
               />
