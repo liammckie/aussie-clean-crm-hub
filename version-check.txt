@@ -1,0 +1,13 @@
+
+Checking project versions:
+
+1. package.json version (if exists):
+```bash
+$ cat package.json | grep version
+```
+
+2. Vite environment variables:
+import.meta.env.VITE_APP_VERSION: ${import.meta.env.VITE_APP_VERSION || 'Not set'}
+
+3. Main application logging:
+Application starting with version: ${import.meta.env.VITE_APP_VERSION || 'development'}
