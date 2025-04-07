@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { unifiedApi } from '@/services/unified/api';
 import { EntityType } from '@/services/client/types';
-import { useUnifiedAddressesRealtimeSync, useUnifiedContactsRealtimeSync } from '../use-realtime-sync';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 /**
  * Hook for querying entity data (addresses and contacts)
@@ -10,47 +10,57 @@ import { useUnifiedAddressesRealtimeSync, useUnifiedContactsRealtimeSync } from 
 export function useEntityQueries() {
   // Query for fetching addresses for an entity
   const useEntityAddresses = (entityType: EntityType | undefined, entityId: string | undefined) => {
-    // Set up realtime sync for this entity's addresses
-    useUnifiedAddressesRealtimeSync(entityType, entityId);
+    // Realtime sync is temporarily disabled
     
     return useQuery({
       queryKey: ['unified-addresses', entityType, entityId],
       queryFn: async () => {
         if (!entityType || !entityId) throw new Error('Entity type and ID are required');
         
-        console.log(`Fetching addresses for ${entityType} ${entityId}...`);
+        AppLogger.debug(LogCategory.DATA, `Fetching addresses for ${entityType} ${entityId}...`);
         const response = await unifiedApi.getAddresses(entityType, entityId);
         if ('category' in response) {
-          console.error(`Error fetching addresses for ${entityType} ${entityId}:`, response);
+          AppLogger.error(LogCategory.ERROR, `Error fetching addresses: ${response.message}`, {
+            entityType, 
+            entityId, 
+            error: response
+          });
           throw new Error(response.message);
         }
-        console.log(`Fetched addresses for ${entityType} ${entityId} successfully:`, response.data);
+        AppLogger.debug(LogCategory.DATA, `Fetched ${response.data?.length || 0} addresses for ${entityType} ${entityId}`);
         return response.data || []; 
       },
       enabled: !!entityType && !!entityId,
+      // Use stale time of 0 to allow for manual refreshes
+      staleTime: 0,
     });
   };
 
   // Query for fetching contacts for an entity
   const useEntityContacts = (entityType: EntityType | undefined, entityId: string | undefined) => {
-    // Set up realtime sync for this entity's contacts
-    useUnifiedContactsRealtimeSync(entityType, entityId);
+    // Realtime sync is temporarily disabled
     
     return useQuery({
       queryKey: ['unified-contacts', entityType, entityId],
       queryFn: async () => {
         if (!entityType || !entityId) throw new Error('Entity type and ID are required');
         
-        console.log(`Fetching contacts for ${entityType} ${entityId}...`);
+        AppLogger.debug(LogCategory.DATA, `Fetching contacts for ${entityType} ${entityId}...`);
         const response = await unifiedApi.getContacts(entityType, entityId);
         if ('category' in response) {
-          console.error(`Error fetching contacts for ${entityType} ${entityId}:`, response);
+          AppLogger.error(LogCategory.ERROR, `Error fetching contacts: ${response.message}`, {
+            entityType, 
+            entityId, 
+            error: response
+          });
           throw new Error(response.message);
         }
-        console.log(`Fetched contacts for ${entityType} ${entityId} successfully:`, response.data);
+        AppLogger.debug(LogCategory.DATA, `Fetched ${response.data?.length || 0} contacts for ${entityType} ${entityId}`);
         return response.data || [];
       },
       enabled: !!entityType && !!entityId,
+      // Use stale time of 0 to allow for manual refreshes
+      staleTime: 0,
     });
   };
 

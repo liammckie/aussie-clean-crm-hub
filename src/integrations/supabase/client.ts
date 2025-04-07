@@ -23,17 +23,25 @@ const supabaseClientInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     detectSessionInUrl: true, // Detect session from URL query params
   },
   realtime: {
+    // Disable automatic realtime connections
+    autoRefreshToken: true,
+    eventsPerSecond: 1, // Limit realtime events rate
+    // Disable realtime by default
     params: {
-      eventsPerSecond: 10 // Limit real-time events
+      eventsPerSecond: 1,
     }
   }
 });
 
-// Disable automatic realtime connections to prevent excessive socket attempts
-// This is the correct way to handle it instead of using .reconnect
+// Completely disable realtime for now
 if (supabaseClientInstance.realtime) {
-  // We'll manually connect only when needed
+  // Don't auto-connect the socket
   supabaseClientInstance.realtime.setAuth(SUPABASE_ANON_KEY);
+  
+  // Make sure the client doesn't attempt to automatically reconnect
+  supabaseClientInstance.realtime.disconnect();
+  
+  AppLogger.info(LogCategory.REALTIME, 'Realtime functionality disabled');
 }
 
 // Create the typed Supabase client using the same instance

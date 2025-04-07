@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Filter, MapPin } from "lucide-react";
+import { Filter, MapPin, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -105,8 +105,15 @@ const SearchFilterBar = ({
           </DropdownMenuContent>
         </DropdownMenu>
         
-        <Button variant="outline" size="sm" onClick={refetchClients}>
-          Refresh
+        {/* Make refresh button more prominent */}
+        <Button 
+          variant="default" 
+          size="sm" 
+          onClick={refetchClients}
+          className="bg-primary text-primary-foreground"
+        >
+          <RefreshCw className="mr-2 h-4 w-4" />
+          Refresh Data
         </Button>
       </div>
     </div>

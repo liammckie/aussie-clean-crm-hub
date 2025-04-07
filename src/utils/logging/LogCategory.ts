@@ -1,4 +1,3 @@
-
 /**
  * Enum defining the different categories of log entries
  * for better filtering and organization
@@ -31,6 +30,9 @@ export enum LogCategory {
   
   // Caching
   CACHE = 'Cache',
+  
+  // Realtime
+  REALTIME = 'Realtime',
   
   // Other
   UNKNOWN = 'Unknown',
