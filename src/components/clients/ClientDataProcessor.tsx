@@ -64,15 +64,14 @@ const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) =
     setIsProcessing(false);
   }, [fetchedClients, contracts, sites, setFilteredClients]);
 
-  // Pass isProcessing as a prop only if it can be properly typed
+  // Fix the TypeScript error by safely handling element cloning
   return (
     <>
       {React.Children.map(children, child => {
         // Check if the child is a valid React element
         if (React.isValidElement(child)) {
-          // Safe approach: assume most components need isPending
+          // Create a new props object manually instead of spreading
           return React.cloneElement(child, {
-            ...child.props,
             isPending: isProcessing
           });
         }
