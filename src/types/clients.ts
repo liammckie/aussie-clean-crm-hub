@@ -1,4 +1,3 @@
-
 /**
  * Client record structure from database
  */
@@ -29,6 +28,10 @@ export interface ClientRecord {
   created_at?: string;
   phone?: string;
   address?: string;
+  // Calculated fields from ClientDataProcessor
+  annual_revenue?: number;
+  site_count?: number;
+  displayAddress?: string;
 }
 
 // Add this type to unify client form data types across the application

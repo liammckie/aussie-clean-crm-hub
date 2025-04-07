@@ -19,8 +19,9 @@ import { useClientFilters } from "@/contexts/ClientFiltersContext";
 import { getClientPrimaryAddress } from "./ClientDataProcessor";
 import { useTransition } from "react";
 
+// Ensure proper typing for the component props
 interface ClientsContentProps {
-  isPending?: boolean;  // This prop exists and is correctly typed
+  isPending?: boolean;
 }
 
 const ClientsContent: React.FC<ClientsContentProps> = ({ isPending = false }) => {

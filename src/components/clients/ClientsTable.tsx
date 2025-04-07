@@ -13,9 +13,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
+import { ClientRecord } from "@/types/clients";
 
 interface ClientsTableProps {
-  clients: any[];
+  clients: ClientRecord[];
   formatDate: (date: string) => string;
   getStatusColor: (status: string) => string;
 }
@@ -56,7 +57,7 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
               </TableCell>
               <TableCell>{client.abn || "-"}</TableCell>
               <TableCell>
-                <Badge className={getStatusColor(client.status)}>
+                <Badge className={getStatusColor(client.status || '')}>
                   {client.status}
                 </Badge>
               </TableCell>

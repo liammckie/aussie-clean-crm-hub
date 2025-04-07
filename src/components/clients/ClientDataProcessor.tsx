@@ -23,6 +23,11 @@ export const getClientPrimaryAddress = (client: ClientRecord) => {
   return addressParts.length > 0 ? addressParts.join(", ") : "-";
 };
 
+// Interface for components that can accept isPending prop
+interface WithPendingProp {
+  isPending?: boolean;
+}
+
 const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) => {
   const { clients: fetchedClients, setFilteredClients, setClients } = useClientFilters();
   const [isProcessing, setIsProcessing] = useState(true);
@@ -64,13 +69,13 @@ const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) =
     setIsProcessing(false);
   }, [fetchedClients, contracts, sites, setFilteredClients]);
 
-  // Fix the TypeScript error by safely handling element cloning
+  // Fix the TypeScript error by properly typing and cloning children
   return (
     <>
       {React.Children.map(children, child => {
         // Check if the child is a valid React element
-        if (React.isValidElement(child)) {
-          // Create a new props object manually instead of spreading
+        if (React.isValidElement<WithPendingProp>(child)) {
+          // Now TypeScript knows we can pass isPending to this child
           return React.cloneElement(child, {
             isPending: isProcessing
           });
