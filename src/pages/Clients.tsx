@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useTransition } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
@@ -28,31 +29,33 @@ import { getStatusColor, formatDate } from "@/components/clients/utils/StatusBad
 import { ClientRecord } from "@/types/clients";
 import { AppLogger, LogCategory } from '@/utils/logging';
 
+/**
+ * Helper function to get client's primary address
+ */
+const getClientPrimaryAddress = (client: any) => {
+  if (client.address_line_1) {
+    let address = client.address_line_1;
+    if (client.suburb) address += `, ${client.suburb}`;
+    if (client.state) address += `, ${client.state}`;
+    if (client.postcode) address += ` ${client.postcode}`;
+    return address;
+  } else if (client.client_addresses && client.client_addresses.length > 0) {
+    const primaryAddress = client.client_addresses[0];
+    let address = primaryAddress.street;
+    if (primaryAddress.suburb) address += `, ${primaryAddress.suburb}`;
+    if (primaryAddress.state) address += `, ${primaryAddress.state}`;
+    if (primaryAddress.postcode) address += ` ${primaryAddress.postcode}`;
+    return address;
+  }
+  return "No address";
+};
+
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isPending, startTransition] = useTransition();
   const { clients, isLoadingClients, clientsError, refetchClients } = useClients();
   const [filteredClients, setFilteredClients] = useState<ClientRecord[]>([]);
   const [activeStatusFilter, setActiveStatusFilter] = useState<string | null>(null);
-
-  // Get client address helper function - MOVED UP BEFORE IT'S USED
-  const getClientPrimaryAddress = (client: any) => {
-    if (client.address_line_1) {
-      let address = client.address_line_1;
-      if (client.suburb) address += `, ${client.suburb}`;
-      if (client.state) address += `, ${client.state}`;
-      if (client.postcode) address += ` ${client.postcode}`;
-      return address;
-    } else if (client.client_addresses && client.client_addresses.length > 0) {
-      const primaryAddress = client.client_addresses[0];
-      let address = primaryAddress.street;
-      if (primaryAddress.suburb) address += `, ${primaryAddress.suburb}`;
-      if (primaryAddress.state) address += `, ${primaryAddress.state}`;
-      if (primaryAddress.postcode) address += ` ${primaryAddress.postcode}`;
-      return address;
-    }
-    return "No address";
-  };
 
   // Filter clients based on search term and status
   const filterClients = () => {
