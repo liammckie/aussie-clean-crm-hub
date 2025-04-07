@@ -4,6 +4,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { NotFound, Sites, Dashboard, Activities } from '../lazyRoutes';
 import { useAuth } from '@/contexts/AuthContext';
+import { WorkOrders } from '../lazyRoutes';
 
 export const MiscRoutes = () => {
   const { isAuthenticated } = useAuth();
@@ -83,6 +84,13 @@ export const MiscRoutes = () => {
             description="This feature is currently under development."
             returnToHomepageLink="/dashboard"
           />
+        </ProtectedRoute>
+      } />
+      
+      {/* Work Orders route */}
+      <Route path="work-orders" element={
+        <ProtectedRoute>
+          <WorkOrders />
         </ProtectedRoute>
       } />
       

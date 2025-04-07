@@ -28,11 +28,12 @@ import { ActivityList } from '@/components/activities/ActivityList';
 import ActivityTable from '@/components/activities/ActivityTable';
 import { Activity, ActivityType } from '@/types/activity-types';
 import { Button } from '@/components/ui/button';
-import { Grid, List, TableProperties, CalendarDays, ArrowUpRight } from 'lucide-react';
+import { Grid, List, TableProperties, CalendarDays, ArrowUpRight, Download, Filter } from 'lucide-react';
 import { Heading } from '@/components/ui/heading';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import ActivityDeepDive from '@/components/activities/ActivityDeepDive';
 
 // Import mock activities for now
 import { mockActivities } from '@/data/mockActivities';
@@ -43,11 +44,36 @@ const Activities = () => {
   const [filterType, setFilterType] = useState<ActivityType | 'all'>('all');
   const [showFilters, setShowFilters] = useState(true);
   const [animateIn, setAnimateIn] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState<Activity | null>(null);
+  const [isLiveUpdates, setIsLiveUpdates] = useState(false);
   
   // Animation effect when component mounts
   useEffect(() => {
     setAnimateIn(true);
   }, []);
+
+  // Simulate live updates when turned on
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    
+    if (isLiveUpdates) {
+      interval = setInterval(() => {
+        const randomActivity = mockActivities[Math.floor(Math.random() * mockActivities.length)];
+        const newActivity = {
+          ...randomActivity,
+          id: `live-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          title: `Live Update: ${randomActivity.title}`,
+        };
+        
+        setActivities(prev => [newActivity, ...prev]);
+      }, 20000); // Add a new activity every 20 seconds
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isLiveUpdates]);
 
   // Filter activities based on selected type
   const filteredActivities = filterType === 'all' 
@@ -60,6 +86,20 @@ const Activities = () => {
       setFilterType(type);
       setAnimateIn(true);
     }, 300);
+  };
+
+  const handleActivityClick = (activity: Activity) => {
+    setSelectedActivity(activity);
+  };
+
+  const getRelatedActivities = (activity: Activity): Activity[] => {
+    // In a real app, this would fetch related activities based on context
+    // For the demo, we'll just return a few random activities
+    return activities
+      .filter(a => a.id !== activity.id)
+      .filter(a => a.entityType === activity.entityType || a.type === activity.type)
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 3);
   };
 
   return (
@@ -96,11 +136,15 @@ const Activities = () => {
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center space-x-2">
-                <Switch id="auto-refresh" />
+                <Switch 
+                  id="auto-refresh" 
+                  checked={isLiveUpdates}
+                  onCheckedChange={setIsLiveUpdates}
+                />
                 <Label htmlFor="auto-refresh">Live Updates</Label>
               </div>
               <Button variant="outline" className="flex gap-2">
-                <ArrowUpRight size={18} />
+                <Download size={18} />
                 Export Data
               </Button>
             </div>
@@ -182,6 +226,7 @@ const Activities = () => {
                         onClick={() => setShowFilters(!showFilters)}
                         size="sm"
                       >
+                        <Filter className="mr-2 h-4 w-4" />
                         {showFilters ? 'Hide Filters' : 'Show Filters'}
                       </Button>
                     </div>
@@ -192,13 +237,17 @@ const Activities = () => {
                       </div>
                     ) : viewMode === 'table' ? (
                       <div className="bg-white/50 backdrop-blur-sm rounded-lg border border-border/30 shadow-sm overflow-hidden">
-                        <ActivityTable activities={filteredActivities} />
+                        <ActivityTable 
+                          activities={filteredActivities} 
+                          onActivityClick={handleActivityClick}
+                        />
                       </div>
                     ) : (
                       <div className={`transition-all duration-300 ${animateIn ? 'opacity-100' : 'opacity-0'}`}>
                         <ActivityList 
                           activities={filteredActivities} 
                           viewMode={viewMode === 'grid' ? 'grid' : 'list'} 
+                          onActivityClick={handleActivityClick}
                         />
                       </div>
                     )}
@@ -233,6 +282,14 @@ const Activities = () => {
           </div>
         </div>
       </div>
+
+      {selectedActivity && (
+        <ActivityDeepDive
+          activity={selectedActivity}
+          onClose={() => setSelectedActivity(null)}
+          relatedActivities={getRelatedActivities(selectedActivity)}
+        />
+      )}
     </div>
   );
 };

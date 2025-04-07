@@ -1,17 +1,7 @@
 
-export type ActivityType = 
-  | 'client_created'
-  | 'client_updated'
-  | 'contract_signed'
-  | 'task_completed'
-  | 'invoice_paid'
-  | 'work_order_created'
-  | 'site_added'
-  | 'supplier_added'
-  | 'user_login'
-  | 'system_event';
-
+export type ActivityType = 'system' | 'user' | 'client' | 'contract' | 'work_order' | 'supplier';
 export type ActivityStatus = 'success' | 'warning' | 'error' | 'info';
+export type ActivityImpactLevel = 'high' | 'medium' | 'low';
 
 export interface Activity {
   id: string;
@@ -19,23 +9,28 @@ export interface Activity {
   title: string;
   description: string;
   timestamp: string;
-  user: {
-    id: string;
-    name: string;
-    avatar?: string;
-  };
   status: ActivityStatus;
-  entity: {
-    type: string;
-    id: string;
-    name: string;
-  };
-  metadata?: Record<string, any>;
+  actor?: string; // User who performed the action
+  entityId?: string; // Related entity ID
+  entityType?: string; // Related entity type
+  icon?: string;
+  category?: string;
+  duration?: number; // In milliseconds
+  metadata?: Record<string, any> | string;
+  details?: Record<string, any>;
+  impactLevel?: ActivityImpactLevel;
+  clientName?: string;
+  location?: string;
+  tags?: string[];
 }
 
-export interface ActivityCountStat {
-  title: string;
-  count: number;
-  change: number;
-  icon: string;
+export interface ActivityFilterState {
+  type: ActivityType | 'all';
+  dateRange?: {
+    from: Date | null;
+    to: Date | null;
+  };
+  search?: string;
+  status?: ActivityStatus[];
+  entities?: string[];
 }
