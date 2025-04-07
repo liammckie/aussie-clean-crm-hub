@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { 
   SupplierApiResponse, 
@@ -9,6 +8,7 @@ import type {
 import type { SupplierCreateData, SupplierData } from '@/types/supplier-types';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { ErrorReporting } from '@/utils/errorReporting';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
  * Create a new supplier
@@ -37,7 +37,7 @@ export async function createSupplier(supplierData: SupplierCreateData): Promise<
       AppLogger.error(LogCategory.SUPPLIER, 'Error creating supplier', { error });
       
       return {
-        category: error.code === '42P01' ? 'permission' : 'server',
+        category: ErrorCategory.PERMISSION,
         message: `Failed to create supplier: ${error.message}`,
         details: error
       };
@@ -52,7 +52,7 @@ export async function createSupplier(supplierData: SupplierCreateData): Promise<
     ErrorReporting.captureException(error);
     
     return {
-      category: 'server',
+      category: ErrorCategory.SERVER,
       message: 'An unexpected error occurred while creating the supplier',
       details: error
     };
@@ -75,7 +75,7 @@ export async function getAllSuppliers(): Promise<SuppliersApiResponse> {
       AppLogger.error(LogCategory.SUPPLIER, 'Error fetching suppliers', { error });
       
       return {
-        category: error.code === '42P01' ? 'permission' : 'server',
+        category: ErrorCategory.PERMISSION,
         message: `Failed to fetch suppliers: ${error.message}`,
         details: error
       };
@@ -90,7 +90,7 @@ export async function getAllSuppliers(): Promise<SuppliersApiResponse> {
     ErrorReporting.captureException(error);
     
     return {
-      category: 'server',
+      category: ErrorCategory.SERVER,
       message: 'An unexpected error occurred while fetching suppliers',
       details: error
     };
@@ -113,7 +113,7 @@ export async function getSupplierById(supplierId: string): Promise<SupplierApiRe
     if (error) {
       if (error.code === 'PGRST116') {
         return {
-          category: 'not_found',
+          category: ErrorCategory.NOT_FOUND,
           message: 'Supplier not found',
           details: error
         };
@@ -122,7 +122,7 @@ export async function getSupplierById(supplierId: string): Promise<SupplierApiRe
       AppLogger.error(LogCategory.SUPPLIER, 'Error fetching supplier', { error, supplierId });
       
       return {
-        category: error.code === '42P01' ? 'permission' : 'server',
+        category: ErrorCategory.PERMISSION,
         message: `Failed to fetch supplier: ${error.message}`,
         details: error
       };
@@ -137,7 +137,7 @@ export async function getSupplierById(supplierId: string): Promise<SupplierApiRe
     ErrorReporting.captureException(error);
     
     return {
-      category: 'server',
+      category: ErrorCategory.SERVER,
       message: 'An unexpected error occurred while fetching the supplier',
       details: error
     };
@@ -162,7 +162,7 @@ export async function updateSupplier(supplierId: string, supplierData: Partial<S
       AppLogger.error(LogCategory.SUPPLIER, 'Error updating supplier', { error, supplierId });
       
       return {
-        category: error.code === '42P01' ? 'permission' : 'server',
+        category: ErrorCategory.PERMISSION,
         message: `Failed to update supplier: ${error.message}`,
         details: error
       };
@@ -177,7 +177,7 @@ export async function updateSupplier(supplierId: string, supplierData: Partial<S
     ErrorReporting.captureException(error);
     
     return {
-      category: 'server',
+      category: ErrorCategory.SERVER,
       message: 'An unexpected error occurred while updating the supplier',
       details: error
     };
@@ -207,7 +207,7 @@ export async function deleteSupplier(supplierId: string): Promise<SupplierApiRes
       AppLogger.error(LogCategory.SUPPLIER, 'Error deleting supplier', { error, supplierId });
       
       return {
-        category: error.code === '42P01' ? 'permission' : 'server',
+        category: ErrorCategory.PERMISSION,
         message: `Failed to delete supplier: ${error.message}`,
         details: error
       };
@@ -222,7 +222,7 @@ export async function deleteSupplier(supplierId: string): Promise<SupplierApiRes
     ErrorReporting.captureException(error);
     
     return {
-      category: 'server',
+      category: ErrorCategory.SERVER,
       message: 'An unexpected error occurred while deleting the supplier',
       details: error
     };
@@ -245,7 +245,7 @@ export async function getComplianceDocuments(supplierId: string): Promise<Compli
       AppLogger.error(LogCategory.SUPPLIER, 'Error fetching compliance documents', { error, supplierId });
       
       return {
-        category: error.code === '42P01' ? 'permission' : 'server',
+        category: ErrorCategory.PERMISSION,
         message: `Failed to fetch compliance documents: ${error.message}`,
         details: error
       };
@@ -260,7 +260,7 @@ export async function getComplianceDocuments(supplierId: string): Promise<Compli
     ErrorReporting.captureException(error);
     
     return {
-      category: 'server',
+      category: ErrorCategory.SERVER,
       message: 'An unexpected error occurred while fetching compliance documents',
       details: error
     };

@@ -8,9 +8,12 @@ import { z } from 'zod';
 // Address types
 export type AddressType = 'billing' | 'shipping' | 'site' | 'warehouse' | 'postal' | 'physical' | 'head_office' | 'branch' | 'residential' | 'commercial';
 
+// Entity types for relational references
+export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
+
 // Define unified address form data
 export interface UnifiedAddressFormData {
-  entity_type: string;
+  entity_type: EntityType;
   entity_id: string;
   name?: string;
   address_line_1: string;
@@ -26,12 +29,15 @@ export interface UnifiedAddressFormData {
 }
 
 // Contact types
-export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary' | 'Technical' | 'Management';
+export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary' | 'Technical' | 'Management' | 
+  // Adding custom types needed in the app
+  'client_primary' | 'client_site' | 'hr_payroll' | 'emergency';
+
 export type PreferredCommunication = 'email' | 'phone' | 'mobile' | 'post';
 
 // Define unified contact form data
 export interface UnifiedContactFormData {
-  entity_type: string;
+  entity_type: EntityType;
   entity_id: string;
   name: string;
   email: string;
@@ -80,3 +86,94 @@ export const contactSchema = z.object({
   contact_type: z.string() as z.ZodType<ContactType>,
   is_primary: z.boolean().default(false)
 });
+
+// Add the missing schemas for unified address and contact forms
+export const unifiedAddressSchema = z.object({
+  entity_type: z.string() as z.ZodType<EntityType>,
+  entity_id: z.string().min(1, { message: "Entity ID is required" }),
+  name: z.string().optional(),
+  address_line_1: z.string().min(1, { message: "Address is required" }),
+  address_line_2: z.string().optional(),
+  suburb: z.string().min(1, { message: "Suburb is required" }),
+  state: z.string().min(1, { message: "State is required" }),
+  postcode: postcodeSchema,
+  country: z.string().default('Australia'),
+  address_type: z.string() as z.ZodType<AddressType>,
+  is_primary: z.boolean().default(false),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+});
+
+export const unifiedContactSchema = z.object({
+  entity_type: z.string() as z.ZodType<EntityType>,
+  entity_id: z.string().min(1, { message: "Entity ID is required" }),
+  name: nameSchema,
+  email: emailSchema,
+  phone: phoneSchema,
+  phone_landline: phoneSchema,
+  mobile: phoneSchema,
+  position: z.string().optional(),
+  job_title: z.string().optional(),
+  company: z.string().optional(),
+  contact_type: z.string() as z.ZodType<ContactType>,
+  preferred_communication: z.enum(['email', 'phone', 'mobile', 'post']).optional(),
+  is_primary: z.boolean().default(false),
+  account_manager: z.string().optional(),
+  state_manager: z.string().optional(),
+  national_manager: z.string().optional(),
+  notes: z.string().optional(),
+});
+
+// Helper functions for form default values
+
+/**
+ * Create default values for address forms
+ */
+export const createDefaultAddressValues = (
+  initialData: Partial<UnifiedAddressFormData> = {},
+  defaultAddressType: AddressType = 'physical'
+): UnifiedAddressFormData => {
+  return {
+    entity_type: initialData.entity_type || 'client',
+    entity_id: initialData.entity_id || '',
+    name: initialData.name,
+    address_line_1: initialData.address_line_1 || '',
+    address_line_2: initialData.address_line_2,
+    suburb: initialData.suburb || '',
+    state: initialData.state || '',
+    postcode: initialData.postcode || '',
+    country: initialData.country || 'Australia',
+    address_type: initialData.address_type || defaultAddressType,
+    is_primary: typeof initialData.is_primary === 'boolean' ? initialData.is_primary : false,
+    latitude: initialData.latitude,
+    longitude: initialData.longitude
+  };
+};
+
+/**
+ * Create default values for contact forms
+ */
+export const createDefaultContactValues = (
+  initialData: Partial<UnifiedContactFormData> = {},
+  defaultContactType: ContactType = 'Primary'
+): UnifiedContactFormData => {
+  return {
+    entity_type: initialData.entity_type || 'client',
+    entity_id: initialData.entity_id || '',
+    name: initialData.name || '',
+    email: initialData.email || '',
+    phone: initialData.phone,
+    phone_landline: initialData.phone_landline,
+    mobile: initialData.mobile,
+    position: initialData.position,
+    job_title: initialData.job_title,
+    company: initialData.company,
+    contact_type: initialData.contact_type || defaultContactType,
+    preferred_communication: initialData.preferred_communication,
+    is_primary: typeof initialData.is_primary === 'boolean' ? initialData.is_primary : false,
+    account_manager: initialData.account_manager,
+    state_manager: initialData.state_manager,
+    national_manager: initialData.national_manager,
+    notes: initialData.notes
+  };
+};

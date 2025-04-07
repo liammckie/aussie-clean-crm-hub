@@ -1,60 +1,67 @@
-
-import { clientApi } from '../api';
-import { ContactFormData } from '../types';
-import { logSuccess } from '@/utils/supabaseErrors';
-import { clientContactSchema, validateWithZod } from '../validation';
-import { ApiResponse, createSuccessResponse, isApiError, formatError, ErrorCategory } from '@/types/api-response';
+import { supabase } from '@/lib/supabase';
+import { ContactFormData } from '@/services/client/types';
 
 /**
- * Client contact management service
+ * Service for managing client contacts
  */
 export const clientContactService = {
-  // Get client contacts by client ID
-  getClientContacts: async (clientId: string): Promise<ApiResponse<any>> => {
-    const response = await clientApi.fetchClientContacts(clientId);
-    
-    if (isApiError(response)) {
-      return response;
-    }
+  /**
+   * Get all contacts for a client
+   * @param clientId The ID of the client
+   * @returns An array of contact records
+   */
+  getClientContacts: async (clientId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('client_contacts')
+        .select('*')
+        .eq('client_id', clientId);
 
-    logSuccess('fetch', 'client_contacts', response.data);
-    return createSuccessResponse(response.data, 'Client contacts retrieved successfully');
+      if (error) {
+        console.error("Error fetching client contacts:", error);
+        throw error;
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error("Failed to get client contacts:", error);
+      throw error;
+    }
   },
 
-  // Create a new client contact
-  createClientContact: async (clientId: string, contactData: Partial<Omit<ContactFormData, 'client_id'>>): Promise<ApiResponse<any>> => {
-    // Add client ID to contact data and ensure all required fields are explicitly set
-    const contactWithRequiredFields: ContactFormData = {
-      client_id: clientId,
-      // Ensure required fields have non-nullable values
-      name: contactData.name ?? '', 
-      email: contactData.email ?? '',
-      contact_type: contactData.contact_type ?? 'Primary',
-      // Ensure boolean field has a default
-      is_primary: contactData.is_primary ?? false,
-      // Optional fields passed through
-      position: contactData.position,
-      phone: contactData.phone,
-      mobile: contactData.mobile
-    };
+  /**
+   * Create a new contact for a client
+   * @param clientId The ID of the client
+   * @param data The contact data to insert
+   * @returns The newly created contact record
+   */
+  createClientContact: async (clientId: string, data: any) => {
+    try {
+      const contactData: ContactFormData = {
+        name: data.name || '',
+        email: data.email || '',
+        phone: data.phone,
+        mobile: data.mobile,
+        position: data.position,
+        is_primary: Boolean(data.is_primary),
+        contact_type: data.contact_type || 'Primary',
+        client_id: data.client_id || clientId
+      };
+      const { data: newContact, error } = await supabase
+        .from('client_contacts')
+        .insert([contactData])
+        .select()
+        .single();
 
-    // Validate the contact data using Zod schema
-    const validationResult = validateWithZod(clientContactSchema, contactWithRequiredFields);
-    if ('category' in validationResult) {
-      return formatError(
-        ErrorCategory.VALIDATION, 
-        validationResult.message, 
-        validationResult.details
-      );
+      if (error) {
+        console.error("Error creating client contact:", error);
+        throw error;
+      }
+
+      return newContact;
+    } catch (error) {
+      console.error("Failed to create client contact:", error);
+      throw error;
     }
-
-    const response = await clientApi.createClientContact(validationResult.data);
-    
-    if (isApiError(response)) {
-      return response;
-    }
-
-    logSuccess('create', 'client_contact', response.data);
-    return createSuccessResponse(response.data, 'Contact created successfully');
   }
 };

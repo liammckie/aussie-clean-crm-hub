@@ -5,7 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Form } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
 import { 
-  UnifiedAddressFormData, 
+  UnifiedAddressFormData,
+  AddressType,
   unifiedAddressSchema, 
   createDefaultAddressValues 
 } from '@/types/form-types';

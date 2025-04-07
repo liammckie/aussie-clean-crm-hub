@@ -3,12 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { unifiedService } from '@/services/unified';
-import { 
-  UnifiedAddressFormData, 
-  EntityType 
-} from '@/types/form-types';
+import { UnifiedAddressFormData } from '@/types/form-types';
+import { EntityType } from '@/types/form-types';
 import { ValidationErrorResponse } from '@/services/unified/types';
-import { ApiResponse, isApiError } from '@/types/api-response';
+import { ApiResponse, isApiError, isApiSuccess } from '@/types/api-response';
 
 /**
  * Hook for address mutations (create, update, delete)
@@ -30,12 +28,12 @@ export function useAddressMutations() {
       console.log(`Creating address for ${entityType} ${entityId} with data:`, addressData);
       const response = await unifiedService.createAddress(entityType, entityId, addressData);
       
-      if (isApiError(response) && response.category === 'validation') {
-        console.warn('Validation error during address creation:', response);
-        return response as ValidationErrorResponse;
-      }
-      
       if (isApiError(response)) {
+        console.warn('Validation error during address creation:', response);
+        if (response.category === 'validation') {
+          return response as ValidationErrorResponse;
+        }
+        
         console.error('Error creating address:', response);
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
@@ -45,7 +43,7 @@ export function useAddressMutations() {
       return response.data;
     },
     onSuccess: (data, variables) => {
-      if (!data || !('category' in data)) {
+      if (data && !('category' in data)) {
         console.log('Invalidating addresses query after successful creation');
         queryClient.invalidateQueries({ queryKey: ['unified-addresses', variables.entityType, variables.entityId] });
         toast.success('Address created successfully!');
@@ -69,12 +67,12 @@ export function useAddressMutations() {
       console.log(`Updating address ${addressId} with data:`, addressData);
       const response = await unifiedService.updateAddress(addressId, addressData);
       
-      if (isApiError(response) && response.category === 'validation') {
-        console.warn('Validation error during address update:', response);
-        return response as ValidationErrorResponse;
-      }
-      
       if (isApiError(response)) {
+        if (response.category === 'validation') {
+          console.warn('Validation error during address update:', response);
+          return response as ValidationErrorResponse;
+        }
+        
         console.error('Error updating address:', response);
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
@@ -84,7 +82,7 @@ export function useAddressMutations() {
       return response.data;
     },
     onSuccess: (data, variables) => {
-      if (!data || !('category' in data)) {
+      if (data && !('category' in data)) {
         console.log('Invalidating addresses query after successful update');
         queryClient.invalidateQueries({ queryKey: ['unified-addresses'] });
         toast.success('Address updated successfully!');

@@ -1,7 +1,7 @@
 
 import { siteApi } from './api';
 import { SiteData, SiteInsertData, SiteUpdateData, SiteApiResponse, SitesApiResponse } from './types';
-import { ApiResponse, isApiError } from '@/types/api-response';
+import { ApiResponse, isApiError, isApiSuccess } from '@/types/api-response';
 
 /**
  * Site service with business logic for site management

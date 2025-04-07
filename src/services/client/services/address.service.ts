@@ -1,4 +1,3 @@
-
 import { clientApi } from '../api';
 import { AddressFormData } from '../types';
 import { logSuccess } from '@/utils/supabaseErrors';
@@ -27,14 +26,14 @@ export const clientAddressService = {
     const addressWithRequiredFields: AddressFormData = {
       client_id: clientId,
       // Ensure required fields are explicitly set with default values
-      street: addressData.street ?? '', 
-      suburb: addressData.suburb ?? '',
-      state: addressData.state ?? '',
-      postcode: addressData.postcode ?? '',
-      address_type: addressData.address_type ?? 'physical',
+      street: addressData.street || '', 
+      suburb: addressData.suburb || '',
+      state: addressData.state || '',
+      postcode: addressData.postcode || '',
+      address_type: addressData.address_type || 'physical',
       // Optional fields
       street_2: addressData.street_2,
-      country: addressData.country ?? 'Australia'
+      country: addressData.country || 'Australia'
     };
 
     // Validate the address data using Zod schema

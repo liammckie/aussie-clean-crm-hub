@@ -2,7 +2,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Tabulator from 'tabulator-tables';
 import 'tabulator-tables/dist/css/tabulator.min.css';
-import { useTabulator } from '@/hooks';
+import { useTabulator } from '@/hooks/use-tabulator';
 
 interface TabulatorContainerProps {
   data: Record<string, unknown>[];
@@ -17,20 +17,22 @@ export function TabulatorContainer({
 }: TabulatorContainerProps) {
   const tableRef = useRef<HTMLDivElement>(null);
   const [table, setTable] = useState<Tabulator | null>(null);
-  const { initializeTable } = useTabulator();
+  const { defaultColumns, defaultOptions } = useTabulator();
 
   useEffect(() => {
     if (tableRef.current) {
-      // Initialize the table
-      const newTable = initializeTable(tableRef.current, data);
-      
-      // Register selection change callback if provided
-      if (onSelectionChange) {
-        newTable.on("rowSelectionChanged", (_data, rows) => {
-          const selectedData = rows.map(row => row.getData());
-          onSelectionChange(selectedData);
-        });
-      }
+      // Initialize the table with correct options
+      const newTable = new Tabulator(tableRef.current, {
+        ...defaultOptions,
+        data,
+        columns: defaultColumns,
+        rowSelectionChanged: function(data, rows) {
+          if (onSelectionChange) {
+            const selectedData = rows.map(row => row.getData());
+            onSelectionChange(selectedData);
+          }
+        }
+      });
       
       setTable(newTable);
       

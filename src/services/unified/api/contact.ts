@@ -1,76 +1,122 @@
+import { supabase } from '@/lib/supabase';
+import { createErrorResponse, createSuccessResponse } from '@/types/api-response';
+import { UnifiedContactRecord } from '../types';
+import { UnifiedContactFormData, EntityType } from '@/types/form-types';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
-import { supabase, isAuthenticated } from '@/integrations/supabase/client';
-import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
-import { UnifiedContactFormData } from '../types';
-
-/**
- * API service for unified contacts management
- */
 export const contactApi = {
   /**
-   * Fetch contacts for an entity
+   * Create a new contact for an entity
    */
-  fetchContacts: async (entityType: string, entityId: string) => {
+  createContact: async (
+    entityType: EntityType,
+    entityId: string,
+    contactData: Omit<UnifiedContactFormData, 'entity_type' | 'entity_id'>
+  ) => {
     try {
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
+      // Validate required fields
+      if (!contactData.name) {
+        return createErrorResponse(
+          ErrorCategory.VALIDATION, 
+          'Contact name is required',
+          { field: 'name' }
+        );
       }
 
+      if (!contactData.email) {
+        return createErrorResponse(
+          ErrorCategory.VALIDATION, 
+          'Email is required',
+          { field: 'email' }
+        );
+      }
+
+      // Check if this is set as primary and handle accordingly
+      if (contactData.is_primary) {
+        // If this is set as primary, update other contacts to not be primary
+        if (entityId) {
+          const { error: updateError } = await supabase
+            .from('unified_contacts')
+            .update({ is_primary: false })
+            .match({ entity_type: entityType, entity_id: entityId });
+
+          if (updateError) {
+            console.warn('Error updating existing primary contacts:', updateError);
+          }
+        }
+      }
+
+      // Create the contact record
       const { data, error } = await supabase
         .from('unified_contacts')
-        .select('*')
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .order('is_primary', { ascending: false })
-        .order('created_at', { ascending: false });
+        .insert({
+          entity_type: entityType,
+          entity_id: entityId,
+          name: contactData.name,
+          email: contactData.email,
+          phone: contactData.phone,
+          mobile: contactData.mobile,
+          position: contactData.position,
+          contact_type: contactData.contact_type,
+          is_primary: Boolean(contactData.is_primary),
+          company: contactData.company,
+          account_manager: contactData.account_manager,
+          state_manager: contactData.state_manager,
+          national_manager: contactData.national_manager,
+          notes: contactData.notes
+        })
+        .select()
+        .single();
 
       if (error) {
-        throw error;
+        console.error('Error creating contact:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
       }
 
-      return { data, error: null };
-    } catch (error) {
-      return handleSupabaseError(
-        error,
-        `Failed to fetch contacts for ${entityType} with ID ${entityId}`,
-        { operation: 'fetchContacts', entityType, entityId }
+      return createSuccessResponse(
+        data,
+        'Contact created successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error creating contact:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while creating the contact'
       );
     }
   },
 
   /**
-   * Create a new contact
+   * Get all contacts for an entity
    */
-  createContact: async (contactData: UnifiedContactFormData) => {
+  getEntityContacts: async (entityType: EntityType, entityId: string) => {
     try {
-      console.log("API: Creating contact with data:", contactData);
-      
-      // Ensure is_primary is a boolean
-      const processedData = {
-        ...contactData,
-        is_primary: Boolean(contactData.is_primary)
-      };
-      
       const { data, error } = await supabase
         .from('unified_contacts')
-        .insert(processedData)
-        .select()
-        .single();
+        .select('*')
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId);
 
       if (error) {
-        console.error("API: Error creating contact:", error);
-        throw error;
+        console.error('Error fetching contacts:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
       }
 
-      console.log("API: Contact created successfully:", data);
-      return { data, error: null };
-    } catch (error) {
-      console.error("API: Error handler for createContact:", error);
-      return handleSupabaseError(
-        error,
-        'Failed to create contact',
-        { operation: 'createContact', contactData }
+      return createSuccessResponse(
+        data,
+        'Contacts fetched successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error fetching contacts:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while fetching contacts'
       );
     }
   },
@@ -78,31 +124,35 @@ export const contactApi = {
   /**
    * Update an existing contact
    */
-  updateContact: async (contactId: string, contactData: Partial<UnifiedContactFormData>) => {
+  updateContact: async (
+    contactId: string,
+    contactData: Partial<UnifiedContactFormData>
+  ) => {
     try {
-      // Ensure is_primary is a boolean if present
-      const processedData = {
-        ...contactData,
-        is_primary: contactData.is_primary !== undefined ? Boolean(contactData.is_primary) : undefined
-      };
-      
       const { data, error } = await supabase
         .from('unified_contacts')
-        .update(processedData)
+        .update(contactData)
         .eq('id', contactId)
         .select()
         .single();
 
       if (error) {
-        throw error;
+        console.error('Error updating contact:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
       }
 
-      return { data, error: null };
-    } catch (error) {
-      return handleSupabaseError(
-        error,
-        `Failed to update contact with ID ${contactId}`,
-        { operation: 'updateContact', contactId, contactData }
+      return createSuccessResponse(
+        data,
+        'Contact updated successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error updating contact:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while updating the contact'
       );
     }
   },
@@ -112,21 +162,28 @@ export const contactApi = {
    */
   deleteContact: async (contactId: string) => {
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('unified_contacts')
         .delete()
         .eq('id', contactId);
 
       if (error) {
-        throw error;
+        console.error('Error deleting contact:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
       }
 
-      return { success: true, error: null };
-    } catch (error) {
-      return handleSupabaseError(
-        error,
-        `Failed to delete contact with ID ${contactId}`,
-        { operation: 'deleteContact', contactId }
+      return createSuccessResponse(
+        { success: true },
+        'Contact deleted successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error deleting contact:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while deleting the contact'
       );
     }
   }

@@ -1,6 +1,15 @@
 
 import { useMemo } from 'react';
-import Tabulator, { TabulatorColumn, TabulatorOptions } from 'tabulator-tables';
+import Tabulator, { TabulatorOptions, TabulatorColumn, ColumnDefinition, SorterFromTable } from 'tabulator-tables';
+
+// Define a proper type for the sort direction
+type SortDirection = "asc" | "desc";
+
+// Type for Tabulator's sorter
+export interface TabulatorSorter {
+  column: string;
+  dir: SortDirection;
+}
 
 export function useTabulator() {
   const defaultOptions = useMemo<Partial<TabulatorOptions>>(() => ({
@@ -21,19 +30,5 @@ export function useTabulator() {
     { title: "Value", field: "value", sorter: "number", formatter: "money" }
   ], []);
 
-  const initializeTable = (
-    element: HTMLElement, 
-    data: Record<string, unknown>[], 
-    columns: TabulatorColumn[] = defaultColumns, 
-    options: Partial<TabulatorOptions> = {}
-  ): Tabulator => {
-    return new Tabulator(element, {
-      ...defaultOptions,
-      ...options,
-      data,
-      columns
-    });
-  };
-
-  return { initializeTable, defaultColumns, defaultOptions };
+  return { defaultColumns, defaultOptions };
 }

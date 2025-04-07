@@ -12,3 +12,28 @@ export enum ErrorCategory {
   AUTHENTICATION = 'authentication',
   UNKNOWN = 'unknown'
 }
+
+// String literal types for backward compatibility
+export type ErrorCategoryString = 
+  | 'validation'
+  | 'not_found'
+  | 'permission'
+  | 'server'
+  | 'database'
+  | 'network'
+  | 'authentication'
+  | 'unknown';
+
+// Helper to convert string to enum
+export function toErrorCategory(category: string): ErrorCategory {
+  switch (category) {
+    case 'validation': return ErrorCategory.VALIDATION;
+    case 'not_found': return ErrorCategory.NOT_FOUND;
+    case 'permission': return ErrorCategory.PERMISSION;
+    case 'server': return ErrorCategory.SERVER;
+    case 'database': return ErrorCategory.DATABASE;
+    case 'network': return ErrorCategory.NETWORK;
+    case 'authentication': return ErrorCategory.AUTHENTICATION;
+    default: return ErrorCategory.UNKNOWN;
+  }
+}

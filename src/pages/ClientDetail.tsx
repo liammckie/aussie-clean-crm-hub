@@ -105,10 +105,10 @@ const ClientDetail = () => {
   } = useUnifiedEntities();
   
   const clientContactTypes: ContactType[] = [
-    'client_primary', 
-    'client_site', 
-    'hr_payroll',
-    'emergency'
+    'Primary', 
+    'Technical', 
+    'Operations',
+    'Emergency'
   ];
 
   const handleContactSubmit = async (data: UnifiedContactFormData) => {

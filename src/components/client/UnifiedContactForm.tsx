@@ -30,7 +30,7 @@ export function UnifiedContactForm({
   onSubmit, 
   isLoading = false, 
   initialData = {}, 
-  contactTypes = ['Primary', 'Billing', 'Operations', 'client_primary'],
+  contactTypes = ['Primary', 'Billing', 'Operations', 'Technical'],
   buttonText = "Add Contact",
   showIsPrimary = true
 }: UnifiedContactFormProps) {

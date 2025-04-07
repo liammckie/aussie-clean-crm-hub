@@ -1,4 +1,3 @@
-
 import { describe, expect, it, jest } from '@jest/globals';
 import { createMockSupabaseClient } from '../mocks/supabaseMock';
 import { SiteStatus, SiteType } from '@/types/database-schema';
@@ -91,11 +90,11 @@ describe('Site Service', () => {
       updated_at: new Date().toISOString()
     };
 
-    (siteService.getSite as jest.Mock).mockReturnValue(Promise.resolve(mockSite));
+    (siteService.getSiteById as jest.Mock).mockReturnValue(Promise.resolve(mockSite));
     
-    const result = await siteService.getSite('123');
+    const result = await siteService.getSiteById('123');
 
     expect(result).toEqual(mockSite);
-    expect(siteService.getSite).toHaveBeenCalledWith('123');
+    expect(siteService.getSiteById).toHaveBeenCalledWith('123');
   });
 });

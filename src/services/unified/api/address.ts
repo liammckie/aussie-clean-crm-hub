@@ -1,66 +1,98 @@
+import { supabase } from '@/lib/supabase';
+import { createErrorResponse, createSuccessResponse } from '@/types/api-response';
+import { UnifiedAddressRecord, ValidationErrorResponse } from '../types';
+import { UnifiedAddressFormData, EntityType } from '@/types/form-types';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
-import { supabase, isAuthenticated } from '@/integrations/supabase/client';
-import { ErrorResponse, handleSupabaseError } from '@/utils/supabaseErrors';
-import { UnifiedAddressFormData } from '../types';
-
-/**
- * API service for unified addresses management
- */
 export const addressApi = {
   /**
-   * Fetch addresses for an entity
+   * Create a new address for an entity
    */
-  fetchAddresses: async (entityType: string, entityId: string) => {
+  createAddress: async (
+    entityType: EntityType,
+    entityId: string,
+    addressData: Omit<UnifiedAddressFormData, 'entity_type' | 'entity_id'>
+  ) => {
     try {
-      // First check if the user is authenticated
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
+      // Validate required fields
+      if (!addressData.address_line_1) {
+        return createErrorResponse(
+          ErrorCategory.VALIDATION, 
+          'Address line 1 is required',
+          { field: 'address_line_1' }
+        );
       }
 
+      // Create the address record
       const { data, error } = await supabase
         .from('unified_addresses')
-        .select('*')
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .order('is_primary', { ascending: false })
-        .order('created_at', { ascending: false });
+        .insert({
+          entity_type: entityType,
+          entity_id: entityId,
+          name: addressData.name,
+          address_line_1: addressData.address_line_1,
+          address_line_2: addressData.address_line_2,
+          suburb: addressData.suburb,
+          state: addressData.state,
+          postcode: addressData.postcode,
+          country: addressData.country || 'Australia',
+          address_type: addressData.address_type,
+          is_primary: Boolean(addressData.is_primary),
+          latitude: addressData.latitude,
+          longitude: addressData.longitude
+        })
+        .select()
+        .single();
 
       if (error) {
-        throw error;
+        console.error('Error creating address:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
       }
 
-      return { data, error: null };
-    } catch (error) {
-      return handleSupabaseError(
-        error,
-        `Failed to fetch addresses for ${entityType} with ID ${entityId}`,
-        { operation: 'fetchAddresses', entityType, entityId }
+      return createSuccessResponse(
+        data,
+        'Address created successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error creating address:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while creating the address'
       );
     }
   },
 
   /**
-   * Create a new address
+   * Get all addresses for an entity
    */
-  createAddress: async (addressData: UnifiedAddressFormData) => {
+  getEntityAddresses: async (entityType: EntityType, entityId: string) => {
     try {
       const { data, error } = await supabase
         .from('unified_addresses')
-        .insert(addressData)
-        .select()
-        .single();
+        .select('*')
+        .eq('entity_type', entityType)
+        .eq('entity_id', entityId);
 
       if (error) {
-        throw error;
+        console.error('Error fetching addresses:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
       }
 
-      return { data, error: null };
-    } catch (error) {
-      return handleSupabaseError(
-        error,
-        'Failed to create address',
-        { operation: 'createAddress', addressData }
+      return createSuccessResponse(
+        data,
+        'Addresses fetched successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error fetching addresses:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while fetching addresses'
       );
     }
   },
@@ -78,15 +110,22 @@ export const addressApi = {
         .single();
 
       if (error) {
-        throw error;
+        console.error('Error updating address:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
       }
 
-      return { data, error: null };
-    } catch (error) {
-      return handleSupabaseError(
-        error,
-        `Failed to update address with ID ${addressId}`,
-        { operation: 'updateAddress', addressId, addressData }
+      return createSuccessResponse(
+        data,
+        'Address updated successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error updating address:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while updating the address'
       );
     }
   },
@@ -102,15 +141,22 @@ export const addressApi = {
         .eq('id', addressId);
 
       if (error) {
-        throw error;
+        console.error('Error deleting address:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
       }
 
-      return { success: true, error: null };
-    } catch (error) {
-      return handleSupabaseError(
-        error,
-        `Failed to delete address with ID ${addressId}`,
-        { operation: 'deleteAddress', addressId }
+      return createSuccessResponse(
+        { success: true },
+        'Address deleted successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error deleting address:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while deleting the address'
       );
     }
   }

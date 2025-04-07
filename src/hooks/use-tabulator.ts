@@ -1,6 +1,7 @@
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef } from 'react';
 import Tabulator from 'tabulator-tables';
+import { TabulatorSorter, SortDirection } from '@/types/tabulator-types';
 
 interface TabulatorOptions {
   element: React.RefObject<HTMLDivElement>;
@@ -14,7 +15,7 @@ interface TabulatorOptions {
   selectable?: boolean;
   selectableRangeMode?: string;
   onSelectionChange?: (rows: any[]) => void;
-  initialSort?: { column: string, dir: string }[];
+  initialSort?: TabulatorSorter[];
 }
 
 export const useTabulator = ({
@@ -60,7 +61,7 @@ export const useTabulator = ({
         resizableRows,
         selectable,
         selectableRangeMode,
-        initialSort,
+        initialSort: initialSort as any,
         
         rowSelectionChanged: function(data, rows) {
           if (onSelectionChange) {

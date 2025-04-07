@@ -58,5 +58,11 @@ export type ValidationErrorResponse = {
   details?: {
     field?: string;
     error?: string;
+    code?: string;  // Added code property
   };
 };
+
+export interface ErrorResponse {
+  status: number;
+  message: string;
+}

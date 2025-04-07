@@ -1,80 +1,78 @@
 
-import { unifiedApi } from './api';
-import { 
-  UnifiedAddressFormData, 
-  UnifiedContactFormData,
-  EntityType
+import {
+  UnifiedAddressRecord,
+  UnifiedContactRecord,
+  ValidationErrorResponse
 } from './types';
+import { UnifiedAddressFormData, UnifiedContactFormData, EntityType } from '@/types/form-types';
+import { addressApi } from './api/address';
+import { contactApi } from './api/contact';
 
 /**
- * Service layer for unified address and contact management
+ * Unified service layer for managing addresses and contacts across different entity types
  */
 export const unifiedService = {
   /**
-   * Get addresses for an entity
+   * Create a new address for an entity
    */
-  getAddresses: async (entityType: EntityType, entityId: string) => {
-    return await unifiedApi.fetchAddresses(entityType, entityId);
+  createAddress: async (
+    entityType: EntityType,
+    entityId: string,
+    addressData: Omit<UnifiedAddressFormData, 'entity_type' | 'entity_id'>
+  ) => {
+    return addressApi.createAddress(entityType, entityId, addressData);
   },
 
   /**
-   * Create a new address for an entity
+   * Get all addresses for an entity
    */
-  createAddress: async (entityType: EntityType, entityId: string, addressData: Omit<UnifiedAddressFormData, 'entity_type' | 'entity_id'>) => {
-    const fullAddressData: UnifiedAddressFormData = {
-      entity_type: entityType,
-      entity_id: entityId,
-      ...addressData
-    };
-    
-    return await unifiedApi.createAddress(fullAddressData);
+  getEntityAddresses: async (entityType: EntityType, entityId: string) => {
+    return addressApi.getEntityAddresses(entityType, entityId);
   },
 
   /**
    * Update an existing address
    */
   updateAddress: async (addressId: string, addressData: Partial<UnifiedAddressFormData>) => {
-    return await unifiedApi.updateAddress(addressId, addressData);
+    return addressApi.updateAddress(addressId, addressData);
   },
 
   /**
-   * Delete an address by ID
+   * Delete an address
    */
   deleteAddress: async (addressId: string) => {
-    return await unifiedApi.deleteAddress(addressId);
-  },
-
-  /**
-   * Get contacts for an entity
-   */
-  getContacts: async (entityType: EntityType, entityId: string) => {
-    return await unifiedApi.fetchContacts(entityType, entityId);
+    return addressApi.deleteAddress(addressId);
   },
 
   /**
    * Create a new contact for an entity
    */
-  createContact: async (entityType: EntityType, entityId: string, contactData: Omit<UnifiedContactFormData, 'entity_type' | 'entity_id'>) => {
-    const fullContactData: UnifiedContactFormData = {
-      entity_type: entityType,
-      entity_id: entityId,
-      ...contactData
-    };
-    
-    return await unifiedApi.createContact(fullContactData);
+  createContact: async (
+    entityType: EntityType,
+    entityId: string,
+    contactData: Omit<UnifiedContactFormData, 'entity_type' | 'entity_id'>
+  ) => {
+    return contactApi.createContact(entityType, entityId, contactData);
+  },
+
+  /**
+   * Get all contacts for an entity
+   */
+  getEntityContacts: async (entityType: EntityType, entityId: string) => {
+    return contactApi.getEntityContacts(entityType, entityId);
   },
 
   /**
    * Update an existing contact
    */
   updateContact: async (contactId: string, contactData: Partial<UnifiedContactFormData>) => {
-    return await unifiedApi.updateContact(contactId, contactData);
+    return contactApi.updateContact(contactId, contactData);
   },
 
   /**
-   * Delete a contact by ID
+   * Delete a contact
    */
   deleteContact: async (contactId: string) => {
-    return await unifiedApi.deleteContact(contactId);
+    return contactApi.deleteContact(contactId);
   }
 };

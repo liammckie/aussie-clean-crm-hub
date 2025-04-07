@@ -3,12 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { unifiedService } from '@/services/unified';
-import { 
-  UnifiedContactFormData, 
-  EntityType 
-} from '@/types/form-types';
+import { UnifiedContactFormData, EntityType } from '@/types/form-types';
 import { ValidationErrorResponse } from '@/services/unified/types';
-import { isApiError } from '@/types/api-response';
+import { isApiError, isApiSuccess } from '@/types/api-response';
 
 /**
  * Hook for contact mutations (create, update, delete)
@@ -37,12 +34,12 @@ export function useContactMutations() {
       
       const response = await unifiedService.createContact(entityType, entityId, processedData);
       
-      if (isApiError(response) && response.category === 'validation') {
-        console.warn('Validation error during contact creation:', response);
-        return response as ValidationErrorResponse;
-      }
-      
       if (isApiError(response)) {
+        if (response.category === 'validation') {
+          console.warn('Validation error during contact creation:', response);
+          return response as ValidationErrorResponse;
+        }
+        
         console.error('Error creating contact:', response);
         throw new Error(response.message);
       }
@@ -51,7 +48,7 @@ export function useContactMutations() {
       return response.data;
     },
     onSuccess: (data, variables) => {
-      if (!data || !('category' in data)) {
+      if (data && !('category' in data)) {
         console.log('Invalidating contacts query after successful creation');
         queryClient.invalidateQueries({ queryKey: ['unified-contacts', variables.entityType, variables.entityId] });
       }
@@ -82,12 +79,12 @@ export function useContactMutations() {
       
       const response = await unifiedService.updateContact(contactId, processedData);
       
-      if (isApiError(response) && response.category === 'validation') {
-        console.warn('Validation error during contact update:', response);
-        return response as ValidationErrorResponse;
-      }
-      
       if (isApiError(response)) {
+        if (response.category === 'validation') {
+          console.warn('Validation error during contact update:', response);
+          return response as ValidationErrorResponse;
+        }
+        
         console.error('Error updating contact:', response);
         throw new Error(response.message);
       }
@@ -96,7 +93,7 @@ export function useContactMutations() {
       return response.data;
     },
     onSuccess: (data, variables) => {
-      if (!data || !('category' in data)) {
+      if (data && !('category' in data)) {
         console.log('Invalidating contacts query after successful update');
         queryClient.invalidateQueries({ queryKey: ['unified-contacts'] });
       }
@@ -119,7 +116,7 @@ export function useContactMutations() {
         throw new Error(response.message);
       }
       
-      return response;
+      return { success: true };
     },
     onSuccess: () => {
       console.log('Contact deleted successfully');

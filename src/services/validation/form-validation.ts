@@ -1,6 +1,7 @@
 
 import { z, ZodSchema } from 'zod';
 import { ValidationErrorResponse } from '@/services/unified/types';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
  * Server-side validation utility for validating form data
@@ -22,8 +23,7 @@ export function validateServerData<T>(
         category: 'validation',
         message: firstError.message,
         details: {
-          field: firstError.path.join('.'),
-          code: 'invalid_input'
+          field: firstError.path.join('.')
         }
       };
     }
