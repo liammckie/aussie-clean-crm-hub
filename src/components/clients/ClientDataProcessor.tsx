@@ -69,15 +69,15 @@ const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) =
     setIsProcessing(false);
   }, [fetchedClients, contracts, sites, setFilteredClients]);
 
-  // Clone children and pass isProcessing instead of isPending
+  // Clone children and pass isProcessing as isPending
   return (
     <>
       {React.Children.map(children, child => {
         if (React.isValidElement(child)) {
-          // Cast the child.props to include the isPending property
+          // Use a type-safe approach without using ComponentProps<typeof child.type>
           return React.cloneElement(child, { 
             isPending: isProcessing 
-          } as React.ComponentProps<typeof child.type>);
+          });
         }
         return child;
       })}
