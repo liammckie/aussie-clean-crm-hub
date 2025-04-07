@@ -1,39 +1,32 @@
-
 /**
- * Log categories for application logging
+ * Enum defining the different categories of log entries
+ * for better filtering and organization
  */
 export enum LogCategory {
-  UI = 'ui',
-  DATA = 'data',
-  NETWORK = 'network',
-  SECURITY = 'security',
-  PERFORMANCE = 'performance',
-  API = 'api',
-  DATABASE = 'database',
-  GENERAL = 'general',
-  SITE = 'site',
-  AUTH = 'auth',
-  CLIENT = 'client',
-  VALIDATION = 'validation',
-  CONTRACT = 'contract',
-  SUPPLIER = 'supplier',
-  CACHE = 'cache',
-  USER = 'user',
-  WORK_ORDER = 'work_order',
-  ERROR = 'error',
-  APPLICATION = 'application',
-  STORAGE = 'storage',
-  FINANCIAL = 'financial',
-  SUPPLIER_CONTRACT = 'supplier_contract',
-  NAVIGATION = 'navigation',
-  BUSINESS_LOGIC = 'business_logic',
-  SYSTEM = 'system',
-  // Add missing categories needed by other files
-  PERMISSION = 'permission',
-  AUTHENTICATION = 'authentication',
-  AUTHORIZATION = 'authorization',
-  NOT_FOUND = 'not_found',
-  CONFLICT = 'conflict',
-  UNKNOWN = 'unknown',
-  EXTERNAL_SERVICE = 'external_service'
+  // General categories
+  SYSTEM = 'System',
+  UI = 'UI',
+  API = 'API',
+  DATA = 'Data',
+  ERROR = 'Error',
+  
+  // Authentication
+  AUTH = 'Auth',
+  SESSION = 'Session',
+  
+  // Performance monitoring
+  PERFORMANCE = 'Performance',
+  NETWORK = 'Network',
+  
+  // Features
+  CLIENT = 'Client',
+  CONTRACT = 'Contract',
+  SUPPLIER = 'Supplier',
+  SITE = 'Site',
+  
+  // Caching
+  CACHE = 'Cache',
+  
+  // Other
+  UNKNOWN = 'Unknown',
 }

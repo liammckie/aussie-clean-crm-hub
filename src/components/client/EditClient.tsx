@@ -12,8 +12,9 @@ import { ClientContactsTab } from '@/components/client/ClientContactsTab';
 import { ClientSitesTab } from '@/components/client/ClientSitesTab';
 import { ClientContractsTab } from '@/components/client/ClientContractsTab';
 import { ClientStatus } from '@/types/database-schema';
-import { isApiError, isApiSuccess } from '@/types/api-response';
+import { isApiError } from '@/types/api-response';
 import { ClientRecord } from '@/types/clients';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 const EditClient = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -48,21 +49,29 @@ const EditClient = () => {
 
   useEffect(() => {
     if (clientId && !isLoaded) {
+      AppLogger.info(LogCategory.UI, `Loading client details for ID: ${clientId}`);
+      
       clientService.getClientById(clientId)
         .then(response => {
           if (isApiError(response)) {
+            AppLogger.error(LogCategory.API, `Failed to load client data: ${response.message}`, { 
+              clientId, 
+              errorCategory: response.category 
+            });
             toast.error(`Failed to load client data: ${response.message}`);
             return;
           }
 
           const typedClientData = response.data as ClientRecord;
+          AppLogger.info(LogCategory.DATA, `Client data loaded successfully`, { clientId });
+          
           setClientData({
             business_name: typedClientData.business_name,
             trading_name: typedClientData.trading_name || '',
             abn: typedClientData.abn || '',
             acn: typedClientData.acn || '',
             industry: typedClientData.industry || '',
-            status: typedClientData.status,
+            status: typedClientData.status || ClientStatus.PROSPECT,
             onboarding_date: typedClientData.onboarding_date || undefined,
             source: typedClientData.source || '',
             billing_cycle: typedClientData.billing_cycle || '',
@@ -81,11 +90,14 @@ const EditClient = () => {
           setIsLoaded(true);
         })
         .catch(error => {
+          AppLogger.error(LogCategory.ERROR, `Error loading client data: ${error.message}`, { clientId, error });
           console.error('Error loading client data:', error);
           toast.error(`Failed to load client data: ${error.message}`);
         });
     } else if (clientDetailsData && !isLoaded) {
       // Use client data from React Query if available
+      AppLogger.info(LogCategory.DATA, `Using client data from React Query cache`, { clientId });
+      
       const typedClientData = clientDetailsData as ClientRecord;
       setClientData({
         business_name: typedClientData.business_name,
@@ -93,7 +105,7 @@ const EditClient = () => {
         abn: typedClientData.abn || '',
         acn: typedClientData.acn || '',
         industry: typedClientData.industry || '',
-        status: typedClientData.status,
+        status: typedClientData.status || ClientStatus.PROSPECT,
         onboarding_date: typedClientData.onboarding_date || undefined,
         source: typedClientData.source || '',
         billing_cycle: typedClientData.billing_cycle || '',

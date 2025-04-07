@@ -3,16 +3,24 @@ import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createTypedSupabaseClient, TypedSupabaseClient } from './typedClient';
 import type { Database } from '@/types/supabase';
+import { AppLogger } from '@/utils/logging';
+import { LogCategory } from '@/utils/logging/LogCategory';
 
 // Define the Supabase project URL and anon key
-// Using the project ID from the project information
-const SUPABASE_URL = 'https://fzrhweggxusfwrohtvpb.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cmh3ZWdneHVzZndyb2h0dnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MDU4MjQsImV4cCI6MjA1OTI4MTgyNH0.W0ocOlTW9Oc4nRytpYByg49B_4pA4lgWoxeSUM0tqdc';
+// Using environment variables and fallback to hardcoded values if needed
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://fzrhweggxusfwrohtvpb.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ6cmh3ZWdneHVzZndyb2h0dnBiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDM3MDU4MjQsImV4cCI6MjA1OTI4MTgyNH0.W0ocOlTW9Oc4nRytpYByg49B_4pA4lgWoxeSUM0tqdc';
+
+AppLogger.info(LogCategory.SYSTEM, 'Initializing Supabase client', {
+  url: SUPABASE_URL,
+  hasKey: !!SUPABASE_ANON_KEY
+});
 
 // Create the typed Supabase client
 export const typedSupabase: TypedSupabaseClient = createTypedSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // Create the Supabase client for legacy code compatibility
+// Using a single instance to prevent duplicate client warnings
 export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     persistSession: true,

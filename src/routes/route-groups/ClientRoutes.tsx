@@ -8,8 +8,12 @@ import {
   ClientDetail,
   EditClient
 } from '../lazyRoutes';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 export const ClientRoutes = () => {
+  // Log when these routes are being rendered
+  AppLogger.debug(LogCategory.UI, "Rendering ClientRoutes");
+  
   return (
     <Routes>
       {/* Client Routes */}

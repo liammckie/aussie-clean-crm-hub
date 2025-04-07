@@ -10,6 +10,7 @@ import { toast } from 'sonner';
 import { clientService } from '@/services';
 import { ClientFormFields } from './ClientFormFields';
 import { isApiError } from '@/types/api-response';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 interface ClientDetailsTabProps {
   clientId: string;
@@ -41,20 +42,37 @@ export function ClientDetailsTab({ clientId, onSaveSuccess, initialData }: Clien
         : data.onboarding_date
     };
 
-    clientService.updateClient(clientId, preparedData)
-      .then(response => {
-        if (isApiError(response)) {
-          toast.error(response.message);
-          return;
-        }
-        toast.success('Client updated successfully!');
-        if (onSaveSuccess) {
-          onSaveSuccess();
-        }
-      })
-      .catch(error => {
-        toast.error(`Failed to update client: ${error.message}`);
+    AppLogger.info(LogCategory.CLIENT, `Updating client ${clientId}`, { 
+      clientId, 
+      businessName: preparedData.business_name 
+    });
+
+    try {
+      const response = await clientService.updateClient(clientId, preparedData);
+      
+      if (isApiError(response)) {
+        AppLogger.error(LogCategory.API, `Failed to update client: ${response.message}`, {
+          clientId,
+          errorCategory: response.category,
+          details: response.details
+        });
+        toast.error(response.message);
+        return;
+      }
+      
+      AppLogger.info(LogCategory.CLIENT, 'Client updated successfully', { clientId });
+      toast.success('Client updated successfully!');
+      
+      if (onSaveSuccess) {
+        onSaveSuccess();
+      }
+    } catch (error: any) {
+      AppLogger.error(LogCategory.ERROR, `Exception updating client: ${error.message}`, { 
+        clientId, 
+        error 
       });
+      toast.error(`Failed to update client: ${error.message}`);
+    }
   };
 
   return (

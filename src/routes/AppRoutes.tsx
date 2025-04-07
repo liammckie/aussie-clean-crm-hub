@@ -1,15 +1,14 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-
-// Import route groups
 import { AuthRoutes } from './route-groups/AuthRoutes';
 import { ClientRoutes } from './route-groups/ClientRoutes';
 import { ContractRoutes } from './route-groups/ContractRoutes';
 import { SupplierRoutes } from './route-groups/SupplierRoutes';
 import { WorkOrderRoutes } from './route-groups/WorkOrderRoutes';
 import { MiscRoutes } from './route-groups/MiscRoutes';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 export function AppRoutes() {
   const { isLoading } = useAuth();
@@ -25,13 +24,24 @@ export function AppRoutes() {
     );
   }
 
+  // Adding logging to trace rendering
+  AppLogger.debug(LogCategory.UI, "Rendering AppRoutes");
+
   return (
     <Routes>
-      <Route path="/*" element={<AuthRoutes />} />
+      {/* Ensure we have a default route */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      
+      {/* Auth routes come first */}
+      <Route path="/auth/*" element={<AuthRoutes />} />
+      
+      {/* Feature routes */}
       <Route path="/clients/*" element={<ClientRoutes />} />
       <Route path="/contracts/*" element={<ContractRoutes />} />
       <Route path="/suppliers/*" element={<SupplierRoutes />} />
       <Route path="/work-orders/*" element={<WorkOrderRoutes />} />
+      
+      {/* Dashboard and other routes */}
       <Route path="/*" element={<MiscRoutes />} />
     </Routes>
   );
