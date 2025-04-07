@@ -10,3 +10,4 @@ export type { LogEntry } from './types';
 export { ErrorCategory } from './error-types';
 export { PerformanceTracker } from './performance';
 export * from './cache-wrapper';
+

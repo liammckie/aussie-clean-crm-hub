@@ -1,6 +1,7 @@
 
 import { appCache } from '@/utils/caching/cache';
 import { AppLogger } from './AppLogger';
+import { LogCategory } from './LogCategory';
 
 interface CacheOptions {
   ttl?: number;
@@ -23,12 +24,12 @@ export async function withCache<T>(
   const cachedValue = appCache.get<T>(key);
   
   if (cachedValue !== undefined) {
-    AppLogger.debug('Cache hit', { key, tag: options.tag });
+    AppLogger.debug(LogCategory.CACHE, `Cache hit: ${key}`, { key, tag: options.tag });
     return cachedValue;
   }
   
   // Execute the function to get fresh data
-  AppLogger.debug('Cache miss', { key, tag: options.tag });
+  AppLogger.debug(LogCategory.CACHE, `Cache miss: ${key}`, { key, tag: options.tag });
   const result = await fn();
   
   // Store in cache
@@ -42,7 +43,7 @@ export async function withCache<T>(
  * @param tag Cache tag
  */
 export function invalidateByTag(tag: string): void {
-  AppLogger.debug(`Invalidating cache by tag: ${tag}`);
+  AppLogger.debug(LogCategory.CACHE, `Invalidating cache by tag: ${tag}`);
   appCache.deletePattern(tag);
 }
 
@@ -50,6 +51,6 @@ export function invalidateByTag(tag: string): void {
  * Clear entire cache
  */
 export function clearCache(): void {
-  AppLogger.debug('Clearing entire cache');
+  AppLogger.debug(LogCategory.CACHE, 'Clearing entire cache');
   appCache.clear();
 }

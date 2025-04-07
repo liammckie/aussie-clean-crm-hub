@@ -1,84 +1,52 @@
 
-/**
- * Cache wrapper with logging capabilities
- */
+import { appCache } from '@/utils/caching/cache';
+import { AppLogger } from './AppLogger';
+import { LogCategory } from './LogCategory';
 
-// Create a proper cache implementation that doesn't rely on browser Cache API
-class CacheWrapper {
-  private cacheStore = new Map<string, any>();
-  private logger: any;
-
-  constructor(logger?: any) {
-    this.logger = logger;
-  }
-
-  /**
-   * Get value from cache
-   * @param key Cache key
-   * @returns Cached value or undefined
-   */
-  get<T>(key: string): T | undefined {
-    const value = this.cacheStore.get(key);
-    if (this.logger) {
-      this.logger.debug(`Cache get: ${key}`, { hit: value !== undefined });
-    }
-    return value as T;
-  }
-
-  /**
-   * Store value in cache
-   * @param key Cache key
-   * @param value Value to store
-   */
-  set<T>(key: string, value: T): void {
-    this.cacheStore.set(key, value);
-    if (this.logger) {
-      this.logger.debug(`Cache set: ${key}`);
-    }
-  }
-
-  /**
-   * Delete entry from cache
-   * @param key Cache key
-   */
-  delete(key: string): void {
-    this.cacheStore.delete(key);
-    if (this.logger) {
-      this.logger.debug(`Cache delete: ${key}`);
-    }
-  }
-
-  /**
-   * Delete entries matching pattern
-   * @param pattern Pattern to match against keys
-   */
-  deletePattern(pattern: string): void {
-    const regex = new RegExp(pattern);
-    const deletedKeys: string[] = [];
-    
-    this.cacheStore.forEach((_, key) => {
-      if (regex.test(key)) {
-        this.cacheStore.delete(key);
-        deletedKeys.push(key);
-      }
-    });
-    
-    if (this.logger && deletedKeys.length > 0) {
-      this.logger.debug(`Cache deletePattern: ${pattern}`, { deletedKeys });
-    }
-  }
-
-  /**
-   * Clear the entire cache
-   */
-  clear(): void {
-    const size = this.cacheStore.size;
-    this.cacheStore.clear();
-    if (this.logger) {
-      this.logger.debug(`Cache cleared. Entries removed: ${size}`);
-    }
-  }
+interface CacheOptions {
+  ttl?: number;
+  tag?: string;
 }
 
-// Export a singleton instance
-export const cache = new CacheWrapper();
+/**
+ * Utility function to wrap operations with caching
+ * Exported for use in hooks and services
+ */
+export async function withCache<T>(
+  key: string,
+  fn: () => Promise<T>,
+  options: CacheOptions = {}
+): Promise<T> {
+  // Try to get from cache first
+  const cachedValue = appCache.get<T>(key);
+  
+  if (cachedValue !== undefined) {
+    AppLogger.debug(LogCategory.CACHE, `Cache hit: ${key}`, { key, tag: options.tag });
+    return cachedValue;
+  }
+  
+  // Execute the function to get fresh data
+  AppLogger.debug(LogCategory.CACHE, `Cache miss: ${key}`, { key, tag: options.tag });
+  const result = await fn();
+  
+  // Store in cache
+  appCache.set(key, result);
+  
+  return result;
+}
+
+/**
+ * Invalidate cache entries by tag
+ */
+export function invalidateByTag(tag: string): void {
+  AppLogger.debug(LogCategory.CACHE, `Invalidating cache by tag: ${tag}`);
+  appCache.deletePattern(tag);
+}
+
+/**
+ * Clear entire cache
+ */
+export function clearCache(): void {
+  AppLogger.debug(LogCategory.CACHE, 'Clearing entire cache');
+  appCache.clear();
+}
