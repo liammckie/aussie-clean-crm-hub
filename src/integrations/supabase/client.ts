@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { createTypedSupabaseClient, TypedSupabaseClient } from './typedClient';
@@ -23,12 +22,9 @@ const supabaseClientInstance = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     detectSessionInUrl: true, // Detect session from URL query params
   },
   realtime: {
-    // Disable automatic realtime connections
-    autoRefreshToken: true,
-    eventsPerSecond: 1, // Limit realtime events rate
-    // Disable realtime by default
+    // Remove invalid option 'autoRefreshToken'
     params: {
-      eventsPerSecond: 1,
+      eventsPerSecond: 1, // Limit realtime events rate
     }
   }
 });
