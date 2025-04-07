@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { 
   Table,
@@ -55,8 +54,8 @@ const AddressTable: React.FC<AddressTableProps> = ({
   };
 
   // Function to get address type label with proper formatting
-  const getAddressTypeLabel = (type: AddressType): string => {
-    const typeMap: Record<AddressType, string> = {
+  const getAddressTypeLabel = (type: string): string => {
+    const typeMap: Record<string, string> = {
       'billing': 'Billing',
       'shipping': 'Shipping',
       'site': 'Site',

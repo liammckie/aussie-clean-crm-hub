@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { Button } from '@/components/ui/button';
@@ -126,11 +125,9 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
     setOpenDialog(true);
   };
 
-  // Safely type the addresses data
   const typedAddresses = React.useMemo(() => {
     if (!addresses) return [] as UnifiedAddressRecord[];
     
-    // Cast to UnifiedAddressRecord[] with proper type checks
     return (addresses as any[]).map((address: any): UnifiedAddressRecord => ({
       id: address.id,
       entity_id: address.entity_id,

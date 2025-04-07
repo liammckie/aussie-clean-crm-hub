@@ -15,11 +15,11 @@ export const addressApi = {
   ) => {
     try {
       // Validate required fields
-      if (!addressData.address_line_1) {
+      if (!addressData.address_line1) {
         return createErrorResponse(
           ErrorCategory.VALIDATION, 
           'Address line 1 is required',
-          { field: 'address_line_1' }
+          { field: 'address_line1' }
         );
       }
 
@@ -30,8 +30,8 @@ export const addressApi = {
           entity_type: entityType,
           entity_id: entityId,
           name: addressData.name,
-          address_line_1: addressData.address_line_1,
-          address_line_2: addressData.address_line_2,
+          address_line_1: addressData.address_line1,
+          address_line_2: addressData.address_line2,
           suburb: addressData.suburb,
           state: addressData.state,
           postcode: addressData.postcode,
@@ -102,9 +102,23 @@ export const addressApi = {
    */
   updateAddress: async (addressId: string, addressData: Partial<UnifiedAddressFormData>) => {
     try {
+      // Convert form field names to database field names
+      const dbData = {
+        ...(addressData.address_line1 !== undefined && { address_line_1: addressData.address_line1 }),
+        ...(addressData.address_line2 !== undefined && { address_line_2: addressData.address_line2 }),
+        ...(addressData.suburb !== undefined && { suburb: addressData.suburb }),
+        ...(addressData.state !== undefined && { state: addressData.state }),
+        ...(addressData.postcode !== undefined && { postcode: addressData.postcode }),
+        ...(addressData.country !== undefined && { country: addressData.country }),
+        ...(addressData.address_type !== undefined && { address_type: addressData.address_type }),
+        ...(addressData.is_primary !== undefined && { is_primary: addressData.is_primary }),
+        ...(addressData.latitude !== undefined && { latitude: addressData.latitude }),
+        ...(addressData.longitude !== undefined && { longitude: addressData.longitude }),
+      };
+
       const { data, error } = await supabase
         .from('unified_addresses')
-        .update(addressData)
+        .update(dbData)
         .eq('id', addressId)
         .select()
         .single();
