@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { unifiedApi } from '@/services/unified/api';
 import { EntityType } from '@/services/client/types';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { toast } from 'sonner';
 
 /**
  * Hook for querying entity data (addresses and contacts)
@@ -33,6 +34,10 @@ export function useEntityQueries() {
       enabled: !!entityType && !!entityId,
       // Use stale time of 0 to allow for manual refreshes
       staleTime: 0,
+      // Add error handling within the hook
+      meta: {
+        errorMessage: `Could not load addresses for ${entityType || 'entity'}`
+      }
     });
   };
 
@@ -61,6 +66,10 @@ export function useEntityQueries() {
       enabled: !!entityType && !!entityId,
       // Use stale time of 0 to allow for manual refreshes
       staleTime: 0,
+      // Add error handling within the hook
+      meta: {
+        errorMessage: `Could not load contacts for ${entityType || 'entity'}`
+      }
     });
   };
 

@@ -1,6 +1,7 @@
+
 import { clientApi } from './api';
 import { addressService, contactService } from './services';
-import { ApiResponse, createSuccessResponse, isApiSuccess } from '@/types/api-response';
+import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, createSuccessResponse, isApiSuccess } from '@/types/api-response';
 import { ClientRecord } from '@/types/clients';
 import { ContactRecord } from './types';
 

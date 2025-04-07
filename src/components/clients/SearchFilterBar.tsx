@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
 interface SearchFilterBarProps {
   searchTerm: string;
@@ -25,6 +26,11 @@ const SearchFilterBar = ({
   handleStatusFilter,
   refetchClients
 }: SearchFilterBarProps) => {
+  const handleRefetch = () => {
+    toast.info("Refreshing client data...");
+    refetchClients();
+  };
+  
   return (
     <div className="flex flex-col sm:flex-row justify-between mb-6 gap-4">
       <div className="relative w-full sm:w-auto flex-1">
@@ -109,7 +115,7 @@ const SearchFilterBar = ({
         <Button 
           variant="default" 
           size="sm" 
-          onClick={refetchClients}
+          onClick={handleRefetch}
           className="bg-primary text-primary-foreground"
         >
           <RefreshCw className="mr-2 h-4 w-4" />
