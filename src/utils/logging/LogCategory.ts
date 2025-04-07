@@ -1,3 +1,4 @@
+
 /**
  * Enum defining the different categories of log entries
  * for better filtering and organization
@@ -23,6 +24,10 @@ export enum LogCategory {
   CONTRACT = 'Contract',
   SUPPLIER = 'Supplier',
   SITE = 'Site',
+  SUPPLIER_CONTRACT = 'SupplierContract',
+  
+  // Database
+  DATABASE = 'Database',
   
   // Caching
   CACHE = 'Cache',
