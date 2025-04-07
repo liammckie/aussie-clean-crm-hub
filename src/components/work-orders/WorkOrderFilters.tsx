@@ -71,7 +71,7 @@ export function WorkOrderFilters({
                 <SelectValue placeholder="Any Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Status</SelectItem>
+                <SelectItem value="any">Any Status</SelectItem>
                 {workOrderStatusOptions.map((status) => (
                   <SelectItem key={status} value={status}>
                     {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
@@ -91,7 +91,7 @@ export function WorkOrderFilters({
                 <SelectValue placeholder="Any Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Priority</SelectItem>
+                <SelectItem value="any">Any Priority</SelectItem>
                 {workOrderPriorityOptions.map((priority) => (
                   <SelectItem key={priority} value={priority}>
                     {priority.charAt(0).toUpperCase() + priority.slice(1)}

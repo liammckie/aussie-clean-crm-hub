@@ -90,16 +90,15 @@ const ClientDataProcessor: React.FC<ClientDataProcessorProps> = ({ children }) =
     }
   }, [clients, searchTerm, activeStatusFilter]);
 
-  return (
-    <>
-      {React.Children.map(children, child => {
-        if (React.isValidElement(child)) {
-          return React.cloneElement(child, { isPending });
-        }
-        return child;
-      })}
-    </>
-  );
+  // Pass the isPending state to the children
+  const childrenWithProps = React.Children.map(children, child => {
+    if (React.isValidElement(child)) {
+      return React.cloneElement(child, { isPending });
+    }
+    return child;
+  });
+
+  return <>{childrenWithProps}</>;
 };
 
 export default ClientDataProcessor;
