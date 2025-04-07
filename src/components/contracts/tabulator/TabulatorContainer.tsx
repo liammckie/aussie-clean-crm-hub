@@ -1,14 +1,14 @@
 
 import React, { useRef, useEffect } from 'react';
 import Tabulator from 'tabulator-tables';
-import { TabulatorOptions, TabulatorColumn } from '@/types/tabulator-types';
+import type { TabulatorOptions, TabulatorColumn, RowComponent } from '@/types/tabulator-types';
 
 interface TabulatorContainerProps {
   options: Partial<TabulatorOptions>;
   columns: TabulatorColumn[];
   data?: any[];
   className?: string;
-  onRowClick?: (e: Event, row: Tabulator.RowComponent) => void;
+  onRowClick?: (e: Event, row: RowComponent) => void;
 }
 
 const TabulatorContainer: React.FC<TabulatorContainerProps> = ({ 
@@ -24,7 +24,7 @@ const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
   useEffect(() => {
     // Initialize tabulator when the component mounts
     if (tableRef.current) {
-      const tabulatorOptions: TabulatorOptions = {
+      const tabulatorOptions: any = {
         ...options,
         columns,
         data,

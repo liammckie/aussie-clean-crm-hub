@@ -10,5 +10,7 @@ export enum LogCategory {
   PERFORMANCE = 'performance',
   API = 'api',
   DATABASE = 'database',
-  GENERAL = 'general'
+  GENERAL = 'general',
+  SITE = 'site',
+  AUTH = 'auth'
 }

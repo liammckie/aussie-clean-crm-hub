@@ -1,179 +1,174 @@
 
-import { supabase } from '@/lib/supabase';
-import { ClientRecord, ClientFormData } from '../types';
-import { validateWithZod, clientSchema } from '../validation';
-import { handleApiError } from '@/utils/api-utils';
+import { clientApi } from '../api';
+import { ClientFormData, ClientRecord } from '../types';
+import { ApiResponse, ApiErrorResponse } from '@/types/api-response';
+import { handleValidation } from '../validation';
 import { AppLogger } from '@/utils/logging/AppLogger';
-import { LogCategory } from '@/utils/logging/LogCategories';
-import { ClientStatus } from '@/types/database-schema';
 
 /**
- * Client CRUD service with methods for basic client management
+ * Client CRUD service with business logic for client operations
  */
 export const clientCrudService = {
   /**
-   * Get all clients with optional filtering and sorting
+   * Get all clients
    */
-  getAllClients: async (): Promise<{ data: ClientRecord[] } | { error: any }> => {
+  getAllClients: async (): Promise<ApiResponse<ClientRecord[]>> => {
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .order('business_name', { ascending: true });
-
-      if (error) {
-        return { error: handleApiError(error, 'Failed to fetch clients') };
-      }
-
-      return { data: data as ClientRecord[] };
-    } catch (error: any) {
-      return { error: handleApiError(error, 'Unexpected error fetching clients') };
+      const response = await clientApi.fetchAllClients();
+      return response;
+    } catch (error) {
+      console.error('Error in getAllClients:', error);
+      return {
+        category: 'server',
+        message: 'Failed to get clients',
+        details: { error }
+      };
     }
   },
 
   /**
-   * Get a specific client by ID
+   * Get a client by ID
    */
-  getClientById: async (clientId: string): Promise<{ data: ClientRecord } | { error: any }> => {
+  getClientById: async (clientId: string): Promise<ApiResponse<ClientRecord>> => {
     try {
-      const { data, error } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', clientId)
-        .single();
-
-      if (error) {
-        return { error: handleApiError(error, 'Failed to fetch client', { clientId }) };
+      if (!clientId) {
+        return {
+          category: 'validation',
+          message: 'Client ID is required',
+          details: { field: 'id' }
+        };
       }
-
-      return { data: data as ClientRecord };
-    } catch (error: any) {
-      return { error: handleApiError(error, 'Unexpected error fetching client', { clientId }) };
+      
+      return await clientApi.fetchClientById(clientId);
+    } catch (error) {
+      console.error(`Error in getClientById for ${clientId}:`, error);
+      return {
+        category: 'server',
+        message: `Failed to get client with ID ${clientId}`,
+        details: { error, clientId }
+      };
     }
   },
 
   /**
    * Create a new client
    */
-  createClient: async (data: ClientFormData): Promise<{ data: ClientRecord } | { error: any }> => {
-    // Make sure business_name is provided as it's required
-    if (!data.business_name) {
-      return { error: handleApiError(new Error('Business name is required'), 'Validation error') };
-    }
-
-    const result = validateWithZod(clientSchema, data);
-
-    if (!('data' in result)) {
-      return { error: result };
-    }
-
+  createClient: async (clientData: ClientFormData): Promise<ApiResponse<ClientRecord>> => {
     try {
-      const { data: createdClient, error } = await supabase
-        .from('clients')
-        .insert([result.data])
-        .select()
-        .single();
-
-      if (error) {
-        return { error: handleApiError(error, 'Failed to create client', { data }) };
+      // Validate required fields
+      const validationResult = handleValidation({
+        business_name: clientData.business_name
+      });
+      
+      if (!validationResult.success) {
+        return {
+          category: 'validation',
+          message: validationResult.message || 'Validation error',
+          details: { errors: validationResult.errors }
+        };
       }
-
-      AppLogger.info(LogCategory.API, 'Client created successfully', { clientId: createdClient.id });
-      return { data: createdClient as ClientRecord };
-    } catch (error: any) {
-      return { error: handleApiError(error, 'Unexpected error creating client', { data }) };
+      
+      // Log client creation attempt
+      AppLogger.info('api', 'Creating new client', { 
+        business_name: clientData.business_name
+      });
+      
+      return await clientApi.createClient(clientData);
+    } catch (error) {
+      console.error('Error in createClient:', error);
+      AppLogger.error('api', 'Failed to create client', {
+        error,
+        clientData
+      });
+      
+      return {
+        category: 'server',
+        message: 'Failed to create client',
+        details: { error }
+      };
     }
   },
 
   /**
    * Update an existing client
    */
-  updateClient: async (clientId: string, data: Partial<ClientFormData>): Promise<{ data: ClientRecord } | { error: any }> => {
+  updateClient: async (clientId: string, clientData: Partial<ClientFormData>): Promise<ApiResponse<ClientRecord>> => {
     try {
-      // Fetch the existing client data
-      const { data: existingClient, error: fetchError } = await supabase
-        .from('clients')
-        .select('*')
-        .eq('id', clientId)
-        .single();
-
-      if (fetchError) {
-        return { error: handleApiError(fetchError, 'Failed to fetch existing client', { clientId }) };
+      if (!clientId) {
+        return {
+          category: 'validation',
+          message: 'Client ID is required',
+          details: { field: 'id' }
+        };
       }
-
-      if (!existingClient) {
-        return { error: handleApiError(new Error('Client not found'), 'Client not found', { clientId }) };
+      
+      // Validate business_name if provided
+      if (clientData.business_name !== undefined) {
+        const validationResult = handleValidation({
+          business_name: clientData.business_name
+        });
+        
+        if (!validationResult.success) {
+          return {
+            category: 'validation',
+            message: validationResult.message || 'Validation error',
+            details: { errors: validationResult.errors }
+          };
+        }
       }
-
-      // Ensure business_name is always included (required field)
-      const clientDataToUpdate: ClientFormData = {
-        business_name: data.business_name || existingClient.business_name,
-        // Include other fields with optional properties
-        trading_name: data.trading_name || existingClient.trading_name,
-        abn: data.abn || existingClient.abn,
-        acn: data.acn || existingClient.acn,
-        industry: data.industry || existingClient.industry,
-        status: data.status || (existingClient.status as ClientStatus),
-        onboarding_date: data.onboarding_date || existingClient.onboarding_date,
-        source: data.source || existingClient.source,
-        address_line_1: data.address_line_1 || existingClient.address_line_1,
-        address_line_2: data.address_line_2 || existingClient.address_line_2,
-        suburb: data.suburb || existingClient.suburb,
-        state: data.state || existingClient.state,
-        postcode: data.postcode || existingClient.postcode,
-        country: data.country || existingClient.country || 'Australia',
-        address: data.address || existingClient.address,
-        phone: data.phone || existingClient.phone,
-        billing_cycle: data.billing_cycle || existingClient.billing_cycle,
-        payment_terms: data.payment_terms || existingClient.payment_terms,
-        payment_method: data.payment_method || existingClient.payment_method,
-        tax_status: data.tax_status || existingClient.tax_status,
-        credit_limit: data.credit_limit || existingClient.credit_limit,
+      
+      // Log client update attempt
+      AppLogger.info('api', `Updating client ${clientId}`, { 
+        clientId,
+        fields: Object.keys(clientData)
+      });
+      
+      return await clientApi.updateClient(clientId, clientData);
+    } catch (error) {
+      console.error(`Error in updateClient for ${clientId}:`, error);
+      AppLogger.error('api', `Failed to update client ${clientId}`, {
+        error,
+        clientId,
+        clientData
+      });
+      
+      return {
+        category: 'server',
+        message: `Failed to update client with ID ${clientId}`,
+        details: { error, clientId }
       };
-
-      // Validate the updated client data
-      const validationResult = validateWithZod(clientSchema, clientDataToUpdate);
-      if (!('data' in validationResult)) {
-        return { error: validationResult };
-      }
-
-      // Update the client record
-      const { data: updatedClient, error: updateError } = await supabase
-        .from('clients')
-        .update(validationResult.data)
-        .eq('id', clientId)
-        .select()
-        .single();
-
-      if (updateError) {
-        return { error: handleApiError(updateError, 'Failed to update client', { clientId, data }) };
-      }
-
-      AppLogger.info(LogCategory.API, 'Client updated successfully', { clientId });
-      return { data: updatedClient as ClientRecord };
-    } catch (error: any) {
-      return { error: handleApiError(error, 'Unexpected error updating client', { clientId, data }) };
     }
   },
 
   /**
-   * Delete a client by ID
+   * Delete a client
    */
-  deleteClient: async (clientId: string): Promise<{ data: boolean } | { error: any }> => {
+  deleteClient: async (clientId: string): Promise<ApiResponse<{success: boolean}>> => {
     try {
-      const { error } = await supabase
-        .from('clients')
-        .delete()
-        .eq('id', clientId);
-
-      if (error) {
-        return { error: handleApiError(error, 'Failed to delete client', { clientId }) };
+      if (!clientId) {
+        return {
+          category: 'validation',
+          message: 'Client ID is required',
+          details: { field: 'id' }
+        };
       }
-
-      AppLogger.info(LogCategory.API, 'Client deleted successfully', { clientId });
-      return { data: true };
-    } catch (error: any) {
-      return { error: handleApiError(error, 'Unexpected error deleting client', { clientId }) };
+      
+      // Log client deletion attempt
+      AppLogger.info('api', `Deleting client ${clientId}`, { clientId });
+      
+      return await clientApi.deleteClient(clientId);
+    } catch (error) {
+      console.error(`Error in deleteClient for ${clientId}:`, error);
+      AppLogger.error('api', `Failed to delete client ${clientId}`, {
+        error,
+        clientId
+      });
+      
+      return {
+        category: 'server',
+        message: `Failed to delete client with ID ${clientId}`,
+        details: { error, clientId }
+      };
     }
   }
 };

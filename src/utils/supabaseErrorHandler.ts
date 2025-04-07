@@ -1,9 +1,7 @@
-
 import { isSupabaseError } from '@/integrations/supabase/client';
 import { ErrorCategory } from '@/utils/logging/error-types';
 import { ApiErrorResponse, createErrorResponse } from '@/types/api-response';
 import { AppLogger } from '@/utils/logging/AppLogger';
-import { LogCategory } from '@/utils/logging/LogCategory';
 
 /**
  * Specialized handler for Supabase authentication errors
@@ -46,7 +44,7 @@ export function handleAuthError(error: any, operation: string): ApiErrorResponse
   }
 
   // Log the specific auth error
-  AppLogger.error(LogCategory.AUTH, message, { error, operation });
+  AppLogger.error('auth', message, { error, operation });
   
   return createErrorResponse(ErrorCategory.AUTHENTICATION, message, { ...context });
 }
@@ -99,7 +97,7 @@ export function handleDatabaseError(
   }
 
   // Log the specific database error
-  AppLogger.error(LogCategory.DATABASE, message, { error, operation, table });
+  AppLogger.error('database', message, { error, operation, table });
   
   return createErrorResponse(ErrorCategory.DATABASE, message, { ...context });
 }

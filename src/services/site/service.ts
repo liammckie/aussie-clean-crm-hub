@@ -20,7 +20,7 @@ export const siteService = {
 
       return createSuccessResponse(data, 'Sites retrieved successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.SITE, 'Error getting all sites', { error });
+      AppLogger.error('site', 'Error getting all sites', { error });
       return handleApiError(error, 'Failed to get sites');
     }
   },
@@ -38,7 +38,7 @@ export const siteService = {
 
       return createSuccessResponse(data, 'Site retrieved successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.SITE, `Error getting site ${siteId}`, { error });
+      AppLogger.error('site', `Error getting site ${siteId}`, { error });
       return handleApiError(error, 'Failed to get site');
     }
   },
@@ -61,7 +61,7 @@ export const siteService = {
 
       return createSuccessResponse(data, 'Client sites retrieved successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.SITE, `Error getting sites for client ${clientId}`, { error });
+      AppLogger.error('site', `Error getting sites for client ${clientId}`, { error });
       return handleApiError(error, 'Failed to get client sites');
     }
   },
@@ -79,7 +79,7 @@ export const siteService = {
 
       return createSuccessResponse(data, 'Site created successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.SITE, 'Error creating site', { error, siteData });
+      AppLogger.error('site', 'Error creating site', { error, siteData });
       return handleApiError(error, 'Failed to create site');
     }
   },
@@ -98,7 +98,7 @@ export const siteService = {
 
       return createSuccessResponse(data, 'Site updated successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.SITE, `Error updating site ${siteId}`, { error, siteData });
+      AppLogger.error('site', `Error updating site ${siteId}`, { error, siteData });
       return handleApiError(error, 'Failed to update site');
     }
   },
@@ -117,7 +117,7 @@ export const siteService = {
 
       return createSuccessResponse(data, 'Site deleted successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.SITE, `Error deleting site ${siteId}`, { error });
+      AppLogger.error('site', `Error deleting site ${siteId}`, { error });
       return handleApiError(error, 'Failed to delete site');
     }
   }

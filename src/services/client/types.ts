@@ -1,42 +1,7 @@
-
 import { ApiResponse } from '@/types/api-response';
+import { EntityType, AddressType, ContactType } from '@/types/database-schema';
 
-// Define the entity types for the unified API
-export enum EntityType {
-  CLIENT = 'client',
-  CONTACT = 'contact',
-  SITE = 'site',
-  SUPPLIER = 'supplier',
-  CONTRACT = 'contract',
-  WORK_ORDER = 'work_order'
-}
-
-// Define address types
-export enum AddressType {
-  BILLING = 'billing',
-  PHYSICAL = 'physical',
-  POSTAL = 'postal',
-  SITE = 'site',
-  SHIPPING = 'shipping',
-  HEAD_OFFICE = 'head_office',
-  BRANCH = 'branch',
-  RESIDENTIAL = 'residential',
-  COMMERCIAL = 'commercial',
-  WAREHOUSE = 'warehouse'
-}
-
-// Define contact types
-export enum ContactType {
-  PRIMARY = 'primary',
-  BILLING = 'billing',
-  TECHNICAL = 'technical',
-  OPERATIONS = 'operations',
-  SALES = 'sales',
-  SUPPORT = 'support',
-  MANAGER = 'manager',
-  OTHER = 'other',
-  EMERGENCY = 'emergency'
-}
+export { EntityType, AddressType, ContactType };
 
 /**
  * Client data record structure from database

@@ -1,143 +1,86 @@
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-  FormDescription,
-} from '@/components/ui/form';
+import { z } from 'zod';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { AddressType } from '@/types/form-types';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { AddressType } from '@/types/database-schema';
 
-// Address schema for validation - updated to match form-types.ts
+/**
+ * Define the address schema
+ */
 const addressSchema = z.object({
-  street: z.string().min(1, { message: 'Street address is required' }),
-  street_2: z.string().optional(),
-  suburb: z.string().min(1, { message: 'Suburb is required' }),
-  state: z.string().min(1, { message: 'State is required' }),
-  postcode: z.string().min(4, { message: 'Postcode must be at least 4 characters' }),
-  country: z.string().default('Australia'),
-  address_type: z.enum([
-    'billing', 
-    'shipping', 
-    'site', 
-    'warehouse', 
-    'postal', 
-    'physical', 
-    'head_office', 
-    'branch', 
-    'residential', 
-    'commercial'
-  ]),
+  street: z.string()
+    .min(2, { message: 'Street address must be at least 2 characters' }),
+  suburb: z.string()
+    .min(2, { message: 'Suburb/City must be at least 2 characters' }),
+  state: z.string()
+    .min(2, { message: 'State must be at least 2 characters' }),
+  postcode: z.string()
+    .min(4, { message: 'Postcode must be at least 4 characters' }),
+  country: z.string()
+    .default('Australia'),
+  address_type: z.nativeEnum(AddressType)
 });
 
-export type AddressFormData = z.infer<typeof addressSchema>;
+export type AddressFormValues = z.infer<typeof addressSchema>;
 
 interface AddressFormProps {
-  onSubmit: (data: AddressFormData) => void;
-  initialData?: Partial<AddressFormData>;
+  onSubmit: (data: AddressFormValues) => void;
   isLoading?: boolean;
-  buttonText?: string;
-  showAddressType?: boolean;
+  defaultValues?: Partial<AddressFormValues>;
 }
 
-export function AddressForm({
-  onSubmit,
-  initialData = {},
-  isLoading = false,
-  buttonText = "Save Address",
-  showAddressType = true,
-}: AddressFormProps) {
-  const form = useForm<AddressFormData>({
+export function AddressForm({ onSubmit, isLoading = false, defaultValues }: AddressFormProps) {
+  const form = useForm<AddressFormValues>({
     resolver: zodResolver(addressSchema),
     defaultValues: {
-      street: initialData.street || '',
-      street_2: initialData.street_2 || '',
-      suburb: initialData.suburb || '',
-      state: initialData.state || '',
-      postcode: initialData.postcode || '',
-      country: initialData.country || 'Australia',
-      address_type: (initialData.address_type as AddressType) || 'billing',
+      street: defaultValues?.street || '',
+      suburb: defaultValues?.suburb || '',
+      state: defaultValues?.state || '',
+      postcode: defaultValues?.postcode || '',
+      country: defaultValues?.country || 'Australia',
+      address_type: defaultValues?.address_type || AddressType.PHYSICAL
     }
   });
 
-  const australianStates = [
-    'New South Wales',
-    'Victoria',
-    'Queensland',
-    'South Australia',
-    'Western Australia',
-    'Tasmania',
-    'Northern Territory',
-    'Australian Capital Territory',
-  ];
-
-  const stateAbbreviations: Record<string, string> = {
-    'New South Wales': 'NSW',
-    'Victoria': 'VIC',
-    'Queensland': 'QLD',
-    'South Australia': 'SA',
-    'Western Australia': 'WA',
-    'Tasmania': 'TAS',
-    'Northern Territory': 'NT',
-    'Australian Capital Territory': 'ACT'
-  };
-
-  const handleFormSubmit = (data: AddressFormData) => {
+  const handleSubmit = (data: AddressFormValues) => {
     onSubmit(data);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
-        {showAddressType && (
-          <FormField
-            control={form.control}
-            name="address_type"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Address Type</FormLabel>
-                <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                >
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select address type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="billing">Billing</SelectItem>
-                    <SelectItem value="postal">Postal</SelectItem>
-                    <SelectItem value="physical">Physical</SelectItem>
-                    <SelectItem value="shipping">Shipping</SelectItem>
-                    <SelectItem value="head_office">Head Office</SelectItem>
-                    <SelectItem value="branch">Branch</SelectItem>
-                    <SelectItem value="residential">Residential</SelectItem>
-                    <SelectItem value="commercial">Commercial</SelectItem>
-                    <SelectItem value="warehouse">Warehouse</SelectItem>
-                    <SelectItem value="site">Site</SelectItem>
-                  </SelectContent>
-                </Select>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
+        <FormField
+          control={form.control}
+          name="address_type"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Address Type</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select address type" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  {Object.values(AddressType).map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <FormField
           control={form.control}
@@ -155,73 +98,47 @@ export function AddressForm({
 
         <FormField
           control={form.control}
-          name="street_2"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Street Address Line 2 (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="Apartment, suite, unit, etc." {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormField
-          control={form.control}
           name="suburb"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Suburb/City</FormLabel>
               <FormControl>
-                <Input placeholder="Melbourne" {...field} />
+                <Input placeholder="Sydney" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <FormField
-          control={form.control}
-          name="state"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>State</FormLabel>
-              <Select 
-                onValueChange={(value) => field.onChange(stateAbbreviations[value] || value)} 
-                defaultValue={Object.keys(stateAbbreviations).find(
-                  key => stateAbbreviations[key] === field.value
-                ) || field.value}
-              >
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="state"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>State</FormLabel>
                 <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
+                  <Input placeholder="NSW" {...field} />
                 </FormControl>
-                <SelectContent>
-                  {australianStates.map((state) => (
-                    <SelectItem key={state} value={state}>{state}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
-        <FormField
-          control={form.control}
-          name="postcode"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Postcode</FormLabel>
-              <FormControl>
-                <Input placeholder="3000" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+          <FormField
+            control={form.control}
+            name="postcode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Postcode</FormLabel>
+                <FormControl>
+                  <Input placeholder="2000" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <FormField
           control={form.control}
@@ -230,15 +147,15 @@ export function AddressForm({
             <FormItem>
               <FormLabel>Country</FormLabel>
               <FormControl>
-                <Input placeholder="Australia" defaultValue="Australia" {...field} />
+                <Input placeholder="Australia" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        <Button type="submit" disabled={isLoading} className="mt-4">
-          {isLoading ? "Saving..." : buttonText}
+        <Button type="submit" disabled={isLoading}>
+          {isLoading ? 'Saving...' : 'Save Address'}
         </Button>
       </form>
     </Form>

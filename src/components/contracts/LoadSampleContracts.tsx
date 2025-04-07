@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { clientService } from '@/services';
 import { contractService } from '@/services/contract';
 import { DatabaseZap } from 'lucide-react';
+import { isApiError } from '@/types/api-response';
 
 export interface LoadSampleContractsProps {
   onContractsLoaded: () => void;
@@ -25,7 +26,7 @@ export function LoadSampleContracts({ onContractsLoaded }: LoadSampleContractsPr
   const handleLoadSample = async () => {
     try {
       // Check if we have clients
-      if (!clientsResponse || 'category' in clientsResponse || !clientsResponse.data || clientsResponse.data.length === 0) {
+      if (!clientsResponse || isApiError(clientsResponse) || !clientsResponse.data || clientsResponse.data.length === 0) {
         toast.error('Cannot load sample contracts: No clients available. Please create a client first.');
         return;
       }
@@ -70,7 +71,7 @@ export function LoadSampleContracts({ onContractsLoaded }: LoadSampleContractsPr
       // Create contracts one by one
       for (const contract of sampleContracts) {
         const result = await contractService.createContract(contract);
-        if (!('category' in result)) {
+        if (!isApiError(result)) {
           successCount++;
         }
       }

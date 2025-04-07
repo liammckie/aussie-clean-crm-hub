@@ -87,14 +87,61 @@ export function createErrorResponse(
 }
 
 /**
- * Helper for formatting an error with a specific category
+ * Normalize any API response to a standard ApiResponse format
  */
-export function formatError(
-  category: ErrorCategory | string,
-  message: string,
-  details?: Record<string, any>
-): ApiErrorResponse {
-  return createErrorResponse(category, message, details);
+export function normalizeApiResponse<T>(
+  response: { data: T, error?: any, message?: string } | { error: any } | ApiResponse<T> | any
+): ApiResponse<T> {
+  // If it's already a proper API response with category, return it
+  if ('category' in response) {
+    // Make sure it has a message
+    if (!('message' in response)) {
+      return {
+        ...response,
+        message: 'An error occurred'
+      };
+    }
+    return response as ApiErrorResponse;
+  }
+  
+  // If it's already a proper success response with data and message, return it
+  if ('data' in response && 'message' in response) {
+    return response as ApiSuccessResponse<T>;
+  }
+  
+  // If it has data but no message, add a default message
+  if ('data' in response) {
+    return {
+      data: response.data,
+      message: 'Operation successful'
+    };
+  }
+  
+  // If it has an error, convert to error response
+  if ('error' in response) {
+    return {
+      category: ErrorCategory.UNKNOWN,
+      message: response.error?.message || 'An error occurred',
+      details: response.error
+    };
+  }
+  
+  // Return unknown error if response doesn't match any pattern
+  return {
+    category: ErrorCategory.UNKNOWN,
+    message: 'Invalid response format',
+    details: { response }
+  };
+}
+
+/**
+ * Helper function to safely access data from any API response
+ */
+export function safeGetData<T>(response: ApiResponse<T> | any): T | undefined {
+  if (response && 'data' in response) {
+    return response.data;
+  }
+  return undefined;
 }
 
 // Re-export ErrorCategory for convenience

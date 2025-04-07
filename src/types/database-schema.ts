@@ -1,67 +1,71 @@
 
 /**
- * Database schema enums and types
- * This file contains type definitions that match the database schema
+ * Database schema types
  */
 
 // Client status enum
 export enum ClientStatus {
-  ACTIVE = 'Active',
   PROSPECT = 'Prospect',
+  ACTIVE = 'Active',
   INACTIVE = 'Inactive',
-  ON_HOLD = 'On Hold',
-  CANCELLED = 'Cancelled'
+  ARCHIVED = 'Archived',
+  LEAD = 'Lead'
 }
 
 // Site status enum
 export enum SiteStatus {
+  PENDING_ACTIVATION = 'pending_activation',
   ACTIVE = 'active',
   INACTIVE = 'inactive',
-  PENDING_ACTIVATION = 'pending_activation'
+  SUSPENDED = 'suspended',
+  ARCHIVED = 'archived'
 }
 
 // Site type enum
 export enum SiteType {
+  COMMERCIAL = 'commercial',
   RESIDENTIAL = 'residential',
   INDUSTRIAL = 'industrial',
   RETAIL = 'retail',
-  HOSPITALITY = 'hospitality',
-  OFFICE = 'office',
-  WAREHOUSE = 'warehouse',
-  EDUCATIONAL = 'educational',
-  MEDICAL = 'medical'
+  HEALTHCARE = 'healthcare',
+  EDUCATION = 'education',
+  GOVERNMENT = 'government',
+  MIXED_USE = 'mixed_use'
 }
 
-// Contract status enum
-export enum ContractStatus {
-  DRAFT = 'draft',
-  PENDING = 'pending',
-  ACTIVE = 'active',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
-  EXPIRED = 'expired'
+// Entity types for the unified API
+export enum EntityType {
+  CLIENT = 'client',
+  CONTACT = 'contact',
+  SITE = 'site',
+  SUPPLIER = 'supplier',
+  CONTRACT = 'contract',
+  WORK_ORDER = 'work_order'
 }
 
-// Supplier status enum
-export enum SupplierStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  PENDING = 'pending',
-  SUSPENDED = 'suspended'
+// Contact types
+export enum ContactType {
+  PRIMARY = 'primary',
+  BILLING = 'billing',
+  TECHNICAL = 'technical',
+  OPERATIONS = 'operations',
+  SALES = 'sales',
+  SUPPORT = 'support',
+  MANAGER = 'manager',
+  OTHER = 'other',
+  EMERGENCY = 'emergency'
 }
 
-// Work order status enum
-export enum WorkOrderStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
-}
-
-// Work order priority enum
-export enum WorkOrderPriority {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-  URGENT = 'urgent'
+// Address types
+export enum AddressType {
+  BILLING = 'billing',
+  PHYSICAL = 'physical',
+  POSTAL = 'postal',
+  SITE = 'site',
+  SHIPPING = 'shipping',
+  HEAD_OFFICE = 'head_office',
+  BRANCH = 'branch',
+  RESIDENTIAL = 'residential',
+  COMMERCIAL = 'commercial',
+  WAREHOUSE = 'warehouse'
 }

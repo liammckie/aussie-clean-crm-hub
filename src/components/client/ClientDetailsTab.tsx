@@ -5,12 +5,11 @@ import { ClientFormData } from '@/services/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form } from '@/components/ui/form';
-import { cn } from '@/lib/utils';
 import { prepareClientDataForSubmission, validateBusinessIdentifiers } from '@/utils/clientUtils';
 import { toast } from 'sonner';
 import { clientService } from '@/services';
 import { ClientFormFields } from './ClientFormFields';
-import { isApiError, normalizeApiResponse } from '@/types/api-response';
+import { isApiError } from '@/types/api-response';
 
 interface ClientDetailsTabProps {
   clientId: string;
@@ -38,11 +37,8 @@ export function ClientDetailsTab({ clientId, onSaveSuccess, initialData }: Clien
 
     clientService.updateClient(clientId, preparedData)
       .then(response => {
-        // Normalize the response to ensure it has the expected structure
-        const normalizedResponse = normalizeApiResponse(response);
-        
-        if (isApiError(normalizedResponse)) {
-          toast.error(normalizedResponse.message);
+        if (isApiError(response)) {
+          toast.error(response.message);
           return;
         }
         toast.success('Client updated successfully!');

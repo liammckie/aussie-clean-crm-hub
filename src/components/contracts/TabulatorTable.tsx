@@ -13,14 +13,14 @@ interface TabulatorTableProps {
   title?: string;
 }
 
-const TabulatorTable: React.FC<TabulatorTableProps> = ({ 
+function TabulatorTable({ 
   columns, 
   data, 
   options = {}, 
   className = "", 
   onRowClick,
   title
-}) => {
+}: TabulatorTableProps) {
   const defaultOptions: Partial<TabulatorOptions> = {
     layout: 'fitColumns',
     pagination: 'local',
@@ -51,6 +51,9 @@ const TabulatorTable: React.FC<TabulatorTableProps> = ({
       </div>
     </Card>
   );
-};
+}
 
 export default TabulatorTable;
+
+// Also export the named component for compatibility with older code
+export { TabulatorTable };

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
-import { ClientFormData, clientService, ValidationErrorResponse } from '@/services/client';
+import { ClientFormData, clientService } from '@/services/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
@@ -16,6 +16,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { isAuthenticated } from '@/integrations/supabase/client';
 import { ClientStatus } from '@/types/database-schema';
+import { isApiError } from '@/types/api-response';
 
 const NewClient = () => {
   const navigate = useNavigate();
@@ -89,28 +90,28 @@ const NewClient = () => {
       
       const response = await clientService.createClient(preparedData);
 
-      if ('category' in response && response.category === 'validation') {
-        // Cast the response to ValidationErrorResponse to access its properties safely
-        const validationError = response as ValidationErrorResponse;
-        
-        // Now TypeScript knows this object has the expected properties
-        if (validationError.details && validationError.details.field) {
-          form.setError(validationError.details.field as keyof ClientFormData, {
-            type: 'manual',
-            message: validationError.message,
-          });
-          toast.error(validationError.message);
+      if (isApiError(response)) {
+        // Handle error response
+        if (response.category === 'validation') {
+          // Handle validation errors
+          if (response.details && response.details.field) {
+            form.setError(response.details.field as keyof ClientFormData, {
+              type: 'manual',
+              message: response.message,
+            });
+            toast.error(response.message);
+          } else {
+            // General validation error without specific field
+            toast.error(response.message || 'Validation error occurred');
+          }
         } else {
-          // General validation error without specific field
-          toast.error(validationError.message || 'Validation error occurred');
-        }
-      } else if ('category' in response) {
-        // Handle other error types
-        toast.error(response.message || 'An error occurred');
-        
-        // If it's an authentication error, redirect to login
-        if (response.category === 'authentication') {
-          setTimeout(() => navigate('/login', { state: { from: '/clients/new' } }), 1500);
+          // Handle other error types
+          toast.error(response.message || 'An error occurred');
+          
+          // If it's an authentication error, redirect to login
+          if (response.category === 'authentication') {
+            setTimeout(() => navigate('/login', { state: { from: '/clients/new' } }), 1500);
+          }
         }
       } else {
         // Success case

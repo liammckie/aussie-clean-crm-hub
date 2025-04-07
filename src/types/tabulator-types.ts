@@ -1,11 +1,8 @@
 
-import Tabulator from 'tabulator-tables';
+import type { ColumnDefinition, ColumnComponent, CellComponent, RowComponent, Options as TabulatorLibOptions } from 'tabulator-tables';
 
 // Properly type the Tabulator types
-export type ColumnDefinition = Tabulator.ColumnDefinition;
-export type ColumnComponent = Tabulator.ColumnComponent;
-export type CellComponent = Tabulator.CellComponent;
-export type RowComponent = Tabulator.RowComponent;
+export type { ColumnDefinition, ColumnComponent, CellComponent, RowComponent };
 
 // Define proper sorter type
 export type TabulatorSorter = {
@@ -16,10 +13,10 @@ export type TabulatorSorter = {
 export type SortDirection = 'asc' | 'desc';
 
 // Column type definition
-export type TabulatorColumn = Tabulator.ColumnDefinition;
+export type TabulatorColumn = ColumnDefinition;
 
 // Define proper options interface that matches the Tabulator library
-export interface TabulatorOptions {
+export interface TabulatorOptions extends Partial<TabulatorLibOptions> {
   height?: string | number;
   layout?: 'fitColumns' | 'fitData' | 'fitDataFill' | 'fitDataStretch' | 'fitDataTable';
   selectable?: boolean | number;
@@ -33,6 +30,5 @@ export interface TabulatorOptions {
   index?: string;
   headerFilterLiveFilterDelay?: number;
   selectableRangeMode?: string;
-  // Add property for reactive data
   reactiveData?: boolean;
 }

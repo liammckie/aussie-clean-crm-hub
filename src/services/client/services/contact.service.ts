@@ -1,67 +1,84 @@
-import { supabase } from '@/lib/supabase';
-import { ContactFormData } from '@/services/client/types';
+
+import { clientApi } from '../api';
+import { ContactFormData, ContactRecord } from '../types';
+import { ApiResponse, ApiErrorResponse, createSuccessResponse } from '@/types/api-response';
+import { AppLogger } from '@/utils/logging/AppLogger';
+import { handleValidation } from '../validation';
+import { isApiError } from '@/types/api-response';
 
 /**
- * Service for managing client contacts
+ * Client contact service with business logic for contact management
  */
 export const clientContactService = {
   /**
    * Get all contacts for a client
-   * @param clientId The ID of the client
-   * @returns An array of contact records
    */
-  getClientContacts: async (clientId: string) => {
+  getClientContacts: async (clientId: string): Promise<ApiResponse<ContactRecord[]>> => {
     try {
-      const { data, error } = await supabase
-        .from('client_contacts')
-        .select('*')
-        .eq('client_id', clientId);
-
-      if (error) {
-        console.error("Error fetching client contacts:", error);
-        throw error;
+      const response = await clientApi.fetchClientContacts(clientId);
+      if (isApiError(response)) {
+        return response;
       }
-
-      return data || [];
+      
+      // Add computed name property to each contact for display purposes
+      const contactsWithNames = response.data.map(contact => ({
+        ...contact,
+        name: `${contact.first_name} ${contact.last_name}`
+      }));
+      
+      return createSuccessResponse(contactsWithNames, response.message);
     } catch (error) {
-      console.error("Failed to get client contacts:", error);
-      throw error;
+      console.error('Error in getClientContacts:', error);
+      return {
+        category: 'server',
+        message: 'Failed to get client contacts',
+        details: { error }
+      };
     }
   },
 
   /**
-   * Create a new contact for a client
-   * @param clientId The ID of the client
-   * @param data The contact data to insert
-   * @returns The newly created contact record
+   * Create a new client contact
    */
-  createClientContact: async (clientId: string, data: any) => {
+  createClientContact: async (clientId: string, contactData: Omit<ContactFormData, 'client_id'>): Promise<ApiResponse<ContactRecord>> => {
     try {
-      const contactData: ContactFormData = {
-        name: data.name || '',
-        email: data.email || '',
-        phone: data.phone,
-        mobile: data.mobile,
-        position: data.position,
-        is_primary: Boolean(data.is_primary),
-        contact_type: data.contact_type || 'Primary',
-        client_id: data.client_id || clientId
-      };
-      const { data: newContact, error } = await supabase
-        .from('client_contacts')
-        .insert([contactData])
-        .select()
-        .single();
-
-      if (error) {
-        console.error("Error creating client contact:", error);
-        throw error;
+      // Validate required fields
+      const validationResult = handleValidation({
+        first_name: contactData.first_name,
+        last_name: contactData.last_name,
+      });
+      
+      if (!validationResult.success) {
+        return {
+          category: 'validation',
+          message: validationResult.message || 'Validation error',
+          details: { errors: validationResult.errors }
+        };
       }
-
-      return newContact;
+      
+      // Format contact data for API
+      const apiContactData: ContactFormData = {
+        client_id: clientId,
+        first_name: contactData.first_name,
+        last_name: contactData.last_name,
+        email: contactData.email,
+        phone: contactData.phone,
+        mobile: contactData.mobile,
+        position: contactData.position,
+        is_primary: contactData.is_primary || false,
+        contact_type: contactData.contact_type,
+        notes: contactData.notes
+      };
+      
+      const response = await clientApi.createClientContact(apiContactData);
+      return response;
     } catch (error) {
-      console.error("Failed to create client contact:", error);
-      throw error;
+      console.error('Error in createClientContact:', error);
+      return {
+        category: 'server',
+        message: 'Failed to create client contact',
+        details: { error }
+      };
     }
   }
 };
