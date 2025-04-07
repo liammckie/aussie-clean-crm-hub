@@ -31,12 +31,18 @@ export type SiteUpdateData = Partial<SiteInsertData>;
 // Alias for compatibility with existing code 
 export type SiteCreateData = SiteInsertData;
 
-export interface SiteApiResponse {
-  data: SiteData;
+export interface ApiSuccessResponse<T> {
+  data: T;
   message: string;
 }
 
-export interface SitesApiResponse {
-  data: SiteData[];
+export interface ApiErrorResponse {
+  category: string;
   message: string;
+  details?: Record<string, any>;
 }
+
+export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+export interface SiteApiResponse extends ApiSuccessResponse<SiteData> {}
+export interface SitesApiResponse extends ApiSuccessResponse<SiteData[]> {}

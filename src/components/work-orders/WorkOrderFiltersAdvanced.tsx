@@ -119,7 +119,7 @@ export function WorkOrderFiltersAdvanced({
                 <SelectValue placeholder="Any Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Status</SelectItem>
+                <SelectItem value="any">Any Status</SelectItem>
                 {workOrderStatusOptions.map((status) => (
                   <SelectItem key={status} value={status}>
                     {status.charAt(0).toUpperCase() + status.slice(1).replace('_', ' ')}
@@ -139,7 +139,7 @@ export function WorkOrderFiltersAdvanced({
                 <SelectValue placeholder="Any Priority" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Any Priority</SelectItem>
+                <SelectItem value="any">Any Priority</SelectItem>
                 {workOrderPriorityOptions.map((priority) => (
                   <SelectItem key={priority} value={priority}>
                     {priority.charAt(0).toUpperCase() + priority.slice(1)}
@@ -159,7 +159,7 @@ export function WorkOrderFiltersAdvanced({
                 <SelectValue placeholder="All Clients" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Clients</SelectItem>
+                <SelectItem value="all">All Clients</SelectItem>
                 {clients.map((client) => (
                   <SelectItem key={client.id} value={client.id}>
                     {client.business_name}
@@ -179,7 +179,7 @@ export function WorkOrderFiltersAdvanced({
                 <SelectValue placeholder="All Suppliers" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Suppliers</SelectItem>
+                <SelectItem value="all">All Suppliers</SelectItem>
                 {suppliers.map((supplier) => (
                   <SelectItem key={supplier.id} value={supplier.id}>
                     {supplier.business_name}
@@ -199,7 +199,7 @@ export function WorkOrderFiltersAdvanced({
                 <SelectValue placeholder="All Sites" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Sites</SelectItem>
+                <SelectItem value="all">All Sites</SelectItem>
                 {sites.map((site) => (
                   <SelectItem key={site.id} value={site.id}>
                     {site.site_name}
@@ -219,7 +219,7 @@ export function WorkOrderFiltersAdvanced({
                 <SelectValue placeholder="All States" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All States</SelectItem>
+                <SelectItem value="all">All States</SelectItem>
                 {states.map((state) => (
                   <SelectItem key={state.value} value={state.value}>
                     {state.label}
