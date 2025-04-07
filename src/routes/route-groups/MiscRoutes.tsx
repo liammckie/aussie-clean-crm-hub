@@ -34,35 +34,55 @@ export const MiscRoutes = () => {
       {/* Task routes (placeholder) */}
       <Route path="tasks" element={
         <ProtectedRoute>
-          <NotFound />
+          <NotFound 
+            title="Tasks Coming Soon"
+            description="This feature is currently under development."
+            returnToHomepageLink="/dashboard"
+          />
         </ProtectedRoute>
       } />
 
       {/* Inventory routes (placeholder) */}
       <Route path="inventory" element={
         <ProtectedRoute>
-          <NotFound />
+          <NotFound 
+            title="Inventory Coming Soon"
+            description="This feature is currently under development."
+            returnToHomepageLink="/dashboard"
+          />
         </ProtectedRoute>
       } />
 
       {/* Schedule routes (placeholder) */}
       <Route path="schedule" element={
         <ProtectedRoute>
-          <NotFound />
+          <NotFound 
+            title="Schedule Coming Soon"
+            description="This feature is currently under development."
+            returnToHomepageLink="/dashboard"
+          />
         </ProtectedRoute>
       } />
 
       {/* Reports routes (placeholder) */}
       <Route path="reports" element={
         <ProtectedRoute>
-          <NotFound />
+          <NotFound 
+            title="Reports Coming Soon"
+            description="This feature is currently under development."
+            returnToHomepageLink="/dashboard"
+          />
         </ProtectedRoute>
       } />
 
       {/* Settings routes (placeholder) */}
       <Route path="settings" element={
         <ProtectedRoute>
-          <NotFound />
+          <NotFound 
+            title="Settings Coming Soon"
+            description="This feature is currently under development."
+            returnToHomepageLink="/dashboard"
+          />
         </ProtectedRoute>
       } />
       

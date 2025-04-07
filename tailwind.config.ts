@@ -106,6 +106,16 @@ export default {
 				'float': {
 					'0%, 100%': { transform: 'translateY(0)' },
 					'50%': { transform: 'translateY(-10px)' },
+				},
+				'fade-in': {
+					'0%': { 
+						opacity: '0',
+						transform: 'translateY(10px)'
+					},
+					'100%': { 
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
 				}
 			},
 			animation: {
@@ -116,6 +126,7 @@ export default {
 				'gradient-shift': 'gradient-shift 6s ease infinite',
 				'glow-pulse': 'glow-pulse 3s ease-in-out infinite',
 				'float': 'float 6s ease-in-out infinite',
+				'fade-in': 'fade-in 0.5s ease-out forwards'
 			},
 			backgroundImage: {
 				'radial-gradient': 'radial-gradient(circle at center, rgba(139, 92, 246, 0.15), rgba(30, 27, 75, 0.05))',
