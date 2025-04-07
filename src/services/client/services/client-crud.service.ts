@@ -58,8 +58,8 @@ export const clientCrudService = {
       // Explicitly create a new object with required fields and default values
       const clientWithDefaults: ClientFormData = {
         // Ensure required fields have explicit non-nullable values
-        business_name: client.business_name ?? '', 
-        status: client.status ?? ClientStatus.PROSPECT,
+        business_name: client.business_name || '', 
+        status: client.status || ClientStatus.PROSPECT,
         // Copy all other fields from the input
         ...client
       };
