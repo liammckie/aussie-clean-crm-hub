@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { clientService } from '@/services/client';
 import { useOptimizedQuery } from './use-optimized-query';
-import { ClientFormData, ClientRecord, ContactFormData, ContactRecord } from '@/services/client/types';
+import { ClientFormData, ClientRecord } from '@/types/clients';
 import { isApiSuccess } from '@/types/api-response';
 import { toast } from 'sonner';
 
@@ -69,7 +69,15 @@ export function useClients() {
   const useCreateClient = () => {
     return useMutation({
       mutationFn: async (clientData: ClientFormData) => {
-        const response = await clientService.createClient(clientData);
+        // Convert Date to string for API submission
+        const processedData = {
+          ...clientData,
+          onboarding_date: clientData.onboarding_date instanceof Date 
+            ? clientData.onboarding_date.toISOString().split('T')[0]
+            : clientData.onboarding_date
+        };
+        
+        const response = await clientService.createClient(processedData);
         if (!isApiSuccess(response)) {
           throw new Error(response.message);
         }
@@ -91,7 +99,15 @@ export function useClients() {
   const useUpdateClient = () => {
     return useMutation({
       mutationFn: async ({ clientId, clientData }: { clientId: string, clientData: Partial<ClientFormData> }) => {
-        const response = await clientService.updateClient(clientId, clientData);
+        // Convert Date to string for API submission
+        const processedData = {
+          ...clientData,
+          onboarding_date: clientData.onboarding_date instanceof Date 
+            ? clientData.onboarding_date.toISOString().split('T')[0]
+            : clientData.onboarding_date
+        };
+        
+        const response = await clientService.updateClient(clientId, processedData);
         if (!isApiSuccess(response)) {
           throw new Error(response.message);
         }
@@ -154,7 +170,8 @@ export function useClients() {
    */
   const useCreateContact = () => {
     return useMutation({
-      mutationFn: async ({ clientId, contactData }: { clientId: string, contactData: ContactFormData }) => {
+      mutationFn: async (params: { clientId: string, contactData: any }) => {
+        const { clientId, contactData } = params;
         const response = await clientService.createClientContact(clientId, contactData);
         if (!isApiSuccess(response)) {
           throw new Error(response.message);
@@ -190,8 +207,12 @@ export function useClients() {
       enabled: !!clientId
     });
   };
+
+  // Return a highly structured object with all clients hooks
+  const allClients = useAllClients();
   
   return {
+    // The actual hook functions
     useAllClients,
     useOptimizedClients,
     useClientDetails,
@@ -200,6 +221,12 @@ export function useClients() {
     useDeleteClient,
     useClientContacts,
     useCreateContact,
-    useClientAddresses
+    useClientAddresses,
+    
+    // Direct access to client data (for backward compatibility)
+    clients: allClients.data,
+    isLoadingClients: allClients.isLoading,
+    clientsError: allClients.error,
+    refetchClients: allClients.refetch
   };
 }

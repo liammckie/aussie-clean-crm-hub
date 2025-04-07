@@ -3,8 +3,8 @@ import { clientApi } from './api';
 import { addressService } from './services/address.service';
 import { contactService } from './services/contact.service';
 import { ApiResponse } from '@/types/api-response';
-import { ClientRecord } from '@/types/clients';
-import { ClientAddressRecord, ClientContactRecord } from './types';
+import { ClientRecord, ClientFormData } from '@/types/clients';
+import { ContactRecord } from './types';
 
 /**
  * Client service implementation that aggregates multiple client-related services
@@ -32,8 +32,16 @@ export const clientService = {
    * @param clientData Client data
    * @returns Promise<ApiResponse<ClientRecord>>
    */
-  createClient: async (clientData: Partial<ClientRecord>): Promise<ApiResponse<ClientRecord>> => {
-    return clientApi.createClient(clientData);
+  createClient: async (clientData: ClientFormData): Promise<ApiResponse<ClientRecord>> => {
+    // Ensure onboarding_date is a string if it's a Date object
+    const preparedData = {
+      ...clientData,
+      onboarding_date: clientData.onboarding_date instanceof Date 
+        ? clientData.onboarding_date.toISOString().split('T')[0] 
+        : clientData.onboarding_date
+    };
+    
+    return clientApi.createClient(preparedData as ClientRecord);
   },
 
   /**
@@ -42,8 +50,16 @@ export const clientService = {
    * @param updateData Client data to update
    * @returns Promise<ApiResponse<ClientRecord>>
    */
-  updateClient: async (clientId: string, updateData: Partial<ClientRecord>): Promise<ApiResponse<ClientRecord>> => {
-    return clientApi.updateClient(clientId, updateData);
+  updateClient: async (clientId: string, updateData: Partial<ClientFormData>): Promise<ApiResponse<ClientRecord>> => {
+    // Ensure onboarding_date is a string if it's a Date object
+    const preparedData = {
+      ...updateData,
+      onboarding_date: updateData.onboarding_date instanceof Date 
+        ? updateData.onboarding_date.toISOString().split('T')[0] 
+        : updateData.onboarding_date
+    };
+    
+    return clientApi.updateClient(clientId, preparedData as Partial<ClientRecord>);
   },
 
   /**
@@ -60,7 +76,7 @@ export const clientService = {
    * @param clientId Client ID
    * @returns Promise<ApiResponse<ClientAddressRecord[]>>
    */
-  getClientAddresses: async (clientId: string): Promise<ApiResponse<ClientAddressRecord[]>> => {
+  getClientAddresses: async (clientId: string): Promise<ApiResponse<any[]>> => {
     return addressService.fetchClientAddresses(clientId);
   },
 
@@ -69,7 +85,7 @@ export const clientService = {
    * @param addressData Address data
    * @returns Promise<ApiResponse<ClientAddressRecord>>
    */
-  createClientAddress: async (addressData: Partial<ClientAddressRecord>): Promise<ApiResponse<ClientAddressRecord>> => {
+  createClientAddress: async (addressData: any): Promise<ApiResponse<any>> => {
     return addressService.createClientAddress(addressData);
   },
 
@@ -79,7 +95,7 @@ export const clientService = {
    * @param addressData Address data to update
    * @returns Promise<ApiResponse<ClientAddressRecord>>
    */
-  updateClientAddress: async (addressId: string, addressData: Partial<ClientAddressRecord>): Promise<ApiResponse<ClientAddressRecord>> => {
+  updateClientAddress: async (addressId: string, addressData: any): Promise<ApiResponse<any>> => {
     return addressService.updateClientAddress(addressId, addressData);
   },
 
@@ -95,28 +111,29 @@ export const clientService = {
   /**
    * Get contacts for a client
    * @param clientId Client ID
-   * @returns Promise<ApiResponse<ClientContactRecord[]>>
+   * @returns Promise<ApiResponse<ContactRecord[]>>
    */
-  getClientContacts: async (clientId: string): Promise<ApiResponse<ClientContactRecord[]>> => {
+  getClientContacts: async (clientId: string): Promise<ApiResponse<ContactRecord[]>> => {
     return contactService.fetchClientContacts(clientId);
   },
 
   /**
    * Create contact for a client
+   * @param clientId Client ID
    * @param contactData Contact data
-   * @returns Promise<ApiResponse<ClientContactRecord>>
+   * @returns Promise<ApiResponse<ContactRecord>>
    */
-  createClientContact: async (contactData: Partial<ClientContactRecord>): Promise<ApiResponse<ClientContactRecord>> => {
-    return contactService.createClientContact(contactData);
+  createClientContact: async (clientId: string, contactData: Partial<ContactRecord>): Promise<ApiResponse<ContactRecord>> => {
+    return contactService.createClientContact(clientId, contactData);
   },
 
   /**
    * Update client contact
    * @param contactId Contact ID
    * @param contactData Contact data to update
-   * @returns Promise<ApiResponse<ClientContactRecord>>
+   * @returns Promise<ApiResponse<ContactRecord>>
    */
-  updateClientContact: async (contactId: string, contactData: Partial<ClientContactRecord>): Promise<ApiResponse<ClientContactRecord>> => {
+  updateClientContact: async (contactId: string, contactData: Partial<ContactRecord>): Promise<ApiResponse<ContactRecord>> => {
     return contactService.updateClientContact(contactId, contactData);
   },
 

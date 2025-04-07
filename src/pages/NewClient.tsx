@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -7,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Form } from '@/components/ui/form';
-import { prepareClientDataForSubmission } from '@/utils/clientUtils';
+import { prepareClientDataForSubmission, prepareClientFormData } from '@/utils/clientUtils';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { ClientFormFields } from '@/components/client/ClientFormFields';
 import { loadSampleClientData } from '@/utils/clientUtils';
@@ -26,7 +25,6 @@ const NewClient = () => {
   const [isUserAuthenticated, setIsUserAuthenticated] = useState(false);
   const { isAuthenticated: contextAuth } = useAuth();
 
-  // Check authentication on component mount
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -43,7 +41,6 @@ const NewClient = () => {
     checkAuth();
   }, []);
 
-  // Monitor authentication from context
   useEffect(() => {
     console.log('Auth context changed:', contextAuth);
   }, [contextAuth]);
@@ -63,7 +60,6 @@ const NewClient = () => {
       payment_method: '',
       tax_status: '',
       credit_limit: undefined,
-      // Address fields with defaults
       address_line_1: '',
       address_line_2: '',
       suburb: '',
@@ -74,7 +70,6 @@ const NewClient = () => {
   });
 
   const onSubmit = async (data: ClientFormData) => {
-    // Double-check authentication before submitting
     const auth = await isAuthenticated();
     if (!auth) {
       toast.error('You need to be logged in to create clients');
@@ -84,16 +79,13 @@ const NewClient = () => {
 
     setIsCreating(true);
     try {
-      // Prepare data to match database schema requirements
-      const preparedData = prepareClientDataForSubmission(data);
+      const preparedData = prepareClientFormData(data);
       console.log('Submitting client data:', preparedData);
       
       const response = await clientService.createClient(preparedData);
 
       if (isApiError(response)) {
-        // Handle error response
         if (response.category === 'validation') {
-          // Handle validation errors
           if (response.details && response.details.field) {
             form.setError(response.details.field as keyof ClientFormData, {
               type: 'manual',
@@ -101,20 +93,16 @@ const NewClient = () => {
             });
             toast.error(response.message);
           } else {
-            // General validation error without specific field
             toast.error(response.message || 'Validation error occurred');
           }
         } else {
-          // Handle other error types
           toast.error(response.message || 'An error occurred');
           
-          // If it's an authentication error, redirect to login
           if (response.category === 'authentication') {
             setTimeout(() => navigate('/login', { state: { from: '/clients/new' } }), 1500);
           }
         }
       } else {
-        // Success case
         toast.success('Client created successfully!');
         navigate('/clients');
       }
@@ -128,7 +116,6 @@ const NewClient = () => {
 
   const handleLoadSampleData = () => {
     loadSampleClientData(data => {
-      // Reset the form and set all fields
       Object.entries(data).forEach(([key, value]) => {
         form.setValue(key as keyof ClientFormData, value);
       });
@@ -143,7 +130,6 @@ const NewClient = () => {
     toast.info('Form cleared');
   };
 
-  // Display authentication warning if not authenticated
   if (authChecked && !isUserAuthenticated && !contextAuth) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -162,7 +148,6 @@ const NewClient = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      {/* Breadcrumb Navigation */}
       <Breadcrumb className="my-4">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -191,7 +176,6 @@ const NewClient = () => {
         />
       </div>
 
-      {/* Authentication status indicator for debugging */}
       {import.meta.env.DEV && (
         <div className="mb-4 p-2 border rounded bg-slate-800 text-xs">
           <p>Auth Status (Context): {contextAuth ? 'Authenticated' : 'Not Authenticated'}</p>
@@ -207,7 +191,6 @@ const NewClient = () => {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Use a refactored component for client form fields */}
               <ClientFormFields form={form} />
               
               <Button type="submit" disabled={isCreating} className="mt-6">

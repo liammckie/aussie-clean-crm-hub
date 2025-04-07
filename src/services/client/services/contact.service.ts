@@ -1,37 +1,146 @@
 
-import { clientApi } from '../api';
-import { ContactFormData, ContactApiResponse, ContactsApiResponse } from '../types';
-import { handleValidationError } from '../validation';
-import { AppLogger } from '@/utils/logging';
-import { LogCategory } from '@/utils/logging/LogCategory';
+import { ApiResponse } from '@/types/api-response';
+import { ContactRecord } from '../types';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Contact-related service functions
+ * Service for handling client contacts
  */
-export const clientContactService = {
+export const contactService = {
   /**
-   * Get contacts for a client
+   * Fetch contacts for a client
+   * @param clientId Client ID
+   * @returns ApiResponse<ContactRecord[]>
    */
-  getClientContacts: async (clientId: string): Promise<ContactsApiResponse> => {
+  fetchClientContacts: async (clientId: string): Promise<ApiResponse<ContactRecord[]>> => {
     try {
-      AppLogger.info(LogCategory.CLIENT, `Fetching contacts for client ${clientId}`);
-      return await clientApi.fetchClientContacts(clientId);
-    } catch (error) {
-      AppLogger.error(LogCategory.CLIENT, `Error fetching contacts for client ${clientId}`, { error });
-      throw error;
+      const { data, error } = await supabase
+        .from('client_contacts')
+        .select('*')
+        .eq('client_id', clientId);
+
+      if (error) {
+        return {
+          category: 'database',
+          message: error.message,
+          details: error
+        };
+      }
+
+      return {
+        data: data || [],
+        message: 'Client contacts retrieved successfully'
+      };
+    } catch (error: any) {
+      return {
+        category: 'server',
+        message: `Error retrieving client contacts: ${error.message}`,
+        details: error
+      };
     }
   },
 
   /**
-   * Create a new client contact
+   * Create a client contact
+   * @param clientId Client ID
+   * @param contactData Contact data
+   * @returns ApiResponse<ContactRecord>
    */
-  createClientContact: async (contactData: ContactFormData): Promise<ContactApiResponse> => {
+  createClientContact: async (clientId: string, contactData: Partial<ContactRecord>): Promise<ApiResponse<ContactRecord>> => {
     try {
-      AppLogger.info(LogCategory.CLIENT, `Creating contact for client ${contactData.client_id}`);
-      return await clientApi.createClientContact(contactData);
-    } catch (error) {
-      AppLogger.error(LogCategory.CLIENT, `Error creating contact for client ${contactData.client_id}`, { error });
-      throw error;
+      const { data, error } = await supabase
+        .from('client_contacts')
+        .insert({ ...contactData, client_id: clientId })
+        .select('*')
+        .single();
+
+      if (error) {
+        return {
+          category: 'database',
+          message: error.message,
+          details: error
+        };
+      }
+
+      return {
+        data: data,
+        message: 'Contact created successfully'
+      };
+    } catch (error: any) {
+      return {
+        category: 'server',
+        message: `Error creating contact: ${error.message}`,
+        details: error
+      };
+    }
+  },
+
+  /**
+   * Update a client contact
+   * @param contactId Contact ID
+   * @param contactData Contact data
+   * @returns ApiResponse<ContactRecord>
+   */
+  updateClientContact: async (contactId: string, contactData: Partial<ContactRecord>): Promise<ApiResponse<ContactRecord>> => {
+    try {
+      const { data, error } = await supabase
+        .from('client_contacts')
+        .update(contactData)
+        .eq('id', contactId)
+        .select('*')
+        .single();
+
+      if (error) {
+        return {
+          category: 'database',
+          message: error.message,
+          details: error
+        };
+      }
+
+      return {
+        data: data,
+        message: 'Contact updated successfully'
+      };
+    } catch (error: any) {
+      return {
+        category: 'server',
+        message: `Error updating contact: ${error.message}`,
+        details: error
+      };
+    }
+  },
+
+  /**
+   * Delete a client contact
+   * @param contactId Contact ID
+   * @returns ApiResponse<boolean>
+   */
+  deleteClientContact: async (contactId: string): Promise<ApiResponse<boolean>> => {
+    try {
+      const { error } = await supabase
+        .from('client_contacts')
+        .delete()
+        .eq('id', contactId);
+
+      if (error) {
+        return {
+          category: 'database',
+          message: error.message,
+          details: error
+        };
+      }
+
+      return {
+        data: true,
+        message: 'Contact deleted successfully'
+      };
+    } catch (error: any) {
+      return {
+        category: 'server',
+        message: `Error deleting contact: ${error.message}`,
+        details: error
+      };
     }
   }
 };

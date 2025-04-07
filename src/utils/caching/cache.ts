@@ -1,63 +1,89 @@
 
 /**
- * Cache utility for storing data with TTL
+ * Simple cache implementation for storing query results
  */
-
-type CachedItem<T> = {
-  data: T;
-  expiry: number;
-  tag?: string;
-};
-
 export class Cache {
-  private static cache = new Map<string, CachedItem<any>>();
+  private cacheStore: Map<string, { data: any; timestamp: number }>;
+  private ttl: number;
+
+  constructor(ttlMilliseconds = 5 * 60 * 1000) { // Default 5 minutes TTL
+    this.cacheStore = new Map();
+    this.ttl = ttlMilliseconds;
+  }
 
   /**
-   * Get an item from the cache
+   * Get a value from the cache
+   * @param key Cache key
+   * @returns The cached value or undefined if not found or expired
    */
-  static get<T>(key: string): T | null {
-    const item = this.cache.get(key);
-    if (!item) return null;
+  get<T>(key: string): T | undefined {
+    const item = this.cacheStore.get(key);
     
-    // Return null if expired
-    if (item.expiry < Date.now()) {
-      this.cache.delete(key);
-      return null;
+    if (!item) {
+      return undefined;
+    }
+    
+    // Check if the cache entry is expired
+    if (Date.now() - item.timestamp > this.ttl) {
+      this.cacheStore.delete(key);
+      return undefined;
     }
     
     return item.data as T;
   }
 
   /**
-   * Set an item in the cache
+   * Set a value in the cache
+   * @param key Cache key
+   * @param data Data to store
    */
-  static set<T>(key: string, data: T, ttl: number, tag?: string): void {
-    const expiry = Date.now() + ttl;
-    this.cache.set(key, { data, expiry, tag });
-  }
-
-  /**
-   * Clear all items with a specific tag
-   */
-  static clearByTag(tag: string): void {
-    this.cache.forEach((value, key) => {
-      if (value.tag === tag) {
-        this.cache.delete(key);
-      }
+  set(key: string, data: any): void {
+    this.cacheStore.set(key, {
+      data,
+      timestamp: Date.now()
     });
   }
 
   /**
-   * Clear a specific item from the cache
+   * Delete a value from the cache
+   * @param key Cache key
    */
-  static clear(key: string): void {
-    this.cache.delete(key);
+  delete(key: string): void {
+    this.cacheStore.delete(key);
   }
 
   /**
-   * Clear all items from the cache
+   * Delete all keys matching a pattern
+   * @param pattern String pattern to match against keys
    */
-  static clearAll(): void {
-    this.cache.clear();
+  deletePattern(pattern: string): void {
+    const regex = new RegExp(pattern);
+    
+    for (const key of this.cacheStore.keys()) {
+      if (regex.test(key)) {
+        this.cacheStore.delete(key);
+      }
+    }
+  }
+
+  /**
+   * Clear the entire cache
+   */
+  clear(): void {
+    this.cacheStore.clear();
+  }
+
+  /**
+   * Get the number of items in the cache
+   */
+  get size(): number {
+    return this.cacheStore.size;
+  }
+
+  /**
+   * Get all keys in the cache
+   */
+  get keys(): string[] {
+    return Array.from(this.cacheStore.keys());
   }
 }
