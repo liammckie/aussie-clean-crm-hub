@@ -6,6 +6,8 @@ import { ContractViewMode } from '@/services/contract/types';
 import { Skeleton } from '@/components/ui/skeleton';
 import { contractDetailsFields } from '@/utils/contractDetailsConfig';
 import { ContractForm } from './ContractForm';
+import { FinancialSummaryCard } from '@/components/financial/FinancialSummaryCard';
+import { generateFinancialBreakdown } from '@/utils/financeCalculations';
 
 interface ContractDetailsTabProps {
   contractId: string;
@@ -37,69 +39,49 @@ export function ContractDetailsTab({ contractId, viewMode = 'view' }: ContractDe
   if (viewMode === 'edit') {
     return <ContractForm contractId={contractId} isEdit={true} />;
   }
+
+  // Prepare financial metrics using our utility
+  const weeklyRevenue = contract.total_weekly_value || 0;
+  const weeklyCost = contract.supplier_cost_weekly || 0;
+  const financialMetrics = generateFinancialBreakdown(weeklyRevenue, weeklyCost);
   
   // View mode displays contract details in a read-only format
   return (
-    <Card className="mb-6">
-      <CardHeader>
-        <CardTitle>Contract Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {Object.entries(contractDetailsFields).map(([section, fields]) => (
-            <div key={section} className="space-y-4">
-              <h3 className="text-lg font-medium">{section}</h3>
-              <div className="grid grid-cols-1 gap-3">
-                {fields.map(field => (
-                  <div key={field.key} className="flex flex-col">
-                    <span className="text-sm text-muted-foreground">{field.label}</span>
-                    <span className="font-medium">
-                      {renderContractValue(contract, field.key, field.type)}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-          
-          {/* Profit Margin Section */}
-          <div className="col-span-1 md:col-span-2 mt-6">
-            <h3 className="text-lg font-medium">Profit Analysis</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-3">
-              <div className="rounded-md bg-slate-100 dark:bg-slate-800 p-4">
-                <div className="text-sm text-muted-foreground">Weekly Revenue</div>
-                <div className="text-2xl font-semibold">${contract.total_weekly_value?.toLocaleString() || '0'}</div>
-                <div className="text-sm text-muted-foreground mt-1">Weekly Cost</div>
-                <div className="text-lg font-medium text-muted-foreground">${contract.supplier_cost_weekly?.toLocaleString() || '0'}</div>
-                <div className="text-sm font-medium mt-2 text-emerald-600">
-                  {calculateProfitMargin(contract.total_weekly_value, contract.supplier_cost_weekly)}% Margin
+    <>
+      <FinancialSummaryCard
+        title="Contract Financial Summary"
+        description="Revenue, costs and profit breakdown"
+        weekly={financialMetrics.weekly}
+        monthly={financialMetrics.monthly}
+        annual={financialMetrics.annual}
+        className="mb-6"
+      />
+      
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Contract Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {Object.entries(contractDetailsFields).map(([section, fields]) => (
+              <div key={section} className="space-y-4">
+                <h3 className="text-lg font-medium">{section}</h3>
+                <div className="grid grid-cols-1 gap-3">
+                  {fields.map(field => (
+                    <div key={field.key} className="flex flex-col">
+                      <span className="text-sm text-muted-foreground">{field.label}</span>
+                      <span className="font-medium">
+                        {renderContractValue(contract, field.key, field.type)}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
-              
-              <div className="rounded-md bg-slate-100 dark:bg-slate-800 p-4">
-                <div className="text-sm text-muted-foreground">Monthly Revenue</div>
-                <div className="text-2xl font-semibold">${contract.total_monthly_value?.toLocaleString() || '0'}</div>
-                <div className="text-sm text-muted-foreground mt-1">Monthly Cost</div>
-                <div className="text-lg font-medium text-muted-foreground">${contract.supplier_cost_monthly?.toLocaleString() || '0'}</div>
-                <div className="text-sm font-medium mt-2 text-emerald-600">
-                  {calculateProfitMargin(contract.total_monthly_value, contract.supplier_cost_monthly)}% Margin
-                </div>
-              </div>
-              
-              <div className="rounded-md bg-slate-100 dark:bg-slate-800 p-4">
-                <div className="text-sm text-muted-foreground">Annual Revenue</div>
-                <div className="text-2xl font-semibold">${contract.total_annual_value?.toLocaleString() || '0'}</div>
-                <div className="text-sm text-muted-foreground mt-1">Annual Cost</div>
-                <div className="text-lg font-medium text-muted-foreground">${contract.supplier_cost_annual?.toLocaleString() || '0'}</div>
-                <div className="text-sm font-medium mt-2 text-emerald-600">
-                  {calculateProfitMargin(contract.total_annual_value, contract.supplier_cost_annual)}% Margin
-                </div>
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </>
   );
 }
 

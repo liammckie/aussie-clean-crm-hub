@@ -25,7 +25,7 @@ export function ContactBaseFields({ form }: ContactBaseFieldsProps) {
           <FormItem>
             <FormLabel>First Name</FormLabel>
             <FormControl>
-              <Input placeholder="First name" {...field} />
+              <Input placeholder="First name" {...field} value={field.value || ''} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -53,7 +53,7 @@ export function ContactBaseFields({ form }: ContactBaseFieldsProps) {
           <FormItem>
             <FormLabel>Email</FormLabel>
             <FormControl>
-              <Input placeholder="contact@company.com" type="email" {...field} />
+              <Input placeholder="contact@company.com" type="email" {...field} value={field.value || ''} />
             </FormControl>
             <FormMessage />
           </FormItem>

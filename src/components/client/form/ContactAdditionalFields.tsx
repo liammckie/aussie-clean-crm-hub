@@ -40,7 +40,6 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
         )}
       />
       
-      {/* Handle the phone_landline field with proper type verification */}
       <FormField
         control={form.control}
         name="phone_landline"
@@ -69,7 +68,6 @@ export function ContactAdditionalFields({ form }: ContactAdditionalFieldsProps) 
         )}
       />
       
-      {/* Use title instead of job_title */}
       <FormField
         control={form.control}
         name="title"

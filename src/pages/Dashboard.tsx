@@ -11,6 +11,30 @@ import { useEffect } from "react";
 import { AppLogger, LogCategory } from "@/utils/logging";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Home } from "lucide-react";
+import { FinancialSummaryCard } from "@/components/financial/FinancialSummaryCard";
+
+// Sample financial data for the dashboard
+// In a real application, this would come from an API
+const companyFinancials = {
+  weekly: {
+    revenue: 23500,
+    cost: 15300,
+    profit: 8200,
+    marginPercentage: 34.89
+  },
+  monthly: {
+    revenue: 101800,
+    cost: 66300,
+    profit: 35500,
+    marginPercentage: 34.89
+  },
+  annual: {
+    revenue: 1222000,
+    cost: 795600, 
+    profit: 426400,
+    marginPercentage: 34.89
+  }
+};
 
 const Dashboard = () => {
   useEffect(() => {
@@ -40,6 +64,16 @@ const Dashboard = () => {
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
       <DashboardGrid>
         <BusinessMetricsCard />
+        
+        <FinancialSummaryCard
+          title="Company Financials"
+          description="Overall company revenue and cost breakdown"
+          weekly={companyFinancials.weekly}
+          monthly={companyFinancials.monthly}
+          annual={companyFinancials.annual}
+          className="col-span-2"
+        />
+        
         <TodaySalesCard />
         <QualityAuditsCard />
         <TopClientsCard />

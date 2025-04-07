@@ -1,186 +1,146 @@
 
-import { useState } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { ChevronDown } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Line, ComposedChart } from "recharts";
-import { generateForecastData, formatCurrency, ForecastDataPoint } from "@/utils/forecastData";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Legend,
+} from 'recharts';
+import { useQuery } from '@tanstack/react-query';
+import { AppLogger, LogCategory } from '@/utils/logging';
+import { generateFinancialBreakdown, formatCurrency } from '@/utils/financeCalculations';
 
-type MetricView = "clients" | "financial" | "profit";
+// Mock data - in a real application this would come from the API
+const financialData = [
+  { month: 'Jan', revenue: 65000, cost: 45000, profit: 20000 },
+  { month: 'Feb', revenue: 72000, cost: 48000, profit: 24000 },
+  { month: 'Mar', revenue: 80000, cost: 52000, profit: 28000 },
+  { month: 'Apr', revenue: 85000, cost: 55000, profit: 30000 },
+  { month: 'May', revenue: 92000, cost: 58000, profit: 34000 },
+  { month: 'Jun', revenue: 95000, cost: 60000, profit: 35000 },
+];
 
 export function BusinessMetricsCard() {
-  const [metricView, setMetricView] = useState<MetricView>("clients");
-  const [forecastData] = useState(() => generateForecastData());
-
-  const renderClientsChart = () => (
-    <ResponsiveContainer width="100%" height={300}>
-      <ComposedChart data={forecastData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis yAxisId="left" />
-        <YAxis yAxisId="right" orientation="right" />
-        <Tooltip 
-          formatter={(value, name) => {
-            return [value, name === "fixedBillingMonthly" ? "Monthly Revenue" : name];
-          }}
-        />
-        <Legend />
-        <Bar yAxisId="left" dataKey="activeClients" fill="#8884d8" name="Active Clients" />
-        <Bar yAxisId="left" dataKey="activeSites" fill="#82ca9d" name="Active Sites" />
-        <Bar yAxisId="left" dataKey="activeContracts" fill="#ffc658" name="Active Contracts" />
-        <Line yAxisId="right" type="monotone" dataKey="fixedBillingMonthly" stroke="#ff7300" name="Monthly Revenue" />
-      </ComposedChart>
-    </ResponsiveContainer>
-  );
-
-  const renderFinancialChart = () => (
-    <ResponsiveContainer width="100%" height={300}>
-      <ComposedChart data={forecastData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis 
-          yAxisId="left" 
-          tickFormatter={(value) => formatCurrency(value)}
-        />
-        <Tooltip 
-          formatter={(value: number, name) => {
-            return [formatCurrency(value), 
-              name === "fixedBillingMonthly" ? "Monthly Revenue" :
-              name === "fixedBillingAnnual" ? "Annual Revenue" :
-              name === "supplierCostMonthly" ? "Monthly Cost" :
-              name === "supplierCostAnnual" ? "Annual Cost" : name
-            ];
-          }}
-        />
-        <Legend />
-        <Bar yAxisId="left" dataKey="fixedBillingMonthly" fill="#82ca9d" name="Monthly Revenue" />
-        <Bar yAxisId="left" dataKey="supplierCostMonthly" fill="#ff8042" name="Monthly Cost" />
-        <Line yAxisId="left" type="monotone" dataKey="fixedBillingAnnual" stroke="#8884d8" name="Annual Revenue" />
-        <Line yAxisId="left" type="monotone" dataKey="supplierCostAnnual" stroke="#ff0000" name="Annual Cost" />
-      </ComposedChart>
-    </ResponsiveContainer>
-  );
-
-  const renderProfitChart = () => (
-    <ResponsiveContainer width="100%" height={300}>
-      <ComposedChart data={forecastData}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="month" />
-        <YAxis 
-          yAxisId="left" 
-          tickFormatter={(value) => formatCurrency(value)}
-        />
-        <Tooltip 
-          formatter={(value: number, name) => {
-            return [formatCurrency(value), 
-              name === "fixedBillingMonthly" ? "Monthly Revenue" :
-              name === "supplierCostMonthly" ? "Monthly Supplier Cost" :
-              name === "grossProfitMonthly" ? "Monthly Gross Profit" : name
-            ];
-          }}
-        />
-        <Legend />
-        <Bar yAxisId="left" dataKey="fixedBillingMonthly" fill="#82ca9d" name="Monthly Revenue" />
-        <Bar yAxisId="left" dataKey="supplierCostMonthly" fill="#ff8042" name="Monthly Supplier Cost" />
-        <Bar yAxisId="left" dataKey="grossProfitMonthly" fill="#8884d8" name="Monthly Gross Profit" />
-      </ComposedChart>
-    </ResponsiveContainer>
-  );
-
-  return (
-    <Card className="col-span-1 sm:col-span-2 lg:col-span-3 bg-gradient-to-br from-slate-800 to-slate-950 border-slate-700 shadow-xl">
-      <CardHeader className="flex flex-row items-center justify-between pb-2">
-        <CardTitle className="text-xl font-bold text-white">Business Forecast</CardTitle>
-        <div className="flex gap-2 flex-wrap">
-          <Button 
-            variant={metricView === "clients" ? "default" : "outline"} 
-            size="sm" 
-            onClick={() => setMetricView("clients")}
-          >
-            Clients & Contracts
-          </Button>
-          <Button 
-            variant={metricView === "financial" ? "default" : "outline"} 
-            size="sm" 
-            onClick={() => setMetricView("financial")}
-          >
-            Revenue & Costs
-          </Button>
-          <Button 
-            variant={metricView === "profit" ? "default" : "outline"} 
-            size="sm" 
-            onClick={() => setMetricView("profit")}
-          >
-            Gross Profit
-          </Button>
-        </div>
-      </CardHeader>
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['businessMetrics'],
+    queryFn: async () => {
+      // In a real application, you would fetch this data from an API
+      AppLogger.debug(LogCategory.DATA, 'Fetching business metrics');
       
-      <CardContent className="pt-4">
-        <div className="text-sm text-slate-400 mb-4">
-          Forecast based on {forecastData[0].activeContracts} active contracts, future signed deals, and projected cancellations
-        </div>
-        {metricView === "clients" 
-          ? renderClientsChart() 
-          : metricView === "financial" 
-            ? renderFinancialChart() 
-            : renderProfitChart()
+      // For now, using mock data with calculated profit values
+      const data = [...financialData];
+      
+      // Calculate some aggregate metrics
+      const totalRevenue = data.reduce((sum, item) => sum + item.revenue, 0);
+      const totalCost = data.reduce((sum, item) => sum + item.cost, 0);
+      const totalProfit = data.reduce((sum, item) => sum + item.profit, 0);
+      const averageMargin = (totalProfit / totalRevenue) * 100;
+      
+      return {
+        data,
+        summary: {
+          totalRevenue,
+          totalCost,
+          totalProfit,
+          averageMargin
         }
-        <div className="mt-4 grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatBox 
-            title="Active Clients" 
-            value={forecastData[0].activeClients.toString()} 
-            change={forecastData[2].activeClients - forecastData[0].activeClients}
-          />
-          <StatBox 
-            title="Monthly Revenue" 
-            value={formatCurrency(forecastData[0].fixedBillingMonthly)} 
-            change={Math.round((forecastData[2].fixedBillingMonthly - forecastData[0].fixedBillingMonthly) / forecastData[0].fixedBillingMonthly * 100)}
-            isPercentage={true}
-          />
-          <StatBox 
-            title="Monthly Costs" 
-            value={formatCurrency(forecastData[0].supplierCostMonthly)} 
-            change={Math.round((forecastData[2].supplierCostMonthly - forecastData[0].supplierCostMonthly) / forecastData[0].supplierCostMonthly * 100)}
-            isPercentage={true}
-          />
-          <StatBox 
-            title="Gross Profit" 
-            value={`${Math.round((forecastData[0].fixedBillingMonthly - forecastData[0].supplierCostMonthly) / forecastData[0].fixedBillingMonthly * 100)}%`} 
-            change={Math.round((
-              (forecastData[2].fixedBillingMonthly - forecastData[2].supplierCostMonthly) / forecastData[2].fixedBillingMonthly * 100
-            ) - (
-              (forecastData[0].fixedBillingMonthly - forecastData[0].supplierCostMonthly) / forecastData[0].fixedBillingMonthly * 100
-            ))}
-            isPercentage={true}
-          />
+      };
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+  
+  // Calculate weekly metrics based on monthly data
+  const weeklyMetrics = React.useMemo(() => {
+    if (!data) return { revenue: 0, cost: 0, profit: 0, marginPercentage: 0 };
+    
+    const monthlyAvgRevenue = data.summary.totalRevenue / 6; // 6 months of data
+    const monthlyAvgCost = data.summary.totalCost / 6;
+    const weeklyRevenue = monthlyAvgRevenue / 4.33; // Approximate weeks per month
+    const weeklyCost = monthlyAvgCost / 4.33;
+    
+    return generateFinancialBreakdown(weeklyRevenue, weeklyCost).weekly;
+  }, [data]);
+  
+  if (isLoading) {
+    return (
+      <Card className="col-span-4">
+        <CardHeader>
+          <CardTitle>Business Performance</CardTitle>
+        </CardHeader>
+        <CardContent className="h-80 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  if (error || !data) {
+    return (
+      <Card className="col-span-4">
+        <CardHeader>
+          <CardTitle>Business Performance</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-red-600">
+            {error instanceof Error ? error.message : 'Error loading business metrics'}
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+  
+  return (
+    <Card className="col-span-4">
+      <CardHeader>
+        <CardTitle>Business Performance</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
+            <p className="text-sm text-muted-foreground">Total Revenue</p>
+            <p className="text-2xl font-bold">{formatCurrency(data.summary.totalRevenue)}</p>
+          </div>
+          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
+            <p className="text-sm text-muted-foreground">Total Cost</p>
+            <p className="text-2xl font-semibold text-muted-foreground">{formatCurrency(data.summary.totalCost)}</p>
+          </div>
+          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
+            <p className="text-sm text-muted-foreground">Total Profit</p>
+            <p className="text-2xl font-bold text-green-600">{formatCurrency(data.summary.totalProfit)}</p>
+          </div>
+          <div className="bg-slate-50 dark:bg-slate-800 p-4 rounded-lg">
+            <p className="text-sm text-muted-foreground">Average Margin</p>
+            <p className="text-2xl font-bold text-green-600">{data.summary.averageMargin.toFixed(1)}%</p>
+          </div>
+        </div>
+        
+        <div className="h-80 mt-4">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data.data}
+              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis 
+                tickFormatter={(value) => `$${value / 1000}k`}
+              />
+              <Tooltip 
+                formatter={(value) => [`${formatCurrency(value as number)}`, undefined]}
+              />
+              <Legend />
+              <Bar dataKey="revenue" name="Revenue" fill="#4f46e5" />
+              <Bar dataKey="cost" name="Cost" fill="#94a3b8" />
+              <Bar dataKey="profit" name="Profit" fill="#16a34a" />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
       </CardContent>
     </Card>
   );
 }
-
-interface StatBoxProps {
-  title: string;
-  value: string;
-  change: number;
-  isPercentage?: boolean;
-}
-
-const StatBox = ({ title, value, change, isPercentage = false }: StatBoxProps) => {
-  const isPositive = change > 0;
-  
-  return (
-    <div className="bg-slate-800/50 p-4 rounded-lg">
-      <p className="text-sm text-slate-400">{title}</p>
-      <p className="text-2xl font-bold mt-1">{value}</p>
-      <div className="flex items-center mt-1">
-        <ChevronDown className={`h-4 w-4 ${isPositive ? 'text-green-500 rotate-180' : 'text-red-500'}`} />
-        <span className={`text-sm ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-          {isPositive ? '+' : ''}{change}{isPercentage ? '%' : ''} 
-          <span className="text-slate-500 text-xs ml-1">Next 90 days</span>
-        </span>
-      </div>
-    </div>
-  );
-};
