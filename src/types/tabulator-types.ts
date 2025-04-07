@@ -5,7 +5,7 @@ import type Tabulator from 'tabulator-tables';
 
 // Column definition is a common pattern, define it directly
 export interface ColumnDefinition {
-  title?: string;
+  title: string; // Changed from optional to required
   field?: string;
   headerFilter?: boolean | string;
   headerFilterParams?: any;

@@ -2,11 +2,12 @@
 import { formatMoneyColumn, statusFormatter, dateFormatter } from './formatters';
 import { contractService } from '@/services/contract';
 import { toast } from 'sonner';
+import { TabulatorColumn } from '@/types/tabulator-types';
 
 /**
  * Define column configurations for the Tabulator
  */
-export const getColumnDefinitions = (onCellEdited: (cell: any) => void) => [
+export const getColumnDefinitions = (onCellEdited: (cell: any) => void): TabulatorColumn[] => [
   {
     title: "Client", 
     field: "client_name", 

@@ -1,67 +1,67 @@
 
-import { useState, useEffect, useRef } from 'react';
-import { Tabulator } from 'tabulator-tables';
-import { TabulatorOptions } from '@/types/tabulator-types';
+import { useMemo, useRef } from 'react';
+import { TabulatorOptions, TabulatorColumn, SortDirection } from '@/types/tabulator-types';
 
-interface UseTabulatorProps {
-  options: TabulatorOptions;
-  tableRef: React.RefObject<HTMLDivElement>;
+// Type for Tabulator's sorter
+export interface TabulatorSorter {
+  column: string;
+  dir: SortDirection;
 }
 
-const useTabulator = ({ options, tableRef }: UseTabulatorProps) => {
-  const [table, setTable] = useState<Tabulator | null>(null);
-  const initialOptions = useRef(options);
-  const configuredOptions = useRef<TabulatorOptions | null>(null);
+export function useTabulator() {
+  const defaultOptions = useMemo<Partial<TabulatorOptions>>(() => ({
+    layout: "fitColumns",
+    pagination: true,
+    paginationSize: 10,
+    selectable: true,
+    selectableRangeMode: "click",
+    placeholder: "No data available",
+    headerFilterLiveFilterDelay: 300,
+    responsiveLayout: 'hide',
+    movableColumns: true,
+    tooltips: true
+  }), []);
 
-  useEffect(() => {
-    if (tableRef.current) {
-      // Combine initial options with current options
-      const tabulatorConfiguration = {
-        ...initialOptions.current,
+  const defaultColumns: TabulatorColumn[] = useMemo(() => [
+    { title: "Contract", field: "contract_name", sorter: "string", headerFilter: true },
+    { title: "Client", field: "client_name", sorter: "string", headerFilter: true },
+    { title: "Start Date", field: "start_date", sorter: "date", headerFilter: true },
+    { title: "Status", field: "status", sorter: "string", headerFilter: true },
+    { title: "Value", field: "value", sorter: "number", formatter: "money" }
+  ], []);
+  
+  const tableInstanceRef = useRef<any>(null);
+  
+  // Initialize the tabulator instance with provided columns and options
+  const initializeTabulator = async (
+    element: HTMLElement,
+    columns: TabulatorColumn[] = defaultColumns,
+    options: Partial<TabulatorOptions> = {}
+  ): Promise<any> => {
+    // Only import Tabulator if we're in a browser environment
+    if (typeof window !== 'undefined') {
+      const { Tabulator } = await import('tabulator-tables');
+      
+      // Merge default options with provided options
+      const mergedOptions: TabulatorOptions = {
+        ...defaultOptions,
         ...options,
+        columns: columns || defaultColumns,
       };
       
-      configuredOptions.current = tabulatorConfiguration;
-
-      // Cast as any to avoid type errors with Tabulator's complex options
-      const newTable = new Tabulator(tableRef.current, tabulatorConfiguration as any);
-      setTable(newTable);
-
-      return () => {
-        newTable.destroy();
-        setTable(null);
-      };
+      tableInstanceRef.current = new Tabulator(element, mergedOptions);
+      return tableInstanceRef.current;
     }
-  }, [tableRef]);
+    
+    return null;
+  };
 
-  useEffect(() => {
-    if (table) {
-      // Update data if it changed
-      if (options.data && options.data !== configuredOptions.current?.data) {
-        table.setData(options.data);
-      }
-      
-      // Update height if changed
-      if (options.height && options.height !== configuredOptions.current?.height) {
-        table.setHeight(options.height);
-      }
-      
-      // Update layout if changed
-      if (options.layout && options.layout !== configuredOptions.current?.layout) {
-        table.redraw(true);
-      }
-      
-      // Update responsive columns
-      if (JSON.stringify(options.columns) !== JSON.stringify(configuredOptions.current?.columns)) {
-        table.setColumns(options.columns || []);
-      }
-      
-      // Store the current options
-      configuredOptions.current = { ...options };
-    }
-  }, [options, table]);
-
-  return table;
-};
+  return { 
+    defaultColumns, 
+    defaultOptions,
+    initializeTabulator,
+    tableInstance: tableInstanceRef.current
+  };
+}
 
 export default useTabulator;
