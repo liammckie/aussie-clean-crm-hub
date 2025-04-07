@@ -1,13 +1,13 @@
 
 import { useState, useRef, useCallback } from 'react';
 import Tabulator from 'tabulator-tables';
-import { ColumnDefinition, TabulatorOptions, TabulatorColumn } from '@/types/tabulator-types';
+import { TabulatorOptions, TabulatorColumn } from '@/types/tabulator-types';
 
 export function useTabulator() {
   const [tabulator, setTabulator] = useState<Tabulator | null>(null);
   
   // Default columns can be moved to a constants file later
-  const defaultColumns: ColumnDefinition[] = [
+  const defaultColumns: TabulatorColumn[] = [
     { title: "Name", field: "name", sorter: "string", headerFilter: true },
     { title: "Status", field: "status", sorter: "string", headerFilter: true },
     { title: "Value", field: "value", sorter: "number", headerFilter: true },
@@ -25,13 +25,14 @@ export function useTabulator() {
     initialSort: [
       { column: "name", dir: "asc" }
     ],
+    // ReactiveData is now part of our TabulatorOptions interface
     reactiveData: true
   };
   
   // Initialize tabulator
   const initializeTabulator = useCallback(async (
     element: HTMLElement,
-    columns: ColumnDefinition[] = defaultColumns,
+    columns: TabulatorColumn[] = defaultColumns,
     options: TabulatorOptions = defaultOptions
   ): Promise<Tabulator> => {
     // Clean up any existing instance

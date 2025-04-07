@@ -1,19 +1,19 @@
 
 import { z } from 'zod';
-import { EntityType, AddressType as ClientAddressType, ContactType as ClientContactType } from '@/services/client/types';
+import { AddressType as DBAddressType, ContactType as DBContactType, EntityType as DBEntityType } from '@/types/database-schema';
 
 /**
  * Form Types - Centralized definitions for form data structures and validation
  */
 
-// Address types - using the enums from client types for consistency
-export type AddressType = ClientAddressType | string;
+// Address types - using the enums from database types for consistency
+export type AddressType = DBAddressType | string;
 
-// Entity types for relational references - using the enum from client types
-export type EntityType = keyof typeof EntityType | string;
+// Entity types for relational references
+export type EntityType = keyof typeof DBEntityType | string;
 
 // Contact types - updated to be compatible with both string literals and enum
-export type ContactType = ClientContactType | 'Primary' | 'Billing' | 'Operations' | 'Emergency' | 'Technical' | 'Management' | 
+export type ContactType = DBContactType | 'Primary' | 'Billing' | 'Operations' | 'Emergency' | 'Technical' | 'Management' | 
   'client_primary' | 'client_site' | 'hr_payroll';
 
 export type PreferredCommunication = 'email' | 'phone' | 'mobile' | 'post';
@@ -160,7 +160,7 @@ export const createDefaultAddressValues = (
   defaultAddressType: AddressType = 'physical'
 ): UnifiedAddressFormData => {
   return {
-    entity_type: initialData.entity_type || 'client',
+    entity_type: initialData.entity_type || DBEntityType.CLIENT.toLowerCase(),
     entity_id: initialData.entity_id || '',
     name: initialData.name,
     address_line_1: initialData.address_line_1 || '',
@@ -184,7 +184,7 @@ export const createDefaultContactValues = (
   defaultContactType: ContactType = 'Primary'
 ): UnifiedContactFormData => {
   return {
-    entity_type: initialData.entity_type || 'client',
+    entity_type: initialData.entity_type || DBEntityType.CLIENT.toLowerCase(),
     entity_id: initialData.entity_id || '',
     name: initialData.name || '',
     email: initialData.email || '',

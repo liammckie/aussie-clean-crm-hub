@@ -1,174 +1,97 @@
 
 import { clientApi } from '../api';
-import { ClientFormData, ClientRecord } from '../types';
-import { ApiResponse, ApiErrorResponse } from '@/types/api-response';
-import { handleValidation } from '../validation';
-import { AppLogger } from '@/utils/logging/AppLogger';
+import { ClientFormData, ClientApiResponse, ClientsApiResponse } from '../types';
+import { handleValidationError } from '../validation';
+import { AppLogger } from '@/utils/logging';
+import { LogCategory } from '@/utils/logging/LogCategory';
 
 /**
- * Client CRUD service with business logic for client operations
+ * Client CRUD service
  */
 export const clientCrudService = {
   /**
    * Get all clients
    */
-  getAllClients: async (): Promise<ApiResponse<ClientRecord[]>> => {
+  getAllClients: async (): Promise<ClientsApiResponse> => {
     try {
-      const response = await clientApi.fetchAllClients();
-      return response;
+      AppLogger.info(LogCategory.CLIENT, 'Fetching all clients');
+      return await clientApi.fetchAllClients();
     } catch (error) {
-      console.error('Error in getAllClients:', error);
-      return {
-        category: 'server',
-        message: 'Failed to get clients',
-        details: { error }
-      };
+      AppLogger.error(LogCategory.CLIENT, 'Error fetching all clients', { error });
+      throw error;
     }
   },
 
   /**
-   * Get a client by ID
+   * Get client by ID
    */
-  getClientById: async (clientId: string): Promise<ApiResponse<ClientRecord>> => {
+  getClientById: async (clientId: string): Promise<ClientApiResponse> => {
     try {
-      if (!clientId) {
-        return {
-          category: 'validation',
-          message: 'Client ID is required',
-          details: { field: 'id' }
-        };
-      }
-      
-      return await clientApi.fetchClientById(clientId);
+      AppLogger.info(LogCategory.CLIENT, `Fetching client ${clientId}`);
+      const response = await clientApi.fetchClientById(clientId);
+      return response;
     } catch (error) {
-      console.error(`Error in getClientById for ${clientId}:`, error);
-      return {
-        category: 'server',
-        message: `Failed to get client with ID ${clientId}`,
-        details: { error, clientId }
-      };
+      AppLogger.error(LogCategory.CLIENT, `Error fetching client ${clientId}`, { error });
+      throw error;
     }
   },
 
   /**
    * Create a new client
    */
-  createClient: async (clientData: ClientFormData): Promise<ApiResponse<ClientRecord>> => {
+  createClient: async (clientData: ClientFormData): Promise<ClientApiResponse> => {
     try {
-      // Validate required fields
-      const validationResult = handleValidation({
-        business_name: clientData.business_name
-      });
+      // Log operation before validation
+      AppLogger.info(LogCategory.CLIENT, 'Creating new client', { businessName: clientData.business_name });
       
-      if (!validationResult.success) {
-        return {
-          category: 'validation',
-          message: validationResult.message || 'Validation error',
-          details: { errors: validationResult.errors }
-        };
-      }
-      
-      // Log client creation attempt
-      AppLogger.info('api', 'Creating new client', { 
-        business_name: clientData.business_name
-      });
-      
-      return await clientApi.createClient(clientData);
+      const response = await clientApi.createClient(clientData);
+      return response;
     } catch (error) {
-      console.error('Error in createClient:', error);
-      AppLogger.error('api', 'Failed to create client', {
-        error,
-        clientData
+      // Log error with appropriate context
+      AppLogger.error(LogCategory.CLIENT, 'Error creating client', {
+        businessName: clientData.business_name,
+        error
       });
-      
-      return {
-        category: 'server',
-        message: 'Failed to create client',
-        details: { error }
-      };
+      throw error;
     }
   },
 
   /**
    * Update an existing client
    */
-  updateClient: async (clientId: string, clientData: Partial<ClientFormData>): Promise<ApiResponse<ClientRecord>> => {
+  updateClient: async (clientId: string, clientData: Partial<ClientFormData>): Promise<ClientApiResponse> => {
     try {
-      if (!clientId) {
-        return {
-          category: 'validation',
-          message: 'Client ID is required',
-          details: { field: 'id' }
-        };
-      }
-      
-      // Validate business_name if provided
-      if (clientData.business_name !== undefined) {
-        const validationResult = handleValidation({
-          business_name: clientData.business_name
-        });
-        
-        if (!validationResult.success) {
-          return {
-            category: 'validation',
-            message: validationResult.message || 'Validation error',
-            details: { errors: validationResult.errors }
-          };
-        }
-      }
-      
-      // Log client update attempt
-      AppLogger.info('api', `Updating client ${clientId}`, { 
-        clientId,
-        fields: Object.keys(clientData)
+      // Log operation before validation
+      AppLogger.info(LogCategory.CLIENT, `Updating client ${clientId}`, {
+        businessName: clientData.business_name
       });
-      
-      return await clientApi.updateClient(clientId, clientData);
+
+      const response = await clientApi.updateClient(clientId, clientData);
+      return response;
     } catch (error) {
-      console.error(`Error in updateClient for ${clientId}:`, error);
-      AppLogger.error('api', `Failed to update client ${clientId}`, {
-        error,
-        clientId,
-        clientData
+      // Log error with appropriate context
+      AppLogger.error(LogCategory.CLIENT, `Error updating client ${clientId}`, {
+        businessName: clientData.business_name,
+        error
       });
-      
-      return {
-        category: 'server',
-        message: `Failed to update client with ID ${clientId}`,
-        details: { error, clientId }
-      };
+      throw error;
     }
   },
 
   /**
    * Delete a client
    */
-  deleteClient: async (clientId: string): Promise<ApiResponse<{success: boolean}>> => {
+  deleteClient: async (clientId: string): Promise<any> => {
     try {
-      if (!clientId) {
-        return {
-          category: 'validation',
-          message: 'Client ID is required',
-          details: { field: 'id' }
-        };
-      }
+      // Log operation
+      AppLogger.info(LogCategory.CLIENT, `Deleting client ${clientId}`);
       
-      // Log client deletion attempt
-      AppLogger.info('api', `Deleting client ${clientId}`, { clientId });
-      
-      return await clientApi.deleteClient(clientId);
+      const response = await clientApi.deleteClient(clientId);
+      return response;
     } catch (error) {
-      console.error(`Error in deleteClient for ${clientId}:`, error);
-      AppLogger.error('api', `Failed to delete client ${clientId}`, {
-        error,
-        clientId
-      });
-      
-      return {
-        category: 'server',
-        message: `Failed to delete client with ID ${clientId}`,
-        details: { error, clientId }
-      };
+      // Log error with appropriate context
+      AppLogger.error(LogCategory.CLIENT, `Error deleting client ${clientId}`, { error });
+      throw error;
     }
   }
 };

@@ -12,5 +12,6 @@ export enum LogCategory {
   DATABASE = 'database',
   GENERAL = 'general',
   SITE = 'site',
-  AUTH = 'auth'
+  AUTH = 'auth',
+  CLIENT = 'client'
 }

@@ -28,11 +28,11 @@ export function SiteTypeField({ form }: SiteTypeFieldProps) {
     SiteType.RESIDENTIAL,
     SiteType.INDUSTRIAL,
     SiteType.RETAIL,
-    SiteType.HOSPITALITY,
-    SiteType.OFFICE,
-    SiteType.WAREHOUSE,
-    SiteType.EDUCATIONAL,
-    SiteType.MEDICAL
+    SiteType.COMMERCIAL,
+    SiteType.HEALTHCARE,
+    SiteType.EDUCATION,
+    SiteType.GOVERNMENT,
+    SiteType.MIXED_USE
   ];
 
   return (

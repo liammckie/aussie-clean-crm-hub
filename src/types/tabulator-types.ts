@@ -1,8 +1,11 @@
 
-import type { ColumnDefinition, ColumnComponent, CellComponent, RowComponent, Options as TabulatorLibOptions } from 'tabulator-tables';
+import type { ColumnDefinitionSorterParams, Options } from 'tabulator-tables';
 
-// Properly type the Tabulator types
-export type { ColumnDefinition, ColumnComponent, CellComponent, RowComponent };
+// Re-export the types properly
+export type ColumnDefinition = any;  // Using any for now until we define our own complete type
+export type ColumnComponent = any;
+export type CellComponent = any;
+export type RowComponent = any;
 
 // Define proper sorter type
 export type TabulatorSorter = {
@@ -16,7 +19,7 @@ export type SortDirection = 'asc' | 'desc';
 export type TabulatorColumn = ColumnDefinition;
 
 // Define proper options interface that matches the Tabulator library
-export interface TabulatorOptions extends Partial<TabulatorLibOptions> {
+export interface TabulatorOptions extends Partial<Options> {
   height?: string | number;
   layout?: 'fitColumns' | 'fitData' | 'fitDataFill' | 'fitDataStretch' | 'fitDataTable';
   selectable?: boolean | number;

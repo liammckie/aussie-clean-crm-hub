@@ -24,7 +24,7 @@ const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
   useEffect(() => {
     // Initialize tabulator when the component mounts
     if (tableRef.current) {
-      const tabulatorOptions: any = {
+      const tabulatorOptions: TabulatorOptions = {
         ...options,
         columns,
         data,
