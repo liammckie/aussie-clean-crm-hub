@@ -54,13 +54,13 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     refetch 
   } = useEntityContacts(EntityType.CLIENT, clientId);
 
-  // Define client-specific contact types
+  // Define client-specific contact types using the ContactType enum
   const clientContactTypes: ContactType[] = [
-    'Primary', 
-    'Billing', 
-    'Operations', 
-    'Emergency',
-    'Technical'
+    ContactType.PRIMARY, 
+    ContactType.BILLING, 
+    ContactType.OPERATIONS, 
+    ContactType.EMERGENCY,
+    ContactType.TECHNICAL
   ];
 
   const handleContactSubmit = useCallback((formData: any) => {
