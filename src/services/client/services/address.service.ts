@@ -22,12 +22,12 @@ export const clientAddressService = {
   },
 
   // Create a new client address
-  createClientAddress: async (clientId: string, addressData: Omit<AddressFormData, 'client_id'>): Promise<ApiResponse<any>> => {
+  createClientAddress: async (clientId: string, addressData: Partial<Omit<AddressFormData, 'client_id'>>): Promise<ApiResponse<any>> => {
     // Add client ID to address data with required fields explicitly set
-    const address: AddressFormData = {
+    const addressWithRequiredFields: AddressFormData = {
       client_id: clientId,
       // Ensure required fields are explicitly set with default values
-      street: addressData.street ?? '', // Use nullish coalescing for more robust handling
+      street: addressData.street ?? '', 
       suburb: addressData.suburb ?? '',
       state: addressData.state ?? '',
       postcode: addressData.postcode ?? '',
@@ -38,7 +38,7 @@ export const clientAddressService = {
     };
 
     // Validate the address data using Zod schema
-    const validationResult = validateWithZod(clientAddressSchema, address);
+    const validationResult = validateWithZod(clientAddressSchema, addressWithRequiredFields);
     if ('category' in validationResult) {
       return formatError(
         ErrorCategory.VALIDATION, 
@@ -58,7 +58,7 @@ export const clientAddressService = {
   },
 
   // Delete a client address
-  deleteClientAddress: async (addressId: string): Promise<ApiResponse<any>> => {
+  deleteClientAddress: async (addressId: string): Promise<ApiResponse<{success: boolean}>> => {
     const response = await clientApi.deleteClientAddress(addressId);
     
     if (isApiError(response)) {

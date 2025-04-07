@@ -51,13 +51,12 @@ export interface UnifiedContactRecord {
   updated_at?: string;
 }
 
-export type { UnifiedAddressFormData, UnifiedContactFormData };
-
+// Error handling types
 export type ValidationErrorResponse = {
   category: 'validation';
   message: string;
   details?: {
     field?: string;
-    code?: string;
+    error?: string;
   };
 };

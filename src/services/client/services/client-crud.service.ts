@@ -53,7 +53,7 @@ export const clientCrudService = {
   },
 
   // Create a new client
-  createClient: async (client: ClientFormData): Promise<ApiResponse<any>> => {
+  createClient: async (client: Partial<ClientFormData>): Promise<ApiResponse<any>> => {
     try {
       // Explicitly create a new object with required fields and default values
       const clientWithDefaults: ClientFormData = {
@@ -61,7 +61,7 @@ export const clientCrudService = {
         status: client.status ?? ClientStatus.PROSPECT,
         // Copy all other fields from the input
         ...client
-      };
+      } as ClientFormData;
 
       // Validate client data using our Zod schema
       const validationResult = validateWithZod(clientSchema, clientWithDefaults);
@@ -139,7 +139,7 @@ export const clientCrudService = {
   },
 
   // Delete a client by ID
-  deleteClient: async (clientId: string): Promise<ApiResponse<any>> => {
+  deleteClient: async (clientId: string): Promise<ApiResponse<{success: boolean}>> => {
     const response = await clientApi.deleteClient(clientId);
     
     if (isApiError(response)) {

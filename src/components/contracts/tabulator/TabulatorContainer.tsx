@@ -1,54 +1,52 @@
 
 import React, { useEffect, useRef, useState } from 'react';
-import "tabulator-tables/dist/css/tabulator_semanticui.min.css";
-import { toast } from 'sonner';
-import { useTabulator } from '@/hooks/use-tabulator';
+import Tabulator from 'tabulator-tables';
+import 'tabulator-tables/dist/css/tabulator.min.css';
+import { useTabulator } from '@/hooks';
 
 interface TabulatorContainerProps {
-  data: any[];
-  onSelectionChange?: (selectedRows: any[]) => void;
+  data: Record<string, unknown>[];
+  onSelectionChange?: (selectedRows: Record<string, unknown>[]) => void;
+  tableClass?: string;
 }
 
-export const TabulatorContainer: React.FC<TabulatorContainerProps> = ({ 
+export function TabulatorContainer({ 
   data, 
-  onSelectionChange 
-}) => {
+  onSelectionChange,
+  tableClass = "table-striped"
+}: TabulatorContainerProps) {
   const tableRef = useRef<HTMLDivElement>(null);
-  const [isClient, setIsClient] = useState(false);
-  
-  // Only render on client-side
+  const [table, setTable] = useState<Tabulator | null>(null);
+  const { initializeTable } = useTabulator();
+
   useEffect(() => {
-    setIsClient(true);
+    if (tableRef.current) {
+      // Initialize the table
+      const newTable = initializeTable(tableRef.current, data);
+      
+      // Register selection change callback if provided
+      if (onSelectionChange) {
+        newTable.on("rowSelectionChanged", (_data, rows) => {
+          const selectedData = rows.map(row => row.getData());
+          onSelectionChange(selectedData);
+        });
+      }
+      
+      setTable(newTable);
+      
+      // Clean up
+      return () => {
+        newTable.destroy();
+      };
+    }
   }, []);
 
-  // Use our custom hook to handle Tabulator initialization
-  const { initializeTabulator, destroyTabulator } = useTabulator({
-    element: tableRef,
-    data,
-    onSelectionChange
-  });
-
-  // Initialize Tabulator when data is available
+  // Update data when it changes
   useEffect(() => {
-    if (!isClient || !data?.length) return;
-    
-    console.log("Initializing Tabulator with data:", data.length, "rows");
-    const init = async () => {
-      try {
-        await initializeTabulator();
-      } catch (error) {
-        console.error("Failed to initialize Tabulator:", error);
-        toast.error("Failed to initialize contracts table");
-      }
-    };
-    
-    init();
-    return destroyTabulator;
-  }, [isClient, data, initializeTabulator, destroyTabulator, onSelectionChange]);
+    if (table) {
+      table.setData(data);
+    }
+  }, [data]);
 
-  return (
-    <div className="border rounded-lg overflow-hidden">
-      <div ref={tableRef} className="tabulator-container"></div>
-    </div>
-  );
-};
+  return <div ref={tableRef} className={tableClass}></div>;
+}

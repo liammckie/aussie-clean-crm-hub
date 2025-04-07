@@ -5,9 +5,10 @@ import { ErrorReporting } from '@/utils/errorReporting';
 import { unifiedService } from '@/services/unified';
 import { 
   UnifiedContactFormData, 
-  EntityType, 
-  ValidationErrorResponse 
-} from '@/services/unified';
+  EntityType 
+} from '@/types/form-types';
+import { ValidationErrorResponse } from '@/services/unified/types';
+import { isApiError } from '@/types/api-response';
 
 /**
  * Hook for contact mutations (create, update, delete)
@@ -36,12 +37,12 @@ export function useContactMutations() {
       
       const response = await unifiedService.createContact(entityType, entityId, processedData);
       
-      if ('category' in response && response.category === 'validation') {
+      if (isApiError(response) && response.category === 'validation') {
         console.warn('Validation error during contact creation:', response);
         return response as ValidationErrorResponse;
       }
       
-      if ('category' in response) {
+      if (isApiError(response)) {
         console.error('Error creating contact:', response);
         throw new Error(response.message);
       }
@@ -81,12 +82,12 @@ export function useContactMutations() {
       
       const response = await unifiedService.updateContact(contactId, processedData);
       
-      if ('category' in response && response.category === 'validation') {
+      if (isApiError(response) && response.category === 'validation') {
         console.warn('Validation error during contact update:', response);
         return response as ValidationErrorResponse;
       }
       
-      if ('category' in response) {
+      if (isApiError(response)) {
         console.error('Error updating contact:', response);
         throw new Error(response.message);
       }
@@ -113,7 +114,7 @@ export function useContactMutations() {
       console.log(`Deleting contact ${contactId}`);
       const response = await unifiedService.deleteContact(contactId);
       
-      if ('category' in response) {
+      if (isApiError(response)) {
         console.error('Error deleting contact:', response);
         throw new Error(response.message);
       }

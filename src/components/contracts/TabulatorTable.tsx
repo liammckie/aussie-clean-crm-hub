@@ -3,8 +3,8 @@ import React from 'react';
 import { TabulatorContainer } from './tabulator/TabulatorContainer';
 
 interface TabulatorTableProps {
-  contracts: any[];
-  onSelectionChange?: (selectedRows: any[]) => void;
+  contracts: Record<string, unknown>[];
+  onSelectionChange?: (selectedRows: Record<string, unknown>[]) => void;
 }
 
 export function TabulatorTable({ contracts, onSelectionChange }: TabulatorTableProps) {

@@ -5,9 +5,10 @@ import { ErrorReporting } from '@/utils/errorReporting';
 import { unifiedService } from '@/services/unified';
 import { 
   UnifiedAddressFormData, 
-  EntityType, 
-  ValidationErrorResponse 
-} from '@/services/unified';
+  EntityType 
+} from '@/types/form-types';
+import { ValidationErrorResponse } from '@/services/unified/types';
+import { ApiResponse, isApiError } from '@/types/api-response';
 
 /**
  * Hook for address mutations (create, update, delete)
@@ -29,12 +30,12 @@ export function useAddressMutations() {
       console.log(`Creating address for ${entityType} ${entityId} with data:`, addressData);
       const response = await unifiedService.createAddress(entityType, entityId, addressData);
       
-      if ('category' in response && response.category === 'validation') {
+      if (isApiError(response) && response.category === 'validation') {
         console.warn('Validation error during address creation:', response);
         return response as ValidationErrorResponse;
       }
       
-      if ('category' in response) {
+      if (isApiError(response)) {
         console.error('Error creating address:', response);
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
@@ -68,12 +69,12 @@ export function useAddressMutations() {
       console.log(`Updating address ${addressId} with data:`, addressData);
       const response = await unifiedService.updateAddress(addressId, addressData);
       
-      if ('category' in response && response.category === 'validation') {
+      if (isApiError(response) && response.category === 'validation') {
         console.warn('Validation error during address update:', response);
         return response as ValidationErrorResponse;
       }
       
-      if ('category' in response) {
+      if (isApiError(response)) {
         console.error('Error updating address:', response);
         toast.error(`Error: ${response.message}`);
         throw new Error(response.message);
@@ -101,7 +102,7 @@ export function useAddressMutations() {
       console.log(`Deleting address ${addressId}`);
       const response = await unifiedService.deleteAddress(addressId);
       
-      if ('category' in response) {
+      if (isApiError(response)) {
         console.error('Error deleting address:', response);
         throw new Error(response.message);
       }

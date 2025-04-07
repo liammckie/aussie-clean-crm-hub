@@ -1,95 +1,110 @@
 
-import { supabase, isAuthenticated } from '@/integrations/supabase/client';
-import { SiteData, SiteInsertData, SiteUpdateData, SiteResponse, SitesResponse } from './types';
+import { supabase } from '@/integrations/supabase/client';
+import { handleSupabaseError } from '@/utils/supabaseErrors';
+import { SiteData, SiteInsertData, SiteUpdateData, SiteApiResponse, SitesApiResponse } from './types';
+import { ApiResponse, createSuccessResponse } from '@/types/api-response';
 
 /**
- * Site API service - handles raw Supabase calls for site data
+ * Site API methods for direct Supabase interactions
  */
 export const siteApi = {
   /**
-   * Fetch all sites from the database
+   * Fetch all sites
    */
-  fetchAllSites: async (): Promise<SitesResponse> => {
+  fetchAllSites: async (): Promise<SitesApiResponse> => {
     try {
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
-      }
-
       const { data, error } = await supabase
         .from('sites')
         .select('*')
         .order('site_name', { ascending: true });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      return { data: data as SiteData[], error: null };
+      return createSuccessResponse(data, 'Sites fetched successfully');
     } catch (error) {
-      console.error('Error fetching sites:', error);
-      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+      return handleSupabaseError(
+        error, 
+        'Failed to fetch sites',
+        { operation: 'fetchAllSites' }
+      );
     }
   },
 
   /**
    * Fetch a single site by ID
    */
-  fetchSiteById: async (siteId: string): Promise<SiteResponse> => {
+  fetchSiteById: async (siteId: string): Promise<SiteApiResponse> => {
     try {
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
-      }
-
       const { data, error } = await supabase
         .from('sites')
-        .select('*')
+        .select(`
+          *
+        `)
         .eq('id', siteId)
         .single();
 
-      if (error) {
-        throw error;
-      }
-      
-      return { data: data as SiteData, error: null };
+      if (error) throw error;
+
+      return createSuccessResponse(data, `Site with ID ${siteId} fetched successfully`);
     } catch (error) {
-      console.error('Error fetching site:', error);
-      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+      return handleSupabaseError(
+        error, 
+        `Failed to fetch site with ID ${siteId}`,
+        { operation: 'fetchSiteById', siteId }
+      );
+    }
+  },
+
+  /**
+   * Fetch sites for a specific client
+   */
+  fetchClientSites: async (clientId: string): Promise<SitesApiResponse> => {
+    try {
+      const { data, error } = await supabase
+        .from('sites')
+        .select('*')
+        .eq('client_id', clientId)
+        .order('site_name', { ascending: true });
+
+      if (error) throw error;
+
+      return createSuccessResponse(data, `Sites for client ${clientId} fetched successfully`);
+    } catch (error) {
+      return handleSupabaseError(
+        error, 
+        `Failed to fetch sites for client with ID ${clientId}`,
+        { operation: 'fetchClientSites', clientId }
+      );
     }
   },
 
   /**
    * Create a new site
    */
-  createSite: async (siteData: SiteInsertData): Promise<SiteResponse> => {
+  createSite: async (siteData: SiteInsertData): Promise<SiteApiResponse> => {
     try {
-      const authenticated = await isAuthenticated();
-      if (!authenticated) {
-        throw new Error('Not authenticated. Please log in first.');
-      }
-
       const { data, error } = await supabase
         .from('sites')
         .insert(siteData)
         .select()
         .single();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      return { data: data as SiteData, error: null };
+      return createSuccessResponse(data, 'Site created successfully');
     } catch (error) {
-      console.error('Error creating site:', error);
-      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+      return handleSupabaseError(
+        error, 
+        'Failed to create site',
+        { operation: 'createSite', siteData }
+      );
     }
   },
 
   /**
    * Update an existing site
    */
-  updateSite: async (siteId: string, siteData: SiteUpdateData): Promise<SiteResponse> => {
+  updateSite: async (siteId: string, siteData: SiteUpdateData): Promise<SiteApiResponse> => {
     try {
       const { data, error } = await supabase
         .from('sites')
@@ -98,35 +113,37 @@ export const siteApi = {
         .select()
         .single();
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      return { data: data as SiteData, error: null };
+      return createSuccessResponse(data, `Site with ID ${siteId} updated successfully`);
     } catch (error) {
-      console.error('Error updating site:', error);
-      return { data: null, error: error instanceof Error ? error.message : 'Unknown error' };
+      return handleSupabaseError(
+        error, 
+        `Failed to update site with ID ${siteId}`,
+        { operation: 'updateSite', siteId, siteData }
+      );
     }
   },
 
   /**
    * Delete a site
    */
-  deleteSite: async (siteId: string): Promise<{ success: boolean; error: string | null }> => {
+  deleteSite: async (siteId: string): Promise<ApiResponse<{ success: boolean }>> => {
     try {
       const { error } = await supabase
         .from('sites')
         .delete()
         .eq('id', siteId);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      return { success: true, error: null };
+      return createSuccessResponse({ success: true }, `Site with ID ${siteId} deleted successfully`);
     } catch (error) {
-      console.error('Error deleting site:', error);
-      return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+      return handleSupabaseError(
+        error, 
+        `Failed to delete site with ID ${siteId}`,
+        { operation: 'deleteSite', siteId }
+      );
     }
   }
 };

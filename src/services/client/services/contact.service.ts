@@ -22,12 +22,12 @@ export const clientContactService = {
   },
 
   // Create a new client contact
-  createClientContact: async (clientId: string, contactData: Omit<ContactFormData, 'client_id'>): Promise<ApiResponse<any>> => {
+  createClientContact: async (clientId: string, contactData: Partial<Omit<ContactFormData, 'client_id'>>): Promise<ApiResponse<any>> => {
     // Add client ID to contact data and ensure all required fields are explicitly set
-    const contact: ContactFormData = {
+    const contactWithRequiredFields: ContactFormData = {
       client_id: clientId,
       // Ensure required fields have non-nullable values
-      name: contactData.name ?? '', // Use nullish coalescing for more robust handling
+      name: contactData.name ?? '', 
       email: contactData.email ?? '',
       contact_type: contactData.contact_type ?? 'Primary',
       // Ensure boolean field has a default
@@ -39,7 +39,7 @@ export const clientContactService = {
     };
 
     // Validate the contact data using Zod schema
-    const validationResult = validateWithZod(clientContactSchema, contact);
+    const validationResult = validateWithZod(clientContactSchema, contactWithRequiredFields);
     if ('category' in validationResult) {
       return formatError(
         ErrorCategory.VALIDATION, 
