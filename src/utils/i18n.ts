@@ -12,29 +12,29 @@ interface ErrorPageTranslations {
 
 const translations: Record<SupportedLanguage, ErrorPageTranslations> = {
   en: {
-    pageNotFound: 'Page Not Found',
-    pageNotFoundDescription: 'The page you're looking for doesn't exist or has been moved.',
-    returnToHomepage: 'Return to homepage'
+    pageNotFound: "Page Not Found",
+    pageNotFoundDescription: "The page you're looking for doesn't exist or has been moved.",
+    returnToHomepage: "Return to homepage"
   },
   es: {
-    pageNotFound: 'Página No Encontrada',
-    pageNotFoundDescription: 'La página que estás buscando no existe o ha sido movida.',
-    returnToHomepage: 'Volver a la página principal'
+    pageNotFound: "Página No Encontrada",
+    pageNotFoundDescription: "La página que estás buscando no existe o ha sido movida.",
+    returnToHomepage: "Volver a la página principal"
   },
   fr: {
-    pageNotFound: 'Page Non Trouvée',
-    pageNotFoundDescription: 'La page que vous recherchez n\'existe pas ou a été déplacée.',
-    returnToHomepage: 'Retourner à l\'accueil'
+    pageNotFound: "Page Non Trouvée",
+    pageNotFoundDescription: "La page que vous recherchez n'existe pas ou a été déplacée.",
+    returnToHomepage: "Retourner à l'accueil"
   },
   de: {
-    pageNotFound: 'Seite nicht gefunden',
-    pageNotFoundDescription: 'Die von Ihnen gesuchte Seite existiert nicht oder wurde verschoben.',
-    returnToHomepage: 'Zurück zur Startseite'
+    pageNotFound: "Seite nicht gefunden",
+    pageNotFoundDescription: "Die von Ihnen gesuchte Seite existiert nicht oder wurde verschoben.",
+    returnToHomepage: "Zurück zur Startseite"
   },
   ja: {
-    pageNotFound: 'ページが見つかりません',
-    pageNotFoundDescription: 'お探しのページは存在しないか、移動しました。',
-    returnToHomepage: 'ホームページに戻る'
+    pageNotFound: "ページが見つかりません",
+    pageNotFoundDescription: "お探しのページは存在しないか、移動しました。",
+    returnToHomepage: "ホームページに戻る"
   }
 };
 
