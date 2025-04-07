@@ -61,7 +61,7 @@ export function handleApiError(
         );
       case '28P01': // Invalid password
         return createErrorResponse(
-          ErrorCategory.AUTHENTICATION,
+          ErrorCategory.AUTH,
           'Invalid credentials',
           { supabase_error: pgError, ...context }
         );

@@ -1,4 +1,3 @@
-
 import { PostgrestError } from '@supabase/supabase-js';
 import { ApiErrorResponse, createErrorResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
@@ -55,7 +54,7 @@ export const handleAuthError = (
   });
   
   return createErrorResponse(
-    ErrorCategory.AUTHENTICATION,
+    ErrorCategory.AUTH,
     error.message || defaultMessage,
     {
       status: error.status,

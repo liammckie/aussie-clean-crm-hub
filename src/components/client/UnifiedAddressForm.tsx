@@ -60,7 +60,7 @@ export function UnifiedAddressForm({
         <AddressFields form={form} />
 
         {showIsPrimary && (
-          <IsPrimaryField 
+          <IsPrimaryField<UnifiedAddressFormData>
             form={form} 
             label="Set as primary address" 
           />

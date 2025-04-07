@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ClientFormData } from '@/services/client';
@@ -12,7 +13,8 @@ import { ClientContactsTab } from '@/components/client/ClientContactsTab';
 import { ClientSitesTab } from '@/components/client/ClientSitesTab';
 import { ClientContractsTab } from '@/components/client/ClientContractsTab';
 import { ClientStatus } from '@/types/database-schema';
-import { isApiError, normalizeApiResponse } from '@/types/api-response';
+import { isApiError } from '@/types/api-response';
+import { normalizeApiResponse } from '@/types/api-helpers';
 import { ClientRecord } from '@/types/clients';
 
 const EditClient = () => {

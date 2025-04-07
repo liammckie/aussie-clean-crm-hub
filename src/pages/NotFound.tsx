@@ -11,8 +11,7 @@ const NotFound = () => {
   useEffect(() => {
     // Report 404 errors to Sentry
     ErrorReporting.captureMessage(
-      `404: Route not found: ${location.pathname}`,
-      { pathname: location.pathname, referrer: document.referrer },
+      `404: Route not found: ${location.pathname}`, 
       "warning"
     );
     

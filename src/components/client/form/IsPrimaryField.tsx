@@ -9,23 +9,28 @@ import {
 } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedContactFormData } from '@/types/form-types';
+import { UnifiedContactFormData, UnifiedAddressFormData } from '@/types/form-types';
 
-interface IsPrimaryFieldProps {
-  form: UseFormReturn<UnifiedContactFormData>;
+// Create a union type that contains both form data types
+type FormDataWithIsPrimary = {
+  is_primary?: boolean;
+}
+
+interface IsPrimaryFieldProps<T extends FormDataWithIsPrimary> {
+  form: UseFormReturn<T>;
   label?: string;
   description?: string;
 }
 
-export function IsPrimaryField({ 
+export function IsPrimaryField<T extends FormDataWithIsPrimary>({ 
   form, 
   label = "Mark as primary", 
-  description = "Primary contacts are displayed prominently and used as default contacts"
-}: IsPrimaryFieldProps) {
+  description = "Primary items are displayed prominently and used as defaults"
+}: IsPrimaryFieldProps<T>) {
   return (
     <FormField
       control={form.control}
-      name="is_primary"
+      name="is_primary" as const
       render={({ field }) => (
         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
           <FormControl>

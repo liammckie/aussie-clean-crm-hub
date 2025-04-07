@@ -1,6 +1,5 @@
-
 import * as Sentry from '@sentry/browser';
-import { isApiError } from '@/types/api-response';
+import { isApiError, ApiResponse } from '@/types/api-response';
 import { isApplicationError } from '@/utils/logging/error-types';
 
 /**
@@ -94,10 +93,10 @@ export class ErrorReporting {
     }
     
     // If it's an API error response, create an Error with the message
-    if (isApiError(error)) {
-      const formattedError = new Error(error.message);
-      formattedError.name = `ApiError:${error.category}`;
-      return Object.assign(formattedError, { details: error.details });
+    if (error && typeof error === 'object' && 'category' in error && 'message' in error) {
+      const formattedError = new Error((error as any).message);
+      formattedError.name = `ApiError:${(error as any).category}`;
+      return Object.assign(formattedError, { details: (error as any).details });
     }
     
     // If it's an application error, create an Error with the message

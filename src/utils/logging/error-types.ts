@@ -10,7 +10,11 @@ export enum ErrorCategory {
   NOT_FOUND = 'not_found',
   AUTH = 'auth',
   DATABASE = 'database',
-  BUSINESS_RULE = 'business_rule'
+  BUSINESS_RULE = 'business_rule',
+  UNKNOWN = 'unknown',
+  CONFLICT = 'conflict',
+  AUTHENTICATION = 'authentication',
+  AUTHORIZATION = 'authorization'
 }
 
 /**

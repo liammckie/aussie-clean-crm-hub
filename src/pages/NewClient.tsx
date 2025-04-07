@@ -16,6 +16,7 @@ import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { isAuthenticated } from '@/integrations/supabase/client';
 import { ClientStatus } from '@/types/database-schema';
 import { isApiError } from '@/types/api-response';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 const NewClient = () => {
   const navigate = useNavigate();
@@ -85,7 +86,7 @@ const NewClient = () => {
       const response = await clientService.createClient(preparedData);
 
       if (isApiError(response)) {
-        if (response.category === 'validation') {
+        if (response.category === ErrorCategory.VALIDATION) {
           if (response.details && response.details.field) {
             form.setError(response.details.field as keyof ClientFormData, {
               type: 'manual',
@@ -98,7 +99,7 @@ const NewClient = () => {
         } else {
           toast.error(response.message || 'An error occurred');
           
-          if (response.category === 'authentication') {
+          if (response.category === ErrorCategory.AUTH) {
             setTimeout(() => navigate('/login', { state: { from: '/clients/new' } }), 1500);
           }
         }
