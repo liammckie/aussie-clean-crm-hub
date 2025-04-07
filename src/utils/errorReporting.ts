@@ -1,105 +1,123 @@
 
-import * as Sentry from "@sentry/react";
+import * as Sentry from '@sentry/browser';
+import { isApiError } from '@/types/api-response';
+import { isApplicationError } from '@/utils/logging/error-types';
 
 /**
- * Utility class for error reporting to Sentry
+ * Enhanced error reporting service
  */
 export class ErrorReporting {
+  private static isInitialized = false;
+
   /**
-   * Capture and report an error to Sentry
-   * 
-   * @param error The error to report
-   * @param context Additional context data for the error
-   * @param level The severity level of the error
+   * Initialize error reporting
    */
-  static captureException(
-    error: Error | string, 
-    context?: Record<string, any>, 
-    level: Sentry.SeverityLevel = "error"
-  ) {
-    // Log in development mode
-    if (typeof import.meta !== 'undefined' && import.meta.env && !import.meta.env.PROD) {
-      console.error("Error:", error);
-      if (context) console.error("Context:", context);
-    }
+  public static init(): void {
+    if (this.isInitialized) return;
 
-    // Create the error object if a string was passed
-    const errorObj = typeof error === "string" ? new Error(error) : error;
-
-    // Set the scope with additional context
-    Sentry.withScope((scope) => {
-      scope.setLevel(level);
-      
-      if (context) {
-        Object.entries(context).forEach(([key, value]) => {
-          scope.setExtra(key, value);
+    // Only initialize in production or if explicitly enabled in other environments
+    if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_ERROR_REPORTING) {
+      const dsn = import.meta.env.VITE_SENTRY_DSN;
+      if (dsn) {
+        Sentry.init({
+          dsn,
+          environment: import.meta.env.VITE_ENVIRONMENT || 'development',
+          tracesSampleRate: 0.2,
+          ignoreErrors: [
+            // Ignore network errors that are typically not actionable
+            'Network Error',
+            'Failed to fetch',
+            'NetworkError',
+            'ChunkLoadError',
+          ],
         });
+        this.isInitialized = true;
+        console.log('Error reporting initialized');
+      } else {
+        console.warn('Error reporting DSN not provided');
       }
-      
-      // Always capture to Sentry, even in development
-      Sentry.captureException(errorObj);
-    });
-  }
-
-  /**
-   * Capture a message in Sentry
-   * 
-   * @param message The message to capture
-   * @param context Additional context data for the message
-   * @param level The severity level of the message
-   */
-  static captureMessage(
-    message: string, 
-    context?: Record<string, any>, 
-    level: Sentry.SeverityLevel = "info"
-  ) {
-    // Log in development mode
-    if (typeof import.meta !== 'undefined' && import.meta.env && !import.meta.env.PROD) {
-      console.log("Message:", message);
-      if (context) console.log("Context:", context);
     }
+  }
 
-    Sentry.withScope((scope) => {
-      scope.setLevel(level);
-      
+  /**
+   * Report an exception to the error tracking service
+   */
+  public static captureException(error: unknown, context?: Record<string, any>): void {
+    // Always log to console for development visibility
+    console.error('Error captured:', error, context || {});
+
+    // Format the error message for consistent reporting
+    const formattedError = this.formatError(error);
+    
+    // Report to Sentry if initialized
+    if (this.isInitialized) {
       if (context) {
-        Object.entries(context).forEach(([key, value]) => {
-          scope.setExtra(key, value);
+        Sentry.withScope(scope => {
+          Object.entries(context).forEach(([key, value]) => {
+            scope.setExtra(key, value);
+          });
+          Sentry.captureException(formattedError);
         });
+      } else {
+        Sentry.captureException(formattedError);
       }
-      
-      // Always capture to Sentry, even in development
-      Sentry.captureMessage(message);
-    });
+    }
   }
 
   /**
-   * Set user information for Sentry tracking
-   * 
-   * @param user User information including id, email, etc.
+   * Log an informational message
    */
-  static setUser(user: Sentry.User | null) {
-    Sentry.setUser(user);
+  public static captureMessage(message: string, level: Sentry.SeverityLevel = 'info'): void {
+    console.log(`[${level}]`, message);
+    
+    if (this.isInitialized) {
+      Sentry.captureMessage(message, level);
+    }
   }
 
   /**
-   * Add breadcrumb to the current Sentry scope
-   * 
-   * @param breadcrumb The breadcrumb to add
+   * Set user context for error reporting
    */
-  static addBreadcrumb(breadcrumb: Sentry.Breadcrumb) {
-    Sentry.addBreadcrumb(breadcrumb);
+  public static setUser(user: { id: string; email?: string; username?: string } | null): void {
+    if (this.isInitialized) {
+      Sentry.setUser(user);
+    }
   }
 
   /**
-   * Start a new transaction for performance monitoring
-   * 
-   * @param name The name of the transaction
-   * @param op The operation type
-   * @param data Additional data for the transaction
-   * @returns The transaction instance
+   * Format error for consistent reporting
    */
-  static startTransaction(name: string, op: string, data?: Record<string, any>) {
-    return Sentry.startTransaction({ name, op, data });
+  private static formatError(error: unknown): Error {
+    // If it's already an Error instance, return it
+    if (error instanceof Error) {
+      return error;
+    }
+    
+    // If it's an API error response, create an Error with the message
+    if (isApiError(error)) {
+      const formattedError = new Error(error.message);
+      formattedError.name = `ApiError:${error.category}`;
+      return Object.assign(formattedError, { details: error.details });
+    }
+    
+    // If it's an application error, create an Error with the message
+    if (isApplicationError(error)) {
+      const formattedError = new Error(error.message);
+      formattedError.name = `AppError:${error.category}`;
+      return Object.assign(formattedError, { details: error.details });
+    }
+    
+    // For other object types, stringify them for the error message
+    if (error !== null && typeof error === 'object') {
+      try {
+        return new Error(`Unknown error object: ${JSON.stringify(error)}`);
+      } catch (e) {
+        // In case JSON.stringify fails (e.g., circular references)
+        return new Error('Unknown error object (non-serializable)');
+      }
+    }
+    
+    // For primitive values
+    return new Error(`Unknown error: ${String(error)}`);
   }
 }

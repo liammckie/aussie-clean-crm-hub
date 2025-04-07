@@ -3,42 +3,43 @@ import React from 'react';
 import {
   FormField,
   FormItem,
-  FormLabel,
   FormControl,
-  FormMessage,
+  FormLabel,
+  FormDescription,
 } from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UseFormReturn } from 'react-hook-form';
-import { Path } from 'react-hook-form';
+import { UnifiedContactFormData } from '@/types/form-types';
 
-// Interface for components that include is_primary field
-interface IsPrimaryFieldProps<T> {
-  form: UseFormReturn<T>;
+interface IsPrimaryFieldProps {
+  form: UseFormReturn<UnifiedContactFormData>;
   label?: string;
+  description?: string;
 }
 
-// Type guard to ensure form.control can handle the field
-export function IsPrimaryField<T extends Record<string, any>>({ 
+export function IsPrimaryField({ 
   form, 
-  label = "Set as primary" 
-}: IsPrimaryFieldProps<T>) {
+  label = "Mark as primary", 
+  description = "Primary contacts are displayed prominently and used as default contacts"
+}: IsPrimaryFieldProps) {
   return (
     <FormField
       control={form.control}
-      // Cast to Path<T> to ensure TypeScript understands this is a valid field path
-      name={"is_primary" as Path<T>}
+      name="is_primary"
       render={({ field }) => (
-        <FormItem className="flex flex-row items-center space-x-3 space-y-0">
+        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
           <FormControl>
-            <Checkbox 
-              checked={Boolean(field.value)} 
-              onCheckedChange={field.onChange}
+            <Checkbox
+              checked={field.value === true}
+              onCheckedChange={(checked) => {
+                field.onChange(checked === true);
+              }}
             />
           </FormControl>
-          <FormLabel className="font-normal cursor-pointer">
-            {label}
-          </FormLabel>
-          <FormMessage />
+          <div className="space-y-1 leading-none">
+            <FormLabel>{label}</FormLabel>
+            <FormDescription>{description}</FormDescription>
+          </div>
         </FormItem>
       )}
     />

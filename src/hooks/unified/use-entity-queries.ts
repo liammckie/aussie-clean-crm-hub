@@ -1,78 +1,95 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { unifiedApi } from '@/services/unified/api';
-import { EntityType } from '@/services/client/types';
-import { AppLogger, LogCategory } from '@/utils/logging';
-import { toast } from 'sonner';
+import { unifiedService } from '@/services/unified';
+import { EntityType } from '@/types/form-types';
+import { ApiResponse, isApiError } from '@/types/api-response';
+import { UnifiedAddressRecord, UnifiedContactRecord } from '@/services/unified/types';
+import { ErrorReporting } from '@/utils/errorReporting';
 
 /**
- * Hook for querying entity data (addresses and contacts)
+ * Hook for querying unified entities (addresses and contacts)
  */
 export function useEntityQueries() {
-  // Query for fetching addresses for an entity
-  const useEntityAddresses = (entityType: EntityType | undefined, entityId: string | undefined) => {
-    // Realtime sync is temporarily disabled
-    
+  /**
+   * Hook for querying entity addresses
+   * @param entityType Type of entity (client, site, etc.)
+   * @param entityId ID of the entity
+   * @param options Additional query options
+   * @returns Query result object
+   */
+  const useEntityAddresses = (
+    entityType: EntityType,
+    entityId: string | undefined,
+    options: { enabled?: boolean } = {}
+  ) => {
     return useQuery({
       queryKey: ['unified-addresses', entityType, entityId],
-      queryFn: async () => {
-        if (!entityType || !entityId) throw new Error('Entity type and ID are required');
+      queryFn: async (): Promise<UnifiedAddressRecord[]> => {
+        if (!entityId) {
+          return [];
+        }
+
+        const response = await unifiedService.getEntityAddresses(entityType, entityId);
         
-        AppLogger.debug(LogCategory.DATA, `Fetching addresses for ${entityType} ${entityId}...`);
-        const response = await unifiedApi.getAddresses(entityType, entityId);
-        if ('category' in response) {
-          AppLogger.error(LogCategory.ERROR, `Error fetching addresses: ${response.message}`, {
-            entityType, 
-            entityId, 
-            error: response
-          });
+        if (isApiError(response)) {
+          console.error('Error fetching addresses:', response);
           throw new Error(response.message);
         }
-        AppLogger.debug(LogCategory.DATA, `Fetched ${response.data?.length || 0} addresses for ${entityType} ${entityId}`);
-        return response.data || []; 
+        
+        return response.data;
       },
-      enabled: !!entityType && !!entityId,
-      // Use stale time of 0 to allow for manual refreshes
-      staleTime: 0,
-      // Add error handling within the hook
+      enabled: !!entityId && (options.enabled !== false),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: 1,
       meta: {
-        errorMessage: `Could not load addresses for ${entityType || 'entity'}`
+        onError: (error: Error) => {
+          ErrorReporting.captureException(error);
+        }
       }
     });
   };
 
-  // Query for fetching contacts for an entity
-  const useEntityContacts = (entityType: EntityType | undefined, entityId: string | undefined) => {
-    // Realtime sync is temporarily disabled
-    
+  /**
+   * Hook for querying entity contacts
+   * @param entityType Type of entity (client, site, etc.)
+   * @param entityId ID of the entity
+   * @param options Additional query options
+   * @returns Query result object
+   */
+  const useEntityContacts = (
+    entityType: EntityType,
+    entityId: string | undefined,
+    options: { enabled?: boolean } = {}
+  ) => {
     return useQuery({
       queryKey: ['unified-contacts', entityType, entityId],
-      queryFn: async () => {
-        if (!entityType || !entityId) throw new Error('Entity type and ID are required');
+      queryFn: async (): Promise<UnifiedContactRecord[]> => {
+        if (!entityId) {
+          return [];
+        }
         
-        AppLogger.debug(LogCategory.DATA, `Fetching contacts for ${entityType} ${entityId}...`);
-        const response = await unifiedApi.getContacts(entityType, entityId);
-        if ('category' in response) {
-          AppLogger.error(LogCategory.ERROR, `Error fetching contacts: ${response.message}`, {
-            entityType, 
-            entityId, 
-            error: response
-          });
+        const response = await unifiedService.getEntityContacts(entityType, entityId);
+        
+        if (isApiError(response)) {
+          console.error('Error fetching contacts:', response);
           throw new Error(response.message);
         }
-        AppLogger.debug(LogCategory.DATA, `Fetched ${response.data?.length || 0} contacts for ${entityType} ${entityId}`);
-        return response.data || [];
+        
+        return response.data;
       },
-      enabled: !!entityType && !!entityId,
-      // Use stale time of 0 to allow for manual refreshes
-      staleTime: 0,
-      // Add error handling within the hook
+      enabled: !!entityId && (options.enabled !== false),
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      gcTime: 10 * 60 * 1000, // 10 minutes
+      retry: 1,
       meta: {
-        errorMessage: `Could not load contacts for ${entityType || 'entity'}`
+        onError: (error: Error) => {
+          ErrorReporting.captureException(error);
+        }
       }
     });
   };
-
+  
   return {
     useEntityAddresses,
     useEntityContacts
