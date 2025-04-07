@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useFormContext } from 'react-hook-form';
 import { FormField, FormItem, FormLabel, FormControl, FormDescription, FormMessage } from '@/components/ui/form';
@@ -32,39 +33,6 @@ export function ClientFormFields({ form }: ClientFormFieldsProps) {
                 <Input placeholder="Aussie Clean Pty Ltd" {...field} />
               </FormControl>
               <FormDescription>The official name of the business.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </div>
-      
-      {/* Contact Information */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-        <FormField
-          control={form.control}
-          name="phone"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Phone (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="+61 2 1234 5678" {...field} />
-              </FormControl>
-              <FormDescription>Main business phone number.</FormDescription>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        
-        <FormField
-          control={form.control}
-          name="address"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>General Address (Optional)</FormLabel>
-              <FormControl>
-                <Input placeholder="General business address" {...field} />
-              </FormControl>
-              <FormDescription>General address for the business.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -307,7 +275,7 @@ export function ClientFormFields({ form }: ClientFormFieldsProps) {
                   <Input 
                     type="number" 
                     placeholder="10000" 
-                    {...field} 
+                    value={field.value || ''}
                     onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                   />
                 </FormControl>

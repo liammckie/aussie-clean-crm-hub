@@ -34,7 +34,8 @@ export enum ContactType {
   SALES = 'sales',
   SUPPORT = 'support',
   MANAGER = 'manager',
-  OTHER = 'other'
+  OTHER = 'other',
+  EMERGENCY = 'emergency'
 }
 
 /**
@@ -57,6 +58,16 @@ export interface ClientRecord {
   credit_limit?: number;
   created_at?: string;
   updated_at?: string;
+  // Additional fields needed by components
+  phone?: string;
+  address?: string;
+}
+
+/**
+ * Client with contacts for display
+ */
+export interface ClientWithContacts extends ClientRecord {
+  contacts?: ContactRecord[];
 }
 
 /**
@@ -76,6 +87,8 @@ export interface ContactRecord {
   notes?: string;
   created_at?: string;
   updated_at?: string;
+  // Computed property for display
+  name?: string;
 }
 
 /**
@@ -118,6 +131,9 @@ export interface ClientFormData {
   state?: string;
   postcode?: string;
   country?: string;
+  // Additional fields needed by existing components
+  phone?: string;
+  address?: string;
 }
 
 /**
@@ -134,6 +150,8 @@ export interface ContactFormData {
   is_primary: boolean;
   contact_type?: ContactType;
   notes?: string;
+  // Added for compatibility with existing components
+  name?: string;
 }
 
 /**

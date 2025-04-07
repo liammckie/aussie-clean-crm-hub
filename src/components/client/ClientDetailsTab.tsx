@@ -10,7 +10,7 @@ import { prepareClientDataForSubmission, validateBusinessIdentifiers } from '@/u
 import { toast } from 'sonner';
 import { clientService } from '@/services';
 import { ClientFormFields } from './ClientFormFields';
-import { isApiError } from '@/types/api-response';
+import { isApiError, normalizeApiResponse } from '@/types/api-response';
 
 interface ClientDetailsTabProps {
   clientId: string;
@@ -38,8 +38,11 @@ export function ClientDetailsTab({ clientId, onSaveSuccess, initialData }: Clien
 
     clientService.updateClient(clientId, preparedData)
       .then(response => {
-        if (isApiError(response)) {
-          toast.error(response.message);
+        // Normalize the response to ensure it has the expected structure
+        const normalizedResponse = normalizeApiResponse(response);
+        
+        if (isApiError(normalizedResponse)) {
+          toast.error(normalizedResponse.message);
           return;
         }
         toast.success('Client updated successfully!');

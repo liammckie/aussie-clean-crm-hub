@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { ContactType } from '@/types/form-types';
+import { EntityType } from '@/services/client/types';
 
 interface ClientContactsTabProps {
   clientId: string;
@@ -48,7 +49,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     isLoading, 
     error, 
     refetch 
-  } = useEntityContacts('client', clientId);
+  } = useEntityContacts(EntityType.CLIENT, clientId);
 
   // Define client-specific contact types
   const clientContactTypes: ContactType[] = [
@@ -63,7 +64,7 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
     console.log("Submitting contact form data:", formData);
     createContact(
       {
-        entityType: 'client',
+        entityType: EntityType.CLIENT,
         entityId: clientId,
         contactData: {
           ...formData,

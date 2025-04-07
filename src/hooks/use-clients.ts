@@ -1,10 +1,10 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { ClientFormData, ValidationErrorResponse, clientService, AddressFormData, ContactFormData } from '@/services/client';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
 import { useClientsRealtimeSync, useClientRealtimeSync, useClientContactsRealtimeSync, useClientAddressesRealtimeSync } from './use-realtime-sync';
 import { ErrorResponse } from '@/utils/supabaseErrors';
+import { normalizeApiResponse, isApiError } from '@/types/api-response';
 
 /**
  * Hook for accessing client data and operations
@@ -26,13 +26,15 @@ export function useClients() {
     queryFn: async () => {
       console.log('Fetching all clients...');
       const response = await clientService.getAllClients();
-      if ('category' in response) {
-        console.error('Error fetching clients:', response);
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
+      const normalizedResponse = normalizeApiResponse(response);
+      
+      if (isApiError(normalizedResponse)) {
+        console.error('Error fetching clients:', normalizedResponse);
+        toast.error(`Error: ${normalizedResponse.message}`);
+        throw new Error(normalizedResponse.message);
       }
-      console.log('Fetched clients successfully:', response.data);
-      return response.data || []; // Ensure we always return an array even if data is null
+      console.log('Fetched clients successfully:', normalizedResponse.data);
+      return normalizedResponse.data || []; // Ensure we always return an array even if data is null
     }
   });
 
@@ -48,13 +50,15 @@ export function useClients() {
         
         console.log(`Fetching client details for id ${clientId}...`);
         const response = await clientService.getClientById(clientId);
-        if ('category' in response) {
-          console.error(`Error fetching client ${clientId}:`, response);
-          toast.error(`Error: ${response.message}`);
-          throw new Error(response.message);
+        const normalizedResponse = normalizeApiResponse(response);
+        
+        if (isApiError(normalizedResponse)) {
+          console.error(`Error fetching client ${clientId}:`, normalizedResponse);
+          toast.error(`Error: ${normalizedResponse.message}`);
+          throw new Error(normalizedResponse.message);
         }
-        console.log(`Fetched client ${clientId} successfully:`, response.data);
-        return response.data;
+        console.log(`Fetched client ${clientId} successfully:`, normalizedResponse.data);
+        return normalizedResponse.data;
       },
       enabled: !!clientId,
     });
@@ -65,23 +69,24 @@ export function useClients() {
     mutationFn: async (clientData: ClientFormData) => {
       console.log('Creating new client with data:', clientData);
       const response = await clientService.createClient(clientData);
+      const normalizedResponse = normalizeApiResponse(response);
       
       // Handle validation errors specially by returning the error response
-      if ('category' in response && response.category === 'validation') {
-        console.warn('Validation error during client creation:', response);
-        return response as ValidationErrorResponse;
+      if (isApiError(normalizedResponse) && normalizedResponse.category === 'validation') {
+        console.warn('Validation error during client creation:', normalizedResponse);
+        return normalizedResponse as ValidationErrorResponse;
       }
       
       // Handle other types of errors by throwing
-      if ('category' in response) {
-        console.error('Error creating client:', response);
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
+      if (isApiError(normalizedResponse)) {
+        console.error('Error creating client:', normalizedResponse);
+        toast.error(`Error: ${normalizedResponse.message}`);
+        throw new Error(normalizedResponse.message);
       }
       
-      console.log('Client created successfully:', response.data);
+      console.log('Client created successfully:', normalizedResponse.data);
       // Return the successful data
-      return response.data;
+      return normalizedResponse.data;
     },
     onSuccess: (data) => {
       // Only invalidate queries and show success if not a validation error
@@ -103,20 +108,21 @@ export function useClients() {
     mutationFn: async ({ id, data }: { id: string; data: Partial<ClientFormData> }) => {
       console.log(`Updating client ${id} with data:`, data);
       const response = await clientService.updateClient(id, data);
+      const normalizedResponse = normalizeApiResponse(response);
       
       // Handle validation errors
-      if ('category' in response && response.category === 'validation') {
-        console.warn('Validation error during client update:', response);
-        return response as ValidationErrorResponse;
+      if (isApiError(normalizedResponse) && normalizedResponse.category === 'validation') {
+        console.warn('Validation error during client update:', normalizedResponse);
+        return normalizedResponse as ValidationErrorResponse;
       }
       
-      if ('category' in response) {
-        console.error('Error updating client:', response);
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
+      if (isApiError(normalizedResponse)) {
+        console.error('Error updating client:', normalizedResponse);
+        toast.error(`Error: ${normalizedResponse.message}`);
+        throw new Error(normalizedResponse.message);
       }
-      console.log('Client updated successfully:', response.data);
-      return response.data;
+      console.log('Client updated successfully:', normalizedResponse.data);
+      return normalizedResponse.data;
     },
     onSuccess: (data, variables) => {
       // Only invalidate queries if not a validation error
@@ -139,10 +145,12 @@ export function useClients() {
     mutationFn: async (clientId: string) => {
       console.log(`Deleting client ${clientId}`);
       const response = await clientService.deleteClient(clientId);
-      if ('category' in response) {
-        console.error('Error deleting client:', response);
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
+      const normalizedResponse = normalizeApiResponse(response);
+      
+      if (isApiError(normalizedResponse)) {
+        console.error('Error deleting client:', normalizedResponse);
+        toast.error(`Error: ${normalizedResponse.message}`);
+        throw new Error(normalizedResponse.message);
       }
       console.log('Client deleted successfully');
       return true;
@@ -170,12 +178,14 @@ export function useClients() {
         
         console.log(`Fetching contacts for client ${clientId}...`);
         const response = await clientService.getClientContacts(clientId);
-        if ('category' in response) {
-          console.error(`Error fetching contacts for client ${clientId}:`, response);
-          throw new Error(response.message);
+        const normalizedResponse = normalizeApiResponse(response);
+        
+        if (isApiError(normalizedResponse)) {
+          console.error(`Error fetching contacts for client ${clientId}:`, normalizedResponse);
+          throw new Error(normalizedResponse.message);
         }
-        console.log(`Fetched contacts for client ${clientId} successfully:`, response.data);
-        return response.data || []; // Ensure we always return an array
+        console.log(`Fetched contacts for client ${clientId} successfully:`, normalizedResponse.data);
+        return normalizedResponse.data || []; // Ensure we always return an array
       },
       enabled: !!clientId,
     });
@@ -193,12 +203,14 @@ export function useClients() {
         
         console.log(`Fetching addresses for client ${clientId}...`);
         const response = await clientService.getClientAddresses(clientId);
-        if ('category' in response) {
-          console.error(`Error fetching addresses for client ${clientId}:`, response);
-          throw new Error(response.message);
+        const normalizedResponse = normalizeApiResponse(response);
+        
+        if (isApiError(normalizedResponse)) {
+          console.error(`Error fetching addresses for client ${clientId}:`, normalizedResponse);
+          throw new Error(normalizedResponse.message);
         }
-        console.log(`Fetched addresses for client ${clientId} successfully:`, response.data);
-        return response.data || []; // Ensure we always return an array
+        console.log(`Fetched addresses for client ${clientId} successfully:`, normalizedResponse.data);
+        return normalizedResponse.data || []; // Ensure we always return an array
       },
       enabled: !!clientId,
     });

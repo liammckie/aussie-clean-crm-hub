@@ -18,12 +18,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 
 const contactSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
+  first_name: z.string().min(1, { message: "First name is required" }),
+  last_name: z.string().min(1, { message: "Last name is required" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
   position: z.string().optional(),
   phone: z.string().optional(),
   mobile: z.string().optional(),
-  contact_type: z.enum(['Billing', 'Operations', 'Emergency', 'Primary']),
+  contact_type: z.enum(['primary', 'billing', 'operations', 'emergency', 'technical']),
   is_primary: z.boolean().default(false),
 });
 
@@ -37,17 +38,24 @@ export function ContactForm({ onSubmit, isLoading = false, initialData = {} }: C
   const form = useForm<Omit<ContactFormData, 'client_id'>>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
-      name: initialData.name || '',
+      first_name: initialData.first_name || '',
+      last_name: initialData.last_name || '',
       email: initialData.email || '',
       position: initialData.position || '',
       phone: initialData.phone || '',
       mobile: initialData.mobile || '',
-      contact_type: initialData.contact_type || 'Primary',
+      contact_type: initialData.contact_type || ContactType.PRIMARY,
       is_primary: initialData.is_primary || false,
     }
   });
 
-  const contactTypes: ContactType[] = ['Billing', 'Operations', 'Emergency', 'Primary'];
+  const contactTypes = [
+    { value: ContactType.PRIMARY, label: 'Primary' },
+    { value: ContactType.BILLING, label: 'Billing' },
+    { value: ContactType.OPERATIONS, label: 'Operations' }, 
+    { value: ContactType.TECHNICAL, label: 'Technical' },
+    { value: ContactType.EMERGENCY, label: 'Emergency' }
+  ];
 
   return (
     <Form {...form}>
@@ -55,12 +63,26 @@ export function ContactForm({ onSubmit, isLoading = false, initialData = {} }: C
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
-            name="name"
+            name="first_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Name</FormLabel>
+                <FormLabel>First Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="Contact name" {...field} />
+                  <Input placeholder="First name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="last_name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Last Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Last name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -101,7 +123,10 @@ export function ContactForm({ onSubmit, isLoading = false, initialData = {} }: C
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Contact Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                <Select 
+                  onValueChange={(value) => field.onChange(value as ContactType)}
+                  defaultValue={field.value}
+                >
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select a contact type" />
@@ -109,7 +134,7 @@ export function ContactForm({ onSubmit, isLoading = false, initialData = {} }: C
                   </FormControl>
                   <SelectContent>
                     {contactTypes.map((type) => (
-                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                      <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>

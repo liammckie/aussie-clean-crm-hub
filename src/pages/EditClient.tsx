@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ClientFormData, ClientWithContacts } from '@/services/client';
+import { ClientFormData } from '@/services/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Users, Map, FileText, Building } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -13,6 +12,7 @@ import { ClientContactsTab } from '@/components/client/ClientContactsTab';
 import { ClientSitesTab } from '@/components/client/ClientSitesTab';
 import { ClientContractsTab } from '@/components/client/ClientContractsTab';
 import { ClientStatus } from '@/types/database-schema';
+import { isApiError, normalizeApiResponse } from '@/types/api-response';
 
 const EditClient = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -49,13 +49,14 @@ const EditClient = () => {
     if (clientId && !isLoaded) {
       clientService.getClientById(clientId)
         .then(response => {
-          if (!response || 'category' in response || !response.data) {
-            const errorMessage = 'category' in response ? response.message || 'Unknown error' : 'Unknown error';
-            toast.error(`Failed to load client data: ${errorMessage}`);
+          const normalizedResponse = normalizeApiResponse(response);
+          
+          if (isApiError(normalizedResponse)) {
+            toast.error(`Failed to load client data: ${normalizedResponse.message}`);
             return;
           }
 
-          const clientData = response.data;
+          const clientData = normalizedResponse.data;
           setClientData({
             business_name: clientData.business_name,
             trading_name: clientData.trading_name || '',

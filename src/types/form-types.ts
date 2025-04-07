@@ -1,19 +1,20 @@
 
 import { z } from 'zod';
+import { EntityType, AddressType as ClientAddressType, ContactType as ClientContactType } from '@/services/client/types';
 
 /**
  * Form Types - Centralized definitions for form data structures and validation
  */
 
-// Address types
-export type AddressType = 'billing' | 'shipping' | 'site' | 'warehouse' | 'postal' | 'physical' | 'head_office' | 'branch' | 'residential' | 'commercial';
+// Address types - using the enums from client types for consistency
+export type AddressType = ClientAddressType | string;
 
-// Entity types for relational references
-export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
+// Entity types for relational references - using the enum from client types
+export type EntityType = keyof typeof EntityType | string;
 
-// Contact types - updated to include custom types needed by components
-export type ContactType = 'Billing' | 'Operations' | 'Emergency' | 'Primary' | 'Technical' | 'Management' | 
-  'client_primary' | 'client_site' | 'hr_payroll' | 'emergency';
+// Contact types - updated to be compatible with both string literals and enum
+export type ContactType = ClientContactType | 'Primary' | 'Billing' | 'Operations' | 'Emergency' | 'Technical' | 'Management' | 
+  'client_primary' | 'client_site' | 'hr_payroll';
 
 export type PreferredCommunication = 'email' | 'phone' | 'mobile' | 'post';
 
@@ -103,13 +104,15 @@ export const addressSchema = z.object({
 
 // Contact form schema
 export const contactSchema = z.object({
-  name: nameSchema,
+  first_name: nameSchema,
+  last_name: nameSchema,
   email: emailSchema,
   phone: phoneSchema,
   mobile: phoneSchema,
   position: z.string().optional(),
   contact_type: z.string() as z.ZodType<ContactType>,
-  is_primary: z.boolean().default(false)
+  is_primary: z.boolean().default(false),
+  name: z.string().optional()
 });
 
 // Add missing schemas needed to fix errors:

@@ -19,7 +19,7 @@ export function isResponseWithError(response: any): response is { error: any } {
 /**
  * Safely extract data from API responses, returning undefined if not available
  */
-export function safelyGetResponseData<T>(response: ApiResponse<T> | { data: T } | { error: any }): T | undefined {
+export function safelyGetResponseData<T>(response: ApiResponse<T> | { data: T } | { error: any } | any): T | undefined {
   if ('data' in response) {
     return response.data;
   }
@@ -47,16 +47,26 @@ export function ensureArrayMethods<T>(response: any): T[] {
  * Convert any API response to a standard ApiResponse format
  */
 export function normalizeApiResponse<T>(
-  response: { data: T, error?: any } | { error: any } | ApiResponse<T>
+  response: { data: T, error?: any, message?: string } | { error: any } | ApiResponse<T> | any
 ): ApiResponse<T> {
+  // If it's already a proper API response with category, return it
   if ('category' in response) {
+    // Make sure it has a message
+    if (!('message' in response)) {
+      return {
+        ...response,
+        message: 'An error occurred'
+      };
+    }
     return response as ApiErrorResponse;
   }
   
+  // If it's already a proper success response with data and message, return it
   if ('data' in response && 'message' in response) {
     return response as ApiSuccessResponse<T>;
   }
   
+  // If it has data but no message, add a default message
   if ('data' in response) {
     return {
       data: response.data,
@@ -64,6 +74,7 @@ export function normalizeApiResponse<T>(
     };
   }
   
+  // If it has an error, convert to error response
   if ('error' in response) {
     return {
       category: ErrorCategory.SERVER,
@@ -72,6 +83,7 @@ export function normalizeApiResponse<T>(
     };
   }
   
+  // Return unknown error if response doesn't match any pattern
   return {
     category: ErrorCategory.UNKNOWN,
     message: 'Invalid response format',

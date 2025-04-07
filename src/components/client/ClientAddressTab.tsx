@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { Button } from '@/components/ui/button';
@@ -24,8 +23,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-// Import from types/form-types instead of services/unified
 import { AddressType } from '@/types/form-types';
+import { EntityType } from '@/services/client/types';
 
 interface ClientAddressTabProps {
   clientId: string;
@@ -51,12 +50,12 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
     isLoading, 
     error, 
     refetch 
-  } = useEntityAddresses('client', clientId);
+  } = useEntityAddresses(EntityType.CLIENT, clientId);
 
   const handleAddAddress = async (formData: any) => {
     createAddress(
       { 
-        entityType: 'client', 
+        entityType: EntityType.CLIENT, 
         entityId: clientId, 
         addressData: {
           ...formData,
@@ -80,7 +79,6 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
   };
 
   const handleEditAddress = (address: any) => {
-    // Implementation for editing - would open a dialog with the form pre-populated
     toast.info("Edit functionality will be implemented in future sprint");
   };
 

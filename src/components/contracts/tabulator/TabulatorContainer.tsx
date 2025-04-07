@@ -24,12 +24,14 @@ const TabulatorContainer: React.FC<TabulatorContainerProps> = ({
   useEffect(() => {
     // Initialize tabulator when the component mounts
     if (tableRef.current) {
-      const table = new Tabulator(tableRef.current, {
+      const tabulatorOptions: TabulatorOptions = {
         ...options,
         columns,
         data,
         reactiveData: true
-      });
+      };
+      
+      const table = new Tabulator(tableRef.current, tabulatorOptions);
       
       tabulatorRef.current = table;
       

@@ -1,7 +1,7 @@
 
 import Tabulator from 'tabulator-tables';
 
-// Properly import and re-export Tabulator types
+// Properly type the Tabulator types
 export type ColumnDefinition = Tabulator.ColumnDefinition;
 export type ColumnComponent = Tabulator.ColumnComponent;
 export type CellComponent = Tabulator.CellComponent;
@@ -28,10 +28,11 @@ export interface TabulatorOptions {
   paginationSize?: number;
   initialSort?: TabulatorSorter[];
   placeholder?: string;
-  reactiveData?: boolean;
   columns?: TabulatorColumn[];
   data?: any[];
   index?: string;
   headerFilterLiveFilterDelay?: number;
   selectableRangeMode?: string;
+  // Add property for reactive data
+  reactiveData?: boolean;
 }

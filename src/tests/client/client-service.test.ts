@@ -1,7 +1,9 @@
+
 import { describe, expect, it, jest } from '@jest/globals';
 import { clientService } from '../../services/client';
 import { createSuccessResponse, createErrorResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
+import { ClientRecord, ClientStatus } from '@/types/database-schema';
 
 jest.mock('../../services/client/api', () => ({
   clientApi: {
@@ -18,8 +20,16 @@ jest.mock('../../services/client/api', () => ({
   }
 }));
 
+// Mock the types imported from database schema
+jest.mock('@/types/database-schema', () => ({
+  ClientStatus: {
+    ACTIVE: 'Active',
+    PROSPECT: 'Prospect'
+  }
+}));
+
 describe('Client Service', () => {
-  const mockClientData: ClientFormData = {
+  const mockClientData = {
     business_name: 'Test Client',
     status: ClientStatus.ACTIVE
   };

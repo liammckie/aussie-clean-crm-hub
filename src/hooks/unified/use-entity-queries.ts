@@ -1,6 +1,6 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { unifiedService } from '@/services/unified';
+import { unifiedApi } from '@/services/unified/api';
 import { EntityType } from '@/services/client/types';
 import { useUnifiedAddressesRealtimeSync, useUnifiedContactsRealtimeSync } from '../use-realtime-sync';
 
@@ -19,7 +19,7 @@ export function useEntityQueries() {
         if (!entityType || !entityId) throw new Error('Entity type and ID are required');
         
         console.log(`Fetching addresses for ${entityType} ${entityId}...`);
-        const response = await unifiedService.getAddresses(entityType, entityId);
+        const response = await unifiedApi.getAddresses(entityType, entityId);
         if ('category' in response) {
           console.error(`Error fetching addresses for ${entityType} ${entityId}:`, response);
           throw new Error(response.message);
@@ -42,7 +42,7 @@ export function useEntityQueries() {
         if (!entityType || !entityId) throw new Error('Entity type and ID are required');
         
         console.log(`Fetching contacts for ${entityType} ${entityId}...`);
-        const response = await unifiedService.getContacts(entityType, entityId);
+        const response = await unifiedApi.getContacts(entityType, entityId);
         if ('category' in response) {
           console.error(`Error fetching contacts for ${entityType} ${entityId}:`, response);
           throw new Error(response.message);

@@ -14,7 +14,7 @@ export enum ErrorCategory {
   UNKNOWN = 'unknown'
 }
 
-// String literal types for backward compatibility
+// Use string literal union type for compatibility with existing code
 export type ErrorCategoryString = 
   | 'validation'
   | 'not_found'

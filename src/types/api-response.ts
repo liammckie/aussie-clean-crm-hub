@@ -5,7 +5,7 @@ import { ErrorCategory } from '@/utils/logging/error-types';
  * Standard API error response shape
  */
 export interface ApiErrorResponse {
-  category: ErrorCategory;
+  category: ErrorCategory | string;
   message: string;
   details?: Record<string, any>;
   code?: string;
@@ -29,15 +29,15 @@ export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 /**
  * Type guard to check if a response is an error
  */
-export function isApiError<T>(response: ApiResponse<T>): response is ApiErrorResponse {
-  return 'category' in response;
+export function isApiError<T>(response: ApiResponse<T> | any): response is ApiErrorResponse {
+  return response && 'category' in response;
 }
 
 /**
  * Type guard to check if a response is a success
  */
-export function isApiSuccess<T>(response: ApiResponse<T>): response is ApiSuccessResponse<T> {
-  return 'data' in response && 'message' in response;
+export function isApiSuccess<T>(response: ApiResponse<T> | any): response is ApiSuccessResponse<T> {
+  return response && 'data' in response && 'message' in response;
 }
 
 /**
@@ -60,7 +60,7 @@ export function createSuccessResponse<T>(data: T, message: string = 'Operation s
  * Helper for creating a standardized error response
  */
 export function createErrorResponse(
-  category: ErrorCategory,
+  category: ErrorCategory | string,
   message: string,
   details?: Record<string, any>,
   code?: string,
@@ -90,7 +90,7 @@ export function createErrorResponse(
  * Helper for formatting an error with a specific category
  */
 export function formatError(
-  category: ErrorCategory,
+  category: ErrorCategory | string,
   message: string,
   details?: Record<string, any>
 ): ApiErrorResponse {
