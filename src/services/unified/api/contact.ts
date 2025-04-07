@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { createErrorResponse, createSuccessResponse } from '@/types/api-response';
+import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
 import { UnifiedContactRecord } from '../types';
 import { UnifiedContactFormData, EntityType } from '@/types/form-types';
 import { ErrorCategory } from '@/utils/logging/error-types';

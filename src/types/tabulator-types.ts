@@ -1,11 +1,11 @@
 
-import type { ColumnDefinitionSorterParams, Options } from 'tabulator-tables';
+import type { Options, ColumnDefinition, ColumnComponent, CellComponent, RowComponent } from 'tabulator-tables';
 
 // Re-export the types properly
-export type ColumnDefinition = any;  // Using any for now until we define our own complete type
-export type ColumnComponent = any;
-export type CellComponent = any;
-export type RowComponent = any;
+export type { ColumnDefinition };
+export type { ColumnComponent };
+export type { CellComponent };
+export type { RowComponent };
 
 // Define proper sorter type
 export type TabulatorSorter = {
@@ -24,7 +24,7 @@ export interface TabulatorOptions extends Partial<Options> {
   layout?: 'fitColumns' | 'fitData' | 'fitDataFill' | 'fitDataStretch' | 'fitDataTable';
   selectable?: boolean | number;
   movableRows?: boolean;
-  pagination?: boolean | 'local' | 'remote';
+  pagination?: 'local' | 'remote' | boolean;
   paginationSize?: number;
   initialSort?: TabulatorSorter[];
   placeholder?: string;

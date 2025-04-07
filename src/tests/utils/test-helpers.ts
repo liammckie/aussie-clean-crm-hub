@@ -1,5 +1,5 @@
 
-import { ApiErrorResponse, ApiResponse, ApiSuccessResponse } from '@/types/api-response';
+import { ApiErrorResponse, ApiResponse, ApiSuccessResponse, createErrorResponse, createSuccessResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
@@ -17,32 +17,6 @@ export type {
 export { isApiError as isErrorResponse, isApiSuccess as isSuccessResponse } from '@/types/api-response';
 
 /**
- * Helper to create a success response for tests
+ * Re-export the response creation helpers
  */
-export function createSuccessResponse<T>(data: T, message: string = 'Operation successful', count?: number): ApiSuccessResponse<T> {
-  const response: ApiSuccessResponse<T> = {
-    data,
-    message
-  };
-  
-  if (count !== undefined) {
-    response.count = count;
-  }
-  
-  return response;
-}
-
-/**
- * Helper to create an error response for tests
- */
-export function createErrorResponse(
-  category: ErrorCategory,
-  message: string,
-  details?: { field?: string; error?: string } | Record<string, any>
-): ApiErrorResponse {
-  return {
-    category,
-    message,
-    details
-  };
-}
+export { createSuccessResponse, createErrorResponse };

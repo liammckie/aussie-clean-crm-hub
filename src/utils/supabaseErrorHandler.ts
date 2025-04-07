@@ -1,142 +1,153 @@
-import { isSupabaseError } from '@/integrations/supabase/client';
-import { ErrorCategory } from '@/utils/logging/error-types';
+
+import { PostgrestError } from '@supabase/supabase-js';
 import { ApiErrorResponse, createErrorResponse } from '@/types/api-response';
-import { AppLogger } from '@/utils/logging/AppLogger';
+import { ErrorCategory } from '@/utils/logging/error-types';
+import { AppLogger } from '@/utils/logging';
+import { LogCategory } from '@/utils/logging/LogCategory';
+
+// Mapping of Postgres error codes to more user-friendly messages
+const ERROR_CODE_MESSAGES: Record<string, string> = {
+  '23505': 'This record already exists.',
+  '23503': 'The referenced record does not exist.',
+  '23502': 'A required field is missing.',
+  '22P02': 'Invalid input syntax.',
+  '42P01': 'Table does not exist.',
+  '42703': 'Column does not exist.',
+  '42601': 'Syntax error in the query.',
+  '28000': 'Invalid authorization.',
+  '3F000': 'Schema does not exist.',
+  '40001': 'Serialization failure.',
+  '40P01': 'Deadlock detected.',
+  '53300': 'Too many connections.',
+  '53400': 'Configuration limit exceeded.',
+  '57P01': 'Database unavailable.',
+  '58P01': 'System error.',
+  '66000': 'SQL feature not supported.'
+};
 
 /**
- * Specialized handler for Supabase authentication errors
+ * Parse detailed error message from Postgres error
  */
-export function handleAuthError(error: any, operation: string): ApiErrorResponse {
-  // Add authentication-specific context
-  const context = {
-    operation,
-    auth: true
-  };
+export const parsePostgresErrorMessage = (
+  error: PostgrestError
+): string => {
+  const code = error.code;
+  const defaultMessage = error.message || 'A database error occurred';
   
-  // Special handling for auth errors to provide more user-friendly messages
-  let message = `Authentication error during ${operation}`;
+  if (!code) {
+    return defaultMessage;
+  }
   
-  if (isSupabaseError(error)) {
-    // Match common Supabase auth error codes with user-friendly messages
-    switch(error.code) {
-      case 'auth/invalid-email':
-        message = 'The email address is not valid';
-        break;
-      case 'auth/user-not-found':
-        message = 'No account found with this email address';
-        break;
-      case 'auth/wrong-password':
-        message = 'Incorrect password';
-        break;
-      case 'auth/email-already-in-use':
-        message = 'An account already exists with this email address';
-        break;
-      case 'auth/weak-password':
-        message = 'Password should be at least 6 characters';
-        break;
-      default:
-        if (error.message) {
-          message = error.message;
-        }
+  return ERROR_CODE_MESSAGES[code] || defaultMessage;
+};
+
+/**
+ * Handle auth error
+ */
+export const handleAuthError = (
+  error: { message: string; status?: number },
+  defaultMessage: string,
+  context: Record<string, any> = {}
+): ApiErrorResponse => {
+  AppLogger.error(LogCategory.AUTH, `Auth error: ${error.message}`, {
+    context,
+    error
+  });
+  
+  return createErrorResponse(
+    ErrorCategory.AUTHENTICATION,
+    error.message || defaultMessage,
+    {
+      status: error.status,
+      ...context
     }
-  } else if (error instanceof Error) {
-    message = error.message;
-  }
-
-  // Log the specific auth error
-  AppLogger.error('auth', message, { error, operation });
-  
-  return createErrorResponse(ErrorCategory.AUTHENTICATION, message, { ...context });
-}
+  );
+};
 
 /**
- * Specialized handler for Supabase database errors
+ * Log success responses for debugging
  */
-export function handleDatabaseError(
-  error: any, 
-  operation: string, 
-  table?: string
-): ApiErrorResponse {
-  // Add database-specific context
-  const context = {
-    operation,
-    table
-  };
+export const logSuccess = (
+  message: string,
+  data?: any,
+  context?: Record<string, any>
+): void => {
+  AppLogger.info(LogCategory.API, message, { 
+    data: data ? (typeof data === 'object' ? { ...data } : data) : undefined,
+    context
+  });
+};
+
+/**
+ * Handle database error 
+ */
+export const handleDatabaseError = (
+  error: Error,
+  defaultMessage: string,
+  context: Record<string, any> = {}
+): ApiErrorResponse => {
+  AppLogger.error(LogCategory.DATABASE, `Database error: ${error.message}`, {
+    context,
+    error
+  });
   
-  let message = `Database error during ${operation}`;
-  
-  // Special handling for common database errors
-  if (isSupabaseError(error)) {
-    // Extract the constraint name for more specific error messages
-    const constraintMatch = error.message?.match(/violates\s+(\w+)\s+constraint\s+"([^"]+)"/i);
-    const constraint = constraintMatch ? constraintMatch[2] : null;
-    
-    // Match common database error codes with user-friendly messages
-    switch(error.code) {
-      case '23505': // unique_violation
-        message = constraint 
-          ? `A record with this ${constraint.replace(/_/g, ' ')} already exists`
-          : 'A record with these details already exists';
-        break;
-      case '23503': // foreign_key_violation
-        message = constraint
-          ? `This record is linked to ${constraint.replace(/_/g, ' ')} and cannot be modified`
-          : 'This record is linked to other data and cannot be modified';
-        break;
-      case '23502': // not_null_violation
-        message = 'Required fields are missing';
-        break;
-      case '42P01': // undefined_table
-        message = `The table ${table || 'requested'} does not exist`;
-        break;
-      default:
-        if (error.message) {
-          message = `Database error: ${error.message}`;
-        }
+  return createErrorResponse(
+    ErrorCategory.DATABASE,
+    error.message || defaultMessage,
+    {
+      ...context,
+      originalError: error.message
     }
-  }
+  );
+};
 
-  // Log the specific database error
-  AppLogger.error('database', message, { error, operation, table });
+/**
+ * Handle Postgrest error
+ */
+export const handlePostgrestError = (
+  error: PostgrestError,
+  defaultMessage: string,
+  context: Record<string, any> = {}
+): ApiErrorResponse => {
+  const message = parsePostgresErrorMessage(error);
   
-  return createErrorResponse(ErrorCategory.DATABASE, message, { ...context });
-}
+  AppLogger.error(LogCategory.DATABASE, `Postgrest error: ${message}`, {
+    code: error.code,
+    details: error.details,
+    hint: error.hint,
+    context
+  });
+  
+  return createErrorResponse(
+    ErrorCategory.DATABASE,
+    message || defaultMessage,
+    {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      ...context
+    }
+  );
+};
 
 /**
- * Helper for handling different types of Supabase errors
+ * Handle generic error
  */
-export function handleSupabaseError(
-  error: any,
-  operation: string,
-  context?: { 
-    table?: string; 
-    type?: 'auth' | 'database' | 'storage' | 'api';
-  }
-): ApiErrorResponse {
-  // Route to specialized handlers based on error type
-  if (context?.type === 'auth') {
-    return handleAuthError(error, operation);
-  } else if (context?.type === 'database' || context?.table) {
-    return handleDatabaseError(error, operation, context.table);
-  } else {
-    // Use general handler for other types of errors
-    return createErrorResponse(
-      determineErrorCategory(context?.type),
-      `Error during ${operation}`,
-      { ...context, error }
-    );
-  }
-}
-
-/**
- * Determine appropriate error category based on operation type
- */
-function determineErrorCategory(type?: string): ErrorCategory {
-  switch (type) {
-    case 'auth': return ErrorCategory.AUTHENTICATION;
-    case 'database': return ErrorCategory.DATABASE;
-    case 'storage': return ErrorCategory.STORAGE;
-    case 'api': return ErrorCategory.NETWORK;
-    default: return ErrorCategory.UNKNOWN;
-  }
-}
+export const handleGenericError = (
+  error: unknown,
+  defaultMessage: string,
+  context: Record<string, any> = {}
+): ApiErrorResponse => {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  
+  AppLogger.error(LogCategory.ERROR, `Error: ${errorMessage}`, {
+    context,
+    error
+  });
+  
+  return createErrorResponse(
+    ErrorCategory.UNKNOWN,
+    errorMessage || defaultMessage,
+    context
+  );
+};

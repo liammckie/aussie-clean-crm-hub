@@ -1,207 +1,182 @@
-
-import { isSupabaseError } from '@/integrations/supabase/client';
-import { ErrorReporting } from '@/utils/errorReporting';
-import { toast } from 'sonner';
+import { ApiResponse, ApiErrorResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
+import { PostgrestError, AuthError } from '@supabase/supabase-js';
 import { ErrorCategory } from '@/utils/logging/error-types';
-import { ApiErrorResponse, createErrorResponse } from '@/types/api-response';
+import { AppLogger } from '@/utils/logging';
+import { LogCategory } from '@/utils/logging/LogCategory';
 
 /**
- * Structured error response for API operations
+ * Handle Supabase errors in a consistent way
  */
-export type ErrorResponse = ApiErrorResponse;
-
-// Define a more specific type for Supabase errors
-interface SupabaseErrorWithCode {
-  code?: string;
-  message?: string;
-  error?: string;
-  details?: string | object;
-  hint?: string;
-  errorMessage?: string;
-}
-
-/**
- * Helper to categorize Supabase errors
- */
-export function categorizeError(error: unknown): ErrorCategory {
-  if (!isSupabaseError(error)) {
-    // Check for authentication error messages in non-Supabase errors
-    if (error instanceof Error) {
-      if (error.message.includes('Not authenticated') || 
-          error.message.includes('JWT') ||
-          error.message.includes('token') ||
-          error.message.includes('login')) {
-        return ErrorCategory.AUTHENTICATION;
-      }
-    }
-    return ErrorCategory.UNKNOWN;
-  }
-
-  // Safe type assertion since we've verified it's a Supabase error
-  const supabaseError = error as SupabaseErrorWithCode;
-  const code = supabaseError?.code;
-  
-  // Check for error messages related to authentication
-  const errorMsg = supabaseError?.message || supabaseError?.error || '';
-  if (typeof errorMsg === 'string' && 
-      (errorMsg.toLowerCase().includes('jwt') || 
-       errorMsg.toLowerCase().includes('token') || 
-       errorMsg.toLowerCase().includes('auth') ||
-       errorMsg.toLowerCase().includes('login'))) {
-    return ErrorCategory.AUTHENTICATION;
-  }
-
-  // Authentication errors
-  if (code?.startsWith('auth/') || code === 'unauthorized') {
-    return ErrorCategory.AUTHENTICATION;
-  }
-
-  // Permission errors
-  if (code === 'PGRST116' || code === '42501' || code?.includes('permission')) {
-    return ErrorCategory.PERMISSION;
-  }
-
-  // Validation errors
-  if (code?.startsWith('22') || code?.startsWith('23')) {
-    return ErrorCategory.VALIDATION;
-  }
-
-  // Network errors
-  if (code === 'connection_error' || code === 'timeout') {
-    return ErrorCategory.NETWORK;
-  }
-
-  // Database errors
-  if (code?.startsWith('P') || code?.startsWith('42')) {
-    return ErrorCategory.DATABASE;
-  }
-
-  // Default to server error for other codes
-  return ErrorCategory.SERVER;
-}
-
-/**
- * Process and handle Supabase errors in a consistent way
- * 
- * @param error The error object
- * @param customMessage User-friendly message to display
- * @param context Additional context for logging
- * @returns Structured error response
- */
-export function handleSupabaseError(
+export const handleSupabaseError = (
   error: unknown,
-  customMessage: string,
-  context?: Record<string, any>
-): ErrorResponse {
-  // Create user-friendly error message
-  let message = customMessage;
-  let category = ErrorCategory.UNKNOWN;
-  let code: string | undefined;
-  let details: unknown;
-
-  if (isSupabaseError(error)) {
-    const supabaseError = error as SupabaseErrorWithCode;
-    category = categorizeError(error);
-    code = supabaseError?.code;
-    details = error;
-    
-    // Special handling for authentication and permission errors
-    if (category === ErrorCategory.AUTHENTICATION) {
-      message = `Authentication required: Please log in to continue.`;
-      // Add clear details for debugging
-      details = { 
-        ...supabaseError, 
-        hint: "Check if user is logged in and has a valid session" 
-      };
-    } else if (category === ErrorCategory.PERMISSION) {
-      message = `Permission error: You don't have access to perform this action.`;
-      // Add clear details for debugging
-      details = { 
-        ...supabaseError, 
-        hint: "Check RLS policies and user permissions" 
-      };
-    } 
-    // Add specific details based on error type
-    else if (category === ErrorCategory.VALIDATION && supabaseError?.message) {
-      message = `${customMessage}: ${supabaseError.message}`;
-    } else if (supabaseError?.error) {
-      message = `${customMessage}: ${supabaseError.error}`;
-    } else if (supabaseError?.errorMessage) {
-      message = `${customMessage}: ${supabaseError.errorMessage}`;
-    } else if (supabaseError?.details) {
-      message = `${customMessage}: ${typeof supabaseError.details === 'string' ? supabaseError.details : JSON.stringify(supabaseError.details)}`;
-    }
-  } else if (error instanceof Error) {
-    // Check for authentication messages
-    if (error.message.includes('Not authenticated')) {
-      category = ErrorCategory.AUTHENTICATION;
-      message = `Authentication required: Please log in to continue.`;
-    } else {
-      message = `${customMessage}: ${error.message}`;
-    }
-    details = error;
-  } else if (typeof error === 'string') {
-    message = `${customMessage}: ${error}`;
-    details = { error };
-  } else if (error && typeof error === 'object') {
-    message = `${customMessage}: ${JSON.stringify(error)}`;
-    details = error;
+  message: string,
+  context: Record<string, any> = {}
+): ApiErrorResponse => {
+  console.error('Supabase error:', error);
+  
+  if ((error as PostgrestError)?.code) {
+    const pgError = error as PostgrestError;
+    return handlePostgrestError(pgError, message, context);
   }
-
-  // Report to error monitoring
-  ErrorReporting.captureException(
-    error instanceof Error ? error : new Error(message),
-    {
-      ...context,
-      category,
-      code,
-      customMessage
+  
+  if ((error as AuthError)?.status) {
+    const authError = error as AuthError;
+    return handleAuthError(authError, message, context);
+  }
+  
+  return createErrorResponse(
+    ErrorCategory.UNKNOWN,
+    message,
+    { 
+      originalError: error instanceof Error ? error.message : String(error),
+      ...context
     }
   );
-
-  // Special handling for authentication errors to guide the user
-  if (category === ErrorCategory.AUTHENTICATION) {
-    toast.error("Please log in to continue", {
-      description: "Your session may have expired"
-    });
-    
-    // Redirect to login page after a short delay
-    setTimeout(() => {
-      window.location.href = '/login';
-    }, 2000);
-  } else {
-    // Show user-friendly toast for other errors
-    toast.error(message);
-  }
-
-  // Return structured error response
-  return createErrorResponse(category, message, details as Record<string, any>, code);
-}
+};
 
 /**
- * Log successful operations for auditing and debugging
+ * Parse detailed error message from Postgres error
  */
-export function logSuccess(
-  operation: string,
-  entity: string,
-  data?: unknown,
-  context?: Record<string, any>
-): void {
-  // Add breadcrumb for tracking successful operations
-  ErrorReporting.addBreadcrumb({
-    category: 'operation',
-    message: `${operation} ${entity} successful`,
-    level: 'info',
-    data: {
-      ...context,
-      entity,
-      operation,
-      timestamp: new Date().toISOString()
-    }
-  });
-
-  // Optional debug logging in development
-  if (typeof import.meta !== 'undefined' && import.meta.env && !import.meta.env.PROD) {
-    console.log(`${operation} ${entity} successful:`, data);
+export const parsePostgresErrorMessage = (
+  error: PostgrestError
+): string => {
+  const code = error.code;
+  const defaultMessage = error.message || 'A database error occurred';
+  
+  if (!code) {
+    return defaultMessage;
   }
-}
+  
+  // Mapping of Postgres error codes to more user-friendly messages
+  const ERROR_CODE_MESSAGES: Record<string, string> = {
+    '23505': 'This record already exists.',
+    '23503': 'The referenced record does not exist.',
+    '23502': 'A required field is missing.',
+    '22P02': 'Invalid input syntax.',
+    '42P01': 'Table does not exist.',
+    '42703': 'Column does not exist.',
+    '42601': 'Syntax error in the query.',
+    '28000': 'Invalid authorization.',
+    '3F000': 'Schema does not exist.',
+    '40001': 'Serialization failure.',
+    '40P01': 'Deadlock detected.',
+    '53300': 'Too many connections.',
+    '53400': 'Configuration limit exceeded.',
+    '57P01': 'Database unavailable.',
+    '58P01': 'System error.',
+    '66000': 'SQL feature not supported.'
+  };
+  
+  return ERROR_CODE_MESSAGES[code] || defaultMessage;
+};
+
+/**
+ * Handle auth error
+ */
+export const handleAuthError = (
+  error: { message: string; status?: number },
+  defaultMessage: string,
+  context: Record<string, any> = {}
+): ApiErrorResponse => {
+  AppLogger.error(LogCategory.AUTH, `Auth error: ${error.message}`, {
+    context,
+    error
+  });
+  
+  return createErrorResponse(
+    ErrorCategory.AUTHENTICATION,
+    error.message || defaultMessage,
+    {
+      status: error.status,
+      ...context
+    }
+  );
+};
+
+/**
+ * Log success responses for debugging
+ */
+export const logSuccess = (
+  message: string,
+  data?: any,
+  context?: Record<string, any>
+): void => {
+  AppLogger.info(LogCategory.API, message, { 
+    data: data ? (typeof data === 'object' ? { ...data } : data) : undefined,
+    context
+  });
+};
+
+/**
+ * Handle database error 
+ */
+export const handleDatabaseError = (
+  error: Error,
+  defaultMessage: string,
+  context: Record<string, any> = {}
+): ApiErrorResponse => {
+  AppLogger.error(LogCategory.DATABASE, `Database error: ${error.message}`, {
+    context,
+    error
+  });
+  
+  return createErrorResponse(
+    ErrorCategory.DATABASE,
+    error.message || defaultMessage,
+    {
+      ...context,
+      originalError: error.message
+    }
+  );
+};
+
+/**
+ * Handle Postgrest error
+ */
+export const handlePostgrestError = (
+  error: PostgrestError,
+  defaultMessage: string,
+  context: Record<string, any> = {}
+): ApiErrorResponse => {
+  const message = parsePostgresErrorMessage(error);
+  
+  AppLogger.error(LogCategory.DATABASE, `Postgrest error: ${message}`, {
+    code: error.code,
+    details: error.details,
+    hint: error.hint,
+    context
+  });
+  
+  return createErrorResponse(
+    ErrorCategory.DATABASE,
+    message || defaultMessage,
+    {
+      code: error.code,
+      details: error.details,
+      hint: error.hint,
+      ...context
+    }
+  );
+};
+
+/**
+ * Handle generic error
+ */
+export const handleGenericError = (
+  error: unknown,
+  defaultMessage: string,
+  context: Record<string, any> = {}
+): ApiErrorResponse => {
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  
+  AppLogger.error(LogCategory.ERROR, `Error: ${errorMessage}`, {
+    context,
+    error
+  });
+  
+  return createErrorResponse(
+    ErrorCategory.UNKNOWN,
+    errorMessage || defaultMessage,
+    context
+  );
+};

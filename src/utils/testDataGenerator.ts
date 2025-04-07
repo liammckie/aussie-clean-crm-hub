@@ -1,84 +1,90 @@
-
-import { ClientFormData, ContactFormData } from '@/services/client';
-import { SiteFormData } from '@/components/site/SiteFormTypes';
-import { generateRandomId } from '@/utils/idGenerator';
-import { SiteStatus, SiteType, ClientStatus } from '@/types/database-schema';
+import { faker } from '@faker-js/faker';
+import { ClientStatus, SiteStatus, SiteType, ContactType } from '@/types/database-schema';
 
 /**
- * Generates sample client data for testing purposes
+ * Generate mock client data
  */
-export function generateSampleClient(overrides: Partial<ClientFormData> = {}): ClientFormData {
-  // Base client data that conforms to database expectations
-  const baseClient: ClientFormData = {
-    business_name: `Test Business ${Math.floor(Math.random() * 1000)}`,
-    trading_name: 'Trading As Test Co.',
-    abn: '83914571673', // Valid ABN format
-    acn: '000000019', // Valid ACN format
-    industry: 'Technology',
+export function generateMockClient(): any {
+  return {
+    business_name: faker.company.name(),
+    trading_name: faker.company.name(),
+    abn: faker.string.numeric(11),
+    acn: faker.string.numeric(9),
+    industry: faker.commerce.department(),
     status: ClientStatus.ACTIVE,
-    onboarding_date: new Date().toISOString().split('T')[0], // Current date in YYYY-MM-DD format
-    source: 'Website',
-    billing_cycle: 'Monthly',
-    payment_terms: 'Net 30',
-    payment_method: 'Direct Debit',
-    tax_status: 'GST Registered',
-    credit_limit: 10000,
-    // Address fields
-    address_line_1: '123 Test Street',
-    address_line_2: 'Suite 101',
-    suburb: 'Melbourne',
-    state: 'VIC',
-    postcode: '3000',
-    country: 'Australia',
+    onboarding_date: faker.date.past().toISOString(),
+    source: faker.lorem.word(),
+    billing_cycle: faker.finance.transactionType(),
+    payment_terms: faker.finance.transactionType(),
+    payment_method: faker.finance.transactionType(),
+    tax_status: faker.finance.transactionType(),
+    credit_limit: faker.number.int(10000),
+    address_line_1: faker.location.streetAddress(),
+    address_line_2: faker.location.secondaryAddress(),
+    suburb: faker.location.city(),
+    state: faker.location.state(),
+    postcode: faker.location.zipCode(),
+    country: faker.location.country()
   };
-
-  // Merge base client with any overrides
-  return { ...baseClient, ...overrides };
 }
 
 /**
- * Generates a sample contact for testing purposes
+ * Generate mock contact data
  */
-export function generateSampleContact(clientId: string, overrides: Partial<ContactFormData> = {}): ContactFormData {
-  const baseContact: ContactFormData = {
+export function generateMockContact(clientId: string, isPrimary = false): any {
+  return {
     client_id: clientId,
-    name: `Contact ${Math.floor(Math.random() * 1000)}`,
-    email: `contact${Math.floor(Math.random() * 1000)}@example.com`,
-    position: 'Manager',
-    phone: '0399999999',
-    mobile: '0412345678',
-    contact_type: 'Primary',
-    is_primary: true
+    first_name: faker.person.firstName(),
+    last_name: faker.person.lastName(),
+    email: faker.internet.email(),
+    phone: faker.phone.number(),
+    mobile: faker.phone.number(),
+    position: faker.person.jobTitle(),
+    is_primary: isPrimary,
+    contact_type: ContactType.PRIMARY,
+    notes: faker.lorem.sentence(),
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
   };
-
-  return { ...baseContact, ...overrides };
 }
 
 /**
- * Generates a sample site for testing purposes
+ * Generate mock address data
  */
-export function generateSampleSite(clientId: string, overrides: Partial<SiteFormData> = {}): SiteFormData & { client_id: string } {
-  const siteCode = `SITE${Math.floor(Math.random() * 10000)}`;
-  
-  const baseSite: SiteFormData & { client_id: string } = {
+export function generateMockAddress(clientId: string): any {
+  return {
     client_id: clientId,
-    site_name: `Test Site ${Math.floor(Math.random() * 1000)}`,
-    site_code: siteCode,
-    address_line_1: '456 Test Avenue',
-    address_line_2: 'Level 2',
-    suburb: 'Sydney',
-    state: 'NSW',
-    postcode: '2000',
-    site_contact_name: 'Site Manager',
-    site_contact_email: `site-${siteCode.toLowerCase()}@example.com`,
-    site_contact_phone: '0298765432',
-    notes: 'This is a test site for development',
-    region: 'Metro',
-    induction_required: false,
+    address_type: 'physical',
+    street: faker.location.streetAddress(),
+    suburb: faker.location.city(),
+    state: faker.location.state(),
+    postcode: faker.location.zipCode(),
+    country: faker.location.country()
+  };
+}
+
+/**
+ * Generate mock site data with the correct SiteType
+ */
+export function generateMockSite(clientId: string): any {
+  return {
+    client_id: clientId,
+    site_name: faker.company.name() + ' Office',
+    site_code: faker.helpers.replaceSymbols('????').toUpperCase(),
+    address_line_1: faker.location.streetAddress(),
+    address_line_2: faker.datatype.boolean() ? faker.location.secondaryAddress() : null,
+    suburb: faker.location.city(),
+    state: faker.location.state(),
+    postcode: faker.location.zipCode(),
+    site_contact_name: faker.person.fullName(),
+    site_contact_email: faker.internet.email(),
+    site_contact_phone: faker.phone.number(),
+    notes: faker.lorem.paragraph(),
+    region: faker.location.state(),
+    induction_required: faker.datatype.boolean(),
     status: SiteStatus.ACTIVE,
-    site_type: SiteType.OFFICE,
-    square_meters: 500,
+    site_type: SiteType.COMMERCIAL,
+    square_meters: faker.number.int({ min: 100, max: 10000 }),
+    description: faker.lorem.paragraph()
   };
-
-  return { ...baseSite, ...overrides };
 }

@@ -1,29 +1,10 @@
 
+import { LogCategory as AppLogCategory } from './LogCategory';
+
 /**
- * Log categories for application logging
+ * Re-export LogCategory to ensure consistent usage
  */
-export enum LogCategory {
-  GENERAL = 'general',
-  AUTH = 'auth',
-  USER = 'user',
-  CLIENT = 'client',
-  SITE = 'site',
-  CONTRACT = 'contract',
-  SUPPLIER = 'supplier',
-  SUPPLIER_CONTRACT = 'supplier_contract',
-  BILLING = 'billing',
-  API = 'api',
-  PERFORMANCE = 'performance',
-  ERROR = 'error',
-  DEBUG = 'debug',
-  APPLICATION = 'application',
-  UI = 'ui',
-  DATABASE = 'database',
-  STORAGE = 'storage',
-  CACHE = 'cache',
-  WORK_ORDER = 'work_order',
-  FINANCIAL = 'financial'
-}
+export type LogCategory = AppLogCategory;
 
 /**
  * Log levels for application logging

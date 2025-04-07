@@ -73,6 +73,21 @@ export function createSuccessResponse<T>(data: T, message = 'Success'): ApiSucce
 }
 
 /**
+ * Create an error response (this was missing)
+ */
+export function createErrorResponse(
+  category: ErrorCategory,
+  message: string,
+  details?: Record<string, any>
+): ApiErrorResponse {
+  return {
+    category,
+    message,
+    details
+  };
+}
+
+/**
  * Normalize API response for consistent format
  */
 export function normalizeApiResponse<T>(response: any): ApiResponse<T> {

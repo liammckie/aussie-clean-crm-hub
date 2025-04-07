@@ -13,5 +13,15 @@ export enum LogCategory {
   GENERAL = 'general',
   SITE = 'site',
   AUTH = 'auth',
-  CLIENT = 'client'
+  CLIENT = 'client',
+  VALIDATION = 'validation',
+  CONTRACT = 'contract',
+  SUPPLIER = 'supplier',
+  CACHE = 'cache',
+  USER = 'user',
+  WORK_ORDER = 'work_order',
+  ERROR = 'error',
+  APPLICATION = 'application',
+  STORAGE = 'storage',
+  FINANCIAL = 'financial'
 }

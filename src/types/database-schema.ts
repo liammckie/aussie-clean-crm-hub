@@ -30,7 +30,9 @@ export enum SiteType {
   HEALTHCARE = 'healthcare',
   EDUCATION = 'education',
   GOVERNMENT = 'government',
-  MIXED_USE = 'mixed_use'
+  MIXED_USE = 'mixed_use',
+  OFFICE = 'office',       // Added this as it's used in tests
+  WAREHOUSE = 'warehouse'  // Added this as it's used in tests
 }
 
 // Entity types for the unified API
@@ -70,7 +72,7 @@ export enum AddressType {
   WAREHOUSE = 'warehouse'
 }
 
-// Client record type from the database
+// Client record type from the database with all required properties
 export interface ClientRecord {
   id: string;
   business_name: string;
@@ -78,7 +80,7 @@ export interface ClientRecord {
   abn?: string;
   acn?: string;
   industry?: string;
-  status?: string;
+  status: string;
   onboarding_date?: string;
   source?: string;
   billing_cycle?: string;
@@ -88,7 +90,7 @@ export interface ClientRecord {
   credit_limit?: number;
   created_at?: string;
   updated_at?: string;
-  // Address fields
+  // Address fields - explicitly defined based on error messages
   address_line_1?: string;
   address_line_2?: string;
   suburb?: string;
