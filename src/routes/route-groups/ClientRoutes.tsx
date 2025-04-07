@@ -25,21 +25,21 @@ export const ClientRoutes = () => {
           </Suspense>
         </ProtectedRoute>
       } />
-      <Route path="/new" element={
+      <Route path="new" element={
         <ProtectedRoute>
           <Suspense fallback={<LoadingState />}>
             <NewClient />
           </Suspense>
         </ProtectedRoute>
       } />
-      <Route path="/:clientId" element={
+      <Route path=":clientId" element={
         <ProtectedRoute>
           <Suspense fallback={<LoadingState />}>
             <ClientDetail />
           </Suspense>
         </ProtectedRoute>
       } />
-      <Route path="/edit/:clientId" element={
+      <Route path="edit/:clientId" element={
         <ProtectedRoute>
           <Suspense fallback={<LoadingState />}>
             <EditClient />
