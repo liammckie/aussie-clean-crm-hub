@@ -1,6 +1,6 @@
 
 import * as dotenv from "dotenv";
-dotenv.config({ path: ".env.sentry-build-plugin" });
+dotenv.config();
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
