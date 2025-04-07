@@ -31,5 +31,9 @@ export enum LogCategory {
   // Add missing categories needed by other files
   PERMISSION = 'permission',
   AUTHENTICATION = 'authentication',
-  AUTHORIZATION = 'authorization'
+  AUTHORIZATION = 'authorization',
+  NOT_FOUND = 'not_found',
+  CONFLICT = 'conflict',
+  UNKNOWN = 'unknown',
+  EXTERNAL_SERVICE = 'external_service'
 }

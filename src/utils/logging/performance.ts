@@ -1,78 +1,59 @@
 
-import { AppLogger } from './logger';
+import { AppLogger } from './AppLogger';
 import { LogCategory } from './LogCategory';
 
 /**
  * Performance tracking utility
  */
 export class PerformanceTracker {
-  private static timers: Record<string, number> = {};
-  
+  private startTime: number;
+  private name: string;
+  private thresholdMs: number;
+  private data?: Record<string, any>;
+
   /**
-   * Start timing an operation
+   * Initialize a new performance tracker
+   * @param name Name of the operation being tracked
+   * @param thresholdMs Threshold in milliseconds after which to log a warning
+   * @param data Additional data to include in the log
    */
-  static start(operationName: string): void {
-    AppLogger.debug(LogCategory.PERFORMANCE, `Starting operation: ${operationName}`);
-    this.timers[operationName] = performance.now();
+  constructor(name: string, thresholdMs = 100, data?: Record<string, any>) {
+    this.name = name;
+    this.startTime = performance.now();
+    this.thresholdMs = thresholdMs;
+    this.data = data;
   }
-  
+
   /**
-   * End timing an operation and log the result
+   * End tracking and log the result
+   * @param additionalData Additional data to include in the log
    */
-  static end(operationName: string, additionalData: Record<string, any> = {}): void {
-    const startTime = this.timers[operationName];
-    if (startTime === undefined) {
+  end(additionalData?: Record<string, any>): number {
+    const endTime = performance.now();
+    const duration = endTime - this.startTime;
+
+    const logData = {
+      ...this.data,
+      ...additionalData,
+      durationMs: duration,
+      operation: this.name,
+    };
+
+    // Log as warning if duration exceeds threshold
+    if (duration > this.thresholdMs) {
       AppLogger.warn(
         LogCategory.PERFORMANCE,
-        `Cannot end timing for '${operationName}' - no start time recorded`
+        `⚠️ Slow operation: ${this.name} took ${duration.toFixed(2)}ms`, 
+        logData
       );
-      return;
+    } else {
+      AppLogger.debug(
+        LogCategory.PERFORMANCE,
+        `✓ Operation completed: ${this.name} took ${duration.toFixed(2)}ms`, 
+        logData
+      );
     }
-    
-    const duration = performance.now() - startTime;
-    delete this.timers[operationName];
-    
-    AppLogger.info(
-      LogCategory.PERFORMANCE,
-      `Operation '${operationName}' completed in ${duration.toFixed(2)}ms`,
-      { ...additionalData, duration }
-    );
-  }
-  
-  /**
-   * Wrap a function with performance tracking
-   */
-  static track<T>(name: string, fn: () => T): T {
-    this.start(name);
-    try {
-      const result = fn();
-      this.end(name);
-      return result;
-    } catch (error) {
-      this.end(name, { error });
-      throw error;
-    }
-  }
-  
-  /**
-   * Wrap an async function with performance tracking
-   */
-  static async trackAsync<T>(name: string, fn: () => Promise<T>): Promise<T> {
-    this.start(name);
-    try {
-      const result = await fn();
-      this.end(name);
-      return result;
-    } catch (error) {
-      this.end(name, { error });
-      throw error;
-    }
-  }
-  
-  /**
-   * Clear all timers
-   */
-  static clearAll(): void {
-    this.timers = {};
+
+    return duration;
   }
 }

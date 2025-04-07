@@ -1,5 +1,5 @@
 
-import { AppLogger } from './logger';
+import { AppLogger } from './AppLogger';
 import { LogCategory } from './LogCategory';
 import { Cache } from '../caching/cache';
 

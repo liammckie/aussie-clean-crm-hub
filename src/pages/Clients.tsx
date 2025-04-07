@@ -26,18 +26,19 @@ import EmptyState from "@/components/clients/EmptyState";
 import LoadingState from "@/components/clients/LoadingState";
 import ErrorState from "@/components/clients/ErrorState";
 import { getStatusColor, formatDate } from "@/components/clients/utils/StatusBadgeUtil";
+import { ClientRecord } from "@/types/clients";
 
 const Clients = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { clients, isLoadingClients, clientsError, refetchClients } = useClients();
-  const [filteredClients, setFilteredClients] = useState<any[]>([]);
+  const [filteredClients, setFilteredClients] = useState<ClientRecord[]>([]);
   const [activeStatusFilter, setActiveStatusFilter] = useState<string | null>(null);
 
   // Filter clients based on search term and status
   const filterClients = () => {
     if (!clients) return;
     
-    let filtered = [...clients];
+    let filtered = [...(clients as ClientRecord[])];
     
     // Apply search filter
     if (searchTerm) {

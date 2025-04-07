@@ -1,14 +1,12 @@
 
 /**
- * Re-export all logging utilities from the modular system
+ * Central index file for logging system
+ * Re-exports all logging utilities to ensure consistent usage
  */
-
-export { LogLevel } from './LogLevel';
 export { LogCategory } from './LogCategory';
-export type { LogEntry } from './types';
+export { LogLevel } from './LogLevel';
 export { AppLogger } from './AppLogger';
+export type { LogEntry } from './types';
 export { ErrorCategory } from './error-types';
-
-// Also export performance and other logging utilities
-export * from './performance';
+export { PerformanceTracker } from './performance';
 export * from './cache-wrapper';

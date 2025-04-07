@@ -2,16 +2,16 @@
 import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
- * Successful API response
+ * Interface for API success response structure
  */
-export interface ApiSuccessResponse<T = any> {
+export interface ApiSuccessResponse<T> {
   data: T;
   message: string;
   count?: number;
 }
 
 /**
- * Error API response
+ * Interface for API error response structure
  */
 export interface ApiErrorResponse {
   category: ErrorCategory;
@@ -20,52 +20,21 @@ export interface ApiErrorResponse {
 }
 
 /**
- * Combined API response type
+ * Union type for API response
  */
-export type ApiResponse<T = any> = ApiSuccessResponse<T> | ApiErrorResponse;
+export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
 /**
- * Format error for consistent API responses
+ * Type guard to check if response is an error
  */
-export const formatError = (error: unknown, defaultMessage = 'An error occurred'): ApiErrorResponse => {
-  if (typeof error === 'string') {
-    return {
-      category: ErrorCategory.UNKNOWN,
-      message: error
-    };
-  }
-
-  if (error instanceof Error) {
-    return {
-      category: ErrorCategory.UNKNOWN,
-      message: error.message
-    };
-  }
-
-  return {
-    category: ErrorCategory.UNKNOWN,
-    message: defaultMessage
-  };
-};
-
-/**
- * Check if response is an API error
- */
-export function isApiError<T>(response: ApiResponse<T>): response is ApiErrorResponse {
-  return 'category' in response;
+export function isApiError(response: any): response is ApiErrorResponse {
+  return response && 'category' in response && typeof response.category === 'string';
 }
 
 /**
- * Check if response is a success response
+ * Helper to create standardized success response
  */
-export function isApiSuccess<T>(response: ApiResponse<T>): response is ApiSuccessResponse<T> {
-  return 'data' in response;
-}
-
-/**
- * Create a success response
- */
-export function createSuccessResponse<T>(data: T, message = 'Success'): ApiSuccessResponse<T> {
+export function createSuccessResponse<T>(data: T, message: string): ApiSuccessResponse<T> {
   return {
     data,
     message
@@ -73,7 +42,7 @@ export function createSuccessResponse<T>(data: T, message = 'Success'): ApiSucce
 }
 
 /**
- * Create an error response
+ * Helper to create standardized error response
  */
 export function createErrorResponse(
   category: ErrorCategory,
@@ -88,26 +57,39 @@ export function createErrorResponse(
 }
 
 /**
- * Normalize API response for consistent format
+ * Helper to normalize inconsistent API responses to standard format
  */
 export function normalizeApiResponse<T>(response: any): ApiResponse<T> {
-  // If the response already has the correct structure
-  if ((response && 'data' in response && 'message' in response) || 
-      (response && 'category' in response && 'message' in response)) {
-    return response;
-  }
-  
-  // If it's a plain data object, wrap it in a success response
-  if (response && typeof response === 'object') {
+  // Handle success responses
+  if ('data' in response) {
     return {
-      data: response,
-      message: 'Success'
+      data: response.data,
+      message: response.message || 'Operation successful'
     };
   }
   
-  // Default error response
+  // Handle error responses
+  if ('category' in response) {
+    return {
+      category: response.category,
+      message: response.message || 'An error occurred',
+      details: response.details
+    };
+  }
+  
+  // Handle legacy error responses
+  if ('error' in response) {
+    return {
+      category: ErrorCategory.UNKNOWN,
+      message: response.error || 'Unknown error occurred',
+      details: response
+    };
+  }
+  
+  // Fall back for unrecognized responses
   return {
     category: ErrorCategory.UNKNOWN,
-    message: 'Unknown response format'
+    message: 'Unexpected response format',
+    details: { response }
   };
 }

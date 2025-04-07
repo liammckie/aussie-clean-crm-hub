@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ClientFormData } from '@/services/client';
@@ -13,6 +14,7 @@ import { ClientSitesTab } from '@/components/client/ClientSitesTab';
 import { ClientContractsTab } from '@/components/client/ClientContractsTab';
 import { ClientStatus } from '@/types/database-schema';
 import { isApiError, normalizeApiResponse } from '@/types/api-response';
+import { ClientRecord } from '@/types/clients';
 
 const EditClient = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -56,7 +58,7 @@ const EditClient = () => {
             return;
           }
 
-          const clientData = normalizedResponse.data;
+          const clientData = normalizedResponse.data as ClientRecord;
           setClientData({
             business_name: clientData.business_name,
             trading_name: clientData.trading_name || '',
@@ -87,26 +89,27 @@ const EditClient = () => {
         });
     } else if (client && !isLoaded) {
       // Use client data from React Query if available
+      const clientData = client as ClientRecord;
       setClientData({
-        business_name: client.business_name,
-        trading_name: client.trading_name || '',
-        abn: client.abn || '',
-        acn: client.acn || '',
-        industry: client.industry || '',
-        status: client.status,
-        onboarding_date: client.onboarding_date || undefined,
-        source: client.source || '',
-        billing_cycle: client.billing_cycle || '',
-        payment_terms: client.payment_terms || '',
-        payment_method: client.payment_method || '',
-        tax_status: client.tax_status || '',
-        credit_limit: client.credit_limit || undefined,
-        address_line_1: client.address_line_1 || '',
-        address_line_2: client.address_line_2 || '',
-        suburb: client.suburb || '',
-        state: client.state || '',
-        postcode: client.postcode || '',
-        country: client.country || 'Australia',
+        business_name: clientData.business_name,
+        trading_name: clientData.trading_name || '',
+        abn: clientData.abn || '',
+        acn: clientData.acn || '',
+        industry: clientData.industry || '',
+        status: clientData.status,
+        onboarding_date: clientData.onboarding_date || undefined,
+        source: clientData.source || '',
+        billing_cycle: clientData.billing_cycle || '',
+        payment_terms: clientData.payment_terms || '',
+        payment_method: clientData.payment_method || '',
+        tax_status: clientData.tax_status || '',
+        credit_limit: clientData.credit_limit || undefined,
+        address_line_1: clientData.address_line_1 || '',
+        address_line_2: clientData.address_line_2 || '',
+        suburb: clientData.suburb || '',
+        state: clientData.state || '',
+        postcode: clientData.postcode || '',
+        country: clientData.country || 'Australia',
       });
       setIsLoaded(true);
     }
