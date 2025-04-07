@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { 
   Card, 
@@ -6,22 +7,12 @@ import {
   CardTitle,
   CardDescription
 } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { enhancedToast } from '@/components/ui/enhanced-toast';
 import ContactsTable from '@/components/shared/ContactsTable';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
-import { UnifiedContactForm } from '@/components/client/UnifiedContactForm';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ClientContactModal } from '@/components/client/ClientContactModal';
+import { ClientDeleteAlert } from '@/components/client/ClientDeleteAlert';
 import { ContactType } from '@/services/client/types';
 import { EntityType } from '@/services/client/types';
 import { UnifiedContactRecord } from '@/services/unified/types';
@@ -198,40 +189,20 @@ export function ClientContactsTab({ clientId, onContactAdded }: ClientContactsTa
           />
         )}
 
-        <Dialog open={isContactDialogOpen} onOpenChange={setIsContactDialogOpen}>
-          <DialogContent className="sm:max-w-xl max-h-[90vh] overflow-auto">
-            <DialogHeader>
-              <DialogTitle>Add New Contact</DialogTitle>
-            </DialogHeader>
-            <UnifiedContactForm 
-              onSubmit={handleContactSubmit}
-              isLoading={isCreatingContact || isPending}
-              contactTypes={clientContactTypes}
-              buttonText="Add Contact"
-            />
-          </DialogContent>
-        </Dialog>
+        <ClientContactModal 
+          isOpen={isContactDialogOpen}
+          onOpenChange={setIsContactDialogOpen}
+          onSubmit={handleContactSubmit}
+          isLoading={isCreatingContact || isPending}
+          contactTypes={clientContactTypes}
+        />
 
-        <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to delete this contact?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This action cannot be undone. This will permanently delete the contact from the client record.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction 
-                onClick={confirmDeleteContact}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                disabled={isDeletingContact || isPending}
-              >
-                {isDeletingContact || isPending ? "Deleting..." : "Delete"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+        <ClientDeleteAlert 
+          isOpen={deleteAlertOpen}
+          onOpenChange={setDeleteAlertOpen}
+          onConfirm={confirmDeleteContact}
+          isDeleting={isDeletingContact || isPending}
+        />
       </CardContent>
     </Card>
   );

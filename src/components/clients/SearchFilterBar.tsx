@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Filter, MapPin, RefreshCw } from "lucide-react";
+import { Filter, MapPin, RefreshCw, CalendarDays, BarChart } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,6 +8,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
 
@@ -58,7 +60,7 @@ const SearchFilterBar = ({
         </div>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <Button 
           variant={activeStatusFilter ? "secondary" : "outline"} 
           size="sm"
@@ -66,13 +68,16 @@ const SearchFilterBar = ({
         >
           <Filter className="mr-2 h-4 w-4" /> All
         </Button>
+        
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
-              Status
+              <Filter className="mr-2 h-4 w-4" />Status
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-background border">
+            <DropdownMenuLabel>Client Status</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleStatusFilter("Prospect")}>
               Prospect
             </DropdownMenuItem>
@@ -95,18 +100,82 @@ const SearchFilterBar = ({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="bg-background border">
+            <DropdownMenuLabel>State/Territory</DropdownMenuLabel>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
               All Locations
             </DropdownMenuItem>
-            {/* Just placeholders - would be dynamic in a real implementation */}
-            <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
+            <DropdownMenuItem onClick={() => handleStatusFilter("NSW")}>
               NSW
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
+            <DropdownMenuItem onClick={() => handleStatusFilter("VIC")}>
               VIC
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
+            <DropdownMenuItem onClick={() => handleStatusFilter("QLD")}>
               QLD
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("SA")}>
+              SA
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("WA")}>
+              WA
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("TAS")}>
+              TAS
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("NT")}>
+              NT
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("ACT")}>
+              ACT
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <BarChart className="mr-2 h-4 w-4" />Revenue
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-background border">
+            <DropdownMenuLabel>Annual Revenue</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
+              All Revenue Levels
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("revenue_under_50k")}>
+              Under $50,000
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("revenue_50k_200k")}>
+              $50,000 - $200,000
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("revenue_over_200k")}>
+              Over $200,000
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+        
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="sm">
+              <CalendarDays className="mr-2 h-4 w-4" />Date
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-background border">
+            <DropdownMenuLabel>Client Age</DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={() => handleStatusFilter(null)}>
+              All Dates
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("added_last_month")}>
+              Added Last Month
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("added_last_quarter")}>
+              Added Last Quarter
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => handleStatusFilter("added_last_year")}>
+              Added Last Year
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -119,7 +188,7 @@ const SearchFilterBar = ({
           className="bg-primary text-primary-foreground"
         >
           <RefreshCw className="mr-2 h-4 w-4" />
-          Refresh Data
+          Refresh
         </Button>
       </div>
     </div>
