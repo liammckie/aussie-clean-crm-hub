@@ -1,20 +1,11 @@
 
 import { LogCategory } from './LogCategory';
+import { LogLevel } from './LogLevel';
 
 /**
- * Re-export LogCategory to ensure consistent usage
+ * Re-export LogCategory and LogLevel to ensure consistent usage
  */
-export type { LogCategory };
-
-/**
- * Log levels for application logging
- */
-export enum LogLevel {
-  DEBUG = 'debug',
-  INFO = 'info',
-  WARN = 'warn',
-  ERROR = 'error'
-}
+export { LogCategory, LogLevel };
 
 /**
  * Log entry interface for application logging

@@ -37,3 +37,18 @@ export function formatSupabaseError(error: any): ErrorResponse {
     status: error?.status || 500
   };
 }
+
+/**
+ * Handle Supabase error and return standardized error response
+ * @deprecated Use formatSupabaseError instead
+ */
+export function handleSupabaseError(error: any): ErrorResponse {
+  return formatSupabaseError(error);
+}
+
+/**
+ * Log successful operation
+ */
+export function logSuccess(message: string): void {
+  console.log(`✅ ${message}`);
+}

@@ -27,5 +27,9 @@ export enum LogCategory {
   SUPPLIER_CONTRACT = 'supplier_contract',
   NAVIGATION = 'navigation',
   BUSINESS_LOGIC = 'business_logic',
-  SYSTEM = 'system'
+  SYSTEM = 'system',
+  // Add missing categories needed by other files
+  PERMISSION = 'permission',
+  AUTHENTICATION = 'authentication',
+  AUTHORIZATION = 'authorization'
 }

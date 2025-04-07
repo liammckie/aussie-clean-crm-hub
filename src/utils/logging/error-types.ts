@@ -6,6 +6,7 @@ export enum ErrorCategory {
   VALIDATION = 'validation',
   AUTHENTICATION = 'authentication',
   AUTHORIZATION = 'authorization',
+  PERMISSION = 'permission', // Add this for backward compatibility
   NOT_FOUND = 'not_found',
   CONFLICT = 'conflict',
   SERVER = 'server',
