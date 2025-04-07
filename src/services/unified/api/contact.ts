@@ -1,3 +1,4 @@
+
 import { supabase } from '@/lib/supabase';
 import { ApiResponse, ApiSuccessResponse, ApiErrorResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
 import { UnifiedContactRecord } from '../types';
@@ -15,11 +16,11 @@ export const contactApi = {
   ) => {
     try {
       // Validate required fields
-      if (!contactData.name) {
+      if (!contactData.first_name) {
         return createErrorResponse(
           ErrorCategory.VALIDATION, 
-          'Contact name is required',
-          { field: 'name' }
+          'First name is required',
+          { field: 'first_name' }
         );
       }
 
@@ -52,7 +53,9 @@ export const contactApi = {
         .insert({
           entity_type: entityType,
           entity_id: entityId,
-          name: contactData.name,
+          first_name: contactData.first_name,
+          last_name: contactData.last_name || '',
+          title: contactData.title,
           email: contactData.email,
           phone: contactData.phone,
           mobile: contactData.mobile,
@@ -64,6 +67,7 @@ export const contactApi = {
           state_manager: contactData.state_manager,
           national_manager: contactData.national_manager,
           notes: contactData.notes
+          // No need to explicitly set name as it will be handled by the database trigger
         })
         .select()
         .single();

@@ -1,3 +1,4 @@
+
 import { z } from 'zod';
 import { AddressType, EntityType as DbEntityType, ContactType as DbContactType } from './database-schema';
 
@@ -32,7 +33,9 @@ export type PreferredCommunication = 'email' | 'phone' | 'portal';
 
 // Form data for unified contact form
 export interface UnifiedContactFormData {
-  name: string;
+  first_name: string;
+  last_name: string;
+  title?: string;
   email: string;
   position?: string; // job title
   company?: string;
@@ -45,13 +48,14 @@ export interface UnifiedContactFormData {
   account_manager?: string;
   state_manager?: string;
   national_manager?: string;
-  job_title?: string; // Alternative to position
   preferred_communication?: PreferredCommunication;
 }
 
 // Define contact schema using Zod for validation
 export const unifiedContactSchema = z.object({
-  name: z.string().min(1, { message: "Name is required" }),
+  first_name: z.string().min(1, { message: "First name is required" }),
+  last_name: z.string().optional(),
+  title: z.string().optional(),
   email: z.string().email({ message: "Valid email is required" }),
   position: z.string().optional(),
   company: z.string().optional(),
@@ -64,14 +68,15 @@ export const unifiedContactSchema = z.object({
   account_manager: z.string().optional(),
   state_manager: z.string().optional(),
   national_manager: z.string().optional(),
-  job_title: z.string().optional(),
   preferred_communication: z.string().optional()
 });
 
 // Helper function to create default values for contact form
 export function createDefaultContactValues(initialData?: Partial<UnifiedContactFormData>): UnifiedContactFormData {
   return {
-    name: initialData?.name || '',
+    first_name: initialData?.first_name || '',
+    last_name: initialData?.last_name || '',
+    title: initialData?.title || '',
     email: initialData?.email || '',
     position: initialData?.position || '',
     company: initialData?.company || '',
@@ -84,7 +89,6 @@ export function createDefaultContactValues(initialData?: Partial<UnifiedContactF
     account_manager: initialData?.account_manager || '',
     state_manager: initialData?.state_manager || '',
     national_manager: initialData?.national_manager || '',
-    job_title: initialData?.job_title || '',
     preferred_communication: initialData?.preferred_communication || undefined,
   };
 }

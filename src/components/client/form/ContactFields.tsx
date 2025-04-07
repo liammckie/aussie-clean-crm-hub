@@ -23,12 +23,12 @@ export function ContactFields({ form, contactTypes }: ContactFieldsProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name="name"
+          name="first_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Name</FormLabel>
+              <FormLabel>First Name</FormLabel>
               <FormControl>
-                <Input placeholder="Full name" {...field} />
+                <Input placeholder="First name" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -37,12 +37,42 @@ export function ContactFields({ form, contactTypes }: ContactFieldsProps) {
         
         <FormField
           control={form.control}
+          name="last_name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Last Name</FormLabel>
+              <FormControl>
+                <Input placeholder="Last name" {...field} value={field.value || ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <FormField
+          control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Email</FormLabel>
               <FormControl>
                 <Input placeholder="Email address" type="email" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        
+        <FormField
+          control={form.control}
+          name="title"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Title</FormLabel>
+              <FormControl>
+                <Input placeholder="Job title" {...field} value={field.value || ''} />
               </FormControl>
               <FormMessage />
             </FormItem>

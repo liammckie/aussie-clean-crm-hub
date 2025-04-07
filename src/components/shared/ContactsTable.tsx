@@ -50,6 +50,14 @@ const ContactsTable: React.FC<ContactsTableProps> = ({
   showEntityType = true,
   isLoading = false 
 }) => {
+  // Function to get display name from first_name and last_name or fall back to name field
+  const getDisplayName = (contact: UnifiedContactRecord) => {
+    if (contact.first_name || contact.last_name) {
+      return `${contact.first_name} ${contact.last_name}`.trim();
+    }
+    return contact.name || 'Unknown';
+  };
+
   return (
     <div>
       <div className="flex justify-between items-center mb-4">
@@ -107,18 +115,23 @@ const ContactsTable: React.FC<ContactsTableProps> = ({
                 <TableRow key={contact.id}>
                   <TableCell>
                     <div>
-                      <span className="font-medium">{contact.name}</span>
+                      <span className="font-medium">{getDisplayName(contact)}</span>
                       {contact.is_primary && (
                         <span className="ml-2 text-xs bg-primary/20 text-primary py-0.5 px-1.5 rounded">
                           Primary
                         </span>
                       )}
-                      {contact.position && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {contact.position}
-                          {contact.company && contact.company !== contact.name && ` at ${contact.company}`}
-                        </div>
-                      )}
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {contact.title && <span className="font-medium">{contact.title}</span>}
+                        {contact.position && (
+                          <span>
+                            {contact.title ? ' · ' : ''}{contact.position}
+                          </span>
+                        )}
+                        {contact.company && contact.company !== contact.name && (
+                          <span> at {contact.company}</span>
+                        )}
+                      </div>
                     </div>
                   </TableCell>
                   {showEntityType && (

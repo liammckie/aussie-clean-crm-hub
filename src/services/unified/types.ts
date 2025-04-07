@@ -53,7 +53,9 @@ export interface UnifiedAddressRecord {
 export interface UnifiedContactFormData {
   entity_id: string;
   entity_type: EntityType;
-  name: string;
+  first_name: string;
+  last_name: string;
+  title?: string;
   email?: string;
   phone?: string;
   mobile?: string;
@@ -70,7 +72,10 @@ export interface UnifiedContactRecord {
   id: string;
   entity_id: string;
   entity_type: EntityType;
-  name: string;
+  name: string; // Kept for backward compatibility
+  first_name: string;
+  last_name: string;
+  title?: string;
   email?: string;
   phone?: string;
   mobile?: string;

@@ -910,14 +910,17 @@ export type Database = {
           email: string
           entity_id: string
           entity_type: string
+          first_name: string | null
           id: string
           is_primary: boolean
+          last_name: string | null
           mobile: string | null
           name: string
           national_manager: string | null
           phone: string | null
           position: string | null
           state_manager: string | null
+          title: string | null
           updated_at: string
         }
         Insert: {
@@ -928,14 +931,17 @@ export type Database = {
           email: string
           entity_id: string
           entity_type: string
+          first_name?: string | null
           id?: string
           is_primary?: boolean
+          last_name?: string | null
           mobile?: string | null
           name: string
           national_manager?: string | null
           phone?: string | null
           position?: string | null
           state_manager?: string | null
+          title?: string | null
           updated_at?: string
         }
         Update: {
@@ -946,14 +952,17 @@ export type Database = {
           email?: string
           entity_id?: string
           entity_type?: string
+          first_name?: string | null
           id?: string
           is_primary?: boolean
+          last_name?: string | null
           mobile?: string | null
           name?: string
           national_manager?: string | null
           phone?: string | null
           position?: string | null
           state_manager?: string | null
+          title?: string | null
           updated_at?: string
         }
         Relationships: []
