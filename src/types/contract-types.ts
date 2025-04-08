@@ -40,6 +40,17 @@ export interface ContractData {
   client_representative_name?: string;
   client_representative_contact?: string;
   notes?: string;
+  // Days of week fields
+  monday?: boolean;
+  tuesday?: boolean;
+  wednesday?: boolean;
+  thursday?: boolean;
+  friday?: boolean;
+  saturday?: boolean;
+  sunday?: boolean;
+  // Document URL fields
+  contract_document_url?: string;
+  scope_document_url?: string;
 }
 
 /**
@@ -82,6 +93,17 @@ export interface ContractRecord {
   client_representative_name?: string;
   client_representative_contact?: string;
   notes?: string;
+  // Days of week fields
+  monday?: boolean;
+  tuesday?: boolean;
+  wednesday?: boolean;
+  thursday?: boolean;
+  friday?: boolean;
+  saturday?: boolean;
+  sunday?: boolean;
+  // Document URL fields
+  contract_document_url?: string;
+  scope_document_url?: string;
 }
 
 // Type alias for creating contracts (backward compatibility)
@@ -127,7 +149,18 @@ export const contractFormSchema = z.object({
   sla_requirements: z.string().optional(),
   client_representative_name: z.string().optional(),
   client_representative_contact: z.string().optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
+  // Days of week fields
+  monday: z.boolean().optional().default(false),
+  tuesday: z.boolean().optional().default(false),
+  wednesday: z.boolean().optional().default(false),
+  thursday: z.boolean().optional().default(false),
+  friday: z.boolean().optional().default(false),
+  saturday: z.boolean().optional().default(false),
+  sunday: z.boolean().optional().default(false),
+  // Document URL fields
+  contract_document_url: z.string().url("Must be a valid URL").optional(),
+  scope_document_url: z.string().url("Must be a valid URL").optional()
 });
 
 // Type inferred from schema
@@ -162,6 +195,17 @@ export const createDefaultContractValues = (initialValues: Partial<ContractFormD
   client_representative_name: "",
   client_representative_contact: "",
   notes: "",
+  // Days of week default values
+  monday: false,
+  tuesday: false,
+  wednesday: false,
+  thursday: false,
+  friday: false,
+  saturday: false,
+  sunday: false,
+  // Document URLs default values
+  contract_document_url: "",
+  scope_document_url: "",
   ...initialValues
 });
 

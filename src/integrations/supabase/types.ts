@@ -420,6 +420,7 @@ export type Database = {
           client_representative_contact: string | null
           client_representative_name: string | null
           contract_code: string
+          contract_document_url: string | null
           contract_name: string
           contract_value: number | null
           created_at: string
@@ -427,9 +428,11 @@ export type Database = {
           description: string | null
           documents: Json | null
           end_date: string | null
+          friday: boolean | null
           hourly_rate: number | null
           id: string
           is_ongoing: boolean | null
+          monday: boolean | null
           national_manager: string | null
           notes: string | null
           payment_method: string | null
@@ -438,22 +441,28 @@ export type Database = {
           profit_margin_percentage: number | null
           rate_schedule: Json | null
           renewal_notice_date: string | null
+          saturday: boolean | null
+          scope_document_url: string | null
           service_type: string | null
           sla_requirements: string | null
           start_date: string
           state_manager: string | null
           status: string
+          sunday: boolean | null
           supplier_cost_annual: number | null
           supplier_cost_monthly: number | null
           supplier_cost_weekly: number | null
+          thursday: boolean | null
           total_annual_value: number | null
           total_monthly_value: number | null
           total_weekly_value: number | null
+          tuesday: boolean | null
           updated_at: string
           value_annual: number | null
           value_monthly: number | null
           value_total: number | null
           value_weekly: number | null
+          wednesday: boolean | null
         }
         Insert: {
           account_manager?: string | null
@@ -464,6 +473,7 @@ export type Database = {
           client_representative_contact?: string | null
           client_representative_name?: string | null
           contract_code: string
+          contract_document_url?: string | null
           contract_name: string
           contract_value?: number | null
           created_at?: string
@@ -471,9 +481,11 @@ export type Database = {
           description?: string | null
           documents?: Json | null
           end_date?: string | null
+          friday?: boolean | null
           hourly_rate?: number | null
           id?: string
           is_ongoing?: boolean | null
+          monday?: boolean | null
           national_manager?: string | null
           notes?: string | null
           payment_method?: string | null
@@ -482,22 +494,28 @@ export type Database = {
           profit_margin_percentage?: number | null
           rate_schedule?: Json | null
           renewal_notice_date?: string | null
+          saturday?: boolean | null
+          scope_document_url?: string | null
           service_type?: string | null
           sla_requirements?: string | null
           start_date: string
           state_manager?: string | null
           status?: string
+          sunday?: boolean | null
           supplier_cost_annual?: number | null
           supplier_cost_monthly?: number | null
           supplier_cost_weekly?: number | null
+          thursday?: boolean | null
           total_annual_value?: number | null
           total_monthly_value?: number | null
           total_weekly_value?: number | null
+          tuesday?: boolean | null
           updated_at?: string
           value_annual?: number | null
           value_monthly?: number | null
           value_total?: number | null
           value_weekly?: number | null
+          wednesday?: boolean | null
         }
         Update: {
           account_manager?: string | null
@@ -508,6 +526,7 @@ export type Database = {
           client_representative_contact?: string | null
           client_representative_name?: string | null
           contract_code?: string
+          contract_document_url?: string | null
           contract_name?: string
           contract_value?: number | null
           created_at?: string
@@ -515,9 +534,11 @@ export type Database = {
           description?: string | null
           documents?: Json | null
           end_date?: string | null
+          friday?: boolean | null
           hourly_rate?: number | null
           id?: string
           is_ongoing?: boolean | null
+          monday?: boolean | null
           national_manager?: string | null
           notes?: string | null
           payment_method?: string | null
@@ -526,22 +547,28 @@ export type Database = {
           profit_margin_percentage?: number | null
           rate_schedule?: Json | null
           renewal_notice_date?: string | null
+          saturday?: boolean | null
+          scope_document_url?: string | null
           service_type?: string | null
           sla_requirements?: string | null
           start_date?: string
           state_manager?: string | null
           status?: string
+          sunday?: boolean | null
           supplier_cost_annual?: number | null
           supplier_cost_monthly?: number | null
           supplier_cost_weekly?: number | null
+          thursday?: boolean | null
           total_annual_value?: number | null
           total_monthly_value?: number | null
           total_weekly_value?: number | null
+          tuesday?: boolean | null
           updated_at?: string
           value_annual?: number | null
           value_monthly?: number | null
           value_total?: number | null
           value_weekly?: number | null
+          wednesday?: boolean | null
         }
         Relationships: [
           {

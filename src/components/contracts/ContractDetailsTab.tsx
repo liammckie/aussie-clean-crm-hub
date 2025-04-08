@@ -8,6 +8,8 @@ import { contractDetailsFields } from '@/utils/contractDetailsConfig';
 import { ContractForm } from './ContractForm';
 import { FinancialSummaryCard } from '@/components/financial/FinancialSummaryCard';
 import { generateFinancialBreakdown } from '@/utils/financeCalculations';
+import { ExternalLink } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface ContractDetailsTabProps {
   contractId: string;
@@ -78,6 +80,67 @@ export function ContractDetailsTab({ contractId, viewMode = 'view' }: ContractDe
                 </div>
               </div>
             ))}
+          </div>
+          
+          <Separator className="my-6" />
+          
+          {/* Service Days */}
+          <div className="mb-6">
+            <h3 className="text-lg font-medium mb-3">Service Days</h3>
+            <div className="flex flex-wrap gap-2">
+              {contract.monday && <Badge variant="outline">Monday</Badge>}
+              {contract.tuesday && <Badge variant="outline">Tuesday</Badge>}
+              {contract.wednesday && <Badge variant="outline">Wednesday</Badge>}
+              {contract.thursday && <Badge variant="outline">Thursday</Badge>}
+              {contract.friday && <Badge variant="outline">Friday</Badge>}
+              {contract.saturday && <Badge variant="outline">Saturday</Badge>}
+              {contract.sunday && <Badge variant="outline">Sunday</Badge>}
+              {!contract.monday && !contract.tuesday && !contract.wednesday && 
+               !contract.thursday && !contract.friday && !contract.saturday && !contract.sunday && 
+               <span className="text-muted-foreground italic">No service days specified</span>}
+            </div>
+          </div>
+          
+          {/* Document Links */}
+          <div>
+            <h3 className="text-lg font-medium mb-3">Documents</h3>
+            <div className="space-y-2">
+              <div>
+                <span className="text-sm text-muted-foreground">Contract Document</span>
+                <div>
+                  {contract.contract_document_url ? (
+                    <a 
+                      href={contract.contract_document_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center"
+                    >
+                      View Contract Document <ExternalLink className="h-4 w-4 ml-1" />
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground italic">No document attached</span>
+                  )}
+                </div>
+              </div>
+              
+              <div>
+                <span className="text-sm text-muted-foreground">Scope of Work</span>
+                <div>
+                  {contract.scope_document_url ? (
+                    <a 
+                      href={contract.scope_document_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-primary hover:underline flex items-center"
+                    >
+                      View Scope of Work <ExternalLink className="h-4 w-4 ml-1" />
+                    </a>
+                  ) : (
+                    <span className="text-muted-foreground italic">No document attached</span>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </CardContent>
       </Card>
