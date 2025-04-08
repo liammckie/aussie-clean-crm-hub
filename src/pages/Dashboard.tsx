@@ -69,6 +69,8 @@ const Dashboard = () => {
         <h2 className="text-xl font-semibold mb-4">Business Performance</h2>
         <DashboardGrid>
           <BusinessMetricsCard />
+          <TodaySalesCard />
+          <QualityAuditsCard />
           
           <FinancialSummaryCard
             title="Company Financials"
@@ -76,14 +78,10 @@ const Dashboard = () => {
             weekly={companyFinancials.weekly}
             monthly={companyFinancials.monthly}
             annual={companyFinancials.annual}
-            className="col-span-2"
           />
-          
-          <TodaySalesCard />
-          <QualityAuditsCard />
           <TopClientsCard />
-          <SalesTargetCard />
           <NetProfitCard />
+          <SalesTargetCard />
         </DashboardGrid>
       </div>
     </div>
