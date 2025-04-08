@@ -18,27 +18,17 @@ import { ChevronRight } from "lucide-react";
 
 interface ClientsTableProps {
   clients: ClientRecord[];
+  getStatusColor?: (status: string | undefined) => string;
+  formatDate?: (date: string) => string;
 }
 
-export function ClientsTable({ clients }: ClientsTableProps) {
+export function ClientsTable({ 
+  clients, 
+  getStatusColor = getDefaultStatusColor,
+  formatDate = formatShortDate 
+}: ClientsTableProps) {
   const navigate = useNavigate();
   
-  // Get the status color for badges
-  const getStatusColor = (status: string | undefined): string => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "On Hold":
-        return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
-      case "Prospect":
-        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
-      case "Cancelled":
-        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      default:
-        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
-    }
-  };
-
   const handleRowClick = (clientId: string) => {
     navigate(`/clients/${clientId}`);
   };
@@ -86,7 +76,7 @@ export function ClientsTable({ clients }: ClientsTableProps) {
               </TableCell>
               <TableCell className="hidden lg:table-cell">
                 {client.onboarding_date 
-                  ? formatShortDate(client.onboarding_date)
+                  ? formatDate(client.onboarding_date)
                   : "Not set"}
               </TableCell>
               <TableCell className="hidden lg:table-cell">
@@ -111,4 +101,20 @@ export function ClientsTable({ clients }: ClientsTableProps) {
       </Table>
     </div>
   );
+}
+
+// Helper function for status color
+function getDefaultStatusColor(status: string | undefined): string {
+  switch (status) {
+    case "Active":
+      return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+    case "On Hold":
+      return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
+    case "Prospect":
+      return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+    case "Cancelled":
+      return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+    default:
+      return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+  }
 }

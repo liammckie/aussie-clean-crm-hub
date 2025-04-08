@@ -5,7 +5,7 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { useClients } from "@/hooks/use-clients";
-import ClientsTable from "@/components/clients/ClientsTable";
+import { ClientsTable } from "@/components/clients/ClientsTable";
 import ClientCards from "@/components/clients/ClientCards";
 import SearchFilterBar from "@/components/clients/SearchFilterBar";
 import EmptyState from "@/components/clients/EmptyState";

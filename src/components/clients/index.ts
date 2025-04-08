@@ -1,5 +1,6 @@
 
-export { default as ClientsTable } from './ClientsTable';
+// Components barrel file
+export { ClientsTable } from './ClientsTable';
 export { default as ClientCards } from './ClientCards';
 export { default as SearchFilterBar } from './SearchFilterBar';
 export { default as EmptyState } from './EmptyState';

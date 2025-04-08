@@ -78,3 +78,67 @@ export const calculateMonthlyFromAnnual = (annualValue: number): number => {
 export const calculateWeeklyFromAnnual = (annualValue: number): number => {
   return annualValue / 52;
 };
+
+/**
+ * Financial metrics data structure
+ */
+export interface FinancialMetrics {
+  revenue: number;
+  cost: number;
+  profit: number;
+  marginPercentage: number;
+}
+
+/**
+ * Financial breakdown structure with weekly, monthly, and annual metrics
+ */
+export interface FinancialBreakdown {
+  weekly: FinancialMetrics;
+  monthly: FinancialMetrics;
+  annual: FinancialMetrics;
+}
+
+/**
+ * Generate financial breakdown from weekly revenue and cost
+ * @param weeklyRevenue Weekly revenue amount
+ * @param weeklyCost Weekly cost amount
+ * @returns Financial breakdown with weekly, monthly, and annual metrics
+ */
+export const generateFinancialBreakdown = (weeklyRevenue: number, weeklyCost: number): FinancialBreakdown => {
+  // Weekly calculations
+  const weeklyProfit = calculateGrossProfit(weeklyRevenue, weeklyCost);
+  const weeklyMargin = calculateGrossProfitMargin(weeklyRevenue, weeklyCost);
+  
+  // Monthly calculations (assuming 4.33 weeks per month on average)
+  const monthlyRevenue = weeklyRevenue * 4.33;
+  const monthlyCost = weeklyCost * 4.33;
+  const monthlyProfit = calculateGrossProfit(monthlyRevenue, monthlyCost);
+  const monthlyMargin = calculateGrossProfitMargin(monthlyRevenue, monthlyCost);
+  
+  // Annual calculations (52 weeks per year)
+  const annualRevenue = weeklyRevenue * 52;
+  const annualCost = weeklyCost * 52;
+  const annualProfit = calculateGrossProfit(annualRevenue, annualCost);
+  const annualMargin = calculateGrossProfitMargin(annualRevenue, annualCost);
+  
+  return {
+    weekly: {
+      revenue: weeklyRevenue,
+      cost: weeklyCost,
+      profit: weeklyProfit,
+      marginPercentage: weeklyMargin * 100
+    },
+    monthly: {
+      revenue: monthlyRevenue,
+      cost: monthlyCost,
+      profit: monthlyProfit,
+      marginPercentage: monthlyMargin * 100
+    },
+    annual: {
+      revenue: annualRevenue,
+      cost: annualCost,
+      profit: annualProfit,
+      marginPercentage: annualMargin * 100
+    }
+  };
+};
