@@ -1,4 +1,5 @@
 
+// Only updating the specific part with the badge variant issue
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -88,7 +89,7 @@ export function SupplierComplianceTab({
       );
     } else if (isExpiringWithin30Days(document.expiry_date)) {
       return (
-        <Badge variant="warning" className="bg-yellow-200 text-yellow-800 hover:bg-yellow-300">
+        <Badge variant="secondary" className="bg-yellow-200 text-yellow-800 hover:bg-yellow-300">
           <AlertTriangle className="h-3 w-3 mr-1" />
           <span>Expiring Soon</span>
         </Badge>

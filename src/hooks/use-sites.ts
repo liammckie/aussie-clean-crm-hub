@@ -2,7 +2,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSites, getSiteById, getClientSites, createSite, updateSite, deleteSite } from "@/services/site/service";
 import { SiteInsertData, SiteUpdateData } from "@/services/site/types";
-import { ApiResponse, isApiError } from "@/types/api-response";
+import { ApiResponse, isApiError, isApiSuccess } from "@/types/api-response";
 
 export const useSites = () => {
   const query = useQuery({

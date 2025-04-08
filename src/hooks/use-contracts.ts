@@ -32,8 +32,8 @@ export const useContracts = (clientId?: string) => {
   };
   
   // Contract update function
-  const useUpdateContract = (contractId: string, data: ContractFormData) => {
-    return async () => {
+  const useUpdateContract = () => {
+    return async (contractId: string, data: ContractFormData) => {
       try {
         // Mock implementation
         return { success: true, data: { id: contractId } };
@@ -44,8 +44,8 @@ export const useContracts = (clientId?: string) => {
   };
   
   // Contract create function
-  const useCreateContract = (data: ContractFormData) => {
-    return async () => {
+  const useCreateContract = () => {
+    return async (data: ContractFormData) => {
       try {
         // Mock implementation
         return { success: true, data: { id: 'new-id' } };

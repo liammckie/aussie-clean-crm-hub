@@ -25,9 +25,11 @@ interface ClientsHook {
     data: ClientRecord | undefined;
     isLoading: boolean;
     error: Error | null;
+    refetch: () => Promise<any>;
   };
   refetchClients: (options?: any) => Promise<any>;
   isLoading: boolean;
+  isLoadingClients: boolean; // Added this property
   clientsError: Error | null;
   clients: ClientRecord[] | undefined;
 }
@@ -59,10 +61,15 @@ export const useClients = (): ClientsHook => {
     error: error as Error | null,
     refetch
   };
+  
+  // Client list hook implementation (explicit implementation for useClientsList)
+  const useClientsList = () => {
+    return clientHook;
+  };
 
   // Client details hook implementation
   const useClientDetails = (clientId: string | undefined) => {
-    return useQuery({
+    const result = useQuery({
       queryKey: ['client', clientId],
       queryFn: async () => {
         if (!clientId) return undefined;
@@ -76,15 +83,23 @@ export const useClients = (): ClientsHook => {
       },
       enabled: !!clientId
     });
+    
+    return {
+      data: result.data,
+      isLoading: result.isLoading,
+      error: result.error as Error | null,
+      refetch: result.refetch
+    };
   };
 
   return {
-    useClientsList: () => clientHook,
+    useClientsList,
     useAllClients: () => clientHook,
     useOptimizedClients: () => clientHook,
     useClientDetails,
     refetchClients: refetch,
     isLoading,
+    isLoadingClients: isLoading, // Added this property
     clientsError: error as Error | null,
     clients: data
   };
