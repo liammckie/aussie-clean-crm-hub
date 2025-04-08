@@ -814,6 +814,8 @@ export type Database = {
           id: string
           last_review_date: string | null
           notes: string | null
+          payment_terms_days: number | null
+          preferred_payment_method: string | null
           primary_contact_email: string | null
           primary_contact_name: string | null
           primary_contact_phone: string | null
@@ -828,6 +830,8 @@ export type Database = {
           id?: string
           last_review_date?: string | null
           notes?: string | null
+          payment_terms_days?: number | null
+          preferred_payment_method?: string | null
           primary_contact_email?: string | null
           primary_contact_name?: string | null
           primary_contact_phone?: string | null
@@ -842,6 +846,8 @@ export type Database = {
           id?: string
           last_review_date?: string | null
           notes?: string | null
+          payment_terms_days?: number | null
+          preferred_payment_method?: string | null
           primary_contact_email?: string | null
           primary_contact_name?: string | null
           primary_contact_phone?: string | null
@@ -1136,6 +1142,7 @@ export type Database = {
           pay_rate: number | null
           payment_date: string | null
           payment_reference: string | null
+          site_id: string | null
           status: string
           supplier_id: string | null
           updated_at: string | null
@@ -1152,6 +1159,7 @@ export type Database = {
           pay_rate?: number | null
           payment_date?: string | null
           payment_reference?: string | null
+          site_id?: string | null
           status?: string
           supplier_id?: string | null
           updated_at?: string | null
@@ -1168,12 +1176,20 @@ export type Database = {
           pay_rate?: number | null
           payment_date?: string | null
           payment_reference?: string | null
+          site_id?: string | null
           status?: string
           supplier_id?: string | null
           updated_at?: string | null
           work_order_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "workbills_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "workbills_supplier_id_fkey"
             columns: ["supplier_id"]

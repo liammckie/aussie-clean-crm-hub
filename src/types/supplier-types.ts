@@ -1,4 +1,3 @@
-
 import { z } from "zod";
 
 // Supplier status enum
@@ -55,6 +54,8 @@ export const supplierFormSchema = z.object({
   services_provided: z.string().optional().nullable(),
   notes: z.string().optional().nullable(),
   bank_details: bankDetailsSchema.optional().nullable(),
+  payment_terms_days: z.number().int().optional().nullable(),
+  preferred_payment_method: z.string().optional().nullable(),
 });
 
 // Define the SupplierData type based on the Zod schema
@@ -83,6 +84,8 @@ export type SupplierData = {
   services_provided?: string | null;
   notes?: string | null;
   bank_details?: BankDetails | null;
+  payment_terms_days?: number | null;
+  preferred_payment_method?: string | null;
   created_at?: string;
   updated_at?: string;
 };

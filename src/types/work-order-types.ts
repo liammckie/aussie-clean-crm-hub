@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 // Work Order Status Options
@@ -102,4 +101,5 @@ export interface WorkbillData {
   notes?: string;
   created_at: string;
   updated_at: string;
+  site_id?: string; // Optional site ID
 }
