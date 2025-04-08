@@ -127,11 +127,19 @@ export const generateCashFlowProjection = (
   const billingDates = generateBillingDates(
     startDate,
     billingFrequency,
+    // Need more billing cycles for weekly and fortnightly frequencies
+    billingFrequency === 'weekly' ? projectionMonths * 4 :
+    billingFrequency === 'fortnightly' ? projectionMonths * 2 :
+    billingFrequency === 'quarterly' ? Math.max(2, Math.ceil(projectionMonths / 3)) :
+    billingFrequency === 'annually' ? Math.max(1, Math.ceil(projectionMonths / 12)) :
     projectionMonths
   );
   
   // For each billing date, generate incoming and outgoing cash flows
   billingDates.forEach((billingDate, index) => {
+    // Skip if billing date is beyond projection end date
+    if (billingDate > endDate) return;
+    
     // Calculate expected payment date based on payment terms
     const paymentDueDate = calculatePaymentDueDate(
       billingDate,
@@ -147,9 +155,17 @@ export const generateCashFlowProjection = (
         revenue = contract.total_weekly_value || 0;
         cost = contract.supplier_cost_weekly || 0;
         break;
+      case "fortnightly":
+        revenue = (contract.total_weekly_value || 0) * 2;
+        cost = (contract.supplier_cost_weekly || 0) * 2;
+        break;
       case "monthly":
         revenue = contract.total_monthly_value || 0;
         cost = contract.supplier_cost_monthly || 0;
+        break;
+      case "quarterly":
+        revenue = (contract.total_monthly_value || 0) * 3;
+        cost = (contract.supplier_cost_monthly || 0) * 3;
         break;
       case "annually":
         revenue = contract.total_annual_value || 0;
@@ -221,4 +237,3 @@ export const formatProjectionDate = (date: Date, includeYear: boolean = true): s
   
   return date.toLocaleDateString('en-AU', options);
 };
-

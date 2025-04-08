@@ -1,8 +1,8 @@
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { CashFlowProjection, formatProjectionDate } from '@/utils/cashFlowProjections';
+import { CashFlowProjection, formatProjectionDate, generateCashFlowProjection } from '@/utils/cashFlowProjections';
 import { formatCurrency } from '@/utils/financeCalculations';
 import { ArrowUpIcon, ArrowDownIcon, DollarSignIcon, Calendar, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,22 +16,79 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+  Legend,
+  ReferenceLine,
+} from 'recharts';
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart';
 
 interface CashFlowProjectionCardProps {
   title: string;
   description?: string;
   projection: CashFlowProjection;
+  contractData?: any;
   className?: string;
 }
 
 export function CashFlowProjectionCard({
   title,
   description,
-  projection,
+  projection: initialProjection,
+  contractData,
   className = '',
 }: CashFlowProjectionCardProps) {
   const [view, setView] = useState<'chart' | 'table'>('table');
   const [projectionPeriod, setProjectionPeriod] = useState<string>('6');
+  
+  // Regenerate the projection when period changes
+  const projection = useMemo(() => {
+    if (!contractData) return initialProjection;
+    
+    return generateCashFlowProjection(
+      contractData,
+      parseInt(projectionPeriod, 10)
+    );
+  }, [contractData, projectionPeriod, initialProjection]);
+  
+  // Prepare data for chart
+  const chartData = useMemo(() => {
+    // Group by month for better visualization
+    const monthlyData = new Map();
+    
+    projection.entries.forEach(entry => {
+      const month = new Date(entry.date).toLocaleString('en-AU', { month: 'short', year: 'numeric' });
+      
+      if (!monthlyData.has(month)) {
+        monthlyData.set(month, {
+          month,
+          incoming: 0,
+          outgoing: 0,
+          balance: 0,
+          date: new Date(entry.date)
+        });
+      }
+      
+      const data = monthlyData.get(month);
+      data.incoming += entry.incoming;
+      data.outgoing += entry.outgoing;
+      
+      // The last balance value for the month will be the correct one
+      if (entry.balance !== 0) {
+        data.balance = entry.balance;
+      }
+    });
+    
+    // Sort by date
+    return Array.from(monthlyData.values())
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
+  }, [projection.entries]);
   
   const handleDownloadCSV = () => {
     // Create CSV content
@@ -60,6 +117,13 @@ export function CashFlowProjectionCard({
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+  
+  // Configuration for the chart
+  const chartConfig = {
+    incoming: { label: "Revenue", color: "#22c55e" },
+    outgoing: { label: "Costs", color: "#ef4444" },
+    balance: { label: "Balance", color: "#3b82f6" },
   };
   
   return (
@@ -169,15 +233,52 @@ export function CashFlowProjectionCard({
           </TabsContent>
           
           <TabsContent value="chart">
-            <div className="flex items-center justify-center h-80 bg-slate-50 dark:bg-slate-900 rounded-md">
-              <p className="text-muted-foreground text-center">
-                Cash flow visualization chart will be implemented in the next phase.
-                <br />
-                <span className="text-sm">
-                  (Will use Recharts library to visualize cash flow data)
-                </span>
-              </p>
-            </div>
+            <ChartContainer className="h-80" config={chartConfig}>
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart
+                  data={chartData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+                >
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis 
+                    dataKey="month" 
+                    tickMargin={10}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                    width={60}
+                  />
+                  <Tooltip content={<ChartTooltipContent />} />
+                  <Legend />
+                  <ReferenceLine y={0} stroke="#666" />
+                  <Line
+                    type="monotone"
+                    dataKey="incoming"
+                    stroke={chartConfig.incoming.color}
+                    name="Revenue"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    activeDot={{ r: 6 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="outgoing"
+                    stroke={chartConfig.outgoing.color}
+                    name="Costs"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="balance"
+                    stroke={chartConfig.balance.color}
+                    name="Balance"
+                    strokeWidth={3}
+                    dot={{ r: 4 }}
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </ChartContainer>
           </TabsContent>
         </Tabs>
       </CardContent>

@@ -49,7 +49,7 @@ export function ContractDetailsTab({ contractId, viewMode = 'view' }: ContractDe
   const financialMetrics = generateFinancialBreakdown(weeklyRevenue, weeklyCost);
   
   // Generate cash flow projection
-  const cashFlowProjection = generateCashFlowProjection(contract);
+  const cashFlowProjection = generateCashFlowProjection(contract, 6);
   
   return (
     <>
@@ -66,6 +66,7 @@ export function ContractDetailsTab({ contractId, viewMode = 'view' }: ContractDe
           title="Cash Flow Projection"
           description="Projected revenue and costs for this contract"
           projection={cashFlowProjection}
+          contractData={contract}
         />
       </div>
       
