@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useContracts } from '@/hooks/use-contracts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +11,8 @@ import { generateFinancialBreakdown } from '@/utils/financeCalculations';
 import { ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { CashFlowProjectionCard } from '@/components/financial/CashFlowProjectionCard';
+import { generateCashFlowProjection } from '@/utils/cashFlowProjections';
 
 interface ContractDetailsTabProps {
   contractId: string;
@@ -45,16 +48,26 @@ export function ContractDetailsTab({ contractId, viewMode = 'view' }: ContractDe
   const weeklyCost = contract.supplier_cost_weekly || 0;
   const financialMetrics = generateFinancialBreakdown(weeklyRevenue, weeklyCost);
   
+  // Generate cash flow projection
+  const cashFlowProjection = generateCashFlowProjection(contract);
+  
   return (
     <>
-      <FinancialSummaryCard
-        title="Contract Financial Summary"
-        description="Revenue, costs and profit breakdown"
-        weekly={financialMetrics.weekly}
-        monthly={financialMetrics.monthly}
-        annual={financialMetrics.annual}
-        className="mb-6"
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <FinancialSummaryCard
+          title="Contract Financial Summary"
+          description="Revenue, costs and profit breakdown"
+          weekly={financialMetrics.weekly}
+          monthly={financialMetrics.monthly}
+          annual={financialMetrics.annual}
+        />
+        
+        <CashFlowProjectionCard
+          title="Cash Flow Projection"
+          description="Projected revenue and costs for this contract"
+          projection={cashFlowProjection}
+        />
+      </div>
       
       <Card className="mb-6">
         <CardHeader>
