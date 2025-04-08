@@ -8,7 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChevronLeft, Edit, Trash } from 'lucide-react';
 import { SupplierDetailsTab } from '@/components/suppliers/SupplierDetailsTab';
-import { SupplierComplianceTab } from '@/components/suppliers/SupplierComplianceTab';
+import SupplierComplianceTab from '@/components/suppliers/SupplierComplianceTab';
 import { SupplierContractsTab } from '@/components/suppliers/SupplierContractsTab';
 import { SupplierDeleteDialog } from '@/components/suppliers/SupplierDeleteDialog';
 import { AppLogger, LogCategory } from '@/utils/logging';

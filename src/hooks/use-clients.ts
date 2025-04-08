@@ -2,6 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ClientRecord } from '@/types/client-types';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { ApiResponse, isApiSuccess } from '@/types/api-response';
 
 interface ClientsHook {
   useClientsList: () => {

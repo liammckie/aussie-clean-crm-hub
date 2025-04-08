@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { ContractData, ContractFormData } from '@/types/contract-types';
 import { AppLogger, LogCategory } from '@/utils/logging';
-import { ApiResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
+import { ApiResponse, createSuccessResponse, createErrorResponse, isApiError } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
 
 export const useContracts = (clientId?: string) => {

@@ -1,12 +1,16 @@
+
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { SupplierData } from '@/types/supplier-types';
 import { formatDate } from '@/utils/format-utils';
 import { CalendarIcon, CheckCircle2, AlertCircle, XCircle } from 'lucide-react';
 
-const SupplierComplianceTab = ({ supplier }: { supplier: SupplierData }) => {
+interface SupplierComplianceTabProps {
+  supplierId: string;
+}
+
+const SupplierComplianceTab = ({ supplierId }: SupplierComplianceTabProps) => {
   // Mock compliance data - replace with actual data from API
   const complianceItems = [
     {
