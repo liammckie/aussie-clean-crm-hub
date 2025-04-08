@@ -8,18 +8,28 @@ interface ClientsHook {
     data: ClientRecord[] | undefined;
     isLoading: boolean;
     error: Error | null;
+    refetch: () => Promise<any>;
   };
   useAllClients: () => {
     data: ClientRecord[] | undefined;
     isLoading: boolean;
     error: Error | null;
+    refetch: () => Promise<any>;
   };
   useOptimizedClients: () => {
     data: ClientRecord[] | undefined;
     isLoading: boolean;
     error: Error | null;
   };
+  useClientDetails: (clientId: string | undefined) => {
+    data: ClientRecord | undefined;
+    isLoading: boolean;
+    error: Error | null;
+  };
   refetchClients: (options?: any) => Promise<any>;
+  isLoading: boolean;
+  clientsError: Error | null;
+  clients: ClientRecord[] | undefined;
 }
 
 export const useClients = (): ClientsHook => {
@@ -46,13 +56,36 @@ export const useClients = (): ClientsHook => {
   const clientHook = {
     data,
     isLoading,
-    error: error as Error | null
+    error: error as Error | null,
+    refetch
+  };
+
+  // Client details hook implementation
+  const useClientDetails = (clientId: string | undefined) => {
+    return useQuery({
+      queryKey: ['client', clientId],
+      queryFn: async () => {
+        if (!clientId) return undefined;
+        try {
+          // Mock implementation - replace with actual client fetching logic
+          return {} as ClientRecord;
+        } catch (err) {
+          AppLogger.error(LogCategory.CLIENT, `Error fetching client: ${clientId}`, { error: err });
+          throw err;
+        }
+      },
+      enabled: !!clientId
+    });
   };
 
   return {
     useClientsList: () => clientHook,
     useAllClients: () => clientHook,
     useOptimizedClients: () => clientHook,
-    refetchClients: refetch
+    useClientDetails,
+    refetchClients: refetch,
+    isLoading,
+    clientsError: error as Error | null,
+    clients: data
   };
 };

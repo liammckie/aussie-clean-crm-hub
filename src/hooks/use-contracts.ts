@@ -3,10 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { ContractData, ContractFormData } from '@/types/contract-types';
 import { AppLogger, LogCategory } from '@/utils/logging';
 
-export const useContracts = () => {
+export const useContracts = (clientId?: string) => {
   // This is a mock implementation - you should replace this with your actual contract fetching logic
   const { data: contracts = [], isLoading: isLoadingContracts, error: contractsError, refetch: refetchContracts } = useQuery({
-    queryKey: ['contracts'],
+    queryKey: ['contracts', clientId],
     queryFn: async () => {
       try {
         // Mock data for now
@@ -55,6 +55,19 @@ export const useContracts = () => {
     };
   };
 
+  // Billing lines hook
+  const useContractBillingLines = (contractId?: string) => {
+    return useQuery({
+      queryKey: ['contract-billing-lines', contractId],
+      queryFn: async () => {
+        if (!contractId) return [];
+        // Mock data
+        return [];
+      },
+      enabled: !!contractId
+    });
+  };
+
   return {
     contracts,
     isLoadingContracts,
@@ -62,6 +75,9 @@ export const useContracts = () => {
     refetchContracts,
     useContractDetails,
     useUpdateContract,
-    useCreateContract
+    useCreateContract,
+    useContractBillingLines,
+    // Add these properties to prevent errors in other components
+    isCreatingBillingLine: false
   };
 };

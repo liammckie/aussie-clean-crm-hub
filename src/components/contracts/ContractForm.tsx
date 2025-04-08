@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -47,7 +48,7 @@ export function ContractForm({ contractId, clientId, isEdit = false }: ContractF
   const navigate = useNavigate();
   
   const { useClientsList } = useClients();
-  const { data: clients, isLoading: isClientsLoading } = useClientsList();
+  const { data: clients, isLoading: isClientsLoading, refetch } = useClientsList();
   
   const { useContractDetails, useUpdateContract, useCreateContract } = useContracts();
   const { data: contract, isLoading: isContractLoading } = useContractDetails(contractId);
@@ -542,19 +543,7 @@ export function ContractForm({ contractId, clientId, isEdit = false }: ContractF
                     )}
                   />
                   
-                  <FormField
-                    control={form.control}
-                    name="billing_cycle"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Billing Cycle</FormLabel>
-                        <FormControl>
-                          <Input placeholder="Enter billing cycle" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                  {/* Remove the billing_cycle field since it's not in the schema */}
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
