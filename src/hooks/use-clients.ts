@@ -20,6 +20,7 @@ interface ClientsHook {
     data: ClientRecord[] | undefined;
     isLoading: boolean;
     error: Error | null;
+    refetch: () => Promise<any>;
   };
   useClientDetails: (clientId: string | undefined) => {
     data: ClientRecord | undefined;
@@ -29,7 +30,7 @@ interface ClientsHook {
   };
   refetchClients: (options?: any) => Promise<any>;
   isLoading: boolean;
-  isLoadingClients: boolean; // Added this property
+  isLoadingClients: boolean;
   clientsError: Error | null;
   clients: ClientRecord[] | undefined;
 }
@@ -99,7 +100,7 @@ export const useClients = (): ClientsHook => {
     useClientDetails,
     refetchClients: refetch,
     isLoading,
-    isLoadingClients: isLoading, // Added this property
+    isLoadingClients: isLoading,
     clientsError: error as Error | null,
     clients: data
   };

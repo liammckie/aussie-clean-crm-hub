@@ -2,6 +2,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { ContractData, ContractFormData } from '@/types/contract-types';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { ApiResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
+import { ErrorCategory } from '@/utils/logging/error-types';
 
 export const useContracts = (clientId?: string) => {
   // This is a mock implementation - you should replace this with your actual contract fetching logic
@@ -33,24 +35,24 @@ export const useContracts = (clientId?: string) => {
   
   // Contract update function
   const useUpdateContract = () => {
-    return async (contractId: string, data: ContractFormData) => {
+    return async (contractId: string, data: ContractFormData): Promise<ApiResponse<{ id: string }>> => {
       try {
         // Mock implementation
-        return { success: true, data: { id: contractId } };
+        return createSuccessResponse({ id: contractId }, 'Contract updated successfully');
       } catch (error) {
-        return { success: false, message: (error as Error).message };
+        return createErrorResponse(ErrorCategory.UNKNOWN, (error as Error).message);
       }
     };
   };
   
   // Contract create function
   const useCreateContract = () => {
-    return async (data: ContractFormData) => {
+    return async (data: ContractFormData): Promise<ApiResponse<{ id: string }>> => {
       try {
         // Mock implementation
-        return { success: true, data: { id: 'new-id' } };
+        return createSuccessResponse({ id: 'new-id' }, 'Contract created successfully');
       } catch (error) {
-        return { success: false, message: (error as Error).message };
+        return createErrorResponse(ErrorCategory.UNKNOWN, (error as Error).message);
       }
     };
   };

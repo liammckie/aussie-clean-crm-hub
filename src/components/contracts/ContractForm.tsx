@@ -36,6 +36,7 @@ import { useContracts } from '@/hooks/use-contracts';
 import { toast } from 'sonner';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { BILLING_FREQUENCY_OPTIONS, PAYMENT_TERMS_OPTIONS } from '@/utils/constants';
+import { isApiError } from '@/types/api-response';
 
 interface ContractFormProps {
   contractId?: string;
@@ -52,6 +53,8 @@ export function ContractForm({ contractId, clientId, isEdit = false }: ContractF
   
   const { useContractDetails, useUpdateContract, useCreateContract } = useContracts();
   const { data: contract, isLoading: isContractLoading } = useContractDetails(contractId);
+  const updateContract = useUpdateContract();
+  const createContract = useCreateContract();
 
   const form = useForm<ContractFormData>({
     resolver: zodResolver(contractFormSchema),
@@ -75,14 +78,12 @@ export function ContractForm({ contractId, clientId, isEdit = false }: ContractF
   const onSubmit = async (data: ContractFormData) => {
     setIsSubmitting(true);
     
-    const submitAction = isEdit 
-      ? useUpdateContract(contractId as string, data)
-      : useCreateContract(data);
-    
     try {
-      const response = await submitAction();
+      const response = isEdit 
+        ? await updateContract(contractId as string, data)
+        : await createContract(data);
       
-      if (response?.success) {
+      if (!isApiError(response)) {
         toast.success(`Contract ${isEdit ? 'updated' : 'created'} successfully!`);
         AppLogger.info(
           LogCategory.CONTRACT, 
@@ -91,11 +92,11 @@ export function ContractForm({ contractId, clientId, isEdit = false }: ContractF
         );
         navigate('/contracts');
       } else {
-        toast.error(response?.message || 'Failed to save contract. Please try again.');
+        toast.error(response.message || 'Failed to save contract. Please try again.');
         AppLogger.error(
           LogCategory.CONTRACT, 
           `Failed to ${isEdit ? 'update' : 'create'} contract`, 
-          { error: response?.message }
+          { error: response.message }
         );
       }
     } catch (error: any) {

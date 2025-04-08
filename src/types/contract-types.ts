@@ -36,7 +36,7 @@ export interface ContractData {
   supplier_cost_annual?: number;
   profit_margin_percentage?: number;
   sla_requirements?: string;
-  billing_cycle?: string;
+  billing_cycle?: string; // Added billing_cycle field that was missing
   client_representative_name?: string;
   client_representative_contact?: string;
   notes?: string;
@@ -81,7 +81,7 @@ export const contractFormSchema = z.object({
   supplier_cost_annual: z.number().optional(),
   profit_margin_percentage: z.number().optional(),
   sla_requirements: z.string().optional(),
-  billing_cycle: z.string().optional(),
+  billing_cycle: z.string().optional(), // Added billing_cycle to the schema
   client_representative_name: z.string().optional(),
   client_representative_contact: z.string().optional(),
   notes: z.string().optional(),

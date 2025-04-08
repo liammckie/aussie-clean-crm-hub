@@ -19,14 +19,14 @@ export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
  * Type guard to check if an API response is a success response
  */
 export function isApiSuccess<T>(response: ApiResponse<T>): response is ApiSuccessResponse<T> {
-  return 'data' in response && response.data !== undefined;
+  return 'data' in response;
 }
 
 /**
  * Type guard to check if an API response is an error response
  */
 export function isApiError<T>(response: ApiResponse<T>): response is ApiErrorResponse {
-  return 'category' in response && response.category !== undefined;
+  return 'category' in response;
 }
 
 /**
@@ -53,4 +53,3 @@ export function createErrorResponse(
     details
   };
 }
-
