@@ -2,6 +2,8 @@
 import * as Sentry from '@sentry/browser';
 import { isApiError, ApiResponse } from '@/types/api-response';
 import { isApplicationError } from '@/utils/logging/error-types';
+import { supabase } from '@/integrations/supabase/client';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 /**
  * Enhanced error reporting service
@@ -49,6 +51,13 @@ export class ErrorReporting {
     // Format the error message for consistent reporting
     const formattedError = this.formatError(error);
     
+    // Log to Supabase edge function
+    this.logToSupabase('exception', { 
+      error: formattedError.message || String(formattedError),
+      stack: formattedError.stack,
+      context: context || {}
+    });
+    
     // Report to Sentry if initialized
     if (this.isInitialized) {
       if (context) {
@@ -70,8 +79,48 @@ export class ErrorReporting {
   public static captureMessage(message: string, level: Sentry.SeverityLevel = 'info'): void {
     console.log(`[${level}]`, message);
     
+    // Log to Supabase edge function
+    this.logToSupabase('message', { 
+      message,
+      level
+    });
+    
     if (this.isInitialized) {
       Sentry.captureMessage(message, level);
+    }
+  }
+
+  /**
+   * Send user feedback to the error tracking system
+   */
+  public static captureFeedback(feedback: string, category: string = 'general', metadata?: Record<string, any>): void {
+    console.log(`[Feedback][${category}]`, feedback, metadata || {});
+    
+    // Log to Supabase edge function
+    this.logToSupabase('feedback', { 
+      feedback,
+      category,
+      metadata: metadata || {}
+    });
+    
+    // Also log to Sentry as a breadcrumb if initialized
+    if (this.isInitialized) {
+      Sentry.addBreadcrumb({
+        category: `feedback-${category}`,
+        message: feedback,
+        data: metadata,
+        level: 'info'
+      });
+      
+      // Send as a custom event
+      Sentry.captureEvent({
+        message: `User Feedback: ${feedback}`,
+        level: 'info',
+        tags: { 
+          feedback_category: category 
+        },
+        extra: metadata
+      });
     }
   }
 
@@ -81,6 +130,42 @@ export class ErrorReporting {
   public static setUser(user: { id: string; email?: string; username?: string } | null): void {
     if (this.isInitialized) {
       Sentry.setUser(user);
+    }
+  }
+
+  /**
+   * Log to Supabase edge function
+   * This sends the log to the Supabase edge function for storage and analysis
+   */
+  private static async logToSupabase(type: 'exception' | 'message' | 'feedback', data: Record<string, any>): Promise<void> {
+    try {
+      const payload = {
+        type,
+        timestamp: new Date().toISOString(),
+        appVersion: import.meta.env.VITE_APP_VERSION || 'unknown',
+        environment: import.meta.env.VITE_ENVIRONMENT || 'development',
+        data
+      };
+      
+      // Log directly to database using Supabase client
+      const { error } = await supabase
+        .from('error_logs')
+        .insert([payload]);
+        
+      if (error) {
+        console.error('Failed to log to Supabase:', error);
+        
+        // Fall back to edge function if database insert fails
+        const { error: fnError } = await supabase.functions.invoke('log-error', {
+          body: payload
+        });
+        
+        if (fnError) {
+          console.error('Failed to log to edge function:', fnError);
+        }
+      }
+    } catch (err) {
+      console.error('Error logging to Supabase:', err);
     }
   }
 
