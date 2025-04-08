@@ -1,4 +1,9 @@
-{
+
+{"scripts": {
+  "type-check": "bash scripts/check-types.sh",
+  "ci-checks": "bash scripts/ci-checks.sh",
+  "build": "npm run ci-checks && vite build"
+},
   "files": [],
   "references": [
     { "path": "./tsconfig.app.json" },
