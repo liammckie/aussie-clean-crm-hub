@@ -1,3 +1,4 @@
+
 import { ApiResponse } from "@/types/api-response";
 import { z } from "zod";
 
@@ -51,6 +52,68 @@ export interface ContractData {
   contract_document_url?: string;
   scope_document_url?: string;
 }
+
+// Contract form data schema
+export const contractFormSchema = z.object({
+  contract_name: z.string().min(2, "Contract name is required"),
+  contract_code: z.string().min(1, "Contract code is required"),
+  client_id: z.string().uuid("Valid client ID is required"),
+  service_type: z.string().optional(),
+  status: z.string().default("draft"),
+  start_date: z.string().min(1, "Start date is required"),
+  end_date: z.string().optional(),
+  is_ongoing: z.boolean().optional().default(false),
+  contract_value: z.number().optional(),
+  description: z.string().optional(),
+  delivery_mode: z.string().optional(),
+  account_manager: z.string().optional(),
+  state_manager: z.string().optional(),
+  national_manager: z.string().optional(),
+  billing_frequency: z.string().optional(),
+  billing_type: z.string().optional(),
+  payment_terms: z.string().optional(),
+  payment_method: z.string().optional(),
+  total_weekly_value: z.number().optional(),
+  total_monthly_value: z.number().optional(),
+  total_annual_value: z.number().optional(),
+  supplier_cost_weekly: z.number().optional(),
+  supplier_cost_monthly: z.number().optional(),
+  supplier_cost_annual: z.number().optional(),
+  profit_margin_percentage: z.number().optional(),
+  sla_requirements: z.string().optional(),
+  billing_cycle: z.string().optional(),
+  client_representative_name: z.string().optional(),
+  client_representative_contact: z.string().optional(),
+  notes: z.string().optional(),
+  // Days of week fields
+  monday: z.boolean().optional().default(false),
+  tuesday: z.boolean().optional().default(false),
+  wednesday: z.boolean().optional().default(false),
+  thursday: z.boolean().optional().default(false),
+  friday: z.boolean().optional().default(false),
+  saturday: z.boolean().optional().default(false),
+  sunday: z.boolean().optional().default(false),
+  // Document URL fields
+  contract_document_url: z.string().url("Must be a valid URL").optional(),
+  scope_document_url: z.string().url("Must be a valid URL").optional()
+}).refine((data) => {
+  // If status is active, require billing_frequency and payment_terms
+  if (data.status === 'active') {
+    if (!data.billing_frequency) {
+      return false;
+    }
+    if (!data.payment_terms) {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: "Billing frequency and payment terms are required for active contracts",
+  path: ["status"] // This will highlight the status field when the refinement fails
+});
+
+// Type inferred from schema
+export type ContractFormData = z.infer<typeof contractFormSchema>;
 
 /**
  * Contract record from database
@@ -118,67 +181,6 @@ export enum ServiceType {
   OTHER = "other"
 }
 
-// Contract form data schema
-export const contractFormSchema = z.object({
-  contract_name: z.string().min(2, "Contract name is required"),
-  contract_code: z.string().min(1, "Contract code is required"),
-  client_id: z.string().uuid("Valid client ID is required"),
-  service_type: z.string().optional(),
-  status: z.string().default("draft"),
-  start_date: z.string().min(1, "Start date is required"),
-  end_date: z.string().optional(),
-  is_ongoing: z.boolean().optional().default(false),
-  contract_value: z.number().optional(),
-  description: z.string().optional(),
-  delivery_mode: z.string().optional(),
-  account_manager: z.string().optional(),
-  state_manager: z.string().optional(),
-  national_manager: z.string().optional(),
-  billing_frequency: z.string().optional(),
-  billing_type: z.string().optional(),
-  payment_terms: z.string().optional(),
-  payment_method: z.string().optional(),
-  total_weekly_value: z.number().optional(),
-  total_monthly_value: z.number().optional(),
-  total_annual_value: z.number().optional(),
-  supplier_cost_weekly: z.number().optional(),
-  supplier_cost_monthly: z.number().optional(),
-  supplier_cost_annual: z.number().optional(),
-  profit_margin_percentage: z.number().optional(),
-  sla_requirements: z.string().optional(),
-  client_representative_name: z.string().optional(),
-  client_representative_contact: z.string().optional(),
-  notes: z.string().optional(),
-  // Days of week fields
-  monday: z.boolean().optional().default(false),
-  tuesday: z.boolean().optional().default(false),
-  wednesday: z.boolean().optional().default(false),
-  thursday: z.boolean().optional().default(false),
-  friday: z.boolean().optional().default(false),
-  saturday: z.boolean().optional().default(false),
-  sunday: z.boolean().optional().default(false),
-  // Document URL fields
-  contract_document_url: z.string().url("Must be a valid URL").optional(),
-  scope_document_url: z.string().url("Must be a valid URL").optional()
-}).refine((data) => {
-  // If status is active, require billing_frequency and payment_terms
-  if (data.status === 'active') {
-    if (!data.billing_frequency) {
-      return false;
-    }
-    if (!data.payment_terms) {
-      return false;
-    }
-  }
-  return true;
-}, {
-  message: "Billing frequency and payment terms are required for active contracts",
-  path: ["status"] // This will highlight the status field when the refinement fails
-});
-
-// Type inferred from schema
-export type ContractFormData = z.infer<typeof contractFormSchema>;
-
 // Helper to create default values
 export const createDefaultContractValues = (initialValues: Partial<ContractFormData> = {}): ContractFormData => ({
   contract_name: "",
@@ -205,6 +207,7 @@ export const createDefaultContractValues = (initialValues: Partial<ContractFormD
   supplier_cost_annual: undefined,
   profit_margin_percentage: undefined,
   sla_requirements: "",
+  billing_cycle: "",
   client_representative_name: "",
   client_representative_contact: "",
   notes: "",

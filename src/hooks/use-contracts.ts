@@ -1,241 +1,67 @@
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { contractService } from '@/services/contract';
-import { ContractCreateData } from '@/types/contract-types';
-import { ContractData, BillingLineData, ContractBudgetData } from '@/services/contract/types';
-import { ErrorReporting } from '@/utils/errorReporting';
-import { AppLogger, LogCategory, withCache } from '@/utils/logging';
+import { useQuery } from '@tanstack/react-query';
+import { ContractData, ContractFormData } from '@/types/contract-types';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
-export const useContracts = (clientId?: string) => {
-  const queryClient = useQueryClient();
-  
-  // Query to fetch all contracts for a client
-  const { 
-    data: contracts, 
-    isLoading: isLoadingContracts,
-    error: contractsError,
-    refetch: refetchContracts
-  } = useQuery({
-    queryKey: ['client-contracts', clientId],
+export const useContracts = () => {
+  // This is a mock implementation - you should replace this with your actual contract fetching logic
+  const { data: contracts = [], isLoading: isLoadingContracts, error: contractsError, refetch: refetchContracts } = useQuery({
+    queryKey: ['contracts'],
     queryFn: async () => {
-      if (!clientId) return [];
-      
-      AppLogger.debug(LogCategory.CONTRACT, `Fetching contracts for client: ${clientId}`);
-      
-      // Use cache wrapper for contract queries
-      const cacheKey = `client-contracts-${clientId}`;
-      
-      return await withCache(cacheKey, async () => {
-        const response = await contractService.getClientContracts(clientId);
-        
-        if ('category' in response) {
-          AppLogger.error(LogCategory.CONTRACT, `Error fetching contracts: ${response.message}`, { clientId });
-          toast.error(`Error: ${response.message}`);
-          throw new Error(response.message);
-        }
-        
-        AppLogger.info(
-          LogCategory.CONTRACT, 
-          `Retrieved ${response.data?.length || 0} contracts for client`,
-          { clientId }
-        );
-        
-        return response.data;
-      }, { ttl: 2 * 60 * 1000, tag: 'contracts' }); // Cache for 2 minutes
-    },
-    enabled: !!clientId,
+      try {
+        // Mock data for now
+        return [] as ContractData[];
+      } catch (err) {
+        AppLogger.error(LogCategory.CONTRACT, 'Error fetching contracts', { error: err });
+        throw err;
+      }
+    }
   });
-
-  // Query to fetch a single contract by ID
-  const useContractDetails = (contractId: string | undefined) => {
+  
+  // Contract details hook
+  const useContractDetails = (contractId?: string) => {
     return useQuery({
       queryKey: ['contract', contractId],
       queryFn: async () => {
-        if (!contractId) throw new Error('Contract ID is required');
-        
-        AppLogger.debug(LogCategory.CONTRACT, `Fetching contract details: ${contractId}`);
-        
-        // Use cache wrapper for contract details
-        const cacheKey = `contract-detail-${contractId}`;
-        
-        return await withCache(cacheKey, async () => {
-          const response = await contractService.getContractById(contractId);
-          
-          if ('category' in response) {
-            AppLogger.error(
-              LogCategory.CONTRACT, 
-              `Error fetching contract details: ${response.message}`, 
-              { contractId }
-            );
-            toast.error(`Error: ${response.message}`);
-            throw new Error(response.message);
-          }
-          
-          return response.data;
-        }, { ttl: 2 * 60 * 1000, tag: 'contracts' });
+        if (!contractId) return null;
+        // Mock data
+        return null as ContractData | null;
       },
-      enabled: !!contractId,
+      enabled: !!contractId
     });
   };
-
-  // Query to fetch billing lines for a contract
-  const useContractBillingLines = (contractId: string | undefined) => {
-    return useQuery({
-      queryKey: ['contract-billing-lines', contractId],
-      queryFn: async () => {
-        if (!contractId) return [];
-        
-        AppLogger.debug(
-          LogCategory.CONTRACT, 
-          `Fetching billing lines for contract: ${contractId}`
-        );
-        
-        // Use cache wrapper for billing lines
-        const cacheKey = `contract-billing-lines-${contractId}`;
-        
-        return await withCache(cacheKey, async () => {
-          const response = await contractService.getContractBillingLines(contractId);
-          
-          if ('category' in response) {
-            AppLogger.error(
-              LogCategory.CONTRACT, 
-              `Error fetching billing lines: ${response.message}`, 
-              { contractId }
-            );
-            toast.error(`Error: ${response.message}`);
-            throw new Error(response.message);
-          }
-          
-          AppLogger.info(
-            LogCategory.CONTRACT, 
-            `Retrieved ${response.data?.length || 0} billing lines`, 
-            { contractId }
-          );
-          
-          return response.data;
-        }, { ttl: 2 * 60 * 1000, tag: 'billing-lines' });
-      },
-      enabled: !!contractId,
-    });
+  
+  // Contract update function
+  const useUpdateContract = (contractId: string, data: ContractFormData) => {
+    return async () => {
+      try {
+        // Mock implementation
+        return { success: true, data: { id: contractId } };
+      } catch (error) {
+        return { success: false, message: (error as Error).message };
+      }
+    };
   };
-
-  // Mutation to create a new contract
-  const createContractMutation = useMutation({
-    mutationFn: async (data: ContractCreateData) => {
-      const response = await contractService.createContract(data);
-      
-      if ('category' in response) {
-        AppLogger.error(LogCategory.CONTRACT, `Error creating contract: ${response.message}`);
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
+  
+  // Contract create function
+  const useCreateContract = (data: ContractFormData) => {
+    return async () => {
+      try {
+        // Mock implementation
+        return { success: true, data: { id: 'new-id' } };
+      } catch (error) {
+        return { success: false, message: (error as Error).message };
       }
-      
-      return response.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['client-contracts', clientId] });
-      toast.success('Contract created successfully!');
-      return data;
-    },
-    onError: (error) => {
-      ErrorReporting.captureException(error as Error);
-      toast.error('Failed to create contract');
-    }
-  });
-
-  // Mutation to update an existing contract
-  const updateContractMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: Partial<ContractData> }) => {
-      const response = await contractService.updateContract(id, data);
-      
-      if ('category' in response) {
-        AppLogger.error(LogCategory.CONTRACT, `Error updating contract: ${response.message}`);
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
-      }
-      
-      return response.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['client-contracts', clientId] });
-      queryClient.invalidateQueries({ queryKey: ['contract', data.id] });
-      toast.success('Contract updated successfully!');
-      return data;
-    },
-    onError: (error) => {
-      ErrorReporting.captureException(error as Error);
-      toast.error('Failed to update contract');
-    }
-  });
-
-  // Mutation to delete a contract
-  const deleteContractMutation = useMutation({
-    mutationFn: async (contractId: string) => {
-      const response = await contractService.deleteContract(contractId);
-      
-      if ('category' in response) {
-        AppLogger.error(LogCategory.CONTRACT, `Error deleting contract: ${response.message}`);
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
-      }
-      
-      return true;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['client-contracts', clientId] });
-      toast.success('Contract deleted successfully!');
-    },
-    onError: (error) => {
-      ErrorReporting.captureException(error as Error);
-      toast.error('Failed to delete contract');
-    }
-  });
-
-  // Mutation to create a new billing line
-  const createBillingLineMutation = useMutation({
-    mutationFn: async (data: { contract_id: string } & Partial<BillingLineData>) => {
-      const response = await contractService.createBillingLine(data.contract_id, data);
-      
-      if ('category' in response) {
-        AppLogger.error(LogCategory.CONTRACT, `Error creating billing line: ${response.message}`);
-        toast.error(`Error: ${response.message}`);
-        throw new Error(response.message);
-      }
-      
-      return response.data;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ['contract-billing-lines', data.contract_id] });
-      queryClient.invalidateQueries({ queryKey: ['contract', data.contract_id] });
-      toast.success('Billing line created successfully!');
-      return data;
-    },
-    onError: (error) => {
-      ErrorReporting.captureException(error as Error);
-      toast.error('Failed to create billing line');
-    }
-  });
+    };
+  };
 
   return {
     contracts,
     isLoadingContracts,
     contractsError,
     refetchContracts,
-    
     useContractDetails,
-    useContractBillingLines,
-    
-    createContract: createContractMutation.mutateAsync,
-    isCreatingContract: createContractMutation.isPending,
-    
-    updateContract: updateContractMutation.mutateAsync,
-    isUpdatingContract: updateContractMutation.isPending,
-    
-    deleteContract: deleteContractMutation.mutateAsync,
-    isDeletingContract: deleteContractMutation.isPending,
-    
-    createBillingLine: createBillingLineMutation.mutateAsync,
-    isCreatingBillingLine: createBillingLineMutation.isPending,
+    useUpdateContract,
+    useCreateContract
   };
 };

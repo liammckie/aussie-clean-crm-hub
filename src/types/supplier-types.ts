@@ -15,7 +15,10 @@ export enum SupplierStatus {
   ACTIVE = 'Active',
   INACTIVE = 'Inactive',
   ONBOARDING = 'Onboarding',
-  TERMINATED = 'Terminated'
+  TERMINATED = 'Terminated',
+  ON_HOLD = 'On Hold',
+  SUSPENDED = 'Suspended',
+  PENDING = 'Pending'
 }
 
 export const AustralianStates = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
@@ -55,3 +58,48 @@ export const supplierFormSchema = z.object({
 
 export type SupplierFormData = z.infer<typeof supplierFormSchema>;
 export type SupplierCreateData = z.infer<typeof supplierFormSchema>;
+
+// Add the SupplierData interface to fix the type errors
+export interface SupplierData {
+  supplier_id: string;
+  supplier_name: string;
+  supplier_type: string;
+  status: string;
+  date_onboarded?: string;
+  date_terminated?: string;
+  abn?: string;
+  acn?: string;
+  supplier_code?: string;
+  address_line?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  contact_person?: string;
+  phone?: string;
+  email?: string;
+  billing_email?: string;
+  invoice_email?: string;
+  services_provided?: string;
+  notes?: string;
+  payment_terms?: string;
+  created_at?: string;
+  updated_at?: string;
+  bank_details?: {
+    bsb?: string;
+    account_number?: string;
+    account_name?: string;
+  };
+}
+
+// Add the ComplianceDocument interface
+export interface ComplianceDocument {
+  id: string;
+  supplier_id: string;
+  document_name: string;
+  document_type: string;
+  file_url?: string;
+  expiry_date?: string;
+  created_at: string;
+  updated_at: string;
+}

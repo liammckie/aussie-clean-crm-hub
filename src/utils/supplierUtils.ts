@@ -14,77 +14,17 @@ export function prepareSupplierForDb(supplierData: SupplierCreateData | Partial<
     acn: supplierData.acn,
     business_name: supplierData.supplier_name, // Map supplier_name to business_name in the DB
     notes: supplierData.notes,
+    payment_terms: supplierData.payment_terms
   };
 
-  // Map contact details
-  if (supplierData.contact_person) {
-    dbData.primary_contact_name = supplierData.contact_person;
-  }
-  
-  if (supplierData.phone) {
-    dbData.primary_contact_phone = supplierData.phone;
-  }
-  
-  if (supplierData.email) {
-    dbData.primary_contact_email = supplierData.email;
-  }
+  // Map contact information
+  if (supplierData.contact_person) dbData.primary_contact_name = supplierData.contact_person;
+  if (supplierData.email) dbData.primary_contact_email = supplierData.email;
+  if (supplierData.phone) dbData.primary_contact_phone = supplierData.phone;
 
-  // Add any other specific mappings needed
-  if (supplierData.bank_details) {
-    dbData.bank_details = supplierData.bank_details;
-  }
-
+  // Add additional fields if present
+  if (supplierData.date_onboarded) dbData.date_onboarded = supplierData.date_onboarded;
+  if (supplierData.date_terminated) dbData.date_terminated = supplierData.date_terminated;
+  
   return dbData;
-}
-
-/**
- * Maps database supplier structure to frontend structure
- */
-export function mapDbSupplierToUi(dbSupplier: any): SupplierData {
-  return {
-    supplier_id: dbSupplier.id,
-    supplier_name: dbSupplier.business_name || dbSupplier.supplier_name,
-    supplier_type: dbSupplier.supplier_type,
-    status: dbSupplier.status,
-    abn: dbSupplier.abn,
-    acn: dbSupplier.acn,
-    contact_person: dbSupplier.primary_contact_name,
-    phone: dbSupplier.primary_contact_phone,
-    email: dbSupplier.primary_contact_email,
-    notes: dbSupplier.notes,
-    bank_details: dbSupplier.bank_details,
-    created_at: dbSupplier.created_at,
-    updated_at: dbSupplier.updated_at,
-  };
-}
-
-/**
- * Validate supplier data
- */
-export function validateSupplier(data: Partial<SupplierData>) {
-  const errors: Record<string, string> = {};
-  
-  if (!data.supplier_name) {
-    errors.supplier_name = "Supplier name is required";
-  }
-  
-  if (!data.supplier_type) {
-    errors.supplier_type = "Supplier type is required";
-  }
-  
-  if (!data.status) {
-    errors.status = "Status is required";
-  }
-  
-  // Basic ABN validation (11 digits)
-  if (data.abn && !/^\d{11}$/.test(data.abn.replace(/\s/g, ''))) {
-    errors.abn = "ABN must be 11 digits";
-  }
-  
-  // Email validation
-  if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-    errors.email = "Invalid email format";
-  }
-  
-  return Object.keys(errors).length > 0 ? errors : null;
 }
