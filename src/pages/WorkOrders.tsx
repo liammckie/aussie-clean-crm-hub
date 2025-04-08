@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
 import { 
@@ -21,14 +21,17 @@ import { Badge } from '@/components/ui/badge';
 import { 
   Search,
   ClipboardList,
+  ArrowDown,
+  ArrowUp,
 } from 'lucide-react';
 import { WorkOrderActionsDropdown } from '@/components/work-orders/WorkOrderActionsDropdown';
 import { WorkOrderHeaderActions } from '@/components/work-orders/WorkOrderHeaderActions';
 import { WorkOrderFilters } from '@/components/work-orders/WorkOrderFilters';
 import { formatCurrency } from '@/utils/formatters';
 import { PageHeader } from '@/components/layout/PageHeader';
+import { useNavigate } from 'react-router-dom';
 
-// Dummy data for work orders with added supplier cost and submitted by fields
+// Extended dummy data with additional fields
 const dummyWorkOrders = [
   {
     id: '1',
@@ -40,8 +43,11 @@ const dummyWorkOrders = [
     priority: 'high',
     created_at: '2023-05-10T10:30:00',
     scheduled_start: '2023-05-12T09:00:00',
-    supplier_cost: 580,
-    submitted_by: 'John Smith'
+    supplier_cost: 2500.00,
+    revenue: 4400.00,
+    gross_profit_percent: 37,
+    submitted_by: 'John Smith',
+    supplier_name: 'Sydney Plumbing Co'
   },
   {
     id: '2',
@@ -53,8 +59,11 @@ const dummyWorkOrders = [
     priority: 'medium',
     created_at: '2023-05-11T14:45:00',
     scheduled_start: '2023-05-15T08:00:00',
-    supplier_cost: 250,
-    submitted_by: 'Emma Johnson'
+    supplier_cost: 900.00,
+    revenue: 1500.00,
+    gross_profit_percent: 40,
+    submitted_by: 'Emma Johnson',
+    supplier_name: 'Melbourne Cleaning Services'
   },
   {
     id: '3',
@@ -63,11 +72,14 @@ const dummyWorkOrders = [
     client: 'Tech Innovators',
     site: 'Brisbane HQ',
     status: 'completed',
-    priority: 'medium',
+    priority: 'low',
     created_at: '2023-05-08T09:15:00',
     scheduled_start: '2023-05-09T13:00:00',
-    supplier_cost: 420,
-    submitted_by: 'Michael Brown'
+    supplier_cost: 350.00,
+    revenue: 500.00,
+    gross_profit_percent: 30,
+    submitted_by: 'Michael Brown',
+    supplier_name: 'Brisbane HVAC Solutions'
   },
   {
     id: '4',
@@ -79,8 +91,11 @@ const dummyWorkOrders = [
     priority: 'low',
     created_at: '2023-05-12T11:20:00',
     scheduled_start: '2023-05-20T10:00:00',
-    supplier_cost: 180,
-    submitted_by: 'Sarah Davis'
+    supplier_cost: 1200.00,
+    revenue: 2000.00,
+    gross_profit_percent: 40,
+    submitted_by: 'Sarah Davis',
+    supplier_name: 'Perth Window Specialists'
   },
   {
     id: '5',
@@ -92,8 +107,92 @@ const dummyWorkOrders = [
     priority: 'high',
     created_at: '2023-05-13T08:30:00',
     scheduled_start: '2023-05-14T09:30:00',
-    supplier_cost: 350,
-    submitted_by: 'James Wilson'
+    supplier_cost: 500.00,
+    revenue: 700.00,
+    gross_profit_percent: 29,
+    submitted_by: 'James Wilson',
+    supplier_name: 'Adelaide Security Systems'
+  },
+  // Adding more dummy data to demonstrate infinite scrolling
+  {
+    id: '6',
+    work_order_number: 'WO-2023-006',
+    title: 'Electrical Maintenance',
+    client: 'Health Services',
+    site: 'Darwin Clinic',
+    status: 'completed',
+    priority: 'medium',
+    created_at: '2023-05-14T08:30:00',
+    scheduled_start: '2023-05-16T09:30:00',
+    supplier_cost: 800.00,
+    revenue: 1250.00,
+    gross_profit_percent: 36,
+    submitted_by: 'Robert Chen',
+    supplier_name: 'Darwin Electrical'
+  },
+  {
+    id: '7',
+    work_order_number: 'WO-2023-007',
+    title: 'Carpet Replacement',
+    client: 'Education Department',
+    site: 'Hobart School',
+    status: 'pending',
+    priority: 'low',
+    created_at: '2023-05-15T10:15:00',
+    scheduled_start: '2023-05-25T08:00:00',
+    supplier_cost: 3200.00,
+    revenue: 4500.00,
+    gross_profit_percent: 29,
+    submitted_by: 'Lisa Murray',
+    supplier_name: 'Hobart Flooring Co'
+  },
+  {
+    id: '8',
+    work_order_number: 'WO-2023-008',
+    title: 'Garden Maintenance',
+    client: 'Government Office',
+    site: 'Canberra HQ',
+    status: 'completed',
+    priority: 'low',
+    created_at: '2023-05-16T14:20:00',
+    scheduled_start: '2023-05-18T07:30:00',
+    supplier_cost: 450.00,
+    revenue: 750.00,
+    gross_profit_percent: 40,
+    submitted_by: 'Thomas Wright',
+    supplier_name: 'Capital Gardens'
+  },
+  {
+    id: '9',
+    work_order_number: 'WO-2023-009',
+    title: 'Pest Control',
+    client: 'Hotel Chain',
+    site: 'Gold Coast Resort',
+    status: 'in_progress',
+    priority: 'high',
+    created_at: '2023-05-17T09:45:00',
+    scheduled_start: '2023-05-19T06:00:00',
+    supplier_cost: 600.00,
+    revenue: 950.00,
+    gross_profit_percent: 37,
+    submitted_by: 'Angela Kim',
+    supplier_name: 'Gold Coast Pest Solutions'
+  },
+  {
+    id: '10',
+    work_order_number: 'WO-2023-010',
+    title: 'Fire Safety Inspection',
+    client: 'Shopping Center',
+    site: 'Newcastle Mall',
+    status: 'pending',
+    priority: 'high',
+    created_at: '2023-05-18T11:30:00',
+    scheduled_start: '2023-05-20T09:00:00',
+    supplier_cost: 1800.00,
+    revenue: 2400.00,
+    gross_profit_percent: 25,
+    submitted_by: 'David Thompson',
+    supplier_name: 'Newcastle Fire Safety'
   },
 ];
 
@@ -139,8 +238,30 @@ const formatDate = (dateString: string) => {
   }).format(date);
 };
 
+// Get gross profit indicator component
+const getGrossProfitIndicator = (percent: number) => {
+  const isPositive = percent >= 30;
+  
+  if (isPositive) {
+    return (
+      <div className="flex items-center justify-end">
+        <ArrowUp className="h-4 w-4 mr-1 text-green-600" />
+        <span className="text-green-600 font-medium">{percent}%</span>
+      </div>
+    );
+  } else {
+    return (
+      <div className="flex items-center justify-end">
+        <ArrowDown className="h-4 w-4 mr-1 text-red-600" />
+        <span className="text-red-600 font-medium">{percent}%</span>
+      </div>
+    );
+  }
+};
+
 // Work Orders main component
 const WorkOrders = () => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
@@ -150,6 +271,15 @@ const WorkOrders = () => {
     dateTo: ''
   });
   
+  // For infinite scrolling
+  const [visibleOrders, setVisibleOrders] = useState<Array<any>>([]);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const loaderRef = useRef<HTMLDivElement>(null);
+  const ITEMS_PER_PAGE = 5;
+  
+  // Filter work orders based on search and filters
   const filteredWorkOrders = dummyWorkOrders.filter(workOrder => {
     const searchMatch =
       workOrder.work_order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -175,11 +305,72 @@ const WorkOrders = () => {
     
     return searchMatch && statusMatch && priorityMatch && dateMatch;
   });
+  
+  // Load more items for infinite scrolling
+  const loadMoreItems = useCallback(() => {
+    if (loading || !hasMore) return;
+    setLoading(true);
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      const startIndex = (page - 1) * ITEMS_PER_PAGE;
+      const endIndex = page * ITEMS_PER_PAGE;
+      const newItems = filteredWorkOrders.slice(startIndex, endIndex);
+      
+      if (newItems.length === 0) {
+        setHasMore(false);
+      } else {
+        setVisibleOrders(prev => [...prev, ...newItems]);
+        setPage(prev => prev + 1);
+      }
+      
+      setLoading(false);
+    }, 500);
+  }, [page, loading, hasMore, filteredWorkOrders]);
+  
+  // Observer for infinite scrolling
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const first = entries[0];
+        if (first.isIntersecting) {
+          loadMoreItems();
+        }
+      },
+      { threshold: 1.0 }
+    );
+    
+    const currentRef = loaderRef.current;
+    if (currentRef) {
+      observer.observe(currentRef);
+    }
+    
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [loadMoreItems]);
+  
+  // Reset when filters change
+  useEffect(() => {
+    setPage(1);
+    setVisibleOrders([]);
+    setHasMore(true);
+    
+    // Load initial items
+    const initialItems = filteredWorkOrders.slice(0, ITEMS_PER_PAGE);
+    setVisibleOrders(initialItems);
+    setPage(prev => prev + 1);
+  }, [searchQuery, activeFilters, filteredWorkOrders.length]);
 
   const handleViewDetails = (workOrderId: string) => {
     console.log(`View details for work order ${workOrderId}`);
-    // Navigate to work order detail page
-    // history.push(`/work-orders/${workOrderId}`);
+    navigate(`/work-orders/${workOrderId}`);
+  };
+
+  const handleCreateWorkOrder = () => {
+    navigate('/work-orders/new');
   };
 
   return (
@@ -188,12 +379,6 @@ const WorkOrders = () => {
         title="Work Orders"
         description="View and manage all service requests and tasks."
         breadcrumbs={[{ label: "Work Orders" }]}
-        actions={
-          <Button>
-            <ClipboardList className="h-4 w-4 mr-2" />
-            Create Work Order
-          </Button>
-        }
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -230,11 +415,26 @@ const WorkOrders = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
-            <WorkOrderHeaderActions 
-              onToggleFilters={() => setShowFilters(!showFilters)} 
-              showFilters={showFilters}
-              onRefresh={() => console.log("Refreshing work orders")}
-            />
+            <div className="flex items-center space-x-2">
+              <Button onClick={handleCreateWorkOrder}>
+                <ClipboardList className="h-4 w-4 mr-2" />
+                Create Work Order
+              </Button>
+              <WorkOrderHeaderActions 
+                onToggleFilters={() => setShowFilters(!showFilters)} 
+                showFilters={showFilters}
+                onRefresh={() => {
+                  setPage(1);
+                  setVisibleOrders([]);
+                  setHasMore(true);
+                  
+                  // Reload initial items
+                  const initialItems = filteredWorkOrders.slice(0, ITEMS_PER_PAGE);
+                  setVisibleOrders(initialItems);
+                  setPage(prev => prev + 1);
+                }}
+              />
+            </div>
           </div>
 
           {filteredWorkOrders.length === 0 ? (
@@ -248,7 +448,7 @@ const WorkOrders = () => {
                       ? "No work orders match your search criteria"
                       : "You haven't created any work orders yet"}
                   </CardDescription>
-                  <Button>
+                  <Button onClick={handleCreateWorkOrder}>
                     <ClipboardList className="h-4 w-4 mr-2" />
                     Create Work Order
                   </Button>
@@ -256,66 +456,93 @@ const WorkOrders = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="border rounded-md">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Work Order</TableHead>
-                    <TableHead>Client / Site</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Priority</TableHead>
-                    <TableHead>Supplier Cost</TableHead>
-                    <TableHead className="hidden md:table-cell">Submitted By</TableHead>
-                    <TableHead className="hidden md:table-cell">Scheduled</TableHead>
-                    <TableHead></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredWorkOrders.map((workOrder) => {
-                    const statusProps = getStatusBadgeProps(workOrder.status);
-                    const priorityProps = getPriorityBadgeProps(workOrder.priority);
-                    
-                    return (
-                      <TableRow key={workOrder.id}>
-                        <TableCell>
-                          <div className="font-medium">{workOrder.work_order_number}</div>
-                          <div className="text-sm text-muted-foreground">{workOrder.title}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div>{workOrder.client}</div>
-                          <div className="text-sm text-muted-foreground">{workOrder.site}</div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={statusProps.className}>
-                            {statusProps.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className={priorityProps.className}>
-                            {priorityProps.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{formatCurrency(workOrder.supplier_cost)}</TableCell>
-                        <TableCell className="hidden md:table-cell">{workOrder.submitted_by}</TableCell>
-                        <TableCell className="hidden md:table-cell">{formatDate(workOrder.scheduled_start)}</TableCell>
-                        <TableCell>
-                          <WorkOrderActionsDropdown 
-                            workOrderId={workOrder.id}
-                            status={workOrder.status}
-                            onViewDetails={() => handleViewDetails(workOrder.id)}
-                            onEdit={() => console.log(`Edit work order ${workOrder.id}`)}
-                            onAssignTechnician={() => console.log(`Assign technician to ${workOrder.id}`)}
-                            onGenerateReport={() => console.log(`Generate report for ${workOrder.id}`)}
-                            onMarkComplete={() => console.log(`Mark ${workOrder.id} as complete`)}
-                            onCancel={() => console.log(`Cancel order ${workOrder.id}`)}
-                            onDelete={() => console.log(`Delete work order ${workOrder.id}`)}
-                          />
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+            <div className="border rounded-md overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-[180px]">Submitted By</TableHead>
+                      <TableHead className="w-[200px]">Work Order</TableHead>
+                      <TableHead className="w-[200px]">Client / Site</TableHead>
+                      <TableHead className="w-[100px]">Status</TableHead>
+                      <TableHead className="w-[100px]">Priority</TableHead>
+                      <TableHead className="w-[120px] text-right">Cost</TableHead>
+                      <TableHead className="w-[120px] text-right">Revenue</TableHead>
+                      <TableHead className="w-[100px] text-right">GP %</TableHead>
+                      <TableHead className="w-[180px]">Supplier</TableHead>
+                      <TableHead className="w-[80px]"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {visibleOrders.map((workOrder) => {
+                      const statusProps = getStatusBadgeProps(workOrder.status);
+                      const priorityProps = getPriorityBadgeProps(workOrder.priority);
+                      
+                      return (
+                        <TableRow key={workOrder.id}>
+                          <TableCell className="font-medium align-top">
+                            {workOrder.submitted_by}
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div className="font-medium">{workOrder.work_order_number}</div>
+                            <div className="text-sm text-muted-foreground">{workOrder.title}</div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <div>{workOrder.client}</div>
+                            <div className="text-sm text-muted-foreground">{workOrder.site}</div>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <Badge variant="outline" className={statusProps.className}>
+                              {statusProps.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <Badge variant="outline" className={priorityProps.className}>
+                              {priorityProps.label}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right align-top">
+                            {formatCurrency(workOrder.supplier_cost)}
+                          </TableCell>
+                          <TableCell className="text-right align-top">
+                            {formatCurrency(workOrder.revenue)}
+                          </TableCell>
+                          <TableCell className="text-right align-top">
+                            {getGrossProfitIndicator(workOrder.gross_profit_percent)}
+                          </TableCell>
+                          <TableCell className="align-top">
+                            {workOrder.supplier_name}
+                          </TableCell>
+                          <TableCell className="align-top">
+                            <WorkOrderActionsDropdown 
+                              workOrderId={workOrder.id}
+                              status={workOrder.status}
+                              onViewDetails={() => handleViewDetails(workOrder.id)}
+                              onEdit={() => console.log(`Edit work order ${workOrder.id}`)}
+                              onAssignTechnician={() => console.log(`Assign technician to ${workOrder.id}`)}
+                              onGenerateReport={() => console.log(`Generate report for ${workOrder.id}`)}
+                              onMarkComplete={() => console.log(`Mark ${workOrder.id} as complete`)}
+                              onCancel={() => console.log(`Cancel order ${workOrder.id}`)}
+                              onDelete={() => console.log(`Delete work order ${workOrder.id}`)}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+              
+              {/* Loader for infinite scrolling */}
+              {hasMore && (
+                <div ref={loaderRef} className="p-4 flex justify-center">
+                  {loading ? (
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+                  ) : (
+                    <span className="text-sm text-muted-foreground">Scroll for more</span>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
