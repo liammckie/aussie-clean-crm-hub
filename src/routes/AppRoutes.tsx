@@ -2,17 +2,18 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { AuthRoutes } from './route-groups/AuthRoutes';
-import { ClientRoutes } from './route-groups/ClientRoutes';
-import { ContractRoutes } from './route-groups/ContractRoutes';
-import { SupplierRoutes } from './route-groups/SupplierRoutes';
-import { WorkOrderRoutes } from './route-groups/WorkOrderRoutes';
-import { MiscRoutes } from './route-groups/MiscRoutes';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { Login } from './lazyRoutes';
 import { NotFound } from './lazyRoutes';
 import { Dashboard } from './lazyRoutes';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+
+// Import all the pages directly instead of route group components
+import { Clients, NewClient, ClientDetail, EditClient } from './lazyRoutes';
+import { Contracts, ContractDetail, NewContract, EditContract } from './lazyRoutes';
+import { Suppliers, NewSupplier, SupplierDetail, EditSupplier } from './lazyRoutes';
+import { WorkOrders, WorkOrderDetail, NewWorkOrder } from './lazyRoutes';
+import { Sites, Activities } from './lazyRoutes';
 
 export function AppRoutes() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -51,6 +52,11 @@ export function AppRoutes() {
           isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
         } />
         
+        {/* Auth routes */}
+        <Route path="/auth/login" element={
+          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        } />
+        
         {/* Dashboard page */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
@@ -58,17 +64,122 @@ export function AppRoutes() {
           </ProtectedRoute>
         } />
         
-        {/* Auth routes */}
-        <Route path="/auth/*" element={<AuthRoutes />} />
+        {/* Client routes */}
+        <Route path="/clients" element={
+          <ProtectedRoute>
+            <Clients />
+          </ProtectedRoute>
+        } />
+        <Route path="/clients/new" element={
+          <ProtectedRoute>
+            <NewClient />
+          </ProtectedRoute>
+        } />
+        <Route path="/clients/:clientId" element={
+          <ProtectedRoute>
+            <ClientDetail />
+          </ProtectedRoute>
+        } />
+        <Route path="/clients/edit/:clientId" element={
+          <ProtectedRoute>
+            <EditClient />
+          </ProtectedRoute>
+        } />
         
-        {/* Feature routes */}
-        <Route path="/clients/*" element={<ClientRoutes />} />
-        <Route path="/contracts/*" element={<ContractRoutes />} />
-        <Route path="/suppliers/*" element={<SupplierRoutes />} />
-        <Route path="/work-orders/*" element={<WorkOrderRoutes />} />
+        {/* Contract routes */}
+        <Route path="/contracts" element={
+          <ProtectedRoute>
+            <Contracts />
+          </ProtectedRoute>
+        } />
+        <Route path="/contracts/new" element={
+          <ProtectedRoute>
+            <NewContract />
+          </ProtectedRoute>
+        } />
+        <Route path="/contracts/:contractId" element={
+          <ProtectedRoute>
+            <ContractDetail />
+          </ProtectedRoute>
+        } />
+        <Route path="/contracts/edit/:contractId" element={
+          <ProtectedRoute>
+            <EditContract />
+          </ProtectedRoute>
+        } />
         
-        {/* Dashboard and other routes */}
-        <Route path="/dashboard/*" element={<MiscRoutes />} />
+        {/* Supplier routes */}
+        <Route path="/suppliers" element={
+          <ProtectedRoute>
+            <Suppliers />
+          </ProtectedRoute>
+        } />
+        <Route path="/suppliers/new" element={
+          <ProtectedRoute>
+            <NewSupplier />
+          </ProtectedRoute>
+        } />
+        <Route path="/suppliers/:supplierId" element={
+          <ProtectedRoute>
+            <SupplierDetail />
+          </ProtectedRoute>
+        } />
+        <Route path="/suppliers/edit/:supplierId" element={
+          <ProtectedRoute>
+            <EditSupplier />
+          </ProtectedRoute>
+        } />
+        
+        {/* Work Order routes */}
+        <Route path="/work-orders" element={
+          <ProtectedRoute>
+            <WorkOrders />
+          </ProtectedRoute>
+        } />
+        <Route path="/work-orders/new" element={
+          <ProtectedRoute>
+            <NewWorkOrder />
+          </ProtectedRoute>
+        } />
+        <Route path="/work-orders/:workOrderId" element={
+          <ProtectedRoute>
+            <WorkOrderDetail />
+          </ProtectedRoute>
+        } />
+        
+        {/* Additional routes */}
+        <Route path="/sites" element={
+          <ProtectedRoute>
+            <Sites />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/activities" element={
+          <ProtectedRoute>
+            <Activities />
+          </ProtectedRoute>
+        } />
+        
+        {/* Error pages */}
+        <Route path="/unauthorized" element={
+          <NotFound title="Unauthorized Access" description="You don't have permission to access this page." />
+        } />
+        
+        <Route path="/not-found" element={
+          <NotFound title="Page Not Found" description="The page you are looking for doesn't exist or has been moved." />
+        } />
+        
+        <Route path="/server-error" element={
+          <NotFound title="Server Error" description="Something went wrong on our end. Please try again later." />
+        } />
+        
+        <Route path="/maintenance" element={
+          <NotFound title="Under Maintenance" description="The system is currently undergoing scheduled maintenance. Please check back soon." />
+        } />
+        
+        <Route path="/feature-unavailable" element={
+          <NotFound title="Feature Unavailable" description="This feature is currently under development and will be available soon." />
+        } />
         
         {/* Catch-all not found route */}
         <Route path="*" element={<NotFound />} />

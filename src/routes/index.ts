@@ -1,9 +1,6 @@
 
 export { AppRoutes } from './AppRoutes';
-// Re-export route groups for easier imports
-export * from './route-groups/AuthRoutes';
-export * from './route-groups/ClientRoutes';
-export * from './route-groups/ContractRoutes';
-export * from './route-groups/SupplierRoutes';
-export * from './route-groups/WorkOrderRoutes';
-export * from './route-groups/MiscRoutes';
+
+// The route groups are no longer used for routing logic
+// They're kept for API reference only
+export * from './lazyRoutes';
