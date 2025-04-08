@@ -27,9 +27,11 @@ import {
 import { WorkOrderActionsDropdown } from '@/components/work-orders/WorkOrderActionsDropdown';
 import { WorkOrderHeaderActions } from '@/components/work-orders/WorkOrderHeaderActions';
 import { WorkOrderFilters } from '@/components/work-orders/WorkOrderFilters';
+import { WorkOrderCard } from '@/components/work-orders/WorkOrderCard';
 import { formatCurrency } from '@/utils/formatters';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Extended dummy data with additional fields
 const dummyWorkOrders = [
@@ -262,6 +264,7 @@ const getGrossProfitIndicator = (percent: number) => {
 // Work Orders main component
 const WorkOrders = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
@@ -277,7 +280,7 @@ const WorkOrders = () => {
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const loaderRef = useRef<HTMLDivElement>(null);
-  const ITEMS_PER_PAGE = 5;
+  const ITEMS_PER_PAGE = isMobile ? 3 : 5;
   
   // Filter work orders based on search and filters
   const filteredWorkOrders = dummyWorkOrders.filter(workOrder => {
@@ -326,7 +329,7 @@ const WorkOrders = () => {
       
       setLoading(false);
     }, 500);
-  }, [page, loading, hasMore, filteredWorkOrders]);
+  }, [page, loading, hasMore, filteredWorkOrders, ITEMS_PER_PAGE]);
   
   // Observer for infinite scrolling
   useEffect(() => {
@@ -362,7 +365,7 @@ const WorkOrders = () => {
     const initialItems = filteredWorkOrders.slice(0, ITEMS_PER_PAGE);
     setVisibleOrders(initialItems);
     setPage(prev => prev + 1);
-  }, [searchQuery, activeFilters, filteredWorkOrders.length]);
+  }, [searchQuery, activeFilters, filteredWorkOrders.length, ITEMS_PER_PAGE]);
 
   const handleViewDetails = (workOrderId: string) => {
     console.log(`View details for work order ${workOrderId}`);
@@ -416,10 +419,6 @@ const WorkOrders = () => {
               />
             </div>
             <div className="flex items-center space-x-2">
-              <Button onClick={handleCreateWorkOrder}>
-                <ClipboardList className="h-4 w-4 mr-2" />
-                Create Work Order
-              </Button>
               <WorkOrderHeaderActions 
                 onToggleFilters={() => setShowFilters(!showFilters)} 
                 showFilters={showFilters}
@@ -456,82 +455,100 @@ const WorkOrders = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="border rounded-md overflow-hidden">
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[180px]">Submitted By</TableHead>
-                      <TableHead className="w-[200px]">Work Order</TableHead>
-                      <TableHead className="w-[200px]">Client / Site</TableHead>
-                      <TableHead className="w-[100px]">Status</TableHead>
-                      <TableHead className="w-[100px]">Priority</TableHead>
-                      <TableHead className="w-[120px] text-right">Cost</TableHead>
-                      <TableHead className="w-[120px] text-right">Revenue</TableHead>
-                      <TableHead className="w-[100px] text-right">GP %</TableHead>
-                      <TableHead className="w-[180px]">Supplier</TableHead>
-                      <TableHead className="w-[80px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {visibleOrders.map((workOrder) => {
-                      const statusProps = getStatusBadgeProps(workOrder.status);
-                      const priorityProps = getPriorityBadgeProps(workOrder.priority);
-                      
-                      return (
-                        <TableRow key={workOrder.id}>
-                          <TableCell className="font-medium align-top">
-                            {workOrder.submitted_by}
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <div className="font-medium">{workOrder.work_order_number}</div>
-                            <div className="text-sm text-muted-foreground">{workOrder.title}</div>
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <div>{workOrder.client}</div>
-                            <div className="text-sm text-muted-foreground">{workOrder.site}</div>
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <Badge variant="outline" className={statusProps.className}>
-                              {statusProps.label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <Badge variant="outline" className={priorityProps.className}>
-                              {priorityProps.label}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right align-top">
-                            {formatCurrency(workOrder.supplier_cost)}
-                          </TableCell>
-                          <TableCell className="text-right align-top">
-                            {formatCurrency(workOrder.revenue)}
-                          </TableCell>
-                          <TableCell className="text-right align-top">
-                            {getGrossProfitIndicator(workOrder.gross_profit_percent)}
-                          </TableCell>
-                          <TableCell className="align-top">
-                            {workOrder.supplier_name}
-                          </TableCell>
-                          <TableCell className="align-top">
-                            <WorkOrderActionsDropdown 
-                              workOrderId={workOrder.id}
-                              status={workOrder.status}
-                              onViewDetails={() => handleViewDetails(workOrder.id)}
-                              onEdit={() => console.log(`Edit work order ${workOrder.id}`)}
-                              onAssignTechnician={() => console.log(`Assign technician to ${workOrder.id}`)}
-                              onGenerateReport={() => console.log(`Generate report for ${workOrder.id}`)}
-                              onMarkComplete={() => console.log(`Mark ${workOrder.id} as complete`)}
-                              onCancel={() => console.log(`Cancel order ${workOrder.id}`)}
-                              onDelete={() => console.log(`Delete work order ${workOrder.id}`)}
-                            />
-                          </TableCell>
+            <>
+              {/* Mobile view - Cards */}
+              {isMobile && (
+                <div className="lg:hidden">
+                  {visibleOrders.map((workOrder) => (
+                    <WorkOrderCard 
+                      key={workOrder.id}
+                      workOrder={workOrder}
+                      onViewDetails={handleViewDetails}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {/* Desktop view - Table */}
+              {!isMobile && (
+                <div className="hidden lg:block border rounded-md overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-[180px]">Submitted By</TableHead>
+                          <TableHead className="w-[200px]">Work Order</TableHead>
+                          <TableHead className="w-[200px]">Client / Site</TableHead>
+                          <TableHead className="w-[100px]">Status</TableHead>
+                          <TableHead className="w-[100px]">Priority</TableHead>
+                          <TableHead className="w-[120px] text-right">Cost</TableHead>
+                          <TableHead className="w-[120px] text-right">Revenue</TableHead>
+                          <TableHead className="w-[100px] text-right">GP %</TableHead>
+                          <TableHead className="w-[180px]">Supplier</TableHead>
+                          <TableHead className="w-[80px]"></TableHead>
                         </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                      </TableHeader>
+                      <TableBody>
+                        {visibleOrders.map((workOrder) => {
+                          const statusProps = getStatusBadgeProps(workOrder.status);
+                          const priorityProps = getPriorityBadgeProps(workOrder.priority);
+                          
+                          return (
+                            <TableRow key={workOrder.id}>
+                              <TableCell className="font-medium align-top">
+                                {workOrder.submitted_by}
+                              </TableCell>
+                              <TableCell className="align-top">
+                                <div className="font-medium">{workOrder.work_order_number}</div>
+                                <div className="text-sm text-muted-foreground">{workOrder.title}</div>
+                              </TableCell>
+                              <TableCell className="align-top">
+                                <div>{workOrder.client}</div>
+                                <div className="text-sm text-muted-foreground">{workOrder.site}</div>
+                              </TableCell>
+                              <TableCell className="align-top">
+                                <Badge variant="outline" className={statusProps.className}>
+                                  {statusProps.label}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="align-top">
+                                <Badge variant="outline" className={priorityProps.className}>
+                                  {priorityProps.label}
+                                </Badge>
+                              </TableCell>
+                              <TableCell className="text-right align-top">
+                                {formatCurrency(workOrder.supplier_cost)}
+                              </TableCell>
+                              <TableCell className="text-right align-top">
+                                {formatCurrency(workOrder.revenue)}
+                              </TableCell>
+                              <TableCell className="text-right align-top">
+                                {getGrossProfitIndicator(workOrder.gross_profit_percent)}
+                              </TableCell>
+                              <TableCell className="align-top">
+                                {workOrder.supplier_name}
+                              </TableCell>
+                              <TableCell className="align-top">
+                                <WorkOrderActionsDropdown 
+                                  workOrderId={workOrder.id}
+                                  status={workOrder.status}
+                                  onViewDetails={() => handleViewDetails(workOrder.id)}
+                                  onEdit={() => console.log(`Edit work order ${workOrder.id}`)}
+                                  onAssignTechnician={() => console.log(`Assign technician to ${workOrder.id}`)}
+                                  onGenerateReport={() => console.log(`Generate report for ${workOrder.id}`)}
+                                  onMarkComplete={() => console.log(`Mark ${workOrder.id} as complete`)}
+                                  onCancel={() => console.log(`Cancel order ${workOrder.id}`)}
+                                  onDelete={() => console.log(`Delete work order ${workOrder.id}`)}
+                                />
+                              </TableCell>
+                            </TableRow>
+                          );
+                        })}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </div>
+              )}
               
               {/* Loader for infinite scrolling */}
               {hasMore && (
@@ -543,7 +560,7 @@ const WorkOrders = () => {
                   )}
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>

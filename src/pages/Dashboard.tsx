@@ -45,7 +45,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-0 max-w-full">
+    <div className="container px-4 sm:px-6 mx-auto max-w-full">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -61,12 +61,15 @@ const Dashboard = () => {
         </BreadcrumbList>
       </Breadcrumb>
       
-      <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
+      <h1 className="text-xl sm:text-2xl font-bold mb-6">Dashboard</h1>
       
-      <ActivityStats />
+      {/* Activity stats with improved mobile layout */}
+      <div className="mb-8">
+        <ActivityStats />
+      </div>
       
       <div className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">Business Performance</h2>
+        <h2 className="text-lg sm:text-xl font-semibold mb-4">Business Performance</h2>
         <DashboardGrid>
           <BusinessMetricsCard />
           <TodaySalesCard />

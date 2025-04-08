@@ -20,6 +20,7 @@ import {
   ClipboardList
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface WorkOrderHeaderActionsProps {
   onRefresh?: () => void;
@@ -33,15 +34,11 @@ export const WorkOrderHeaderActions: React.FC<WorkOrderHeaderActionsProps> = ({
   showFilters
 }) => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <Button onClick={() => navigate('/work-orders/new')} className="whitespace-nowrap">
-        <Plus className="h-4 w-4 mr-2" />
-        Create Work Order
-      </Button>
-
-      <Button
+      <Button 
         variant="outline"
         size="icon"
         onClick={onToggleFilters}
