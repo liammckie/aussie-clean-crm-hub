@@ -112,7 +112,7 @@ export function ActivityStatCard({
   };
 
   return (
-    <Card className="backdrop-blur-sm bg-white/40 border-white/20 shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 hover:translate-y-[-2px]">
+    <Card className="backdrop-blur-sm border-border/50 shadow-lg overflow-hidden group hover:shadow-xl transition-all duration-300 hover:translate-y-[-2px] bg-card/50">
       <CardContent className="p-6">
         <div className="flex items-start justify-between">
           <div className="flex-1">

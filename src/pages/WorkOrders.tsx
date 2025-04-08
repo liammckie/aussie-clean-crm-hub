@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from "@/components/ui/input";
@@ -24,8 +25,10 @@ import {
 import { WorkOrderActionsDropdown } from '@/components/work-orders/WorkOrderActionsDropdown';
 import { WorkOrderHeaderActions } from '@/components/work-orders/WorkOrderHeaderActions';
 import { WorkOrderFilters } from '@/components/work-orders/WorkOrderFilters';
+import { formatCurrency } from '@/utils/formatters';
+import { PageHeader } from '@/components/layout/PageHeader';
 
-// Dummy data for work orders
+// Dummy data for work orders with added supplier cost and submitted by fields
 const dummyWorkOrders = [
   {
     id: '1',
@@ -37,6 +40,8 @@ const dummyWorkOrders = [
     priority: 'high',
     created_at: '2023-05-10T10:30:00',
     scheduled_start: '2023-05-12T09:00:00',
+    supplier_cost: 580,
+    submitted_by: 'John Smith'
   },
   {
     id: '2',
@@ -48,6 +53,8 @@ const dummyWorkOrders = [
     priority: 'medium',
     created_at: '2023-05-11T14:45:00',
     scheduled_start: '2023-05-15T08:00:00',
+    supplier_cost: 250,
+    submitted_by: 'Emma Johnson'
   },
   {
     id: '3',
@@ -59,6 +66,8 @@ const dummyWorkOrders = [
     priority: 'medium',
     created_at: '2023-05-08T09:15:00',
     scheduled_start: '2023-05-09T13:00:00',
+    supplier_cost: 420,
+    submitted_by: 'Michael Brown'
   },
   {
     id: '4',
@@ -70,6 +79,8 @@ const dummyWorkOrders = [
     priority: 'low',
     created_at: '2023-05-12T11:20:00',
     scheduled_start: '2023-05-20T10:00:00',
+    supplier_cost: 180,
+    submitted_by: 'Sarah Davis'
   },
   {
     id: '5',
@@ -81,6 +92,8 @@ const dummyWorkOrders = [
     priority: 'high',
     created_at: '2023-05-13T08:30:00',
     scheduled_start: '2023-05-14T09:30:00',
+    supplier_cost: 350,
+    submitted_by: 'James Wilson'
   },
 ];
 
@@ -171,20 +184,17 @@ const WorkOrders = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Work Orders</h1>
-          <p className="text-muted-foreground mt-1">
-            View and manage all service requests and tasks.
-          </p>
-        </div>
-        
-        <WorkOrderHeaderActions 
-          onToggleFilters={() => setShowFilters(!showFilters)} 
-          showFilters={showFilters}
-          onRefresh={() => console.log("Refreshing work orders")}
-        />
-      </div>
+      <PageHeader
+        title="Work Orders"
+        description="View and manage all service requests and tasks."
+        breadcrumbs={[{ label: "Work Orders" }]}
+        actions={
+          <Button>
+            <ClipboardList className="h-4 w-4 mr-2" />
+            Create Work Order
+          </Button>
+        }
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Filters sidebar - toggle on smaller screens */}
@@ -220,6 +230,11 @@ const WorkOrders = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
+            <WorkOrderHeaderActions 
+              onToggleFilters={() => setShowFilters(!showFilters)} 
+              showFilters={showFilters}
+              onRefresh={() => console.log("Refreshing work orders")}
+            />
           </div>
 
           {filteredWorkOrders.length === 0 ? (
@@ -249,7 +264,9 @@ const WorkOrders = () => {
                     <TableHead>Client / Site</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Priority</TableHead>
-                    <TableHead>Scheduled</TableHead>
+                    <TableHead>Supplier Cost</TableHead>
+                    <TableHead className="hidden md:table-cell">Submitted By</TableHead>
+                    <TableHead className="hidden md:table-cell">Scheduled</TableHead>
                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -278,7 +295,9 @@ const WorkOrders = () => {
                             {priorityProps.label}
                           </Badge>
                         </TableCell>
-                        <TableCell>{formatDate(workOrder.scheduled_start)}</TableCell>
+                        <TableCell>{formatCurrency(workOrder.supplier_cost)}</TableCell>
+                        <TableCell className="hidden md:table-cell">{workOrder.submitted_by}</TableCell>
+                        <TableCell className="hidden md:table-cell">{formatDate(workOrder.scheduled_start)}</TableCell>
                         <TableCell>
                           <WorkOrderActionsDropdown 
                             workOrderId={workOrder.id}

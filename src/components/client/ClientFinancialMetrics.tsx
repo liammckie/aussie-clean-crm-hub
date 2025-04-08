@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, ArrowUpIcon, ArrowDownIcon, Percent } from 'lucide-react';
 import { formatCurrency, formatPercentage } from '@/utils/financeCalculations';
 
 interface FinancialMetricsProps {
@@ -24,7 +23,7 @@ export function ClientFinancialMetrics({
   
   if (isLoading) {
     return (
-      <Card>
+      <Card className="bg-card/50 border-border/50">
         <CardHeader>
           <CardTitle className="text-lg font-medium">Financial Overview</CardTitle>
         </CardHeader>
@@ -38,7 +37,7 @@ export function ClientFinancialMetrics({
   }
   
   return (
-    <Card>
+    <Card className="bg-card/50 border-border/50">
       <CardHeader>
         <CardTitle className="text-lg font-medium">Financial Overview</CardTitle>
       </CardHeader>

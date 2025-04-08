@@ -5,7 +5,6 @@ import { QualityAuditsCard } from "@/components/dashboard/QualityAuditsCard";
 import { TopClientsCard } from "@/components/dashboard/TopClientsCard";
 import { SalesTargetCard } from "@/components/dashboard/SalesTargetCard";
 import { NetProfitCard } from "@/components/dashboard/NetProfitCard";
-import { PipelineValueCard } from "@/components/dashboard/PipelineValueCard";
 import { BusinessMetricsCard } from "@/components/dashboard/BusinessMetricsCard";
 import { useEffect } from "react";
 import { AppLogger, LogCategory } from "@/utils/logging";
@@ -13,7 +12,6 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Home } from "lucide-react";
 import { FinancialSummaryCard } from "@/components/financial/FinancialSummaryCard";
 import { ActivityStats } from "@/components/activities/ActivityStats";
-import { generateFinancialBreakdown } from "@/utils/financeCalculations";
 
 // Sample financial data for the dashboard
 // In a real application, this would come from an API
@@ -86,7 +84,6 @@ const Dashboard = () => {
           <TopClientsCard />
           <SalesTargetCard />
           <NetProfitCard />
-          <PipelineValueCard />
         </DashboardGrid>
       </div>
     </div>

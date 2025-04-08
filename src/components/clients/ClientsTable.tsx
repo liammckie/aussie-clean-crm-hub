@@ -11,9 +11,17 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, MoreHorizontal } from "lucide-react";
 import { formatCurrency } from "@/utils/formatters";
 import { ClientRecord } from "@/types/clients";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ClientsTableProps {
   clients: ClientRecord[];
@@ -29,7 +37,7 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div className="overflow-x-auto">
+    <div className="border rounded-md overflow-x-auto">
       <Table className="min-w-full">
         <TableHeader>
           <TableRow>
@@ -39,17 +47,17 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
             <TableHead>Industry</TableHead>
             <TableHead className="hidden md:table-cell">Annual Revenue</TableHead>
             <TableHead className="hidden md:table-cell">Total Sites</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead></TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {clients.map((client) => (
             <TableRow key={client.id} className="hover:bg-accent/30">
-              <TableCell className="font-medium">
+              <TableCell>
                 <div>
                   <p className="font-medium">{client.business_name}</p>
                   {client.trading_name && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-sm text-muted-foreground">
                       Trading as: {client.trading_name}
                     </p>
                   )}
@@ -57,7 +65,7 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
               </TableCell>
               <TableCell>{client.abn || "-"}</TableCell>
               <TableCell>
-                <Badge className={getStatusColor(client.status || '')}>
+                <Badge variant="outline" className={getStatusColor(client.status || '')}>
                   {client.status}
                 </Badge>
               </TableCell>
@@ -68,14 +76,26 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
               <TableCell className="hidden md:table-cell">
                 {client.site_count || 0}
               </TableCell>
-              <TableCell className="text-right">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => navigate(`/clients/${client.id}`)}
-                >
-                  <ExternalLink className="h-4 w-4" />
-                </Button>
+              <TableCell>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon">
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
+                      View Details
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}/edit`)}>
+                      Edit Client
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>Manage Contacts</DropdownMenuItem>
+                    <DropdownMenuItem>Manage Sites</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
