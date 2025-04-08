@@ -9,7 +9,6 @@ import {
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
 import { 
-  Plus, 
   Filter, 
   Download, 
   FileText, 
@@ -36,6 +35,10 @@ export const WorkOrderHeaderActions: React.FC<WorkOrderHeaderActionsProps> = ({
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
+  const handleCreateWorkOrder = () => {
+    navigate('/work-orders/new');
+  };
+
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <Button 
@@ -60,6 +63,11 @@ export const WorkOrderHeaderActions: React.FC<WorkOrderHeaderActionsProps> = ({
           <span className="sr-only">Refresh</span>
         </Button>
       )}
+
+      <Button variant="default" onClick={handleCreateWorkOrder} className="whitespace-nowrap">
+        <ClipboardList className="h-4 w-4 mr-2" />
+        Create Work Order
+      </Button>
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
