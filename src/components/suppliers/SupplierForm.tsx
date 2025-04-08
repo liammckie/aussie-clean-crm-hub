@@ -1,7 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { SupplierCreateData, supplierFormSchema, SupplierStatus, SupplierType, AustralianStates } from '@/types/supplier-types';
+import { SupplierCreateData, supplierFormSchema, SupplierStatus, SupplierType, AustralianStates, SUPPLIER_PAYMENT_TERMS } from '@/types/supplier-types';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import {
   Form,
@@ -18,6 +18,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
+import { PAYMENT_TERMS_OPTIONS } from '@/utils/constants';
 
 interface SupplierFormProps {
   initialData?: Partial<SupplierCreateData>;
@@ -361,6 +362,37 @@ export function SupplierForm({ initialData, onSubmit, isSubmitting, error, butto
                   <FormControl>
                     <Input placeholder="Enter invoice submission email" {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="payment_terms"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Payment Terms
+                    {form.watch('status') === SupplierStatus.ACTIVE && <span className="text-red-500">*</span>}
+                  </FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select payment terms" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {PAYMENT_TERMS_OPTIONS.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Required for active suppliers
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

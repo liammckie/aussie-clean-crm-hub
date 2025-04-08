@@ -1,4 +1,3 @@
-
 import { ApiResponse } from "@/types/api-response";
 import { z } from "zod";
 
@@ -161,6 +160,20 @@ export const contractFormSchema = z.object({
   // Document URL fields
   contract_document_url: z.string().url("Must be a valid URL").optional(),
   scope_document_url: z.string().url("Must be a valid URL").optional()
+}).refine((data) => {
+  // If status is active, require billing_frequency and payment_terms
+  if (data.status === 'active') {
+    if (!data.billing_frequency) {
+      return false;
+    }
+    if (!data.payment_terms) {
+      return false;
+    }
+  }
+  return true;
+}, {
+  message: "Billing frequency and payment terms are required for active contracts",
+  path: ["status"] // This will highlight the status field when the refinement fails
 });
 
 // Type inferred from schema

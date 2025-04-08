@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { toast } from 'sonner';
-import { useQuery } from '@tanstack/react-query';
+import {
+  ContractFormData,
+  contractFormSchema,
+  createDefaultContractValues
+} from '@/types/contract-types';
 import {
   Form,
   FormControl,
@@ -12,275 +14,121 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LoadSampleButton } from '@/components/ui/load-sample-button';
-
-import { 
-  contractFormSchema, 
-  createDefaultContractValues,
-  ContractFormData,
-  ContractCreateData,
-  ServiceType
-} from '@/types/contract-types';
+import { Separator } from '@/components/ui/separator';
+import { useClients } from '@/hooks/use-clients';
+import { useNavigate } from 'react-router-dom';
 import { useContracts } from '@/hooks/use-contracts';
+import { toast } from 'sonner';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { BILLING_FREQUENCY_OPTIONS, PAYMENT_TERMS_OPTIONS } from '@/utils/constants';
 
 interface ContractFormProps {
-  clientId?: string;
   contractId?: string;
+  clientId?: string;
   isEdit?: boolean;
 }
 
-export function ContractForm({ clientId, contractId, isEdit = false }: ContractFormProps) {
-  const [searchParams] = useSearchParams();
+export function ContractForm({ contractId, clientId, isEdit = false }: ContractFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
-  const urlClientId = searchParams.get('clientId') || clientId;
-  const [sampleLoaded, setSampleLoaded] = useState(false);
   
-  const { 
-    createContract, 
-    isCreatingContract, 
-    updateContract, 
-    isUpdatingContract, 
-    useContractDetails
-  } = useContracts(urlClientId);
+  const { useClientsList } = useClients();
+  const { data: clients, isLoading: isClientsLoading } = useClientsList();
   
-  // Fetch client details (to show client name)
-  const { data: clientData } = useQuery({
-    queryKey: ['client', urlClientId],
-    queryFn: async () => {
-      try {
-        const response = await fetch(`/api/clients/${urlClientId}`);
-        if (!response.ok) throw new Error('Failed to fetch client');
-        return await response.json();
-      } catch (error) {
-        console.error('Error fetching client:', error);
-        return null;
-      }
-    },
-    enabled: !!urlClientId,
-  });
-  
-  // Fetch contract details if editing
-  const { data: contractData, isLoading: isLoadingContract } = useContractDetails(contractId);
+  const { useContractDetails, useUpdateContract, useCreateContract } = useContracts();
+  const { data: contract, isLoading: isContractLoading } = useContractDetails(contractId);
 
-  // Set up form with schema validation
   const form = useForm<ContractFormData>({
     resolver: zodResolver(contractFormSchema),
-    defaultValues: createDefaultContractValues({ client_id: urlClientId || '' }),
-    mode: 'onChange',
+    defaultValues: createDefaultContractValues({ client_id: clientId })
   });
-  
-  // Update form when contract data is loaded (for edit mode)
+
   useEffect(() => {
-    if (contractData && isEdit) {
-      AppLogger.debug(LogCategory.CONTRACT, 'Setting form values with contract data', contractData);
-      const formData = {
-        ...contractData,
-        start_date: contractData.start_date ? new Date(contractData.start_date).toISOString().split('T')[0] : '',
-        end_date: contractData.end_date ? new Date(contractData.end_date).toISOString().split('T')[0] : '',
-      };
-      form.reset(formData);
+    if (clientId && !isClientsLoading && clients) {
+      // Set client ID if passed as a query parameter
+      form.setValue("client_id", clientId);
     }
-  }, [contractData, form, isEdit]);
-
-  // Handle form submission
-  const onSubmit = async (data: ContractFormData) => {
-    try {
-      // Make sure client_id is set
-      if (!data.client_id && urlClientId) {
-        data.client_id = urlClientId;
-      }
-      
-      // Calculate values if not explicitly provided
-      if (data.total_weekly_value) {
-        // Auto-calculate monthly and annual values if not provided
-        if (!data.total_monthly_value) {
-          data.total_monthly_value = data.total_weekly_value * 4.33;
-        }
-        if (!data.total_annual_value) {
-          data.total_annual_value = data.total_weekly_value * 52;
-        }
-      }
-      
-      AppLogger.info(
-        LogCategory.CONTRACT, 
-        `${isEdit ? 'Updating' : 'Creating'} contract`, 
-        { data }
-      );
-
-      // Ensure all required fields are present for contract creation
-      const contractData: ContractCreateData = {
-        contract_name: data.contract_name,
-        contract_code: data.contract_code,
-        client_id: data.client_id,
-        service_type: data.service_type || 'commercial_cleaning',
-        status: data.status || 'draft',
-        start_date: data.start_date,
-        is_ongoing: data.is_ongoing || false,
-        // Include all optional fields
-        description: data.description,
-        end_date: data.end_date,
-        delivery_mode: data.delivery_mode,
-        account_manager: data.account_manager,
-        state_manager: data.state_manager,
-        national_manager: data.national_manager,
-        billing_frequency: data.billing_frequency,
-        billing_type: data.billing_type,
-        payment_terms: data.payment_terms,
-        payment_method: data.payment_method,
-        total_weekly_value: data.total_weekly_value,
-        total_monthly_value: data.total_monthly_value,
-        total_annual_value: data.total_annual_value,
-        sla_requirements: data.sla_requirements,
-        client_representative_name: data.client_representative_name,
-        client_representative_contact: data.client_representative_contact,
-        notes: data.notes,
-        // Include days of week fields
-        monday: data.monday,
-        tuesday: data.tuesday,
-        wednesday: data.wednesday,
-        thursday: data.thursday,
-        friday: data.friday,
-        saturday: data.saturday,
-        sunday: data.sunday,
-        // Include document URL fields
-        contract_document_url: data.contract_document_url || undefined,
-        scope_document_url: data.scope_document_url || undefined
-      };
-      
-      if (isEdit && contractId) {
-        // Update existing contract
-        const result = await updateContract({ id: contractId, data: contractData });
-        toast.success('Contract updated successfully!');
-        navigate(`/contracts/${contractId}`);
-      } else {
-        // Create new contract
-        const result = await createContract(contractData);
-        toast.success('Contract created successfully!');
-        // Navigate to the new contract or back to client
-        if (result?.id) {
-          navigate(`/contracts/${result.id}`);
-        } else if (urlClientId) {
-          navigate(`/clients/${urlClientId}?tab=contracts`);
-        } else {
-          navigate('/contracts');
-        }
-      }
-    } catch (error) {
-      AppLogger.error(
-        LogCategory.CONTRACT, 
-        `Error ${isEdit ? 'updating' : 'creating'} contract`, 
-        { error }
-      );
-      toast.error(`Failed to ${isEdit ? 'update' : 'create'} contract. Please check the form and try again.`);
-    }
-  };
+  }, [clientId, clients, isClientsLoading, form]);
   
-  const handleSampleData = () => {
-    if (sampleLoaded) {
-      // Clear sample data
-      form.reset(createDefaultContractValues({ client_id: urlClientId || '' }));
-      setSampleLoaded(false);
-    } else {
-      // Load sample data
-      const sampleContract: Partial<ContractFormData> = {
-        client_id: urlClientId || '',
-        contract_name: 'Commercial Office Cleaning',
-        contract_code: `CNT-${Math.floor(1000 + Math.random() * 9000)}`,
-        service_type: 'commercial_cleaning',
-        status: 'draft',
-        start_date: new Date().toISOString().split('T')[0],
-        end_date: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().split('T')[0],
-        description: 'Regular commercial cleaning services for office premises',
-        is_ongoing: false,
-        delivery_mode: 'employee',
-        account_manager: 'Sarah Johnson',
-        state_manager: 'Michael Brown',
-        billing_frequency: 'monthly',
-        billing_type: 'fixed',
-        payment_terms: 'Net 30',
-        total_weekly_value: 1250,
-        total_monthly_value: 5000,
-        total_annual_value: 60000,
-        sla_requirements: 'Cleaning must be completed before 9am each weekday',
-        notes: 'Client requires staff to have security clearance',
-        // Sample days of week
-        monday: true,
-        tuesday: true,
-        wednesday: true,
-        thursday: true,
-        friday: true,
-        saturday: false,
-        sunday: false,
-        // Sample document URLs
-        contract_document_url: 'https://example.com/contract.pdf',
-        scope_document_url: 'https://example.com/scope.pdf',
-      };
-      form.reset(createDefaultContractValues(sampleContract));
-      setSampleLoaded(true);
+  useEffect(() => {
+    if (contract && isEdit) {
+      // Populate form with contract details for editing
+      form.reset(contract);
+    }
+  }, [contract, isEdit, form]);
+
+  const onSubmit = async (data: ContractFormData) => {
+    setIsSubmitting(true);
+    
+    const submitAction = isEdit 
+      ? useUpdateContract(contractId as string, data)
+      : useCreateContract(data);
+    
+    try {
+      const response = await submitAction();
+      
+      if (response?.success) {
+        toast.success(`Contract ${isEdit ? 'updated' : 'created'} successfully!`);
+        AppLogger.info(
+          LogCategory.CONTRACT, 
+          `Contract ${isEdit ? 'updated' : 'created'} successfully`, 
+          { contractId: response.data?.id }
+        );
+        navigate('/contracts');
+      } else {
+        toast.error(response?.message || 'Failed to save contract. Please try again.');
+        AppLogger.error(
+          LogCategory.CONTRACT, 
+          `Failed to ${isEdit ? 'update' : 'create'} contract`, 
+          { error: response?.message }
+        );
+      }
+    } catch (error: any) {
+      toast.error(`Error: ${error.message || 'Failed to save contract.'}`);
+      AppLogger.error(
+        LogCategory.ERROR, 
+        `Exception during contract ${isEdit ? 'update' : 'creation'}`, 
+        { error: error.message }
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
-  if (isLoadingContract && isEdit) {
-    return (
-      <div className="flex items-center justify-center p-6">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
-    <Card className="mb-6">
-      <CardHeader className="flex flex-row justify-between items-center">
-        <div>
-          <CardTitle>
-            {isEdit ? 'Edit Contract' : 'New Contract'}
-          </CardTitle>
-          <CardDescription>
-            {clientData?.business_name 
-              ? `Client: ${clientData.business_name}` 
-              : urlClientId 
-                ? 'Loading client information...' 
-                : 'Create a new service contract'}
-          </CardDescription>
-        </div>
-        {!isEdit && (
-          <LoadSampleButton
-            onLoadSample={handleSampleData}
-            isLoaded={sampleLoaded}
-            className="mr-2"
-          />
-        )}
-      </CardHeader>
-      <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)}>
-            <Tabs defaultValue="details" className="w-full">
-              <TabsList className="mb-4">
-                <TabsTrigger value="details">Contract Details</TabsTrigger>
-                <TabsTrigger value="financial">Financial Information</TabsTrigger>
-                <TabsTrigger value="management">Management</TabsTrigger>
-                <TabsTrigger value="schedule">Schedule</TabsTrigger>
-                <TabsTrigger value="documents">Documents</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="details" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        <Tabs defaultValue="basic">
+          <TabsList className="grid grid-cols-3 md:grid-cols-6 w-full">
+            <TabsTrigger value="basic">Basic Info</TabsTrigger>
+            <TabsTrigger value="financial">Financial</TabsTrigger>
+            <TabsTrigger value="service">Service Details</TabsTrigger>
+            <TabsTrigger value="scheduling">Scheduling</TabsTrigger>
+            <TabsTrigger value="billing">Billing</TabsTrigger>
+            <TabsTrigger value="documents">Documents</TabsTrigger>
+          </TabsList>
+          
+          {/* Basic Info Tab */}
+          <TabsContent value="basic">
+            <Card>
+              <CardHeader>
+                <CardTitle>Basic Information</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="contract_name"
@@ -302,37 +150,119 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                       <FormItem>
                         <FormLabel>Contract Code</FormLabel>
                         <FormControl>
-                          <Input placeholder="CNT-1234" {...field} />
+                          <Input placeholder="Enter contract code" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-
+                </div>
+                
+                <FormField
+                  control={form.control}
+                  name="client_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Client</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        defaultValue={field.value}
+                        disabled={isClientsLoading}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a client" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {clients?.map((client) => (
+                            <SelectItem key={client.id} value={client.id}>
+                              {client.business_name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Status</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a status" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="pending_approval">Pending Approval</SelectItem>
+                          <SelectItem value="expired">Expired</SelectItem>
+                          <SelectItem value="terminated">Terminated</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="is_ongoing"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-md border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel>Is Ongoing</FormLabel>
+                        <FormDescription>
+                          Check if the contract is ongoing with no fixed end date.
+                        </FormDescription>
+                      </div>
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Financial Tab */}
+          <TabsContent value="financial">
+            <Card>
+              <CardHeader>
+                <CardTitle>Financial Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="service_type"
+                    name="contract_value"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Service Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select service type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="commercial_cleaning">Commercial Cleaning</SelectItem>
-                            <SelectItem value="industrial_cleaning">Industrial Cleaning</SelectItem>
-                            <SelectItem value="residential_cleaning">Residential Cleaning</SelectItem>
-                            <SelectItem value="window_cleaning">Window Cleaning</SelectItem>
-                            <SelectItem value="carpet_cleaning">Carpet Cleaning</SelectItem>
-                            <SelectItem value="waste_management">Waste Management</SelectItem>
-                            <SelectItem value="grounds_maintenance">Grounds Maintenance</SelectItem>
-                            <SelectItem value="pest_control">Pest Control</SelectItem>
-                            <SelectItem value="other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Contract Value</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter contract value" 
+                            {...field} 
+                            value={field.value === undefined ? '' : field.value}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? undefined : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -340,32 +270,233 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                   
                   <FormField
                     control={form.control}
-                    name="status"
+                    name="profit_margin_percentage"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Status</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select status" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="draft">Draft</SelectItem>
-                            <SelectItem value="active">Active</SelectItem>
-                            <SelectItem value="on_hold">On Hold</SelectItem>
-                            <SelectItem value="pending_approval">Pending Approval</SelectItem>
-                            <SelectItem value="expired">Expired</SelectItem>
-                            <SelectItem value="cancelled">Cancelled</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Profit Margin (%)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter profit margin percentage" 
+                            {...field} 
+                            value={field.value === undefined ? '' : field.value}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? undefined : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="total_weekly_value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Total Weekly Value</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter total weekly value" 
+                            {...field} 
+                            value={field.value === undefined ? '' : field.value}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? undefined : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="total_monthly_value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Total Monthly Value</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter total monthly value" 
+                            {...field} 
+                            value={field.value === undefined ? '' : field.value}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? undefined : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="total_annual_value"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Total Annual Value</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter total annual value" 
+                            {...field} 
+                            value={field.value === undefined ? '' : field.value}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? undefined : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <FormField
+                    control={form.control}
+                    name="supplier_cost_weekly"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Supplier Cost Weekly</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter supplier cost weekly" 
+                            {...field}
+                            value={field.value === undefined ? '' : field.value}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? undefined : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="supplier_cost_monthly"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Supplier Cost Monthly</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter supplier cost monthly" 
+                            {...field}
+                            value={field.value === undefined ? '' : field.value}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? undefined : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="supplier_cost_annual"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Supplier Cost Annual</FormLabel>
+                        <FormControl>
+                          <Input 
+                            type="number" 
+                            placeholder="Enter supplier cost annual" 
+                            {...field}
+                            value={field.value === undefined ? '' : field.value}
+                            onChange={(e) => {
+                              const value = e.target.value === '' ? undefined : Number(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Service Details Tab */}
+          <TabsContent value="service">
+            <Card>
+              <CardHeader>
+                <CardTitle>Service Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="service_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Service Type</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter service type" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Enter description" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="sla_requirements"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>SLA Requirements</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Enter SLA requirements" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Scheduling Tab */}
+          <TabsContent value="scheduling">
+            <Card>
+              <CardHeader>
+                <CardTitle>Scheduling Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
                     name="start_date"
@@ -387,146 +518,7 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                       <FormItem>
                         <FormLabel>End Date</FormLabel>
                         <FormControl>
-                          <Input 
-                            type="date" 
-                            {...field} 
-                            disabled={form.watch('is_ongoing')}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="is_ongoing"
-                    render={({ field }) => (
-                      <FormItem className="flex items-end space-x-2 h-[5.25rem]">
-                        <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={(checked) => {
-                              field.onChange(checked);
-                              if (checked) {
-                                form.setValue('end_date', '');
-                              }
-                            }}
-                          />
-                        </FormControl>
-                        <FormLabel className="mt-0">Ongoing Contract (No End Date)</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-                
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Describe the contract scope and services..."
-                          className="min-h-20"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="sla_requirements"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>SLA Requirements</FormLabel>
-                      <FormControl>
-                        <Textarea 
-                          placeholder="Enter any service level agreement requirements..."
-                          className="min-h-20"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </TabsContent>
-              
-              <TabsContent value="financial" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <FormField
-                    control={form.control}
-                    name="total_weekly_value"
-                    render={({ field: { value, onChange, ...field } }) => (
-                      <FormItem>
-                        <FormLabel>Weekly Contract Value ($)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0.00"
-                            value={value === undefined ? '' : value}
-                            onChange={(e) => {
-                              const val = e.target.value !== '' ? parseFloat(e.target.value) : undefined;
-                              onChange(val);
-                              // Auto-calculate monthly and annual if weekly changes
-                              if (val) {
-                                form.setValue('total_monthly_value', val * 4.33);
-                                form.setValue('total_annual_value', val * 52);
-                              }
-                            }}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="total_monthly_value"
-                    render={({ field: { value, onChange, ...field } }) => (
-                      <FormItem>
-                        <FormLabel>Monthly Contract Value ($)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0.00"
-                            value={value === undefined ? '' : value}
-                            onChange={(e) => {
-                              const val = e.target.value !== '' ? parseFloat(e.target.value) : undefined;
-                              onChange(val);
-                            }}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="total_annual_value"
-                    render={({ field: { value, onChange, ...field } }) => (
-                      <FormItem>
-                        <FormLabel>Annual Contract Value ($)</FormLabel>
-                        <FormControl>
-                          <Input 
-                            type="number" 
-                            placeholder="0.00"
-                            value={value === undefined ? '' : value}
-                            onChange={(e) => {
-                              const val = e.target.value !== '' ? parseFloat(e.target.value) : undefined;
-                              onChange(val);
-                            }}
-                            {...field}
-                          />
+                          <Input type="date" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -534,66 +526,15 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                   />
                 </div>
                 
-                <Separator className="my-4" />
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <FormField
                     control={form.control}
-                    name="billing_frequency"
+                    name="delivery_mode"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Billing Frequency</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select billing frequency" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="weekly">Weekly</SelectItem>
-                            <SelectItem value="fortnightly">Fortnightly</SelectItem>
-                            <SelectItem value="monthly">Monthly</SelectItem>
-                            <SelectItem value="quarterly">Quarterly</SelectItem>
-                            <SelectItem value="annually">Annually</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="billing_type"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Billing Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select billing type" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="fixed">Fixed</SelectItem>
-                            <SelectItem value="variable">Variable</SelectItem>
-                            <SelectItem value="time_materials">Time & Materials</SelectItem>
-                            <SelectItem value="retainer">Retainer</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="payment_terms"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Payment Terms</FormLabel>
+                        <FormLabel>Delivery Mode</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Net 30" {...field} />
+                          <Input placeholder="Enter delivery mode" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -602,33 +543,20 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                   
                   <FormField
                     control={form.control}
-                    name="payment_method"
+                    name="billing_cycle"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Payment Method</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select payment method" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="direct_debit">Direct Debit</SelectItem>
-                            <SelectItem value="credit_card">Credit Card</SelectItem>
-                            <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                            <SelectItem value="cheque">Cheque</SelectItem>
-                            <SelectItem value="cash">Cash</SelectItem>
-                          </SelectContent>
-                        </Select>
+                        <FormLabel>Billing Cycle</FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter billing cycle" {...field} />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-              </TabsContent>
-              
-              <TabsContent value="management" className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <FormField
                     control={form.control}
                     name="account_manager"
@@ -636,7 +564,7 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                       <FormItem>
                         <FormLabel>Account Manager</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter account manager name" {...field} />
+                          <Input placeholder="Enter account manager" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -650,7 +578,7 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                       <FormItem>
                         <FormLabel>State Manager</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter state manager name" {...field} />
+                          <Input placeholder="Enter state manager" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -664,8 +592,169 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                       <FormItem>
                         <FormLabel>National Manager</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter national manager name" {...field} />
+                          <Input placeholder="Enter national manager" {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <Separator className="my-4" />
+                
+                <CardTitle className="text-md mb-2">Service Days</CardTitle>
+                <div className="grid grid-cols-3 gap-2">
+                  <FormField
+                    control={form.control}
+                    name="monday"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center p-1 space-x-2 space-y-0 rounded-md border">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal pl-0">Monday</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="tuesday"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center p-1 space-x-2 space-y-0 rounded-md border">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal pl-0">Tuesday</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="wednesday"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center p-1 space-x-2 space-y-0 rounded-md border">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal pl-0">Wednesday</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="thursday"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center p-1 space-x-2 space-y-0 rounded-md border">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal pl-0">Thursday</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="friday"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center p-1 space-x-2 space-y-0 rounded-md border">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal pl-0">Friday</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="saturday"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center p-1 space-x-2 space-y-0 rounded-md border">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal pl-0">Saturday</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="sunday"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center p-1 space-x-2 space-y-0 rounded-md border">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <FormLabel className="text-sm font-normal pl-0">Sunday</FormLabel>
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Billing Tab */}
+          <TabsContent value="billing">
+            <Card>
+              <CardHeader>
+                <CardTitle>Billing Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Updated billing_frequency field to use dropdown */}
+                  <FormField
+                    control={form.control}
+                    name="billing_frequency"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Billing Frequency
+                          {form.watch('status') === 'active' && <span className="text-red-500">*</span>}
+                        </FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value || ""}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select billing frequency" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {BILLING_FREQUENCY_OPTIONS.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -673,10 +762,74 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                   
                   <FormField
                     control={form.control}
+                    name="billing_type"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Billing Type</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Fixed, Variable" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Updated payment_terms field to use dropdown */}
+                  <FormField
+                    control={form.control}
+                    name="payment_terms"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>
+                          Payment Terms
+                          {form.watch('status') === 'active' && <span className="text-red-500">*</span>}
+                        </FormLabel>
+                        <Select 
+                          onValueChange={field.onChange} 
+                          defaultValue={field.value || ""}
+                        >
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select payment terms" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {PAYMENT_TERMS_OPTIONS.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  
+                  <FormField
+                    control={form.control}
+                    name="payment_method"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Payment Method</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Bank Transfer, Credit Card" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <FormField
+                    control={form.control}
                     name="client_representative_name"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Client Representative</FormLabel>
+                        <FormLabel>Client Representative Name</FormLabel>
                         <FormControl>
                           <Input placeholder="Enter client representative name" {...field} />
                         </FormControl>
@@ -690,224 +843,81 @@ export function ContractForm({ clientId, contractId, isEdit = false }: ContractF
                     name="client_representative_contact"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Client Contact</FormLabel>
+                        <FormLabel>Client Representative Contact</FormLabel>
                         <FormControl>
-                          <Input placeholder="Enter client contact details" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="delivery_mode"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Delivery Mode</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select delivery mode" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="employee">Employee</SelectItem>
-                            <SelectItem value="contractor">Contractor</SelectItem>
-                            <SelectItem value="mixed">Mixed</SelectItem>
-                            <SelectItem value="supplier">External Supplier</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="schedule" className="space-y-4">
-                <h3 className="text-lg font-medium mb-4">Service Days</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-x-6 gap-y-3">
-                  <FormField
-                    control={form.control}
-                    name="monday"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">Monday</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="tuesday"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">Tuesday</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="wednesday"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">Wednesday</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="thursday"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">Thursday</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="friday"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">Friday</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="saturday"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">Saturday</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="sunday"
-                    render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                        <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
-                            onCheckedChange={field.onChange}
-                          />
-                        </FormControl>
-                        <FormLabel className="font-normal">Sunday</FormLabel>
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </TabsContent>
-              
-              <TabsContent value="documents" className="space-y-4">
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="contract_document_url"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contract Document URL</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="https://example.com/contract.pdf" 
-                            {...field} 
-                            value={field.value || ''}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  
-                  <FormField
-                    control={form.control}
-                    name="scope_document_url"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Scope of Work Document URL</FormLabel>
-                        <FormControl>
-                          <Input 
-                            placeholder="https://example.com/scope.pdf" 
-                            {...field}
-                            value={field.value || ''}
-                          />
+                          <Input placeholder="Enter client representative contact" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-              </TabsContent>
-            </Tabs>
-            
-            <div className="mt-6 flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate(-1)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit"
-                disabled={isCreatingContract || isUpdatingContract}
-              >
-                {isCreatingContract || isUpdatingContract ? (
-                  <>
-                    <span className="animate-spin mr-1">⟳</span> 
-                    {isEdit ? 'Updating...' : 'Creating...'}
-                  </>
-                ) : (
-                  isEdit ? 'Update Contract' : 'Create Contract'
-                )}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          {/* Documents Tab */}
+          <TabsContent value="documents">
+            <Card>
+              <CardHeader>
+                <CardTitle>Documents</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <FormField
+                  control={form.control}
+                  name="contract_document_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contract Document URL</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter contract document URL" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="scope_document_url"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Scope Document URL</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Enter scope document URL" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="notes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Notes</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="Enter notes" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+        
+        <div className="flex justify-end space-x-2">
+          <Button type="button" variant="outline" onClick={() => navigate('/contracts')}>
+            Cancel
+          </Button>
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Submitting...' : 'Save Contract'}
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

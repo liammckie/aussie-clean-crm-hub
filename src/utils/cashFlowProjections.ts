@@ -39,17 +39,43 @@ export const calculatePaymentDueDate = (billingDate: Date, paymentTerms?: string
     return dueDate;
   }
   
-  // Extract days from payment terms
-  if (paymentTerms.toLowerCase().startsWith('net_')) {
-    const days = parseInt(paymentTerms.substring(4), 10);
-    if (!isNaN(days)) {
-      dueDate.setDate(dueDate.getDate() + days);
-      return dueDate;
-    }
+  // Extract days from standardized payment terms
+  switch (paymentTerms.toLowerCase()) {
+    case "net_7":
+      dueDate.setDate(dueDate.getDate() + 7);
+      break;
+    case "net_14":
+      dueDate.setDate(dueDate.getDate() + 14);
+      break;
+    case "net_30":
+      dueDate.setDate(dueDate.getDate() + 30);
+      break;
+    case "net_45":
+      dueDate.setDate(dueDate.getDate() + 45);
+      break;
+    case "net_60":
+      dueDate.setDate(dueDate.getDate() + 60);
+      break;
+    case "due_on_receipt":
+      // No days added, due immediately
+      break;
+    default:
+      // If unknown format, extract numeric portion if possible
+      const match = paymentTerms.match(/\d+/);
+      if (match) {
+        const days = parseInt(match[0], 10);
+        if (!isNaN(days)) {
+          dueDate.setDate(dueDate.getDate() + days);
+        } else {
+          // Default to 14 days if can't parse
+          dueDate.setDate(dueDate.getDate() + 14);
+        }
+      } else {
+        // Default to 14 days if no number in string
+        dueDate.setDate(dueDate.getDate() + 14);
+      }
   }
   
-  // If we couldn't parse, default to 14 days
-  dueDate.setDate(dueDate.getDate() + 14);
   return dueDate;
 };
 
