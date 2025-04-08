@@ -36,7 +36,7 @@ export function AddressTypeField({ form }: AddressTypeFieldProps) {
           <Select
             onValueChange={field.onChange}
             value={field.value}
-            defaultValue={AddressType.BILLING}
+            defaultValue={field.value || AddressType.BILLING}
           >
             <FormControl>
               <SelectTrigger>

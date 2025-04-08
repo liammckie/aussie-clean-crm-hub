@@ -45,6 +45,7 @@ export function SiteTypeField({ form }: SiteTypeFieldProps) {
           <Select 
             onValueChange={field.onChange} 
             defaultValue={field.value} 
+            value={field.value || SiteType.COMMERCIAL}
           >
             <FormControl>
               <SelectTrigger>

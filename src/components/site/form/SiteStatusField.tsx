@@ -32,7 +32,8 @@ export function SiteStatusField({ form }: SiteStatusFieldProps) {
           <FormLabel>Site Status</FormLabel>
           <Select 
             onValueChange={field.onChange} 
-            defaultValue={field.value} 
+            defaultValue={field.value || SiteStatus.ACTIVE}
+            value={field.value || SiteStatus.ACTIVE}
           >
             <FormControl>
               <SelectTrigger>

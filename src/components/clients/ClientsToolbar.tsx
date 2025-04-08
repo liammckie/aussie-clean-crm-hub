@@ -81,8 +81,8 @@ export function ClientsToolbar({
         {/* Status Filter */}
         <div className="w-full md:w-48">
           <Select
-            value={activeStatusFilter || ""}
-            onValueChange={(value) => onStatusFilterChange(value || null)}
+            value={activeStatusFilter || "all"}
+            onValueChange={(value) => onStatusFilterChange(value === "all" ? null : value)}
           >
             <SelectTrigger>
               <div className="flex items-center">
@@ -92,7 +92,7 @@ export function ClientsToolbar({
             </SelectTrigger>
             <SelectContent>
               <SelectGroup>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 {statusOptions.map((status) => (
                   <SelectItem key={status.value} value={status.value}>
                     {status.label}

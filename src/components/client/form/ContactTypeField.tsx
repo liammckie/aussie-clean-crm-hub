@@ -43,7 +43,7 @@ export function ContactTypeField({ form, availableTypes }: ContactTypeFieldProps
           <FormLabel>Contact Type</FormLabel>
           <Select
             onValueChange={field.onChange}
-            value={field.value}
+            value={field.value || 'Primary'}
           >
             <FormControl>
               <SelectTrigger>

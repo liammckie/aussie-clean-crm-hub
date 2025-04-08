@@ -97,7 +97,7 @@ export function AddressFields({ form }: AddressFieldsProps) {
               onValueChange={(value) => field.onChange(stateAbbreviations[value] || value)} 
               defaultValue={Object.keys(stateAbbreviations).find(
                 key => stateAbbreviations[key] === field.value
-              ) || field.value}
+              ) || field.value || 'Victoria'}
             >
               <FormControl>
                 <SelectTrigger>
