@@ -580,6 +580,39 @@ export type Database = {
           },
         ]
       }
+      error_logs: {
+        Row: {
+          app_version: string | null
+          created_at: string
+          data: Json
+          environment: string | null
+          id: string
+          metadata: Json | null
+          timestamp: string
+          type: string
+        }
+        Insert: {
+          app_version?: string | null
+          created_at?: string
+          data: Json
+          environment?: string | null
+          id?: string
+          metadata?: Json | null
+          timestamp?: string
+          type: string
+        }
+        Update: {
+          app_version?: string | null
+          created_at?: string
+          data?: Json
+          environment?: string | null
+          id?: string
+          metadata?: Json | null
+          timestamp?: string
+          type?: string
+        }
+        Relationships: []
+      }
       sites: {
         Row: {
           access_instructions: string | null
