@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useContracts } from '@/hooks/use-contracts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,7 @@ import { FinancialSummaryCard } from '@/components/financial/FinancialSummaryCar
 import { generateFinancialBreakdown } from '@/utils/financeCalculations';
 import { ExternalLink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 
 interface ContractDetailsTabProps {
   contractId: string;
@@ -37,17 +37,14 @@ export function ContractDetailsTab({ contractId, viewMode = 'view' }: ContractDe
     );
   }
   
-  // If we're in edit mode, use the ContractForm component
   if (viewMode === 'edit') {
     return <ContractForm contractId={contractId} isEdit={true} />;
   }
 
-  // Prepare financial metrics using our utility
   const weeklyRevenue = contract.total_weekly_value || 0;
   const weeklyCost = contract.supplier_cost_weekly || 0;
   const financialMetrics = generateFinancialBreakdown(weeklyRevenue, weeklyCost);
   
-  // View mode displays contract details in a read-only format
   return (
     <>
       <FinancialSummaryCard
@@ -84,7 +81,6 @@ export function ContractDetailsTab({ contractId, viewMode = 'view' }: ContractDe
           
           <Separator className="my-6" />
           
-          {/* Service Days */}
           <div className="mb-6">
             <h3 className="text-lg font-medium mb-3">Service Days</h3>
             <div className="flex flex-wrap gap-2">
@@ -101,7 +97,6 @@ export function ContractDetailsTab({ contractId, viewMode = 'view' }: ContractDe
             </div>
           </div>
           
-          {/* Document Links */}
           <div>
             <h3 className="text-lg font-medium mb-3">Documents</h3>
             <div className="space-y-2">
@@ -148,14 +143,12 @@ export function ContractDetailsTab({ contractId, viewMode = 'view' }: ContractDe
   );
 }
 
-// Helper to calculate profit margin
 function calculateProfitMargin(revenue?: number, cost?: number): string {
   if (!revenue || !cost || revenue === 0) return '0';
   const margin = ((revenue - cost) / revenue) * 100;
   return margin.toFixed(1);
 }
 
-// Helper to render different types of values
 function renderContractValue(contract: any, key: string, type?: string): React.ReactNode {
   const value = contract[key];
   
@@ -191,7 +184,6 @@ function renderContractValue(contract: any, key: string, type?: string): React.R
   }
 }
 
-// Loading skeleton
 function ContractDetailSkeleton() {
   return (
     <Card className="mb-6">
