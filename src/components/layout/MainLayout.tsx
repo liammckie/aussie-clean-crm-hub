@@ -58,14 +58,14 @@ export function MainLayout({ children, showDevBanner = false }: MainLayoutProps)
       
       {/* Main Content */}
       <main 
-        className={`transition-all duration-300 ${
+        className={`transition-all duration-300 min-h-screen ${
           sidebarExpanded 
             ? 'md:ml-64' // When sidebar is expanded
             : 'md:ml-20' // When sidebar is collapsed
         } ${showDevBanner ? 'pt-7' : ''}`}
       >
         <TopNavbar />
-        <div className="px-4 py-6 md:px-6">
+        <div className="py-6 px-2 sm:px-4 lg:px-6 max-w-full">
           {children || <Outlet />}
         </div>
       </main>

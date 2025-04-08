@@ -22,9 +22,9 @@ const data = [
 
 export function QualityAuditsCard() {
   return (
-    <Card className="bg-card/50 border-border/50">
+    <Card className="bg-card/50 border-border/50 w-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-lg font-medium">Quality Audit's</CardTitle>
+        <CardTitle className="text-lg font-medium">Quality Audits</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="h-[240px] w-full">

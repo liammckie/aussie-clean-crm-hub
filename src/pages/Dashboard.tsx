@@ -12,6 +12,7 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbP
 import { Home } from "lucide-react";
 import { FinancialSummaryCard } from "@/components/financial/FinancialSummaryCard";
 import { ActivityStats } from "@/components/activities/ActivityStats";
+import { PipelineValueCard } from "@/components/dashboard/PipelineValueCard";
 
 // Sample financial data for the dashboard
 // In a real application, this would come from an API
@@ -45,7 +46,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="container px-4 sm:px-6 mx-auto max-w-full">
+    <div className="container px-4 sm:px-6 lg:px-4 mx-auto max-w-full">
       <Breadcrumb className="mb-4">
         <BreadcrumbList>
           <BreadcrumbItem>
@@ -63,18 +64,18 @@ const Dashboard = () => {
       
       <h1 className="text-xl sm:text-2xl font-bold mb-6">Dashboard</h1>
       
-      {/* Activity stats with improved mobile layout */}
-      <div className="mb-8">
+      {/* Activity stats section - full width */}
+      <section className="mb-8">
         <ActivityStats />
-      </div>
+      </section>
       
-      <div className="mt-8">
+      {/* Main dashboard content with improved layout */}
+      <section>
         <h2 className="text-lg sm:text-xl font-semibold mb-4">Business Performance</h2>
-        <DashboardGrid>
+        
+        {/* First row - 2 columns layout for wider cards */}
+        <DashboardGrid columns={2} className="mb-6">
           <BusinessMetricsCard />
-          <TodaySalesCard />
-          <QualityAuditsCard />
-          
           <FinancialSummaryCard
             title="Company Financials"
             description="Overall company revenue and cost breakdown"
@@ -82,11 +83,21 @@ const Dashboard = () => {
             monthly={companyFinancials.monthly}
             annual={companyFinancials.annual}
           />
+        </DashboardGrid>
+        
+        {/* Second row - 3 columns layout */}
+        <DashboardGrid columns={3} className="mb-6">
           <TopClientsCard />
           <NetProfitCard />
+          <TodaySalesCard />
+        </DashboardGrid>
+        
+        {/* Third row - 2 columns layout for charts */}
+        <DashboardGrid columns={2} className="mb-6">
+          <QualityAuditsCard />
           <SalesTargetCard />
         </DashboardGrid>
-      </div>
+      </section>
     </div>
   );
 };
