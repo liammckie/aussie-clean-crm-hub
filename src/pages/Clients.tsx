@@ -1,18 +1,17 @@
 
 import React from "react";
 import { PageHeader } from "@/components/layout/PageHeader";
-import ClientsContent from "@/components/clients/ClientsContent";
-import ClientDataProcessor from "@/components/clients/ClientDataProcessor";
-import { ClientFiltersProvider } from "@/contexts/ClientFiltersContext";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { ClientsDashboard } from "@/components/clients/ClientsDashboard";
+import { ClientFiltersProvider } from "@/contexts/ClientFiltersContext";
 
 const Clients = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-full">
+    <div className="container mx-auto px-4 py-6 max-w-full">
       <PageHeader
         title="Client Management"
         description="View and manage all client accounts, details and contracts."
@@ -26,9 +25,7 @@ const Clients = () => {
       />
       
       <ClientFiltersProvider>
-        <ClientDataProcessor>
-          <ClientsContent />
-        </ClientDataProcessor>
+        <ClientsDashboard />
       </ClientFiltersProvider>
     </div>
   );

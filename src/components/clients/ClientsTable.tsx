@@ -1,101 +1,109 @@
 
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import {
+import { 
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { ExternalLink, MoreHorizontal } from "lucide-react";
-import { formatCurrency } from "@/utils/formatters";
+import { formatShortDate } from "@/utils/dateUtils";
+import { formatCurrency } from "@/utils/financeCalculations";
 import { ClientRecord } from "@/types/clients";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
+import { ChevronRight } from "lucide-react";
 
 interface ClientsTableProps {
   clients: ClientRecord[];
-  formatDate: (date: string) => string;
-  getStatusColor: (status: string) => string;
 }
 
-const ClientsTable: React.FC<ClientsTableProps> = ({
-  clients,
-  formatDate,
-  getStatusColor,
-}) => {
+export function ClientsTable({ clients }: ClientsTableProps) {
   const navigate = useNavigate();
+  
+  // Get the status color for badges
+  const getStatusColor = (status: string | undefined): string => {
+    switch (status) {
+      case "Active":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "On Hold":
+        return "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200";
+      case "Prospect":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "Cancelled":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300";
+    }
+  };
+
+  const handleRowClick = (clientId: string) => {
+    navigate(`/clients/${clientId}`);
+  };
 
   return (
-    <div className="border rounded-md overflow-x-auto">
-      <Table className="min-w-full">
+    <div className="rounded-md border">
+      <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Business Name</TableHead>
-            <TableHead>ABN</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Industry</TableHead>
-            <TableHead className="hidden md:table-cell">Annual Revenue</TableHead>
-            <TableHead className="hidden md:table-cell">Total Sites</TableHead>
-            <TableHead></TableHead>
+            <TableHead className="hidden md:table-cell">Sites</TableHead>
+            <TableHead className="hidden lg:table-cell">Onboarding Date</TableHead>
+            <TableHead className="hidden lg:table-cell">Annual Revenue</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {clients.map((client) => (
-            <TableRow key={client.id} className="hover:bg-accent/30">
+            <TableRow 
+              key={client.id} 
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => handleRowClick(client.id)}
+            >
               <TableCell>
                 <div>
-                  <p className="font-medium">{client.business_name}</p>
+                  <div className="font-medium">{client.business_name}</div>
                   {client.trading_name && (
-                    <p className="text-sm text-muted-foreground">
+                    <div className="text-xs text-muted-foreground mt-0.5">
                       Trading as: {client.trading_name}
-                    </p>
+                    </div>
                   )}
                 </div>
               </TableCell>
-              <TableCell>{client.abn || "-"}</TableCell>
               <TableCell>
-                <Badge variant="outline" className={getStatusColor(client.status || '')}>
-                  {client.status}
+                <Badge 
+                  variant="outline" 
+                  className={getStatusColor(client.status)}
+                >
+                  {client.status || "Unknown"}
                 </Badge>
-              </TableCell>
-              <TableCell>{client.industry || "-"}</TableCell>
-              <TableCell className="hidden md:table-cell">
-                {formatCurrency(client.annual_revenue || 0)}
               </TableCell>
               <TableCell className="hidden md:table-cell">
                 {client.site_count || 0}
               </TableCell>
-              <TableCell>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}`)}>
-                      View Details
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate(`/clients/${client.id}/edit`)}>
-                      Edit Client
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>Manage Contacts</DropdownMenuItem>
-                    <DropdownMenuItem>Manage Sites</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+              <TableCell className="hidden lg:table-cell">
+                {client.onboarding_date 
+                  ? formatShortDate(client.onboarding_date)
+                  : "Not set"}
+              </TableCell>
+              <TableCell className="hidden lg:table-cell">
+                {formatCurrency(client.annual_revenue || 0)}
+              </TableCell>
+              <TableCell className="text-right">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleRowClick(client.id);
+                  }}
+                >
+                  View
+                  <ChevronRight className="ml-1 h-4 w-4" />
+                </Button>
               </TableCell>
             </TableRow>
           ))}
@@ -103,6 +111,4 @@ const ClientsTable: React.FC<ClientsTableProps> = ({
       </Table>
     </div>
   );
-};
-
-export default ClientsTable;
+}

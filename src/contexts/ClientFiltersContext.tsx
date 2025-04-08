@@ -1,67 +1,80 @@
 
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { ClientRecord } from "@/types/clients";
-import { AppLogger, LogCategory } from '@/utils/logging';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { ClientRecord } from '@/types/clients';
 
-interface ClientFiltersContextType {
+interface ClientFiltersContextProps {
   searchTerm: string;
-  setSearchTerm: (term: string) => void;
   activeStatusFilter: string | null;
-  setActiveStatusFilter: (status: string | null) => void;
+  clients: ClientRecord[];
   filteredClients: ClientRecord[];
-  setFilteredClients: (clients: ClientRecord[]) => void;
-  clients: ClientRecord[]; // Add this missing property
-  setClients: (clients: ClientRecord[]) => void; // Add setter for clients
+  setSearchTerm: (term: string) => void;
+  setActiveStatusFilter: (status: string | null) => void;
   clearFilters: () => void;
+  setClients: (clients: ClientRecord[]) => void;
+  setFilteredClients: (clients: ClientRecord[]) => void;
 }
 
-const ClientFiltersContext = createContext<ClientFiltersContextType | undefined>(undefined);
+const ClientFiltersContext = createContext<ClientFiltersContextProps | undefined>(undefined);
 
-export const useClientFilters = () => {
-  const context = useContext(ClientFiltersContext);
-  if (!context) {
-    throw new Error("useClientFilters must be used within a ClientFiltersProvider");
-  }
-  return context;
-};
-
-interface ClientFiltersProviderProps {
-  children: ReactNode;
-}
-
-export const ClientFiltersProvider: React.FC<ClientFiltersProviderProps> = ({ children }) => {
-  const [searchTerm, setSearchTerm] = useState("");
+export function ClientFiltersProvider({ children }: { children: ReactNode }) {
+  const [searchTerm, setSearchTerm] = useState('');
   const [activeStatusFilter, setActiveStatusFilter] = useState<string | null>(null);
+  const [clients, setClients] = useState<ClientRecord[]>([]);
   const [filteredClients, setFilteredClients] = useState<ClientRecord[]>([]);
-  const [clients, setClients] = useState<ClientRecord[]>([]); // Add clients state
-
-  const clearFilters = () => {
-    setSearchTerm("");
+  
+  // Filter clients based on search term and status filter
+  const filterClients = useCallback((clients: ClientRecord[]) => {
+    return clients.filter(client => {
+      // Filter by search term
+      const matchesSearch = !searchTerm || (
+        (client.business_name && client.business_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (client.trading_name && client.trading_name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (client.abn && client.abn.includes(searchTerm)) ||
+        (client.industry && client.industry.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+      
+      // Filter by status
+      const matchesStatus = !activeStatusFilter || client.status === activeStatusFilter;
+      
+      return matchesSearch && matchesStatus;
+    });
+  }, [searchTerm, activeStatusFilter]);
+  
+  // Update filtered clients when search term or status filter changes
+  React.useEffect(() => {
+    const filtered = filterClients(clients);
+    setFilteredClients(filtered);
+  }, [clients, searchTerm, activeStatusFilter, filterClients]);
+  
+  // Clear all filters
+  const clearFilters = useCallback(() => {
+    setSearchTerm('');
     setActiveStatusFilter(null);
+  }, []);
+  
+  const value = {
+    searchTerm,
+    activeStatusFilter,
+    clients,
+    filteredClients,
+    setSearchTerm,
+    setActiveStatusFilter,
+    clearFilters,
+    setClients,
+    setFilteredClients
   };
-
-  AppLogger.debug(LogCategory.UI, "ClientFiltersProvider state", { 
-    searchTerm, 
-    activeStatusFilter, 
-    filteredClientsCount: filteredClients.length,
-    clientsCount: clients.length // Add clients count to debug logging
-  });
-
+  
   return (
-    <ClientFiltersContext.Provider
-      value={{
-        searchTerm,
-        setSearchTerm,
-        activeStatusFilter,
-        setActiveStatusFilter,
-        filteredClients,
-        setFilteredClients,
-        clients, // Include clients in the context value
-        setClients, // Include setter for clients
-        clearFilters,
-      }}
-    >
+    <ClientFiltersContext.Provider value={value}>
       {children}
     </ClientFiltersContext.Provider>
   );
-};
+}
+
+export function useClientFilters() {
+  const context = useContext(ClientFiltersContext);
+  if (context === undefined) {
+    throw new Error('useClientFilters must be used within a ClientFiltersProvider');
+  }
+  return context;
+}
