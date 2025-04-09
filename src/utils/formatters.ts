@@ -1,60 +1,67 @@
 
+import { UnifiedAddressRecord } from '@/services/unified/types';
+
 /**
- * Format number as currency
- * @param value Number to format as currency
- * @param currency Currency code (default: AUD)
- * @returns Formatted currency string
+ * Format an address record into an array of display lines
+ * @param address Address record to format
+ * @returns Array of address lines
  */
-export function formatCurrency(value: number | string | null | undefined, currency = 'AUD'): string {
-  if (value === null || value === undefined) return '$0.00';
-  
-  // Convert string to number if needed
-  const numValue = typeof value === 'string' ? parseFloat(value) : value;
-  
-  // Return formatted currency
-  return new Intl.NumberFormat('en-AU', {
-    style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(numValue);
+export function formatAddressDisplay(address: UnifiedAddressRecord): string[] {
+  const lines: string[] = [];
+
+  if (address.address_line_1) {
+    lines.push(address.address_line_1);
+  }
+
+  if (address.address_line_2) {
+    lines.push(address.address_line_2);
+  }
+
+  const cityLine: string[] = [];
+  if (address.suburb) {
+    cityLine.push(address.suburb);
+  }
+  if (address.state) {
+    cityLine.push(address.state);
+  }
+  if (address.postcode) {
+    cityLine.push(address.postcode);
+  }
+
+  if (cityLine.length > 0) {
+    lines.push(cityLine.join(' '));
+  }
+
+  if (address.country && address.country !== 'Australia') {
+    lines.push(address.country);
+  }
+
+  return lines;
 }
 
 /**
- * Format date to local format
- * @param date Date to format
- * @returns Formatted date string
+ * Format an address record into a single line
+ * @param address Address record to format
+ * @returns Single line address string
  */
-export function formatDate(date: Date | string | null | undefined): string {
-  if (!date) return '';
-  
-  const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
-  return dateObj.toLocaleDateString('en-AU', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
-  });
-}
+export function formatAddressOneLine(address?: Partial<UnifiedAddressRecord>): string {
+  if (!address) return '';
 
-/**
- * Format percentage
- * @param value Number to format as percentage
- * @returns Formatted percentage string
- */
-export function formatPercentage(value: number | null | undefined): string {
-  if (value === null || value === undefined) return '0%';
-  
-  return `${value}%`;
-}
+  const parts: string[] = [];
 
-/**
- * Format a number with thousands separators
- * @param value Number to format
- * @returns Formatted number string
- */
-export function formatNumber(value: number | null | undefined): string {
-  if (value === null || value === undefined) return '0';
-  
-  return new Intl.NumberFormat('en-AU').format(value);
+  if (address.address_line_1) {
+    parts.push(address.address_line_1);
+  }
+
+  if (address.suburb) {
+    parts.push(address.suburb);
+  }
+
+  if (address.state) {
+    parts.push(address.state);
+  }
+
+  if (parts.length === 0) return '';
+
+  return parts.join(', ');
 }

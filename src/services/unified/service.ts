@@ -1,3 +1,4 @@
+
 import { ApiResponse } from '@/types/api-response';
 import { 
   UnifiedAddressFormData,
@@ -24,8 +25,8 @@ export const createUnifiedAddress = async (
   try {
     // Convert from form field names to database column names
     const processedData: Omit<UnifiedAddressRecord, 'entity_type' | 'entity_id' | 'id'> = {
-      address_line_1: addressData.address_line1,
-      address_line_2: addressData.address_line2,
+      address_line_1: addressData.address_line_1,
+      address_line_2: addressData.address_line_2,
       suburb: addressData.suburb,
       state: addressData.state,
       postcode: addressData.postcode,
@@ -55,12 +56,12 @@ export const updateUnifiedAddress = async (
     // Convert from form field names to database column names
     const processedData: Partial<UnifiedAddressRecord> = {};
     
-    if ('address_line1' in addressData) {
-      processedData.address_line_1 = addressData.address_line1;
+    if ('address_line_1' in addressData) {
+      processedData.address_line_1 = addressData.address_line_1;
     }
     
-    if ('address_line2' in addressData) {
-      processedData.address_line_2 = addressData.address_line2;
+    if ('address_line_2' in addressData) {
+      processedData.address_line_2 = addressData.address_line_2;
     }
     
     if ('suburb' in addressData) {
@@ -123,8 +124,8 @@ export const unifiedService = {
   ) => {
     // Convert form data to database record format
     const dbAddressData: Omit<UnifiedAddressRecord, 'entity_type' | 'entity_id' | 'id'> = {
-      address_line_1: addressData.address_line1,
-      address_line_2: addressData.address_line2,
+      address_line_1: addressData.address_line_1,
+      address_line_2: addressData.address_line_2,
       suburb: addressData.suburb,
       state: addressData.state,
       postcode: addressData.postcode,
@@ -154,12 +155,12 @@ export const unifiedService = {
     // Convert form data to database record format
     const dbAddressData: Partial<UnifiedAddressRecord> = {};
     
-    if ('address_line1' in addressData) {
-      dbAddressData.address_line_1 = addressData.address_line1;
+    if ('address_line_1' in addressData) {
+      dbAddressData.address_line_1 = addressData.address_line_1;
     }
     
-    if ('address_line2' in addressData) {
-      dbAddressData.address_line_2 = addressData.address_line2;
+    if ('address_line_2' in addressData) {
+      dbAddressData.address_line_2 = addressData.address_line_2;
     }
     
     if ('suburb' in addressData) {

@@ -54,13 +54,19 @@ export function UnifiedAddressForm({
     onSubmit(submissionData);
   };
 
+  // Create an adapter to make AddressFields work with UnifiedAddressFormData
+  const addressFieldsAdapter = {
+    ...form,
+    // Any necessary adapter methods can go here if needed
+  };
+
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         {showAddressType && <AddressTypeField form={form} />}
         
         {/* Now this is compatible since our AddressFields component is generic */}
-        <AddressFields form={form} />
+        <AddressFields form={addressFieldsAdapter} />
 
         {showIsPrimary && (
           <IsPrimaryField<UnifiedAddressFormData>
