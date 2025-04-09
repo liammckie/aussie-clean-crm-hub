@@ -15,5 +15,12 @@ export enum LogCategory {
   CONTRACT = 'contract',
   SUPPLIER = 'supplier',
   SITE = 'site',
-  WORK_ORDER = 'work_order'
+  WORK_ORDER = 'work_order',
+  // Add missing categories
+  ADDRESS = 'address',
+  DATA = 'data',
+  CACHE = 'cache',
+  PERFORMANCE = 'performance',
+  REALTIME = 'realtime',
+  SUPPLIER_CONTRACT = 'supplier_contract'
 }

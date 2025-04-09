@@ -1,71 +1,97 @@
 
 import { LogCategory } from './LogCategory';
+import { LogLevel } from './LogLevel';
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error';
-
-interface LogMetadata {
-  [key: string]: any;
-}
+export type LogMetadata = Record<string, any>;
 
 /**
- * Application logger that provides consistent logging with categories
- * and filtering capabilities
+ * Application logger - centralized logging utility
  */
 export class AppLogger {
+  private static logs: Array<{
+    level: LogLevel;
+    category: LogCategory;
+    message: string;
+    metadata?: LogMetadata;
+    timestamp: string;
+  }> = [];
+
   /**
-   * Log a debug message
+   * Log debug level message
    */
   static debug(category: LogCategory, message: string, metadata?: LogMetadata): void {
-    AppLogger.log('debug', category, message, metadata);
+    AppLogger.log(LogLevel.DEBUG, category, message, metadata);
   }
-  
+
   /**
-   * Log an info message
+   * Log info level message
    */
   static info(category: LogCategory, message: string, metadata?: LogMetadata): void {
-    AppLogger.log('info', category, message, metadata);
+    AppLogger.log(LogLevel.INFO, category, message, metadata);
   }
-  
+
   /**
-   * Log a warning message
+   * Log warn level message
    */
   static warn(category: LogCategory, message: string, metadata?: LogMetadata): void {
-    AppLogger.log('warn', category, message, metadata);
+    AppLogger.log(LogLevel.WARN, category, message, metadata);
   }
-  
+
   /**
-   * Log an error message
+   * Log error level message
    */
   static error(category: LogCategory, message: string, metadata?: LogMetadata): void {
-    AppLogger.log('error', category, message, metadata);
+    AppLogger.log(LogLevel.ERROR, category, message, metadata);
   }
-  
+
   /**
-   * Internal logging method with consistent formatting
+   * Internal logging method
    */
   private static log(level: LogLevel, category: LogCategory, message: string, metadata?: LogMetadata): void {
     const timestamp = new Date().toISOString();
-    const logObject = {
-      timestamp,
+    
+    // Add to memory logs
+    AppLogger.logs.push({
       level,
       category,
       message,
-      ...(metadata || {})
+      metadata,
+      timestamp
+    });
+    
+    // Console output for development
+    const logData = metadata ? { metadata } : {};
+    const colorMap = {
+      [LogLevel.DEBUG]: 'color: #6c757d',
+      [LogLevel.INFO]: 'color: #0d6efd',
+      [LogLevel.WARN]: 'color: #fd7e14',
+      [LogLevel.ERROR]: 'color: #dc3545'
     };
     
-    switch (level) {
-      case 'debug':
-        console.debug(`[${timestamp}] [${level.toUpperCase()}] [${category}]`, message, metadata || '');
-        break;
-      case 'info':
-        console.info(`[${timestamp}] [${level.toUpperCase()}] [${category}]`, message, metadata || '');
-        break;
-      case 'warn':
-        console.warn(`[${timestamp}] [${level.toUpperCase()}] [${category}]`, message, metadata || '');
-        break;
-      case 'error':
-        console.error(`[${timestamp}] [${level.toUpperCase()}] [${category}]`, message, metadata || '');
-        break;
+    console.groupCollapsed(
+      `%c${level} | ${category} | ${timestamp}`, 
+      colorMap[level]
+    );
+    console.log(`📝 ${message}`);
+    if (metadata) {
+      console.log('📊 Metadata:', metadata);
     }
+    console.groupEnd();
+    
+    // In production, this would send to a logging service
+  }
+
+  /**
+   * Get all logs
+   */
+  static getLogs() {
+    return [...AppLogger.logs];
+  }
+  
+  /**
+   * Clear logs - used for testing
+   */
+  static clearLogs(): void {
+    AppLogger.logs = [];
   }
 }

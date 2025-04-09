@@ -11,5 +11,7 @@ export enum ErrorCategory {
   DATABASE = 'database',
   NETWORK = 'network',
   SERVER = 'server',
-  UNKNOWN = 'unknown'
+  UNKNOWN = 'unknown',
+  // Add missing category
+  PERMISSION = 'permission'
 }

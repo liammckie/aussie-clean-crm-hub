@@ -23,6 +23,10 @@ export function isApiSuccessResponse<T>(response: any): response is ApiSuccessRe
   return response && 'data' in response;
 }
 
+// Add these exported aliases to maintain backward compatibility
+export const isApiError = isApiErrorResponse;
+export const isApiSuccess = isApiSuccessResponse;
+
 export function createSuccessResponse<T>(
   data: T,
   message = 'Operation successful',

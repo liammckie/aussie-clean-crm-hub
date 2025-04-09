@@ -210,12 +210,8 @@ export type Database = {
           abn: string | null
           account_manager_id: string | null
           acn: string | null
-          address: string | null
-          address_line_1: string | null
-          address_line_2: string | null
           billing_cycle: string | null
           business_name: string
-          country: string | null
           created_at: string
           credit_limit: number | null
           id: string
@@ -224,12 +220,9 @@ export type Database = {
           payment_method: string | null
           payment_terms: string | null
           phone: string | null
-          postcode: string | null
           relationship_rating: number | null
           source: string | null
-          state: string | null
           status: Database["public"]["Enums"]["client_status"]
-          suburb: string | null
           tax_status: string | null
           trading_name: string | null
           updated_at: string
@@ -238,12 +231,8 @@ export type Database = {
           abn?: string | null
           account_manager_id?: string | null
           acn?: string | null
-          address?: string | null
-          address_line_1?: string | null
-          address_line_2?: string | null
           billing_cycle?: string | null
           business_name: string
-          country?: string | null
           created_at?: string
           credit_limit?: number | null
           id?: string
@@ -252,12 +241,9 @@ export type Database = {
           payment_method?: string | null
           payment_terms?: string | null
           phone?: string | null
-          postcode?: string | null
           relationship_rating?: number | null
           source?: string | null
-          state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
-          suburb?: string | null
           tax_status?: string | null
           trading_name?: string | null
           updated_at?: string
@@ -266,12 +252,8 @@ export type Database = {
           abn?: string | null
           account_manager_id?: string | null
           acn?: string | null
-          address?: string | null
-          address_line_1?: string | null
-          address_line_2?: string | null
           billing_cycle?: string | null
           business_name?: string
-          country?: string | null
           created_at?: string
           credit_limit?: number | null
           id?: string
@@ -280,12 +262,9 @@ export type Database = {
           payment_method?: string | null
           payment_terms?: string | null
           phone?: string | null
-          postcode?: string | null
           relationship_rating?: number | null
           source?: string | null
-          state?: string | null
           status?: Database["public"]["Enums"]["client_status"]
-          suburb?: string | null
           tax_status?: string | null
           trading_name?: string | null
           updated_at?: string
@@ -616,8 +595,6 @@ export type Database = {
       sites: {
         Row: {
           access_instructions: string | null
-          address_line_1: string
-          address_line_2: string | null
           area_manager_id: string | null
           business_unit: string | null
           cleaning_days_schedule: Json | null
@@ -625,7 +602,6 @@ export type Database = {
             | Database["public"]["Enums"]["cleaning_frequency"]
             | null
           client_id: string
-          country: string
           created_at: string
           default_calendar_id: string | null
           description: string | null
@@ -635,7 +611,6 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           notes: string | null
-          postcode: string
           region: string | null
           site_code: string
           site_contact_email: string | null
@@ -646,15 +621,11 @@ export type Database = {
           site_tags: string[] | null
           site_type: Database["public"]["Enums"]["site_type"] | null
           square_meters: number | null
-          state: string
           status: Database["public"]["Enums"]["site_status"]
-          suburb: string
           updated_at: string
         }
         Insert: {
           access_instructions?: string | null
-          address_line_1: string
-          address_line_2?: string | null
           area_manager_id?: string | null
           business_unit?: string | null
           cleaning_days_schedule?: Json | null
@@ -662,7 +633,6 @@ export type Database = {
             | Database["public"]["Enums"]["cleaning_frequency"]
             | null
           client_id: string
-          country?: string
           created_at?: string
           default_calendar_id?: string | null
           description?: string | null
@@ -672,7 +642,6 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           notes?: string | null
-          postcode: string
           region?: string | null
           site_code: string
           site_contact_email?: string | null
@@ -683,15 +652,11 @@ export type Database = {
           site_tags?: string[] | null
           site_type?: Database["public"]["Enums"]["site_type"] | null
           square_meters?: number | null
-          state: string
           status?: Database["public"]["Enums"]["site_status"]
-          suburb: string
           updated_at?: string
         }
         Update: {
           access_instructions?: string | null
-          address_line_1?: string
-          address_line_2?: string | null
           area_manager_id?: string | null
           business_unit?: string | null
           cleaning_days_schedule?: Json | null
@@ -699,7 +664,6 @@ export type Database = {
             | Database["public"]["Enums"]["cleaning_frequency"]
             | null
           client_id?: string
-          country?: string
           created_at?: string
           default_calendar_id?: string | null
           description?: string | null
@@ -709,7 +673,6 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           notes?: string | null
-          postcode?: string
           region?: string | null
           site_code?: string
           site_contact_email?: string | null
@@ -720,9 +683,7 @@ export type Database = {
           site_tags?: string[] | null
           site_type?: Database["public"]["Enums"]["site_type"] | null
           square_meters?: number | null
-          state?: string
           status?: Database["public"]["Enums"]["site_status"]
-          suburb?: string
           updated_at?: string
         }
         Relationships: [
