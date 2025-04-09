@@ -20,6 +20,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { BILLING_FREQUENCY_OPTIONS, PAYMENT_TERMS_OPTIONS } from '@/utils/constants';
+import { DatePicker } from '@/components/ui/date-picker';
 
 interface ClientFormFieldsProps {
   form: UseFormReturn<ClientFormData>;
@@ -136,7 +137,11 @@ export const ClientFormFields: React.FC<ClientFormFieldsProps> = ({ form }) => {
             <FormItem>
               <FormLabel>Onboarding Date</FormLabel>
               <FormControl>
-                <Input type="date" {...field} />
+                <DatePicker
+                  value={field.value}
+                  onSelect={(date) => field.onChange(date ? date.toISOString().split('T')[0] : '')}
+                  placeholder="Select onboarding date"
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
