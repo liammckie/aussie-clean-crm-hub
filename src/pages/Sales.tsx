@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { PageHeader } from '@/components/layout/PageHeader';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -9,7 +9,6 @@ import { SalesLeaderboard } from '@/components/sales/SalesLeaderboard';
 import { SalesAnalytics } from '@/components/sales/SalesAnalytics';
 import { NewOpportunityDialog } from '@/components/sales/NewOpportunityDialog';
 import { useSalesOpportunities } from '@/hooks/use-sales-opportunities';
-import { SalesStage } from '@/types/sales-types';
 
 const Sales = () => {
   const [isNewOpportunityDialogOpen, setIsNewOpportunityDialogOpen] = useState(false);

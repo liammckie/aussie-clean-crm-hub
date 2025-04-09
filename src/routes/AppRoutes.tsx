@@ -1,3 +1,4 @@
+
 import { Route, Routes } from "react-router-dom";
 import { Suspense } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";

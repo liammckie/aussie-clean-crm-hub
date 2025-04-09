@@ -8,12 +8,10 @@ import {
   Briefcase, 
   Map, 
   Calendar, 
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  ClipboardList,
   BarChart,
-  Database
+  Database,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
