@@ -1,4 +1,3 @@
-
 import { UnifiedAddressRecord } from '@/services/unified/types';
 
 /**
@@ -64,4 +63,24 @@ export function formatAddressOneLine(address?: Partial<UnifiedAddressRecord>): s
   if (parts.length === 0) return '';
 
   return parts.join(', ');
+}
+
+/**
+ * Format a currency value with a specified locale and currency code
+ * @param value Number to format
+ * @param locale Locale to use for formatting (default: 'en-AU')
+ * @param currency Currency code to use (default: 'AUD')
+ * @returns Formatted currency string
+ */
+export function formatCurrency(value?: number | null, locale: string = 'en-AU', currency: string = 'AUD'): string {
+  if (value === undefined || value === null) {
+    return '$0.00';
+  }
+  
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(value);
 }
