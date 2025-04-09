@@ -1,217 +1,72 @@
 
 import React from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { 
-  LayoutDashboard, 
-  Users, 
-  FileText, 
-  Settings, 
-  ChevronRight,
-  ChevronLeft,
-  Truck,
-  Package,
-  Calendar,
+import { NavLink } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import {
+  BarChart3,
   Building,
-  ClipboardList,
-  BarChart4,
-  LogOut,
-  Clipboard,
-  Activity
+  ClipboardCheck,
+  Database,
+  FileText,
+  Home,
+  LayoutDashboard,
+  Map,
+  Truck,
+  Contact,
+  Settings,
+  Activity,
+  DollarSign,
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
-import { toast } from 'sonner';
 
-// Define the navigation item type
-interface NavItemProps {
-  to: string;
-  icon: React.ReactNode;
-  label: string;
-  expanded: boolean;
-  badge?: string | number;
-  onClick?: () => void;
-}
-
-// NavItem component for cleaner sidebar code
-const NavItem = ({ to, icon, label, expanded, badge, onClick }: NavItemProps) => {
+export function NewSidebar() {
   const location = useLocation();
-  const isActive = location.pathname === to || location.pathname.startsWith(`${to}/`);
-  
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        cn(
-          "flex items-center p-2 my-1 transition-colors duration-200 rounded-md hover:bg-slate-800",
-          isActive ? "bg-slate-800 text-primary" : "text-slate-300",
-          expanded ? "justify-start" : "justify-center"
-        )
-      }
-      onClick={onClick}
-      aria-current={isActive ? "page" : undefined}
-    >
-      <div className={cn("flex items-center", expanded ? "justify-start" : "justify-center", "w-full")}>
-        <span className="flex-shrink-0" aria-hidden="true">{icon}</span>
-        {expanded && (
-          <span className="ml-3 text-sm font-medium flex-grow">{label}</span>
-        )}
-        {expanded && badge && (
-          <div className="ml-auto bg-slate-700 text-xs px-2 py-0.5 rounded-full">
-            {badge}
-          </div>
-        )}
-      </div>
-    </NavLink>
-  );
-};
+  const currentPath = location.pathname;
 
-interface NewSidebarProps {
-  expanded: boolean;
-  onToggle: () => void;
-}
-
-export const NewSidebar: React.FC<NewSidebarProps> = ({ 
-  expanded,
-  onToggle
-}) => {
-  const { signOut } = useAuth();
-  const navigate = useNavigate();
-  
-  const handleLogout = async () => {
-    await signOut();
-    toast.success('Logged out successfully');
-    navigate('/login');
+  const isActive = (path: string) => {
+    if (path === '/') {
+      return currentPath === '/';
+    }
+    return currentPath.startsWith(path);
   };
 
-  return (
-    <div
-      className={cn(
-        "fixed top-0 left-0 h-screen z-40 transition-all duration-300",
-        expanded ? "w-64" : "w-20"
-      )}
-    >
-      <div className="flex flex-col h-full p-3 bg-slate-900 shadow-lg">
-        {/* Sidebar header */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center">
-            <span className={cn(
-              "font-semibold text-white transition-opacity duration-300",
-              expanded ? "opacity-100" : "opacity-0 w-0 hidden"
-            )}>
-              Aussie Clean ERP
-            </span>
-          </div>
-          <button 
-            onClick={onToggle}
-            className="p-2 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors duration-200"
-            aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
-            aria-expanded={expanded}
-          >
-            {expanded ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
-          </button>
-        </div>
+  const navItems = [
+    { name: 'Dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" /> },
+    { name: 'Sales', path: '/sales', icon: <DollarSign className="h-5 w-5" /> },
+    { name: 'Clients', path: '/clients', icon: <Building className="h-5 w-5" /> },
+    { name: 'Sites', path: '/sites', icon: <Map className="h-5 w-5" /> },
+    { name: 'Contracts', path: '/contracts', icon: <FileText className="h-5 w-5" /> },
+    { name: 'Work Orders', path: '/work-orders', icon: <ClipboardCheck className="h-5 w-5" /> },
+    { name: 'Suppliers', path: '/suppliers', icon: <Truck className="h-5 w-5" /> },
+    { name: 'Activities', path: '/activities', icon: <Activity className="h-5 w-5" /> },
+    { name: 'Reports', path: '/reports', icon: <BarChart3 className="h-5 w-5" /> },
+    { name: 'Contacts', path: '/contacts', icon: <Contact className="h-5 w-5" /> },
+    { name: 'Schema', path: '/schema', icon: <Database className="h-5 w-5" /> },
+    { name: 'Settings', path: '/settings', icon: <Settings className="h-5 w-5" /> },
+  ];
 
-        {/* Navigation links */}
-        <div className="flex flex-col justify-between flex-1">
-          <nav className="flex-1" aria-label="Main navigation">
-            <NavItem 
-              to="/" 
-              icon={<LayoutDashboard size={20} />} 
-              label="Dashboard" 
-              expanded={expanded} 
-            />
-            <NavItem 
-              to="/clients" 
-              icon={<Users size={20} />} 
-              label="Clients" 
-              expanded={expanded} 
-              badge={4}
-            />
-            <NavItem 
-              to="/contracts" 
-              icon={<FileText size={20} />} 
-              label="Contracts" 
-              expanded={expanded} 
-            />
-            <NavItem 
-              to="/suppliers" 
-              icon={<Truck size={20} />} 
-              label="Suppliers" 
-              expanded={expanded} 
-            />
-            <NavItem 
-              to="/sites" 
-              icon={<Building size={20} />} 
-              label="Sites" 
-              expanded={expanded} 
-            />
-            <NavItem 
-              to="/work-orders" 
-              icon={<Clipboard size={20} />} 
-              label="Work Orders" 
-              expanded={expanded} 
-            />
-            <NavItem 
-              to="/activities" 
-              icon={<Activity size={20} />} 
-              label="Activities" 
-              expanded={expanded} 
-              badge={3}
-            />
-            <NavItem 
-              to="/inventory" 
-              icon={<Package size={20} />} 
-              label="Inventory" 
-              expanded={expanded} 
-            />
-            <NavItem 
-              to="/schedule" 
-              icon={<Calendar size={20} />} 
-              label="Schedule" 
-              expanded={expanded} 
-            />
-            <NavItem 
-              to="/tasks" 
-              icon={<ClipboardList size={20} />} 
-              label="Tasks" 
-              expanded={expanded} 
-              badge={12}
-            />
-            <NavItem 
-              to="/reports" 
-              icon={<BarChart4 size={20} />} 
-              label="Reports" 
-              expanded={expanded} 
-            />
-          </nav>
-          
-          {/* Bottom actions */}
-          <div className="mt-auto">
-            <NavItem 
-              to="/settings" 
-              icon={<Settings size={20} />} 
-              label="Settings" 
-              expanded={expanded} 
-            />
-            <button
-              onClick={handleLogout}
-              className={cn(
-                "flex items-center p-2 my-1 transition-colors duration-200 rounded-md hover:bg-slate-800 w-full",
-                "text-slate-300",
-                expanded ? "justify-start" : "justify-center"
-              )}
-              aria-label="Logout"
-            >
-              <div className={cn("flex items-center", expanded ? "justify-start" : "justify-center", "w-full")}>
-                <span className="flex-shrink-0" aria-hidden="true"><LogOut size={20} /></span>
-                {expanded && (
-                  <span className="ml-3 text-sm font-medium flex-grow">Logout</span>
-                )}
-              </div>
-            </button>
-          </div>
-        </div>
+  return (
+    <div className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-background pt-16">
+      <div className="h-full overflow-y-auto px-3 py-4">
+        <ul className="space-y-2">
+          {navItems.map((item, index) => (
+            <li key={index}>
+              <NavLink
+                to={item.path}
+                className={({ isActive }) =>
+                  `flex items-center rounded-lg px-3 py-2 text-sm font-medium ${
+                    isActive
+                      ? 'bg-primary text-primary-foreground'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                  }`
+                }
+              >
+                <div className="mr-2">{item.icon}</div>
+                {item.name}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
-};
+}

@@ -1,200 +1,360 @@
 
-import React, { Suspense } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { AppLogger, LogCategory } from '@/utils/logging';
-import { Login } from './lazyRoutes';
-import { NotFound } from './lazyRoutes';
-import { Dashboard } from './lazyRoutes';
-import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
-import { LogoLoadingSpinner } from '@/components/ui/LogoLoadingSpinner';
+import { Route, Routes } from "react-router-dom";
+import { Suspense } from "react";
+import { MainLayout } from "@/components/layout/MainLayout";
+import { AuthLayout } from "@/components/layout/AuthLayout";
+import { LoadingScreen } from "@/components/LoadingScreen";
+import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
+import { RouteErrorBoundary } from "@/components/error/RouteErrorBoundary";
+import {
+  Activities,
+  ClientDetail,
+  Clients,
+  ContractDetail,
+  Contracts,
+  Dashboard,
+  EditClient,
+  EditContract,
+  EditSupplier,
+  ErrorTesting,
+  Login,
+  NewClient,
+  NewContract,
+  NewSupplier,
+  NewWorkOrder,
+  NotFound,
+  Sales,
+  Schema,
+  Sites,
+  SupplierDetail,
+  Suppliers,
+  WorkOrderDetail,
+  WorkOrders,
+} from "./lazyRoutes";
 
-// Import all the pages directly instead of route group components
-import { Clients, NewClient, ClientDetail, EditClient } from './lazyRoutes';
-import { Contracts, ContractDetail, NewContract, EditContract } from './lazyRoutes';
-import { Suppliers, NewSupplier, SupplierDetail, EditSupplier } from './lazyRoutes';
-import { WorkOrders, WorkOrderDetail, NewWorkOrder } from './lazyRoutes';
-import { Sites, Activities } from './lazyRoutes';
-import { Sales } from './lazyRoutes';
-import { ErrorTesting } from './lazyRoutes';
-
-export function AppRoutes() {
-  const { isLoading, isAuthenticated } = useAuth();
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen" aria-busy="true" aria-live="polite">
-        <LogoLoadingSpinner size="lg" showText={true} />
-      </div>
-    );
-  }
-
-  // Adding logging to trace rendering
-  AppLogger.debug(LogCategory.UI, "Rendering AppRoutes");
-
+export default function AppRoutes() {
   return (
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen">
-        <LogoLoadingSpinner size="md" showText={true} />
-      </div>
-    }>
+    <GlobalErrorBoundary>
       <Routes>
-        {/* Redirect root to login if not authenticated, otherwise to dashboard */}
-        <Route path="/" element={
-          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />
-        } />
-        
-        {/* Login route directly in main routes for easier access */}
-        <Route path="/login" element={
-          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
-        } />
-        
-        {/* Auth routes */}
-        <Route path="/auth/login" element={
-          isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
-        } />
-        
-        {/* Dashboard page */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-        
-        {/* Client routes */}
-        <Route path="/clients" element={
-          <ProtectedRoute>
-            <Clients />
-          </ProtectedRoute>
-        } />
-        <Route path="/clients/new" element={
-          <ProtectedRoute>
-            <NewClient />
-          </ProtectedRoute>
-        } />
-        <Route path="/clients/:clientId" element={
-          <ProtectedRoute>
-            <ClientDetail />
-          </ProtectedRoute>
-        } />
-        <Route path="/clients/edit/:clientId" element={
-          <ProtectedRoute>
-            <EditClient />
-          </ProtectedRoute>
-        } />
-        
-        {/* Sales route */}
-        <Route path="/sales" element={
-          <ProtectedRoute>
-            <Sales />
-          </ProtectedRoute>
-        } />
-        
-        {/* Contract routes */}
-        <Route path="/contracts" element={
-          <ProtectedRoute>
-            <Contracts />
-          </ProtectedRoute>
-        } />
-        <Route path="/contracts/new" element={
-          <ProtectedRoute>
-            <NewContract />
-          </ProtectedRoute>
-        } />
-        <Route path="/contracts/:contractId" element={
-          <ProtectedRoute>
-            <ContractDetail />
-          </ProtectedRoute>
-        } />
-        <Route path="/contracts/edit/:contractId" element={
-          <ProtectedRoute>
-            <EditContract />
-          </ProtectedRoute>
-        } />
-        
-        {/* Supplier routes */}
-        <Route path="/suppliers" element={
-          <ProtectedRoute>
-            <Suppliers />
-          </ProtectedRoute>
-        } />
-        <Route path="/suppliers/new" element={
-          <ProtectedRoute>
-            <NewSupplier />
-          </ProtectedRoute>
-        } />
-        <Route path="/suppliers/:supplierId" element={
-          <ProtectedRoute>
-            <SupplierDetail />
-          </ProtectedRoute>
-        } />
-        <Route path="/suppliers/edit/:supplierId" element={
-          <ProtectedRoute>
-            <EditSupplier />
-          </ProtectedRoute>
-        } />
-        
-        {/* Work Order routes */}
-        <Route path="/work-orders" element={
-          <ProtectedRoute>
-            <WorkOrders />
-          </ProtectedRoute>
-        } />
-        <Route path="/work-orders/new" element={
-          <ProtectedRoute>
-            <NewWorkOrder />
-          </ProtectedRoute>
-        } />
-        <Route path="/work-orders/:workOrderId" element={
-          <ProtectedRoute>
-            <WorkOrderDetail />
-          </ProtectedRoute>
-        } />
-        
-        {/* Additional routes */}
-        <Route path="/sites" element={
-          <ProtectedRoute>
-            <Sites />
-          </ProtectedRoute>
-        } />
-        
-        <Route path="/activities" element={
-          <ProtectedRoute>
-            <Activities />
-          </ProtectedRoute>
-        } />
-        
-        {/* Developer Tools */}
-        <Route path="/developer/error-testing" element={
-          <ProtectedRoute>
-            <ErrorTesting />
-          </ProtectedRoute>
-        } />
-        
-        {/* Error pages */}
-        <Route path="/unauthorized" element={
-          <NotFound title="Unauthorized Access" description="You don't have permission to access this page." />
-        } />
-        
-        <Route path="/not-found" element={
-          <NotFound title="Page Not Found" description="The page you are looking for doesn't exist or has been moved." />
-        } />
-        
-        <Route path="/server-error" element={
-          <NotFound title="Server Error" description="Something went wrong on our end. Please try again later." />
-        } />
-        
-        <Route path="/maintenance" element={
-          <NotFound title="Under Maintenance" description="The system is currently undergoing scheduled maintenance. Please check back soon." />
-        } />
-        
-        <Route path="/feature-unavailable" element={
-          <NotFound title="Feature Unavailable" description="This feature is currently under development and will be available soon." />
-        } />
-        
-        {/* Catch-all not found route */}
-        <Route path="*" element={<NotFound />} />
+        <Route
+          path="/login"
+          element={
+            <AuthLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Login />
+                </RouteErrorBoundary>
+              </Suspense>
+            </AuthLayout>
+          }
+        />
+        <Route
+          path="*"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <NotFound />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Dashboard */}
+        <Route
+          path="/"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Dashboard />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Schema */}
+        <Route
+          path="/schema"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Schema />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Sales */}
+        <Route
+          path="/sales"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Sales />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Clients */}
+        <Route
+          path="/clients"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Clients />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Client Detail */}
+        <Route
+          path="/clients/:id"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <ClientDetail />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* New Client */}
+        <Route
+          path="/clients/new"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <NewClient />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Edit Client */}
+        <Route
+          path="/clients/:id/edit"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <EditClient />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Sites */}
+        <Route
+          path="/sites"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Sites />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Contracts */}
+        <Route
+          path="/contracts"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Contracts />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Contract Detail */}
+        <Route
+          path="/contracts/:id"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <ContractDetail />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* New Contract */}
+        <Route
+          path="/contracts/new"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <NewContract />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Edit Contract */}
+        <Route
+          path="/contracts/:id/edit"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <EditContract />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Suppliers */}
+        <Route
+          path="/suppliers"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Suppliers />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Supplier Detail */}
+        <Route
+          path="/suppliers/:id"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <SupplierDetail />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* New Supplier */}
+        <Route
+          path="/suppliers/new"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <NewSupplier />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Edit Supplier */}
+        <Route
+          path="/suppliers/:id/edit"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <EditSupplier />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Work Orders */}
+        <Route
+          path="/work-orders"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <WorkOrders />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Work Order Detail */}
+        <Route
+          path="/work-orders/:id"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <WorkOrderDetail />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* New Work Order */}
+        <Route
+          path="/work-orders/new"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <NewWorkOrder />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Activities */}
+        <Route
+          path="/activities"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Activities />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
+
+        {/* Developer Routes */}
+        <Route
+          path="/developer/error-testing"
+          element={
+            <MainLayout>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <ErrorTesting />
+                </RouteErrorBoundary>
+              </Suspense>
+            </MainLayout>
+          }
+        />
       </Routes>
-    </Suspense>
+    </GlobalErrorBoundary>
   );
 }

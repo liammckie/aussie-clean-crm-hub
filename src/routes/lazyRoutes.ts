@@ -15,6 +15,9 @@ export const EditClient = lazy(() => import("@/pages/EditClient"));
 // Sales route
 export const Sales = lazy(() => import("@/pages/Sales"));
 
+// Schema route
+export const Schema = lazy(() => import("@/pages/Schema"));
+
 // Contract routes
 export const Contracts = lazy(() => import("@/pages/Contracts"));
 export const ContractDetail = lazy(() => import("@/pages/ContractDetail"));
