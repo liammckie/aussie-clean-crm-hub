@@ -1,4 +1,3 @@
-
 import * as React from "react"
 import { Slot } from "@radix-ui/react-slot"
 import { VariantProps, cva } from "class-variance-authority"
@@ -111,7 +110,7 @@ export const SidebarMenuButton = React.forwardRef<
           <TooltipContent
             side="right"
             align="center"
-            hidden={state !== "collapsed" || isMobile}
+            hidden={state !== true || isMobile}
             {...tooltip}
           />
         </Tooltip>

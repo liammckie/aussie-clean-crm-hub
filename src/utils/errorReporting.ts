@@ -7,10 +7,20 @@
 export type ErrorSeverity = 'info' | 'warning' | 'error';
 
 /**
+ * User information for error context
+ */
+export interface ErrorUserInfo {
+  id?: string;
+  email?: string;
+  username?: string;
+}
+
+/**
  * Utility class for reporting errors to monitoring services
  */
 export class ErrorReporting {
   private static initialized = false;
+  private static userInfo: ErrorUserInfo | null = null;
 
   /**
    * Initialize error reporting with your monitoring service
@@ -37,6 +47,15 @@ export class ErrorReporting {
   }
 
   /**
+   * Set user information for error context
+   * @param user User information or null to clear user context
+   */
+  static setUser(user: ErrorUserInfo | null): void {
+    this.userInfo = user;
+    console.log('Error reporting user context updated:', user ? user.id : 'cleared');
+  }
+
+  /**
    * Capture an exception for reporting
    * @param error The error to capture
    * @param context Additional context data to include
@@ -47,7 +66,10 @@ export class ErrorReporting {
       return;
     }
 
-    console.error('Error captured:', error, context);
+    console.error('Error captured:', error, {
+      ...context,
+      user: this.userInfo
+    });
   }
 
   /**
@@ -61,13 +83,14 @@ export class ErrorReporting {
       return;
     }
 
-    console.log(`[${level.toUpperCase()}] Message captured:`, message);
+    console.log(`[${level.toUpperCase()}] Message captured:`, message, {
+      user: this.userInfo
+    });
   }
 
   /**
    * Capture user feedback
    * @param feedback The feedback text
-   * @param category The feedback category
    */
   static captureFeedback(feedback: string): void {
     if (!this.initialized) {
@@ -75,7 +98,9 @@ export class ErrorReporting {
       return;
     }
 
-    console.log('Feedback captured:', feedback);
+    console.log('Feedback captured:', feedback, {
+      user: this.userInfo
+    });
   }
 }
 

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWorkOrderById, useWorkOrderTasks, useWorkOrderBilling } from '@/hooks/use-work-orders';
@@ -25,7 +24,7 @@ const WorkOrderDetail: React.FC = () => {
   
   const { data: workOrder, isLoading, error } = useWorkOrderById(workOrderId || '');
   const { data: tasks = [] as WorkOrderTask[], isLoading: tasksLoading } = useWorkOrderTasks(workOrderId || '');
-  const { data: billing = null as WorkbillData | null, isLoading: billingLoading } = useWorkOrderBilling(workOrderId || '');
+  const { data: billing = [] as WorkbillData[], isLoading: billingLoading } = useWorkOrderBilling(workOrderId || '');
   
   if (isLoading) {
     return (
@@ -314,7 +313,7 @@ const WorkOrderDetail: React.FC = () => {
             <TabsContent value="billing">
               <WorkOrderBillingTab 
                 workOrderId={workOrderId!} 
-                billing={billing || []} 
+                billing={billing} 
                 isLoading={billingLoading}
                 workOrder={typedWorkOrder}
               />

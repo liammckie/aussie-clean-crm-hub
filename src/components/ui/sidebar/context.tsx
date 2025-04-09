@@ -71,7 +71,7 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
         toggleSidebar,
         width,
         isMobile,
-        state: isOpen,
+        state: isOpen, // Make sure this is a boolean
         openMobile,
         setOpenMobile
       }}

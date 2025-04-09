@@ -133,13 +133,15 @@ export function useWorkOrders() {
     return useQuery({
       queryKey: ['work-orders', workOrderId, 'billing'],
       queryFn: async () => {
-        if (!workOrderId) return null;
+        if (!workOrderId) return [] as WorkbillData[];
         
         const response = await workOrderService.getWorkOrderBilling(workOrderId);
         if (!isApiSuccess(response)) {
           throw new Error(response.message);
         }
-        return response.data as WorkbillData;
+        return Array.isArray(response.data) 
+          ? response.data as WorkbillData[]
+          : [response.data] as WorkbillData[];
       },
       enabled: !!workOrderId
     });
