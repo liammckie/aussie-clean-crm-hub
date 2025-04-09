@@ -1,50 +1,55 @@
 
 /**
- * Format currency value with the locale's currency symbol
+ * Format a number as currency (AUD)
  */
-export const formatCurrency = (amount: number): string => {
+export const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('en-AU', {
     style: 'currency',
     currency: 'AUD',
-  }).format(amount);
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(value);
 };
 
 /**
- * Format date to a user-friendly format
+ * Format a date string to a readable format
  */
 export const formatDate = (dateString: string): string => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-AU', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  }).format(date);
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-AU', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }).format(date);
+  } catch (error) {
+    console.error('Error formatting date:', error);
+    return dateString;
+  }
 };
 
 /**
- * Format date and time to a user-friendly format
+ * Format a date with time
  */
 export const formatDateTime = (dateString: string): string => {
-  const date = new Date(dateString);
-  return new Intl.DateTimeFormat('en-AU', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  }).format(date);
+  try {
+    const date = new Date(dateString);
+    return new Intl.DateTimeFormat('en-AU', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    }).format(date);
+  } catch (error) {
+    console.error('Error formatting date and time:', error);
+    return dateString;
+  }
 };
 
 /**
- * Format percentage value
+ * Format a percentage
  */
 export const formatPercentage = (value: number): string => {
   return `${value}%`;
-};
-
-/**
- * Format number with thousands separator
- */
-export const formatNumber = (value: number): string => {
-  return new Intl.NumberFormat('en-AU').format(value);
 };

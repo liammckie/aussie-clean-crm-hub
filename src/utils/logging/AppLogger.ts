@@ -1,84 +1,71 @@
 
 import { LogCategory } from './LogCategory';
-import { LogLevel } from './LogLevel';
-import type { LogEntry } from './types';
+
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+interface LogMetadata {
+  [key: string]: any;
+}
 
 /**
- * Application logger service
+ * Application logger that provides consistent logging with categories
+ * and filtering capabilities
  */
 export class AppLogger {
-  private static logs: LogEntry[] = [];
+  /**
+   * Log a debug message
+   */
+  static debug(category: LogCategory, message: string, metadata?: LogMetadata): void {
+    AppLogger.log('debug', category, message, metadata);
+  }
   
   /**
-   * Log at debug level
+   * Log an info message
    */
-  static debug(category: LogCategory, message: string, data?: any): void {
-    AppLogger.log(LogLevel.DEBUG, category, message, data);
+  static info(category: LogCategory, message: string, metadata?: LogMetadata): void {
+    AppLogger.log('info', category, message, metadata);
   }
-
+  
   /**
-   * Log at info level
+   * Log a warning message
    */
-  static info(category: LogCategory, message: string, data?: any): void {
-    AppLogger.log(LogLevel.INFO, category, message, data);
+  static warn(category: LogCategory, message: string, metadata?: LogMetadata): void {
+    AppLogger.log('warn', category, message, metadata);
   }
-
+  
   /**
-   * Log at warn level
+   * Log an error message
    */
-  static warn(category: LogCategory, message: string, data?: any): void {
-    AppLogger.log(LogLevel.WARN, category, message, data);
+  static error(category: LogCategory, message: string, metadata?: LogMetadata): void {
+    AppLogger.log('error', category, message, metadata);
   }
-
+  
   /**
-   * Log at error level
+   * Internal logging method with consistent formatting
    */
-  static error(category: LogCategory, message: string, data?: any): void {
-    AppLogger.log(LogLevel.ERROR, category, message, data);
-  }
-
-  /**
-   * Generic log method
-   */
-  static log(level: LogLevel, category: LogCategory, message: string, data?: any): void {
-    const logEntry: LogEntry = {
-      timestamp: new Date().toISOString(),
+  private static log(level: LogLevel, category: LogCategory, message: string, metadata?: LogMetadata): void {
+    const timestamp = new Date().toISOString();
+    const logObject = {
+      timestamp,
       level,
       category,
       message,
-      data
+      ...(metadata || {})
     };
-
-    // Add to internal logs array for testing purposes
-    AppLogger.logs.push(logEntry);
-
+    
     switch (level) {
-      case LogLevel.ERROR:
-        console.error(logEntry);
+      case 'debug':
+        console.debug(`[${timestamp}] [${level.toUpperCase()}] [${category}]`, message, metadata || '');
         break;
-      case LogLevel.WARN:
-        console.warn(logEntry);
+      case 'info':
+        console.info(`[${timestamp}] [${level.toUpperCase()}] [${category}]`, message, metadata || '');
         break;
-      case LogLevel.DEBUG:
-        console.debug(logEntry);
+      case 'warn':
+        console.warn(`[${timestamp}] [${level.toUpperCase()}] [${category}]`, message, metadata || '');
         break;
-      case LogLevel.INFO:
-      default:
-        console.info(logEntry);
+      case 'error':
+        console.error(`[${timestamp}] [${level.toUpperCase()}] [${category}]`, message, metadata || '');
+        break;
     }
-  }
-
-  /**
-   * Clear all logs (useful for testing)
-   */
-  static clearLogs(): void {
-    AppLogger.logs = [];
-  }
-
-  /**
-   * Get all logs (useful for testing)
-   */
-  static getLogs(): LogEntry[] {
-    return [...AppLogger.logs];
   }
 }

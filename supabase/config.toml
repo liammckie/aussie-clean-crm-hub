@@ -31,4 +31,4 @@ port = 54327
 
 [edge-functions]
 [edge-functions.get-schema]
-verify_jwt = true
+verify_jwt = false

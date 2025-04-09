@@ -1,11 +1,9 @@
-
 import { Route, Routes } from "react-router-dom";
 import { Suspense } from "react";
-import { MainLayout } from "@/components/layout/MainLayout";
-import { AuthLayout } from "@/components/layout/AuthLayout";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
 import { RouteErrorBoundary } from "@/components/error/RouteErrorBoundary";
+import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import {
   Activities,
   ClientDetail,
@@ -36,56 +34,29 @@ export function AppRoutes() {
   return (
     <GlobalErrorBoundary>
       <Routes>
+        {/* Authentication Route */}
         <Route
           path="/login"
           element={
-            <AuthLayout>
-              <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
-                  <Login />
-                </RouteErrorBoundary>
-              </Suspense>
-            </AuthLayout>
+            <Suspense fallback={<LoadingScreen />}>
+              <RouteErrorBoundary>
+                <Login />
+              </RouteErrorBoundary>
+            </Suspense>
           }
         />
-        <Route
-          path="*"
-          element={
-            <MainLayout>
-              <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
-                  <NotFound />
-                </RouteErrorBoundary>
-              </Suspense>
-            </MainLayout>
-          }
-        />
-
-        {/* Dashboard */}
+        
+        {/* Home/Dashboard */}
         <Route
           path="/"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <Dashboard />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
-          }
-        />
-
-        {/* Schema */}
-        <Route
-          path="/schema"
-          element={
-            <MainLayout>
-              <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
-                  <Schema />
-                </RouteErrorBoundary>
-              </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -93,13 +64,27 @@ export function AppRoutes() {
         <Route
           path="/sales"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <Sales />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Schema */}
+        <Route
+          path="/schema"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <Schema />
+                </RouteErrorBoundary>
+              </Suspense>
+            </ProtectedRoute>
           }
         />
 
@@ -107,55 +92,49 @@ export function AppRoutes() {
         <Route
           path="/clients"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <Clients />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
-
-        {/* Client Detail */}
         <Route
           path="/clients/:id"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <ClientDetail />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
-
-        {/* New Client */}
         <Route
           path="/clients/new"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <NewClient />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
-
-        {/* Edit Client */}
         <Route
           path="/clients/:id/edit"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <EditClient />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -163,13 +142,13 @@ export function AppRoutes() {
         <Route
           path="/sites"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <Sites />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -177,13 +156,13 @@ export function AppRoutes() {
         <Route
           path="/contracts"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <Contracts />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -191,13 +170,13 @@ export function AppRoutes() {
         <Route
           path="/contracts/:id"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <ContractDetail />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -205,13 +184,13 @@ export function AppRoutes() {
         <Route
           path="/contracts/new"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <NewContract />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -219,13 +198,13 @@ export function AppRoutes() {
         <Route
           path="/contracts/:id/edit"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <EditContract />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -233,13 +212,13 @@ export function AppRoutes() {
         <Route
           path="/suppliers"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <Suppliers />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -247,13 +226,13 @@ export function AppRoutes() {
         <Route
           path="/suppliers/:id"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <SupplierDetail />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -261,13 +240,13 @@ export function AppRoutes() {
         <Route
           path="/suppliers/new"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <NewSupplier />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -275,13 +254,13 @@ export function AppRoutes() {
         <Route
           path="/suppliers/:id/edit"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <EditSupplier />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -289,13 +268,13 @@ export function AppRoutes() {
         <Route
           path="/work-orders"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <WorkOrders />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -303,13 +282,13 @@ export function AppRoutes() {
         <Route
           path="/work-orders/:id"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <WorkOrderDetail />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -317,13 +296,13 @@ export function AppRoutes() {
         <Route
           path="/work-orders/new"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <NewWorkOrder />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -331,13 +310,13 @@ export function AppRoutes() {
         <Route
           path="/activities"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <Activities />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
           }
         />
 
@@ -345,13 +324,27 @@ export function AppRoutes() {
         <Route
           path="/developer/error-testing"
           element={
-            <MainLayout>
+            <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
                 <RouteErrorBoundary>
                   <ErrorTesting />
                 </RouteErrorBoundary>
               </Suspense>
-            </MainLayout>
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Fallback for 404 */}
+        <Route
+          path="*"
+          element={
+            <ProtectedRoute>
+              <Suspense fallback={<LoadingScreen />}>
+                <RouteErrorBoundary>
+                  <NotFound />
+                </RouteErrorBoundary>
+              </Suspense>
+            </ProtectedRoute>
           }
         />
       </Routes>
@@ -359,5 +352,4 @@ export function AppRoutes() {
   );
 }
 
-// Make sure to properly export the default as well for backwards compatibility
 export default AppRoutes;

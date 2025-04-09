@@ -15,33 +15,26 @@ export interface ApiErrorResponse {
 
 export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
 
-/**
- * Type guard to check if an API response is a success response
- */
-export function isApiSuccess<T>(response: ApiResponse<T>): response is ApiSuccessResponse<T> {
-  return 'data' in response;
+export function isApiErrorResponse(response: any): response is ApiErrorResponse {
+  return response && 'category' in response;
 }
 
-/**
- * Type guard to check if an API response is an error response
- */
-export function isApiError<T>(response: ApiResponse<T>): response is ApiErrorResponse {
-  return 'category' in response;
+export function isApiSuccessResponse<T>(response: any): response is ApiSuccessResponse<T> {
+  return response && 'data' in response;
 }
 
-/**
- * Create a success response with the given data and message
- */
-export function createSuccessResponse<T>(data: T, message = 'Operation successful'): ApiSuccessResponse<T> {
+export function createSuccessResponse<T>(
+  data: T,
+  message = 'Operation successful',
+  count?: number
+): ApiSuccessResponse<T> {
   return {
     data,
-    message
+    message,
+    ...(count !== undefined ? { count } : {})
   };
 }
 
-/**
- * Create an error response with the given category, message and details
- */
 export function createErrorResponse(
   category: ErrorCategory,
   message: string,
@@ -50,6 +43,6 @@ export function createErrorResponse(
   return {
     category,
     message,
-    details
+    ...(details ? { details } : {})
   };
 }

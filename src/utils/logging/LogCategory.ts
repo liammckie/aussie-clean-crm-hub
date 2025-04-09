@@ -1,45 +1,19 @@
+
 /**
- * Enum defining the different categories of log entries
- * for better filtering and organization
+ * Log categories for application logging
  */
 export enum LogCategory {
-  // General categories
-  SYSTEM = 'System',
-  UI = 'UI',
-  API = 'API',
-  DATA = 'Data',
-  ERROR = 'Error',
-  
-  // Authentication
-  AUTH = 'Auth',
-  SESSION = 'Session',
-  
-  // Performance monitoring
-  PERFORMANCE = 'Performance',
-  NETWORK = 'Network',
-  
-  // Features
-  CLIENT = 'Client',
-  CONTRACT = 'Contract',
-  SUPPLIER = 'Supplier',
-  SITE = 'Site',
-  SUPPLIER_CONTRACT = 'SupplierContract',
-  
-  // Database
-  DATABASE = 'Database',
-  
-  // Caching
-  CACHE = 'Cache',
-  
-  // Realtime
-  REALTIME = 'Realtime',
-  
-  // Address related
-  ADDRESS = 'Address',
-  
-  // Server related
-  SERVER = 'Server',
-  
-  // Other
-  UNKNOWN = 'Unknown',
+  AUTH = 'auth',
+  API = 'api',
+  DATABASE = 'database',
+  UI = 'ui',
+  SYSTEM = 'system',
+  ERROR = 'error',
+  SALES = 'sales',
+  SCHEMA = 'schema',
+  CLIENT = 'client',
+  CONTRACT = 'contract',
+  SUPPLIER = 'supplier',
+  SITE = 'site',
+  WORK_ORDER = 'work_order'
 }

@@ -9,6 +9,8 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log('Edge function get-schema called');
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -18,6 +20,11 @@ serve(async (req) => {
     // Create a Supabase client using service role key for admin access
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || '';
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing environment variables: SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
+      throw new Error('Server configuration error');
+    }
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { persistSession: false },
@@ -34,10 +41,13 @@ serve(async (req) => {
       throw tablesError;
     }
 
+    console.log(`Fetched ${tables?.length || 0} tables`);
+
     // For each table, get its columns
     const schema = [];
     
-    for (const table of tables) {
+    for (const table of tables || []) {
+      console.log(`Fetching columns for table: ${table.table_name}`);
       const { data: columns, error: columnsError } = await supabase
         .rpc('get_table_columns', { table_name: table.table_name });
       
@@ -48,7 +58,7 @@ serve(async (req) => {
       
       schema.push({
         table_name: table.table_name,
-        columns: columns
+        columns: columns || []
       });
     }
     
@@ -68,7 +78,10 @@ serve(async (req) => {
     console.error('Error in get-schema function:', error);
     
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error.message || 'Unknown error',
+        status: 'error'
+      }),
       { 
         status: 500, 
         headers: { 
