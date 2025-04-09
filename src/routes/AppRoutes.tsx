@@ -32,7 +32,7 @@ import {
   WorkOrders,
 } from "./lazyRoutes";
 
-export default function AppRoutes() {
+export function AppRoutes() {
   return (
     <GlobalErrorBoundary>
       <Routes>
@@ -358,3 +358,6 @@ export default function AppRoutes() {
     </GlobalErrorBoundary>
   );
 }
+
+// Make sure to properly export the default as well for backwards compatibility
+export default AppRoutes;

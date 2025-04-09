@@ -19,3 +19,6 @@ export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerPr
     />
   );
 }
+
+// Export as Spinner for backward compatibility
+export const Spinner = LoadingSpinner;

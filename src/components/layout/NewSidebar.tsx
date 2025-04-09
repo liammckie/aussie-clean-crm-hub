@@ -18,7 +18,12 @@ import {
   DollarSign,
 } from 'lucide-react';
 
-export function NewSidebar() {
+interface NewSidebarProps {
+  expanded?: boolean;
+  onToggle?: () => void;
+}
+
+export function NewSidebar({ expanded, onToggle }: NewSidebarProps) {
   const location = useLocation();
   const currentPath = location.pathname;
 

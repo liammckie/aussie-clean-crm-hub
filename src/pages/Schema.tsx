@@ -2,201 +2,251 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
-import { Spinner } from '@/components/ui/spinner';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { LoadingSpinner } from '@/components/ui/spinner';
+import { FileJson, FileDown } from 'lucide-react';
 import { toast } from 'sonner';
-import { Separator } from '@/components/ui/separator';
-import { Download } from 'lucide-react';
 
-interface SchemaColumn {
+// Define the types for the schema data
+interface Column {
   column_name: string;
   data_type: string;
   is_nullable: boolean;
   column_default: string | null;
 }
 
-interface SchemaTable {
+interface TableSchema {
   table_name: string;
-  columns: SchemaColumn[];
+  columns: Column[];
 }
 
-const Schema = () => {
-  const [schema, setSchema] = useState<SchemaTable[]>([]);
-  const [loading, setLoading] = useState(true);
+interface SchemaResponse {
+  schema: TableSchema[];
+}
 
-  const fetchSchema = async () => {
-    setLoading(true);
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('get-schema', {
-        method: 'POST',
-        body: {}
-      });
-      
-      if (error) {
-        throw error;
-      }
-      
-      if (data && data.schema) {
-        setSchema(data.schema);
-      }
-    } catch (err: any) {
-      console.error('Error fetching schema:', err);
-      toast.error('Failed to fetch schema: ' + (err.message || 'Unknown error'));
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function Schema() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [schemaData, setSchemaData] = useState<TableSchema[]>([]);
+  const [activeTable, setActiveTable] = useState<string>('');
 
   useEffect(() => {
     fetchSchema();
   }, []);
 
-  const downloadSchemaAsJson = () => {
-    const dataStr = JSON.stringify(schema, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute('href', dataUri);
-    downloadAnchorNode.setAttribute('download', 'schema.json');
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+  const fetchSchema = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const { data, error } = await supabase.functions.invoke('get-schema');
+
+      if (error) {
+        throw new Error(`Error fetching schema: ${error.message}`);
+      }
+
+      const schemaResponse = data as SchemaResponse;
+      setSchemaData(schemaResponse.schema);
+      
+      // Set active table to first table if exists
+      if (schemaResponse.schema.length > 0) {
+        setActiveTable(schemaResponse.schema[0].table_name);
+      }
+      
+      console.log('Schema fetched successfully:', schemaResponse.schema);
+    } catch (err: any) {
+      console.error('Error fetching schema:', err);
+      setError(err.message);
+      toast.error('Failed to fetch database schema');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const downloadSchemaAsMarkdown = () => {
-    let markdown = '# Database Schema\n\n';
-    
-    schema.forEach(table => {
-      markdown += `## ${table.table_name}\n\n`;
-      markdown += '| Column Name | Data Type | Nullable | Default Value |\n';
-      markdown += '|-------------|-----------|----------|---------------|\n';
+  const downloadAsJson = () => {
+    try {
+      const jsonString = JSON.stringify(schemaData, null, 2);
+      const blob = new Blob([jsonString], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'database-schema.json';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Schema downloaded as JSON');
+    } catch (err) {
+      console.error('Error downloading JSON:', err);
+      toast.error('Failed to download schema as JSON');
+    }
+  };
+
+  const downloadAsMarkdown = () => {
+    try {
+      let markdownContent = '# Database Schema\n\n';
+      markdownContent += 'This document is auto-generated and contains the schema information for all tables in the public schema of the database. It is updated through the Schema page in the application.\n\n';
       
-      table.columns.forEach(column => {
-        markdown += `| ${column.column_name} | ${column.data_type} | ${column.is_nullable ? 'Yes' : 'No'} | ${column.column_default || 'NULL'} |\n`;
+      schemaData.forEach((table) => {
+        markdownContent += `## Table: ${table.table_name}\n\n`;
+        markdownContent += '| Column | Type | Nullable | Default |\n';
+        markdownContent += '|--------|------|----------|--------|\n';
+        
+        table.columns.forEach((col) => {
+          markdownContent += `| ${col.column_name} | ${col.data_type} | ${col.is_nullable ? 'YES' : 'NO'} | ${col.column_default || ''} |\n`;
+        });
+        
+        markdownContent += '\n';
       });
       
-      markdown += '\n';
-    });
-    
-    const dataUri = 'data:text/markdown;charset=utf-8,' + encodeURIComponent(markdown);
-    
-    const downloadAnchorNode = document.createElement('a');
-    downloadAnchorNode.setAttribute('href', dataUri);
-    downloadAnchorNode.setAttribute('download', 'schema.md');
-    document.body.appendChild(downloadAnchorNode);
-    downloadAnchorNode.click();
-    downloadAnchorNode.remove();
+      const blob = new Blob([markdownContent], { type: 'text/markdown' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'DATABASE_SCHEMA.md';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      toast.success('Schema downloaded as Markdown');
+    } catch (err) {
+      console.error('Error downloading Markdown:', err);
+      toast.error('Failed to download schema as Markdown');
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <div className="text-center">
+          <LoadingSpinner size="lg" className="mx-auto mb-4" />
+          <p className="text-muted-foreground">Loading database schema...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <Card className="max-w-lg p-6">
+          <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Schema</h2>
+          <p className="text-muted-foreground mb-4">{error}</p>
+          <Button onClick={fetchSchema}>Retry</Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Database Schema</h1>
-          <p className="text-muted-foreground">View all tables and columns in the public schema</p>
+          <h1 className="text-2xl font-bold">Database Schema</h1>
+          <p className="text-muted-foreground">
+            View and explore the database structure
+          </p>
         </div>
         <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={downloadSchemaAsJson}
-            disabled={loading}
-          >
-            <Download className="h-4 w-4 mr-2" />
+          <Button variant="outline" onClick={fetchSchema}>
+            Refresh Schema
+          </Button>
+          <Button variant="outline" onClick={downloadAsJson}>
+            <FileJson className="mr-2 h-4 w-4" />
             Download JSON
           </Button>
-          <Button 
-            variant="outline" 
-            onClick={downloadSchemaAsMarkdown}
-            disabled={loading}
-          >
-            <Download className="h-4 w-4 mr-2" />
+          <Button variant="default" onClick={downloadAsMarkdown}>
+            <FileDown className="mr-2 h-4 w-4" />
             Download Markdown
-          </Button>
-          <Button 
-            onClick={fetchSchema}
-            disabled={loading}
-          >
-            {loading ? <Spinner size="sm" className="mr-2" /> : null}
-            Refresh Schema
           </Button>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Database Tables</CardTitle>
-          <CardDescription>
-            Showing {schema.length} tables from the public schema
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {loading ? (
-            <div className="flex justify-center p-8">
-              <Spinner size="lg" />
-            </div>
-          ) : (
-            <Accordion type="single" collapsible className="w-full">
-              {schema.map((table) => (
-                <AccordionItem key={table.table_name} value={table.table_name}>
-                  <AccordionTrigger className="hover:bg-muted/50 px-4 rounded-md">
-                    <div className="flex items-center gap-2 text-left">
-                      <span className="font-semibold">{table.table_name}</span>
-                      <Badge variant="outline" className="ml-2">
-                        {table.columns.length} columns
-                      </Badge>
-                    </div>
-                  </AccordionTrigger>
-                  <AccordionContent>
-                    <ScrollArea className="h-[400px] rounded-md border">
-                      <div className="p-4">
-                        <table className="w-full border-collapse">
-                          <thead>
-                            <tr className="border-b text-left">
-                              <th className="py-2 px-4">Column Name</th>
-                              <th className="py-2 px-4">Data Type</th>
-                              <th className="py-2 px-4">Nullable</th>
-                              <th className="py-2 px-4">Default</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {table.columns.map((column, idx) => (
-                              <tr 
-                                key={`${table.table_name}-${column.column_name}`}
-                                className={idx % 2 === 0 ? 'bg-muted/30' : ''}
-                              >
-                                <td className="py-2 px-4 font-medium">{column.column_name}</td>
-                                <td className="py-2 px-4">
-                                  <Badge variant="secondary">{column.data_type}</Badge>
+      {schemaData.length === 0 ? (
+        <Card className="p-6 text-center">
+          <p className="text-muted-foreground">No tables found in the database.</p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-4 gap-6">
+          <Card className="col-span-1 p-4 h-[calc(100vh-200px)] overflow-y-auto">
+            <h3 className="font-medium mb-4">Tables</h3>
+            <ul className="space-y-1">
+              {schemaData.map((table) => (
+                <li key={table.table_name}>
+                  <Button
+                    variant={activeTable === table.table_name ? "default" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTable(table.table_name)}
+                  >
+                    {table.table_name}
+                  </Button>
+                </li>
+              ))}
+            </ul>
+          </Card>
+
+          <Card className="col-span-3 p-4 h-[calc(100vh-200px)] overflow-y-auto">
+            {activeTable && (
+              <>
+                <h2 className="text-xl font-semibold mb-4">
+                  Table: {activeTable}
+                </h2>
+                <Tabs defaultValue="columns">
+                  <TabsList>
+                    <TabsTrigger value="columns">Columns</TabsTrigger>
+                    <TabsTrigger value="details">Details</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="columns">
+                    <div className="rounded-lg border mt-4">
+                      <table className="w-full">
+                        <thead className="bg-muted">
+                          <tr>
+                            <th className="p-2 text-left">Column</th>
+                            <th className="p-2 text-left">Type</th>
+                            <th className="p-2 text-left">Nullable</th>
+                            <th className="p-2 text-left">Default</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {schemaData
+                            .find((t) => t.table_name === activeTable)
+                            ?.columns.map((column) => (
+                              <tr key={column.column_name} className="border-t">
+                                <td className="p-2 font-medium">
+                                  {column.column_name}
                                 </td>
-                                <td className="py-2 px-4">
+                                <td className="p-2 text-muted-foreground">
+                                  {column.data_type}
+                                </td>
+                                <td className="p-2">
                                   {column.is_nullable ? (
-                                    <Badge variant="outline">Yes</Badge>
+                                    <span className="text-muted-foreground">Yes</span>
                                   ) : (
-                                    <Badge variant="default">No</Badge>
+                                    <span className="text-destructive">No</span>
                                   )}
                                 </td>
-                                <td className="py-2 px-4 font-mono text-xs">
-                                  {column.column_default || 'NULL'}
+                                <td className="p-2 text-muted-foreground">
+                                  {column.column_default || '—'}
                                 </td>
                               </tr>
                             ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </ScrollArea>
-                  </AccordionContent>
-                </AccordionItem>
-              ))}
-            </Accordion>
-          )}
-        </CardContent>
-      </Card>
+                        </tbody>
+                      </table>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="details">
+                    <div className="mt-4 space-y-4">
+                      <p className="text-muted-foreground">
+                        Additional details and information about the table structure
+                        will be displayed here in future versions.
+                      </p>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </>
+            )}
+          </Card>
+        </div>
+      )}
     </div>
   );
-};
-
-export default Schema;
+}
