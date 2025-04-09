@@ -113,6 +113,7 @@ These are the primary entities in our data model:
 
 | Date | Table | Change Type | Description |
 |------|-------|-------------|-------------|
+| 2025-04-09 | Schema | Update | Comprehensive schema documentation system updated |
 | 2025-04-08 | clients | Added | Added phone and address columns |
 | 2025-04-08 | sites | Added | Added description column |
 | 2025-04-06 | work_orders | Added | New table for tracking operational tasks |
@@ -121,16 +122,12 @@ These are the primary entities in our data model:
 | 2025-04-05 | sites | Modified | Added access_instructions and emergency_instructions |
 | 2025-04-05 | contracts | Modified | Added new financial tracking fields |
 
-## SQL Schema Validation
+## Keeping Documentation Updated
 
-To ensure your local development environment matches the production schema, run:
+To ensure your local development environment matches the production schema:
 
-```sql
-SELECT table_name, column_name, data_type 
-FROM information_schema.columns 
-WHERE table_schema = 'public' 
-ORDER BY table_name, ordinal_position;
-```
+1. **Regularly Check**: Visit the Schema page in the application to refresh schema information
+2. **Track Changes**: Update this document when making schema changes
+3. **Run Validations**: Use the Schema page's "Check Drift" feature to identify changes
 
-This document is maintained as part of the development process. Always update it when making schema changes.
-
+Last updated: 2025-04-09 12:45

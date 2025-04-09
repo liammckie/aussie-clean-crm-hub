@@ -1,13 +1,22 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSpinner } from '@/components/ui/spinner';
-import { FileJson, FileDown, RefreshCw, Database, AlertTriangle } from 'lucide-react';
+import { FileJson, FileDown, RefreshCw, Database, AlertTriangle, Clock, Save, DiffIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { format } from 'date-fns';
+import { 
+  saveSchemaBaseline, 
+  checkSchemaDrift, 
+  getSchemaBaselineDate, 
+  formatSchemaDiff, 
+  SchemaDiff 
+} from '@/utils/schema/checkSchemaDrift';
+import { updateSchemaDocumentation, getSchemaMarkdown } from '@/utils/schema/updateSchemaDoc';
 
 // Define the types for the schema data
 interface Column {
@@ -33,12 +42,12 @@ export default function Schema() {
   const [activeTable, setActiveTable] = useState<string>('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>('');
+  const [baselineDate, setBaselineDate] = useState<Date | null>(null);
+  const [isCheckingDrift, setIsCheckingDrift] = useState(false);
+  const [schemaDiff, setSchemaDiff] = useState<SchemaDiff | null>(null);
+  const [diffView, setDiffView] = useState(false);
   
-  useEffect(() => {
-    fetchSchema();
-  }, []);
-
-  const fetchSchema = async () => {
+  const fetchSchema = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
@@ -59,12 +68,63 @@ export default function Schema() {
       
       setLastUpdated(new Date());
       console.log('Schema fetched successfully:', schemaResponse.schema);
+      
+      // Reset diff view when fetching new schema
+      setDiffView(false);
+      setSchemaDiff(null);
     } catch (err: any) {
       console.error('Error fetching schema:', err);
       setError(err.message);
       toast.error('Failed to fetch database schema');
     } finally {
       setIsLoading(false);
+    }
+  }, []);
+  
+  useEffect(() => {
+    fetchSchema();
+    
+    // Also check for baseline date
+    const date = getSchemaBaselineDate();
+    setBaselineDate(date);
+  }, [fetchSchema]);
+
+  const saveBaseline = async () => {
+    const success = await saveSchemaBaseline();
+    if (success) {
+      setBaselineDate(new Date());
+      toast.success('Schema baseline saved');
+    }
+  };
+  
+  const checkDrift = async () => {
+    setIsCheckingDrift(true);
+    
+    try {
+      const diff = await checkSchemaDrift();
+      setSchemaDiff(diff);
+      
+      if (diff && diff.hasChanges) {
+        toast.warning(`Schema drift detected: ${diff.addedTables.length} tables added, ${diff.removedTables.length} removed, ${diff.modifiedTables.length} modified`);
+        setDiffView(true);
+      } else {
+        toast.success('No schema drift detected');
+      }
+    } finally {
+      setIsCheckingDrift(false);
+    }
+  };
+  
+  const updateDocumentation = async () => {
+    const result = await updateSchemaDocumentation();
+    if (result.success) {
+      toast.success('Schema documentation updated', {
+        description: `File updated: ${result.filePath}`
+      });
+    } else {
+      toast.error('Failed to update schema documentation', {
+        description: result.error
+      });
     }
   };
 
@@ -86,22 +146,9 @@ export default function Schema() {
     }
   };
 
-  const downloadAsMarkdown = () => {
+  const downloadAsMarkdown = async () => {
     try {
-      let markdownContent = '# Database Schema\n\n';
-      markdownContent += 'This document is auto-generated and contains the schema information for all tables in the public schema of the database. It is updated through the Schema page in the application.\n\n';
-      
-      schemaData.forEach((table) => {
-        markdownContent += `## Table: ${table.table_name}\n\n`;
-        markdownContent += '| Column | Type | Nullable | Default |\n';
-        markdownContent += '|--------|------|----------|--------|\n';
-        
-        table.columns.forEach((col) => {
-          markdownContent += `| ${col.column_name} | ${col.data_type} | ${col.is_nullable ? 'YES' : 'NO'} | ${col.column_default || ''} |\n`;
-        });
-        
-        markdownContent += '\n';
-      });
+      const markdownContent = await getSchemaMarkdown();
       
       const blob = new Blob([markdownContent], { type: 'text/markdown' });
       const url = URL.createObjectURL(blob);
@@ -181,16 +228,82 @@ export default function Schema() {
             <RefreshCw className="mr-2 h-4 w-4" />
             Refresh Schema
           </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={saveBaseline}
+            className="gap-2"
+          >
+            <Save className="h-4 w-4" />
+            {baselineDate ? 'Update Baseline' : 'Save Baseline'}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            onClick={checkDrift}
+            disabled={!baselineDate || isCheckingDrift}
+            className="gap-2"
+          >
+            <DiffIcon className="h-4 w-4" />
+            {isCheckingDrift ? 'Checking...' : 'Check Drift'}
+          </Button>
+          
           <Button variant="outline" onClick={downloadAsJson}>
             <FileJson className="mr-2 h-4 w-4" />
             Download JSON
           </Button>
-          <Button variant="default" onClick={downloadAsMarkdown}>
+          
+          <Button variant="outline" onClick={downloadAsMarkdown}>
             <FileDown className="mr-2 h-4 w-4" />
             Download Markdown
           </Button>
+          
+          <Button variant="default" onClick={updateDocumentation}>
+            <Clock className="mr-2 h-4 w-4" />
+            Update Docs
+          </Button>
         </div>
       </div>
+      
+      {baselineDate && (
+        <div className="mb-4 p-2 bg-muted/50 rounded-md text-sm text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <Clock className="h-4 w-4" />
+            <span>
+              Baseline schema saved: {format(baselineDate, 'yyyy-MM-dd HH:mm')}
+            </span>
+          </div>
+        </div>
+      )}
+      
+      {diffView && schemaDiff && (
+        <Card className="mb-4 p-4">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold">Schema Drift Analysis</h2>
+            <Button variant="outline" size="sm" onClick={() => setDiffView(false)}>
+              Hide Diff
+            </Button>
+          </div>
+          
+          <div className="flex flex-col gap-2">
+            <div className="flex gap-4">
+              <div className="text-sm">
+                <span className="font-semibold">Added Tables:</span> {schemaDiff.addedTables.length}
+              </div>
+              <div className="text-sm">
+                <span className="font-semibold">Removed Tables:</span> {schemaDiff.removedTables.length}
+              </div>
+              <div className="text-sm">
+                <span className="font-semibold">Modified Tables:</span> {schemaDiff.modifiedTables.length}
+              </div>
+            </div>
+            
+            <div className="mt-2 p-4 bg-muted text-sm rounded-md overflow-auto max-h-60">
+              <pre>{formatSchemaDiff(schemaDiff)}</pre>
+            </div>
+          </div>
+        </Card>
+      )}
 
       <div className="mb-4">
         <div className="relative">

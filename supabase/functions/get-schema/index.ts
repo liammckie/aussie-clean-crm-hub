@@ -56,6 +56,9 @@ serve(async (req) => {
         continue;
       }
       
+      // Fetch foreign key information (in a future update)
+      // This would enhance the schema with relationship data
+      
       schema.push({
         table_name: table.table_name,
         columns: columns || []
@@ -65,7 +68,14 @@ serve(async (req) => {
     console.log(`Successfully fetched schema for ${schema.length} tables`);
     
     return new Response(
-      JSON.stringify({ schema }),
+      JSON.stringify({ 
+        schema,
+        timestamp: new Date().toISOString(),
+        metadata: {
+          version: '1.1',
+          generated_by: 'get-schema edge function'
+        }
+      }),
       { 
         headers: { 
           ...corsHeaders,
