@@ -1,6 +1,6 @@
 
 import React, { Suspense } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { Dashboard, NotFound, Sites, Activities } from '../lazyRoutes';
 import { LoadingState } from '@/components/clients/LoadingState';
@@ -40,6 +40,18 @@ export const MiscRoutes = () => {
           <ProtectedRoute>
             <Suspense fallback={<LoadingState />}>
               <Activities />
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Fallback for 404 */}
+      <Route 
+        path="*" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingState />}>
+              <NotFound />
             </Suspense>
           </ProtectedRoute>
         } 

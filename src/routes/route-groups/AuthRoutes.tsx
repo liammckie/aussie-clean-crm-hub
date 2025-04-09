@@ -11,16 +11,16 @@ export const AuthRoutes = () => {
     <Routes>
       {/* Login route */}
       <Route path="login" element={
-        isAuthenticated ? <Navigate to="/dashboard" replace /> : <Login />
+        isAuthenticated ? <Navigate to="/" replace /> : <Login />
       } />
       
       {/* Root path of auth routes */}
       <Route path="/" element={
-        <Navigate to={isAuthenticated ? "/dashboard" : "/auth/login"} replace />
+        <Navigate to={isAuthenticated ? "/" : "/login"} replace />
       } />
       
       {/* Catch-all for auth routes */}
-      <Route path="*" element={<Navigate to="/auth/login" replace />} />
+      <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
   );
 };
