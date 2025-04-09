@@ -3,7 +3,7 @@ import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
 import { Dashboard, NotFound, Sites, Activities } from '../lazyRoutes';
-import { LoadingState } from '@/components/clients/LoadingState';
+import { SchemaLoadingState } from '@/components/schema/SchemaLoadingState';
 import { Custom404Page } from '@/components/error/Custom404Page';
 
 export const MiscRoutes = () => {
@@ -14,7 +14,7 @@ export const MiscRoutes = () => {
         path="/" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingState />}>
+            <Suspense fallback={<SchemaLoadingState />}>
               <Dashboard />
             </Suspense>
           </ProtectedRoute>
@@ -26,7 +26,7 @@ export const MiscRoutes = () => {
         path="/sites" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingState />}>
+            <Suspense fallback={<SchemaLoadingState />}>
               <Sites />
             </Suspense>
           </ProtectedRoute>
@@ -38,7 +38,7 @@ export const MiscRoutes = () => {
         path="/activities" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingState />}>
+            <Suspense fallback={<SchemaLoadingState />}>
               <Activities />
             </Suspense>
           </ProtectedRoute>
@@ -50,7 +50,7 @@ export const MiscRoutes = () => {
         path="*" 
         element={
           <ProtectedRoute>
-            <Suspense fallback={<LoadingState />}>
+            <Suspense fallback={<SchemaLoadingState />}>
               <NotFound />
             </Suspense>
           </ProtectedRoute>

@@ -72,19 +72,8 @@ export function AppRoutes() {
           }
         />
         
-        {/* Developer Routes */}
-        <Route
-          path="/developer/error-testing"
-          element={
-            <ProtectedRoute>
-              <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundaryClass>
-                  <ErrorTesting />
-                </RouteErrorBoundaryClass>
-              </Suspense>
-            </ProtectedRoute>
-          }
-        />
+        {/* Developer Routes - REMOVED for production */}
+        {/* Route for ErrorTesting has been removed as requested */}
       </Routes>
     </GlobalErrorBoundary>
   );

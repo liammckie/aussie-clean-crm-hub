@@ -16,6 +16,9 @@ export function LoadingSpinner({ size = 'md', className = '' }: LoadingSpinnerPr
   return (
     <div 
       className={`${sizeClasses[size]} animate-spin rounded-full border-b-2 border-primary ${className}`}
+      aria-live="polite"
+      aria-busy="true"
+      role="status"
     />
   );
 }
