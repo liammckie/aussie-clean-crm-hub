@@ -1,3 +1,4 @@
+
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +15,7 @@ import { Contracts, ContractDetail, NewContract, EditContract } from './lazyRout
 import { Suppliers, NewSupplier, SupplierDetail, EditSupplier } from './lazyRoutes';
 import { WorkOrders, WorkOrderDetail, NewWorkOrder } from './lazyRoutes';
 import { Sites, Activities } from './lazyRoutes';
+import { Sales } from './lazyRoutes';
 import { ErrorTesting } from './lazyRoutes';
 
 export function AppRoutes() {
@@ -78,6 +80,13 @@ export function AppRoutes() {
         <Route path="/clients/edit/:clientId" element={
           <ProtectedRoute>
             <EditClient />
+          </ProtectedRoute>
+        } />
+        
+        {/* Sales route */}
+        <Route path="/sales" element={
+          <ProtectedRoute>
+            <Sales />
           </ProtectedRoute>
         } />
         

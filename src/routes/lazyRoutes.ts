@@ -12,6 +12,9 @@ export const NewClient = lazy(() => import("@/pages/NewClient"));
 export const ClientDetail = lazy(() => import("@/pages/ClientDetail"));
 export const EditClient = lazy(() => import("@/pages/EditClient"));
 
+// Sales route
+export const Sales = lazy(() => import("@/pages/Sales"));
+
 // Contract routes
 export const Contracts = lazy(() => import("@/pages/Contracts"));
 export const ContractDetail = lazy(() => import("@/pages/ContractDetail"));

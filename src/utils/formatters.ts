@@ -1,86 +1,50 @@
-import { UnifiedAddressRecord } from '@/services/unified/types';
 
 /**
- * Format an address record into an array of display lines
- * @param address Address record to format
- * @returns Array of address lines
+ * Format currency value with the locale's currency symbol
  */
-export function formatAddressDisplay(address: UnifiedAddressRecord): string[] {
-  const lines: string[] = [];
-
-  if (address.address_line_1) {
-    lines.push(address.address_line_1);
-  }
-
-  if (address.address_line_2) {
-    lines.push(address.address_line_2);
-  }
-
-  const cityLine: string[] = [];
-  if (address.suburb) {
-    cityLine.push(address.suburb);
-  }
-  if (address.state) {
-    cityLine.push(address.state);
-  }
-  if (address.postcode) {
-    cityLine.push(address.postcode);
-  }
-
-  if (cityLine.length > 0) {
-    lines.push(cityLine.join(' '));
-  }
-
-  if (address.country && address.country !== 'Australia') {
-    lines.push(address.country);
-  }
-
-  return lines;
-}
-
-/**
- * Format an address record into a single line
- * @param address Address record to format
- * @returns Single line address string
- */
-export function formatAddressOneLine(address?: Partial<UnifiedAddressRecord>): string {
-  if (!address) return '';
-
-  const parts: string[] = [];
-
-  if (address.address_line_1) {
-    parts.push(address.address_line_1);
-  }
-
-  if (address.suburb) {
-    parts.push(address.suburb);
-  }
-
-  if (address.state) {
-    parts.push(address.state);
-  }
-
-  if (parts.length === 0) return '';
-
-  return parts.join(', ');
-}
-
-/**
- * Format a currency value with a specified locale and currency code
- * @param value Number to format
- * @param locale Locale to use for formatting (default: 'en-AU')
- * @param currency Currency code to use (default: 'AUD')
- * @returns Formatted currency string
- */
-export function formatCurrency(value?: number | null, locale: string = 'en-AU', currency: string = 'AUD'): string {
-  if (value === undefined || value === null) {
-    return '$0.00';
-  }
-  
-  return new Intl.NumberFormat(locale, {
+export const formatCurrency = (amount: number): string => {
+  return new Intl.NumberFormat('en-AU', {
     style: 'currency',
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2
-  }).format(value);
-}
+    currency: 'AUD',
+  }).format(amount);
+};
+
+/**
+ * Format date to a user-friendly format
+ */
+export const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-AU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  }).format(date);
+};
+
+/**
+ * Format date and time to a user-friendly format
+ */
+export const formatDateTime = (dateString: string): string => {
+  const date = new Date(dateString);
+  return new Intl.DateTimeFormat('en-AU', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date);
+};
+
+/**
+ * Format percentage value
+ */
+export const formatPercentage = (value: number): string => {
+  return `${value}%`;
+};
+
+/**
+ * Format number with thousands separator
+ */
+export const formatNumber = (value: number): string => {
+  return new Intl.NumberFormat('en-AU').format(value);
+};
