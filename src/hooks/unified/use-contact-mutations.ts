@@ -31,7 +31,7 @@ export function useContactMutations() {
       entityId: string;
       contactData: UnifiedContactFormData;
     }) => {
-      const response = await unifiedService.createEntityContact(
+      const response = await unifiedService.createContact(
         toDbEntityType(entityType),
         entityId,
         contactData
@@ -64,7 +64,7 @@ export function useContactMutations() {
       contactId: string;
       contactData: Partial<UnifiedContactFormData>;
     }) => {
-      const response = await unifiedService.updateEntityContact(contactId, contactData);
+      const response = await unifiedService.updateContact(contactId, contactData);
       
       if ('category' in response) {
         throw new Error(response.message);
@@ -87,7 +87,7 @@ export function useContactMutations() {
    */
   const deleteContactMutation = useMutation({
     mutationFn: async ({ contactId }: { contactId: string }) => {
-      const response = await unifiedService.deleteEntityContact(contactId);
+      const response = await unifiedService.deleteContact(contactId);
       
       if ('category' in response) {
         throw new Error(response.message);
