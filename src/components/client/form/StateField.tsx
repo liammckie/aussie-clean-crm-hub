@@ -14,11 +14,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { UseFormReturn } from 'react-hook-form';
+import { UseFormReturn, FieldPath } from 'react-hook-form';
 
 // Create a generic type that requires at least the state field
-interface StateFieldFormData {
-  state?: string;
+export interface StateFieldFormData {
+  state: string;
 }
 
 interface StateFieldProps<T extends StateFieldFormData> {
@@ -40,7 +40,7 @@ export function StateField<T extends StateFieldFormData>({ form }: StateFieldPro
   return (
     <FormField
       control={form.control}
-      name="state"
+      name={"state" as FieldPath<T>}
       render={({ field }) => (
         <FormItem>
           <FormLabel>State</FormLabel>

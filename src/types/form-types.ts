@@ -93,10 +93,10 @@ export function createDefaultContactValues(initialData?: Partial<UnifiedContactF
   };
 }
 
-// Form data for unified address form - Using address_line1 naming to match form field names
+// Form data for unified address form - Ensuring field names match our AddressFields component
 export interface UnifiedAddressFormData {
-  address_line1: string;
-  address_line2?: string;
+  address_line_1: string;
+  address_line_2?: string;
   suburb: string;
   state: string;
   postcode: string;
@@ -111,8 +111,8 @@ export interface UnifiedAddressFormData {
 
 // Define the schema for address validation, using enum values from AddressType
 export const unifiedAddressSchema = z.object({
-  address_line1: z.string().min(1, { message: "Address line 1 is required" }),
-  address_line2: z.string().optional(),
+  address_line_1: z.string().min(1, { message: "Address line 1 is required" }),
+  address_line_2: z.string().optional(),
   suburb: z.string().min(1, { message: "Suburb is required" }),
   state: z.string().min(1, { message: "State is required" }),
   postcode: z.string().min(1, { message: "Postcode is required" }),
@@ -128,8 +128,8 @@ export const unifiedAddressSchema = z.object({
 // Helper function to create default values for address form
 export function createDefaultAddressValues(initialData?: Partial<UnifiedAddressFormData>): UnifiedAddressFormData {
   return {
-    address_line1: initialData?.address_line1 || '',
-    address_line2: initialData?.address_line2 || '',
+    address_line_1: initialData?.address_line_1 || '',
+    address_line_2: initialData?.address_line_2 || '',
     suburb: initialData?.suburb || '',
     state: initialData?.state || '',
     postcode: initialData?.postcode || '',
