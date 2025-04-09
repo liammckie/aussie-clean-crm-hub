@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -49,12 +48,12 @@ export function ContractForm({ contractId, clientId, isEdit = false }: ContractF
   const navigate = useNavigate();
   
   const { useClientsList } = useClients();
-  const { data: clients, isLoading: isClientsLoading, refetch } = useClientsList();
+  const { data: clients, isLoading: isClientsLoading } = useClientsList();
   
-  const { useContractDetails, useUpdateContract, useCreateContract } = useContracts();
-  const { data: contract, isLoading: isContractLoading } = useContractDetails(contractId);
-  const updateContract = useUpdateContract();
-  const createContract = useCreateContract();
+  const contracts = useContracts();
+  const { data: contract, isLoading: isContractLoading } = contracts.useContractDetails(contractId);
+  const updateContractMutation = contracts.useUpdateContract();
+  const createContractMutation = contracts.useCreateContract();
 
   const form = useForm<ContractFormData>({
     resolver: zodResolver(contractFormSchema),
@@ -79,26 +78,18 @@ export function ContractForm({ contractId, clientId, isEdit = false }: ContractF
     setIsSubmitting(true);
     
     try {
-      const response = isEdit 
-        ? await updateContract(contractId as string, data)
-        : await createContract(data);
-      
-      if (!isApiError(response)) {
-        toast.success(`Contract ${isEdit ? 'updated' : 'created'} successfully!`);
-        AppLogger.info(
-          LogCategory.CONTRACT, 
-          `Contract ${isEdit ? 'updated' : 'created'} successfully`, 
-          { contractId: response.data?.id }
-        );
-        navigate('/contracts');
+      if (isEdit && contractId) {
+        await updateContractMutation.mutateAsync({ id: contractId, data });
       } else {
-        toast.error(response.message || 'Failed to save contract. Please try again.');
-        AppLogger.error(
-          LogCategory.CONTRACT, 
-          `Failed to ${isEdit ? 'update' : 'create'} contract`, 
-          { error: response.message }
-        );
+        await createContractMutation.mutateAsync(data);
       }
+      
+      toast.success(`Contract ${isEdit ? 'updated' : 'created'} successfully!`);
+      AppLogger.info(
+        LogCategory.CONTRACT, 
+        `Contract ${isEdit ? 'updated' : 'created'} successfully`
+      );
+      navigate('/contracts');
     } catch (error: any) {
       toast.error(`Error: ${error.message || 'Failed to save contract.'}`);
       AppLogger.error(
