@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { LoadingSpinner } from '@/components/ui/spinner';
-import { FileJson, FileDown } from 'lucide-react';
+import { FileJson, FileDown, RefreshCw, Database, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
+import { Badge } from '@/components/ui/badge';
 
 // Define the types for the schema data
 interface Column {
@@ -30,7 +31,9 @@ export default function Schema() {
   const [error, setError] = useState<string | null>(null);
   const [schemaData, setSchemaData] = useState<TableSchema[]>([]);
   const [activeTable, setActiveTable] = useState<string>('');
-
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  
   useEffect(() => {
     fetchSchema();
   }, []);
@@ -54,6 +57,7 @@ export default function Schema() {
         setActiveTable(schemaResponse.schema[0].table_name);
       }
       
+      setLastUpdated(new Date());
       console.log('Schema fetched successfully:', schemaResponse.schema);
     } catch (err: any) {
       console.error('Error fetching schema:', err);
@@ -114,6 +118,24 @@ export default function Schema() {
     }
   };
 
+  const filteredTables = schemaData.filter(table => 
+    table.table_name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const tableHasColumn = (table: TableSchema, searchTerm: string) => {
+    return table.columns.some(col => 
+      col.column_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      col.data_type.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
+  const allFilteredTables = searchTerm.length > 0 
+    ? schemaData.filter(table => 
+        table.table_name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+        tableHasColumn(table, searchTerm)
+      )
+    : schemaData;
+
   if (isLoading) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -129,7 +151,10 @@ export default function Schema() {
     return (
       <div className="flex h-full w-full items-center justify-center">
         <Card className="max-w-lg p-6">
-          <h2 className="text-xl font-semibold text-red-600 mb-2">Error Loading Schema</h2>
+          <div className="flex items-center gap-2 text-red-500 mb-4">
+            <AlertTriangle />
+            <h2 className="text-xl font-semibold">Error Loading Schema</h2>
+          </div>
           <p className="text-muted-foreground mb-4">{error}</p>
           <Button onClick={fetchSchema}>Retry</Button>
         </Card>
@@ -139,15 +164,21 @@ export default function Schema() {
 
   return (
     <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-6 gap-4">
         <div>
           <h1 className="text-2xl font-bold">Database Schema</h1>
           <p className="text-muted-foreground">
             View and explore the database structure
+            {lastUpdated && (
+              <span className="ml-2 text-xs">
+                Last updated: {lastUpdated.toLocaleString()}
+              </span>
+            )}
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={fetchSchema}>
+            <RefreshCw className="mr-2 h-4 w-4" />
             Refresh Schema
           </Button>
           <Button variant="outline" onClick={downloadAsJson}>
@@ -161,16 +192,29 @@ export default function Schema() {
         </div>
       </div>
 
-      {schemaData.length === 0 ? (
+      <div className="mb-4">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search tables and columns..."
+            className="w-full p-2 pl-10 border rounded bg-background"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Database className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        </div>
+      </div>
+
+      {allFilteredTables.length === 0 ? (
         <Card className="p-6 text-center">
           <p className="text-muted-foreground">No tables found in the database.</p>
         </Card>
       ) : (
-        <div className="grid grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="col-span-1 p-4 h-[calc(100vh-200px)] overflow-y-auto">
-            <h3 className="font-medium mb-4">Tables</h3>
+            <h3 className="font-medium mb-4">Tables ({allFilteredTables.length})</h3>
             <ul className="space-y-1">
-              {schemaData.map((table) => (
+              {allFilteredTables.map((table) => (
                 <li key={table.table_name}>
                   <Button
                     variant={activeTable === table.table_name ? "default" : "ghost"}
@@ -178,13 +222,16 @@ export default function Schema() {
                     onClick={() => setActiveTable(table.table_name)}
                   >
                     {table.table_name}
+                    <Badge variant="outline" className="ml-2">
+                      {table.columns.length}
+                    </Badge>
                   </Button>
                 </li>
               ))}
             </ul>
           </Card>
 
-          <Card className="col-span-3 p-4 h-[calc(100vh-200px)] overflow-y-auto">
+          <Card className="col-span-1 md:col-span-3 p-4 h-[calc(100vh-200px)] overflow-y-auto">
             {activeTable && (
               <>
                 <h2 className="text-xl font-semibold mb-4">
@@ -193,6 +240,7 @@ export default function Schema() {
                 <Tabs defaultValue="columns">
                   <TabsList>
                     <TabsTrigger value="columns">Columns</TabsTrigger>
+                    <TabsTrigger value="relationships">Relationships</TabsTrigger>
                     <TabsTrigger value="details">Details</TabsTrigger>
                   </TabsList>
                   <TabsContent value="columns">
@@ -233,12 +281,25 @@ export default function Schema() {
                       </table>
                     </div>
                   </TabsContent>
+                  <TabsContent value="relationships">
+                    <div className="mt-4 p-4 border rounded">
+                      <p className="text-muted-foreground">
+                        Relationship information will be added in a future update.
+                        This will show foreign keys and references to other tables.
+                      </p>
+                    </div>
+                  </TabsContent>
                   <TabsContent value="details">
                     <div className="mt-4 space-y-4">
-                      <p className="text-muted-foreground">
-                        Additional details and information about the table structure
-                        will be displayed here in future versions.
-                      </p>
+                      <div className="p-4 border rounded">
+                        <h3 className="font-medium mb-2">Table Information</h3>
+                        <p className="text-sm text-muted-foreground">
+                          The {activeTable} table contains {
+                            schemaData.find(t => t.table_name === activeTable)?.columns.length || 0
+                          } columns. Additional metadata about constraints, indexes, and triggers
+                          will be added in a future update.
+                        </p>
+                      </div>
                     </div>
                   </TabsContent>
                 </Tabs>

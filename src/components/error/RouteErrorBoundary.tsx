@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, ReactNode } from "react";
 import * as Sentry from "@sentry/react";
 
@@ -54,7 +55,7 @@ export class RouteErrorBoundaryClass extends React.Component<RouteErrorBoundaryP
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     // Report the error to Sentry
-    Sentry.captureException(error, { extra: errorInfo });
+    Sentry.captureException(error, { extra: { errorInfo } });
   }
 
   render() {
