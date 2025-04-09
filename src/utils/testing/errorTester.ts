@@ -59,6 +59,6 @@ export class ErrorTester {
    */
   static generateTestFeedback(feedback = "This is test feedback", category = "test"): void {
     AppLogger.info(LogCategory.SYSTEM, "Sending test feedback", { feedback, category });
-    ErrorReporting.captureFeedback(feedback);
+    ErrorReporting.captureFeedback(feedback, category);
   }
 }

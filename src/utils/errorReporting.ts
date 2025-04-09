@@ -9,7 +9,8 @@ type UserInfo = {
 };
 
 class ErrorReportingService {
-  private isInitialized = false;
+  public isInitialized = false;
+  private isEnabled = true;
 
   /**
    * Initialize error reporting service
@@ -58,11 +59,30 @@ class ErrorReportingService {
   }
 
   /**
+   * Enable or disable error reporting
+   */
+  setEnabled(enabled: boolean) {
+    this.isEnabled = enabled;
+    AppLogger.info(LogCategory.SYSTEM, `Error reporting ${enabled ? 'enabled' : 'disabled'}`);
+    
+    // Update Sentry configuration if initialized
+    if (this.isInitialized) {
+      try {
+        Sentry.configureScope(scope => {
+          scope.setTag('error_reporting_enabled', String(enabled));
+        });
+      } catch (error) {
+        console.error("Failed to update Sentry configuration:", error);
+      }
+    }
+  }
+
+  /**
    * Capture an exception
    */
   captureException(error: Error, extraInfo: Record<string, any> = {}) {
-    if (!this.isInitialized) {
-      console.error("Error reporting not initialized, error:", error, extraInfo);
+    if (!this.isInitialized || !this.isEnabled) {
+      console.error("Error reporting not initialized or disabled, error:", error, extraInfo);
       return;
     }
 
@@ -83,8 +103,8 @@ class ErrorReportingService {
    * Capture a message
    */
   captureMessage(message: string, level: Sentry.SeverityLevel = "info", extraInfo: Record<string, any> = {}) {
-    if (!this.isInitialized) {
-      console.warn("Error reporting not initialized, message:", message, extraInfo);
+    if (!this.isInitialized || !this.isEnabled) {
+      console.warn("Error reporting not initialized or disabled, message:", message, extraInfo);
       return;
     }
 
@@ -98,6 +118,33 @@ class ErrorReportingService {
       });
     } catch (error) {
       console.error("Failed to capture message:", error);
+    }
+  }
+
+  /**
+   * Capture user feedback
+   */
+  captureFeedback(feedback: string, category: string = "general", extraInfo: Record<string, any> = {}) {
+    if (!this.isInitialized || !this.isEnabled) {
+      console.warn("Error reporting not initialized or disabled, feedback not captured");
+      return;
+    }
+
+    try {
+      // Log the feedback
+      AppLogger.info(LogCategory.SYSTEM, "User feedback captured", {
+        feedback,
+        category,
+        ...extraInfo
+      });
+      
+      // Send to Sentry as a message with feedback category
+      this.captureMessage(`User Feedback [${category}]: ${feedback}`, "info", {
+        feedbackCategory: category,
+        ...extraInfo
+      });
+    } catch (error) {
+      console.error("Failed to capture feedback:", error);
     }
   }
 }

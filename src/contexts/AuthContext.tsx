@@ -12,6 +12,7 @@ interface AuthContextType {
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
+  setAdminSession: () => void; // Added missing method
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -135,6 +136,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Development mode function to bypass authentication
+  const setAdminSession = () => {
+    // Create a mock admin user for development
+    const mockAdminUser = {
+      id: 'dev-admin-user',
+      email: 'admin@example.com',
+      user_metadata: {
+        name: 'Developer Admin',
+        role: 'admin'
+      },
+    } as User;
+    
+    AppLogger.info(LogCategory.AUTH, 'Setting admin development session');
+    setUser(mockAdminUser);
+    setIsAuthenticated(true);
+    
+    // Set user info in error reporting
+    ErrorReporting.setUser({
+      id: mockAdminUser.id,
+      email: mockAdminUser.email,
+      username: mockAdminUser.user_metadata?.name
+    });
+    
+    toast.success('Development mode activated');
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -143,6 +170,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         signIn,
         signOut,
+        setAdminSession, // Add the new method to the context
       }}
     >
       {children}
