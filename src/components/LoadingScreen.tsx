@@ -5,12 +5,12 @@ import { LogoLoadingSpinner } from "@/components/ui/LogoLoadingSpinner";
 
 interface LoadingScreenProps {
   duration?: number;
-  onLoadingComplete: () => void;
+  onLoadingComplete?: () => void;  // Made optional with ?
 }
 
 export function LoadingScreen({ 
   duration = 2000, // Reduced from 3000ms to 2000ms for faster development
-  onLoadingComplete 
+  onLoadingComplete = () => {} // Default no-op function
 }: LoadingScreenProps) {
   const [loadingStage, setLoadingStage] = useState<'initial' | 'assets' | 'complete'>('initial');
   const [isFading, setIsFading] = useState(false);
