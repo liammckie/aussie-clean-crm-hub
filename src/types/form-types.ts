@@ -54,7 +54,17 @@ export function toFormContactType(dbType: DatabaseContactType): ContactType {
 }
 
 export function toDatabaseEntityType(formType: EntityType): DatabaseEntityType {
-  return formType.toLowerCase() as DatabaseEntityType;
+  // Safe mapping from form entity type to database entity type
+  const entityTypeMapping: Record<EntityType, DatabaseEntityType> = {
+    [EntityType.CLIENT]: DatabaseEntityType.CLIENT,
+    [EntityType.SUPPLIER]: DatabaseEntityType.SUPPLIER,
+    [EntityType.EMPLOYEE]: DatabaseEntityType.EMPLOYEE,
+    [EntityType.SITE]: DatabaseEntityType.SITE,
+    [EntityType.INTERNAL]: DatabaseEntityType.CLIENT, // Map INTERNAL to CLIENT as fallback
+    [EntityType.CONTACT]: DatabaseEntityType.CONTACT
+  };
+  
+  return entityTypeMapping[formType];
 }
 
 export function toFormEntityType(dbType: DatabaseEntityType): EntityType {
@@ -63,7 +73,6 @@ export function toFormEntityType(dbType: DatabaseEntityType): EntityType {
     'supplier': EntityType.SUPPLIER,
     'employee': EntityType.EMPLOYEE,
     'site': EntityType.SITE,
-    'internal': EntityType.INTERNAL,
     'contact': EntityType.CONTACT,
     'contract': EntityType.CONTACT, // Handle 'contract' mapping
     'work_order': EntityType.CONTACT, // Handle 'work_order' mapping

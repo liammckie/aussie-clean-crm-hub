@@ -1,11 +1,17 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { unifiedService } from '@/services/unified';
-import { EntityType } from '@/types/form-types';
-import { ApiResponse, isApiError } from '@/types/api-response';
+import { EntityType as FormEntityType } from '@/types/form-types';
+import { EntityType as DbEntityType } from '@/types/database-schema';
+import { ApiResponse } from '@/types/api-response';
 import { UnifiedAddressRecord, UnifiedContactRecord } from '@/services/unified/types';
 import { ErrorReporting } from '@/utils/errorReporting';
-import { toDatabaseEntityType } from '@/types/form-types';
+
+// Convert form entity type to database entity type
+const toDbEntityType = (formType: FormEntityType): DbEntityType => {
+  // Use lowercase version as database expects lowercase values
+  return formType.toLowerCase() as DbEntityType;
+};
 
 /**
  * Hook for querying unified entities (addresses and contacts)
@@ -19,11 +25,11 @@ export function useEntityQueries() {
    * @returns Query result object
    */
   const useEntityAddresses = (
-    entityType: EntityType,
+    entityType: FormEntityType,
     entityId: string | undefined,
     options: { enabled?: boolean } = {}
   ) => {
-    return useQuery({
+    return useQuery<UnifiedAddressRecord[], Error>({
       queryKey: ['unified-addresses', entityType, entityId],
       queryFn: async (): Promise<UnifiedAddressRecord[]> => {
         if (!entityId) {
@@ -31,11 +37,11 @@ export function useEntityQueries() {
         }
 
         const response = await unifiedService.getEntityAddresses(
-          toDatabaseEntityType(entityType), 
+          toDbEntityType(entityType), 
           entityId
         );
         
-        if (isApiError(response)) {
+        if ('category' in response) {
           console.error('Error fetching addresses:', response);
           throw new Error(response.message);
         }
@@ -62,11 +68,11 @@ export function useEntityQueries() {
    * @returns Query result object
    */
   const useEntityContacts = (
-    entityType: EntityType,
+    entityType: FormEntityType,
     entityId: string | undefined,
     options: { enabled?: boolean } = {}
   ) => {
-    return useQuery({
+    return useQuery<UnifiedContactRecord[], Error>({
       queryKey: ['unified-contacts', entityType, entityId],
       queryFn: async (): Promise<UnifiedContactRecord[]> => {
         if (!entityId) {
@@ -74,11 +80,11 @@ export function useEntityQueries() {
         }
         
         const response = await unifiedService.getEntityContacts(
-          toDatabaseEntityType(entityType), 
+          toDbEntityType(entityType), 
           entityId
         );
         
-        if (isApiError(response)) {
+        if ('category' in response) {
           console.error('Error fetching contacts:', response);
           throw new Error(response.message);
         }
