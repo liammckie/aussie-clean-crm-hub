@@ -17,6 +17,7 @@ import { isAuthenticated } from '@/integrations/supabase/client';
 import { ClientStatus } from '@/types/database-schema';
 import { isApiError } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
+import { AppLogger, LogCategory } from '@/utils/logging';
 
 const NewClient = () => {
   const navigate = useNavigate();
@@ -54,7 +55,7 @@ const NewClient = () => {
       acn: '',
       industry: '',
       status: ClientStatus.PROSPECT,
-      onboarding_date: new Date().toISOString().split('T')[0], // Default to today
+      onboarding_date: new Date().toISOString().split('T')[0],
       source: '',
       billing_cycle: '',
       payment_terms: '',
@@ -86,6 +87,11 @@ const NewClient = () => {
       const response = await clientService.createClient(preparedData);
 
       if (isApiError(response)) {
+        AppLogger.error(LogCategory.CLIENT, `Client creation error: ${response.message}`, { 
+          errorCategory: response.category,
+          details: response.details
+        });
+        
         if (response.category === ErrorCategory.VALIDATION) {
           if (response.details && response.details.field) {
             form.setError(response.details.field as keyof ClientFormData, {
@@ -104,10 +110,15 @@ const NewClient = () => {
           }
         }
       } else {
+        AppLogger.info(LogCategory.CLIENT, 'Client created successfully', { 
+          clientId: response.data.id,
+          businessName: response.data.business_name
+        });
         toast.success('Client created successfully!');
         navigate('/clients');
       }
     } catch (error: any) {
+      AppLogger.error(LogCategory.ERROR, `Error creating client: ${error.message}`, { error });
       console.error('Error creating client:', error);
       toast.error(error?.message || 'Failed to create client');
     } finally {
