@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter, HashRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -8,13 +8,15 @@ import { AuthProvider } from './contexts/AuthContext';
 import { AppRoutes } from './routes/AppRoutes';
 import { ErrorReporting } from './utils/errorReporting';
 import { useAuth } from './contexts/AuthContext';
+import { GlobalErrorBoundary } from './components/error/GlobalErrorBoundary';
 
-// Create Query Client
+// Create Query Client with retry configuration for network issues
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
-      retry: 1,
+      retry: 2,
+      retryDelay: attempt => Math.min(1000 * 2 ** attempt, 30000),
     },
   },
 });
@@ -60,8 +62,10 @@ function App() {
         <Router>
           <UserContextProvider>
             <SidebarProvider>
-              <AppRoutes />
-              <Toaster position="top-right" />
+              <GlobalErrorBoundary>
+                <AppRoutes />
+                <Toaster position="top-right" />
+              </GlobalErrorBoundary>
             </SidebarProvider>
           </UserContextProvider>
         </Router>
