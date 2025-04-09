@@ -1,6 +1,6 @@
 
 import { isApiError, ApiResponse } from '@/types/api-response';
-import { isApplicationError } from '@/utils/logging/error-types';
+import { isApplicationError, ErrorCategory, ApplicationError } from '@/utils/logging/error-types';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLogger, LogCategory } from '@/utils/logging';
 

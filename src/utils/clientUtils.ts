@@ -59,8 +59,11 @@ export const prepareClientDataForSubmission = (formData: ClientFormData): Partia
   const preparedData: Partial<ClientRecord> = { ...formData };
   
   // Format date if present
-  if (preparedData.onboarding_date instanceof Date) {
-    preparedData.onboarding_date = preparedData.onboarding_date.toISOString().split('T')[0];
+  if (preparedData.onboarding_date) {
+    if (preparedData.onboarding_date instanceof Date) {
+      preparedData.onboarding_date = preparedData.onboarding_date.toISOString().split('T')[0];
+    }
+    // If it's already a string, keep it as is
   }
 
   // Convert credit limit to number if present
@@ -88,7 +91,7 @@ export const prepareClientDataForSubmission = (formData: ClientFormData): Partia
  * @param data Client form data to prepare
  * @returns Prepared client form data
  */
-export function prepareClientFormData(data: ClientFormData): ClientFormData {
+export function prepareClientFormData(data: ClientFormData): any {
   return prepareClientDataForSubmission(data);
 }
 

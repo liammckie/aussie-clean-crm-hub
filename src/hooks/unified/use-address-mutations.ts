@@ -5,12 +5,18 @@ import { toast } from 'sonner';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { isApiError } from '@/types/api-response';
-import { AddressType, EntityType } from '@/types/database-schema';
+import { EntityType } from '@/types/database-schema';
 
 export type MutationOptions<T> = {
   onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
 };
+
+// Create an adapter function to convert between entity type formats if needed
+function adaptEntityType(entityType: EntityType): string {
+  // Return the entity type as is, or map between different formats if needed
+  return entityType.toLowerCase();
+}
 
 /**
  * Hook for address mutations (create, update, delete)
@@ -29,7 +35,7 @@ export function useAddressMutations() {
       addressData: any;
     }) => {
       const response = await unifiedService.createAddress(
-        entityType,
+        adaptEntityType(entityType) as any,
         entityId,
         addressData
       );
@@ -106,7 +112,7 @@ export function useAddressMutations() {
       queryClient.invalidateQueries({
         queryKey: ['unified-addresses'],
       });
-      const addressId = 'id' in data ? data.id : 'unknown';
+      const addressId = data && typeof data === 'object' && 'id' in data ? data.id : 'unknown';
       AppLogger.info(LogCategory.ADDRESS, 'Address deleted successfully', { addressId });
     },
     onError: (error, variables) => {
