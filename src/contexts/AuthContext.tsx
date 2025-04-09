@@ -138,14 +138,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Development mode function to bypass authentication
   const setAdminSession = () => {
-    // Create a mock admin user for development
+    // Create a mock admin user for development with all required properties
     const mockAdminUser = {
       id: 'dev-admin-user',
       email: 'admin@example.com',
+      app_metadata: {}, // Required property
       user_metadata: {
         name: 'Developer Admin',
         role: 'admin'
       },
+      aud: 'authenticated', // Required property
+      created_at: new Date().toISOString(), // Required property
+      role: '',
+      updated_at: new Date().toISOString(),
     } as User;
     
     AppLogger.info(LogCategory.AUTH, 'Setting admin development session');
