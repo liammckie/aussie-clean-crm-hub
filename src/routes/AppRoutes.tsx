@@ -2,7 +2,7 @@ import { Route, Routes } from "react-router-dom";
 import { Suspense } from "react";
 import { LoadingScreen } from "@/components/LoadingScreen";
 import { GlobalErrorBoundary } from "@/components/error/GlobalErrorBoundary";
-import { RouteErrorBoundary } from "@/components/error/RouteErrorBoundary";
+import { RouteErrorBoundaryClass } from "@/components/error/RouteErrorBoundary";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import {
   Activities,
@@ -39,9 +39,9 @@ export function AppRoutes() {
           path="/login"
           element={
             <Suspense fallback={<LoadingScreen />}>
-              <RouteErrorBoundary>
+              <RouteErrorBoundaryClass>
                 <Login />
-              </RouteErrorBoundary>
+              </RouteErrorBoundaryClass>
             </Suspense>
           }
         />
@@ -52,9 +52,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <Dashboard />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -66,9 +66,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <Sales />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -80,9 +80,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <Schema />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -94,9 +94,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <Clients />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -106,9 +106,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <ClientDetail />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -118,9 +118,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <NewClient />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -130,9 +130,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <EditClient />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -144,9 +144,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <Sites />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -158,9 +158,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <Contracts />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -172,9 +172,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <ContractDetail />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -186,9 +186,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <NewContract />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -200,9 +200,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <EditContract />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -214,9 +214,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <Suppliers />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -228,9 +228,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <SupplierDetail />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -242,9 +242,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <NewSupplier />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -256,9 +256,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <EditSupplier />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -270,9 +270,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <WorkOrders />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -284,9 +284,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <WorkOrderDetail />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -298,9 +298,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <NewWorkOrder />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -312,9 +312,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <Activities />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -326,9 +326,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <ErrorTesting />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }
@@ -340,9 +340,9 @@ export function AppRoutes() {
           element={
             <ProtectedRoute>
               <Suspense fallback={<LoadingScreen />}>
-                <RouteErrorBoundary>
+                <RouteErrorBoundaryClass>
                   <NotFound />
-                </RouteErrorBoundary>
+                </RouteErrorBoundaryClass>
               </Suspense>
             </ProtectedRoute>
           }

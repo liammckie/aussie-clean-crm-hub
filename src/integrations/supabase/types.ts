@@ -45,6 +45,7 @@ export type Database = {
       billing_line: {
         Row: {
           client_charge: number
+          client_id: string
           contract_id: string | null
           created_at: string | null
           delivery_type: string | null
@@ -61,6 +62,7 @@ export type Database = {
         }
         Insert: {
           client_charge: number
+          client_id: string
           contract_id?: string | null
           created_at?: string | null
           delivery_type?: string | null
@@ -77,6 +79,7 @@ export type Database = {
         }
         Update: {
           client_charge?: number
+          client_id?: string
           contract_id?: string | null
           created_at?: string | null
           delivery_type?: string | null
@@ -93,11 +96,18 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "billing_line_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "billing_line_contract_id_fkey"
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedColumns: ["contract_id"]
           },
           {
             foreignKeyName: "billing_line_site_id_fkey"
@@ -223,6 +233,7 @@ export type Database = {
           relationship_rating: number | null
           source: string | null
           status: Database["public"]["Enums"]["client_status"]
+          supplier_id: string | null
           tax_status: string | null
           trading_name: string | null
           updated_at: string
@@ -244,6 +255,7 @@ export type Database = {
           relationship_rating?: number | null
           source?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          supplier_id?: string | null
           tax_status?: string | null
           trading_name?: string | null
           updated_at?: string
@@ -265,11 +277,20 @@ export type Database = {
           relationship_rating?: number | null
           source?: string | null
           status?: Database["public"]["Enums"]["client_status"]
+          supplier_id?: string | null
           tax_status?: string | null
           trading_name?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "clients_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       contract_budget: {
         Row: {
@@ -305,7 +326,7 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedColumns: ["contract_id"]
           },
         ]
       }
@@ -349,7 +370,7 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedColumns: ["contract_id"]
           },
         ]
       }
@@ -378,7 +399,7 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedColumns: ["contract_id"]
           },
           {
             foreignKeyName: "contract_sites_site_id_fkey"
@@ -400,6 +421,7 @@ export type Database = {
           client_representative_name: string | null
           contract_code: string
           contract_document_url: string | null
+          contract_id: string
           contract_name: string
           contract_value: number | null
           created_at: string
@@ -409,7 +431,6 @@ export type Database = {
           end_date: string | null
           friday: boolean | null
           hourly_rate: number | null
-          id: string
           is_ongoing: boolean | null
           monday: boolean | null
           national_manager: string | null
@@ -431,6 +452,7 @@ export type Database = {
           supplier_cost_annual: number | null
           supplier_cost_monthly: number | null
           supplier_cost_weekly: number | null
+          supplier_id: string | null
           thursday: boolean | null
           total_annual_value: number | null
           total_monthly_value: number | null
@@ -453,6 +475,7 @@ export type Database = {
           client_representative_name?: string | null
           contract_code: string
           contract_document_url?: string | null
+          contract_id?: string
           contract_name: string
           contract_value?: number | null
           created_at?: string
@@ -462,7 +485,6 @@ export type Database = {
           end_date?: string | null
           friday?: boolean | null
           hourly_rate?: number | null
-          id?: string
           is_ongoing?: boolean | null
           monday?: boolean | null
           national_manager?: string | null
@@ -484,6 +506,7 @@ export type Database = {
           supplier_cost_annual?: number | null
           supplier_cost_monthly?: number | null
           supplier_cost_weekly?: number | null
+          supplier_id?: string | null
           thursday?: boolean | null
           total_annual_value?: number | null
           total_monthly_value?: number | null
@@ -506,6 +529,7 @@ export type Database = {
           client_representative_name?: string | null
           contract_code?: string
           contract_document_url?: string | null
+          contract_id?: string
           contract_name?: string
           contract_value?: number | null
           created_at?: string
@@ -515,7 +539,6 @@ export type Database = {
           end_date?: string | null
           friday?: boolean | null
           hourly_rate?: number | null
-          id?: string
           is_ongoing?: boolean | null
           monday?: boolean | null
           national_manager?: string | null
@@ -537,6 +560,7 @@ export type Database = {
           supplier_cost_annual?: number | null
           supplier_cost_monthly?: number | null
           supplier_cost_weekly?: number | null
+          supplier_id?: string | null
           thursday?: boolean | null
           total_annual_value?: number | null
           total_monthly_value?: number | null
@@ -555,6 +579,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -592,6 +623,107 @@ export type Database = {
         }
         Relationships: []
       }
+      invoices: {
+        Row: {
+          client_id: string
+          created_at: string
+          due_date: string
+          gst: number
+          id: string
+          internal_abn: string
+          invoice_date: string
+          po_number: string | null
+          site_id: string | null
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          due_date: string
+          gst?: number
+          id?: string
+          internal_abn: string
+          invoice_date?: string
+          po_number?: string | null
+          site_id?: string | null
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          due_date?: string
+          gst?: number
+          id?: string
+          internal_abn?: string
+          invoice_date?: string
+          po_number?: string | null
+          site_id?: string | null
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_site_id_fkey"
+            columns: ["site_id"]
+            isOneToOne: false
+            referencedRelation: "sites"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          id: string
+          invoice_id: string
+          notes: string | null
+          payment_date: string
+          payment_method: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          notes?: string | null
+          payment_date?: string
+          payment_method: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          notes?: string | null
+          payment_date?: string
+          payment_method?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sites: {
         Row: {
           access_instructions: string | null
@@ -622,6 +754,7 @@ export type Database = {
           site_type: Database["public"]["Enums"]["site_type"] | null
           square_meters: number | null
           status: Database["public"]["Enums"]["site_status"]
+          supplier_id: string | null
           updated_at: string
         }
         Insert: {
@@ -653,6 +786,7 @@ export type Database = {
           site_type?: Database["public"]["Enums"]["site_type"] | null
           square_meters?: number | null
           status?: Database["public"]["Enums"]["site_status"]
+          supplier_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -684,6 +818,7 @@ export type Database = {
           site_type?: Database["public"]["Enums"]["site_type"] | null
           square_meters?: number | null
           status?: Database["public"]["Enums"]["site_status"]
+          supplier_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -692,6 +827,13 @@ export type Database = {
             columns: ["client_id"]
             isOneToOne: false
             referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sites_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -786,7 +928,7 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedColumns: ["contract_id"]
           },
           {
             foreignKeyName: "supplier_contract_supplier_id_fkey"
@@ -1004,6 +1146,7 @@ export type Database = {
           estimated_time: number | null
           id: string
           status: string
+          supplier_id: string | null
           task_name: string
           updated_at: string | null
           work_order_id: string
@@ -1017,6 +1160,7 @@ export type Database = {
           estimated_time?: number | null
           id?: string
           status?: string
+          supplier_id?: string | null
           task_name: string
           updated_at?: string | null
           work_order_id: string
@@ -1030,11 +1174,19 @@ export type Database = {
           estimated_time?: number | null
           id?: string
           status?: string
+          supplier_id?: string | null
           task_name?: string
           updated_at?: string | null
           work_order_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "work_order_tasks_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "work_order_tasks_work_order_id_fkey"
             columns: ["work_order_id"]
@@ -1133,7 +1285,7 @@ export type Database = {
             columns: ["contract_id"]
             isOneToOne: false
             referencedRelation: "contracts"
-            referencedColumns: ["id"]
+            referencedColumns: ["contract_id"]
           },
           {
             foreignKeyName: "work_orders_site_id_fkey"
