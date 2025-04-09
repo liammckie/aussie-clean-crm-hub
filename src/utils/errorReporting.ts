@@ -8,24 +8,31 @@ import { AppLogger, LogCategory } from '@/utils/logging';
  * Enhanced error reporting service
  */
 export class ErrorReporting {
-  private static isInitialized = false;
+  private static _isInitialized = false;
   private static loggingEnabled = true;
   private static appVersion = import.meta.env.VITE_APP_VERSION || 'development';
   private static environment = import.meta.env.VITE_ENVIRONMENT || 'development';
   private static userContext: { id: string; email?: string; username?: string } | null = null;
 
   /**
+   * Check if error reporting is initialized
+   */
+  public static get isInitialized(): boolean {
+    return this._isInitialized;
+  }
+
+  /**
    * Initialize error reporting
    */
   public static init(): void {
-    if (this.isInitialized) return;
+    if (this._isInitialized) return;
     
     // In development, we might want to skip some types of logging
     if (import.meta.env.DEV) {
       console.log('🔍 Error reporting initialized in development mode');
     }
     
-    this.isInitialized = true;
+    this._isInitialized = true;
     console.log('🔍 Error reporting system initialized');
   }
 

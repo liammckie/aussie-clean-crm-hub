@@ -7,33 +7,33 @@ export const Login = lazy(() => import("@/pages/Login"));
 export const NotFound = lazy(() => import("@/pages/NotFound"));
 
 // Client routes
-export const Clients = lazy(() => import("@/pages/clients/Clients"));
-export const NewClient = lazy(() => import("@/pages/clients/NewClient"));
-export const ClientDetail = lazy(() => import("@/pages/clients/ClientDetail"));
-export const EditClient = lazy(() => import("@/pages/clients/EditClient"));
+export const Clients = lazy(() => import("@/pages/Clients"));
+export const NewClient = lazy(() => import("@/pages/NewClient"));
+export const ClientDetail = lazy(() => import("@/pages/ClientDetail"));
+export const EditClient = lazy(() => import("@/pages/EditClient"));
 
 // Contract routes
-export const Contracts = lazy(() => import("@/pages/contracts/Contracts"));
-export const ContractDetail = lazy(() => import("@/pages/contracts/ContractDetail"));
-export const NewContract = lazy(() => import("@/pages/contracts/NewContract"));
-export const EditContract = lazy(() => import("@/pages/contracts/EditContract"));
+export const Contracts = lazy(() => import("@/pages/Contracts"));
+export const ContractDetail = lazy(() => import("@/pages/ContractDetail"));
+export const NewContract = lazy(() => import("@/pages/NewContract"));
+export const EditContract = lazy(() => import("@/pages/EditContract"));
 
 // Supplier routes
-export const Suppliers = lazy(() => import("@/pages/suppliers/Suppliers"));
-export const NewSupplier = lazy(() => import("@/pages/suppliers/NewSupplier"));
-export const SupplierDetail = lazy(() => import("@/pages/suppliers/SupplierDetail"));
-export const EditSupplier = lazy(() => import("@/pages/suppliers/EditSupplier"));
+export const Suppliers = lazy(() => import("@/pages/Suppliers"));
+export const NewSupplier = lazy(() => import("@/pages/NewSupplier"));
+export const SupplierDetail = lazy(() => import("@/pages/SupplierDetail"));
+export const EditSupplier = lazy(() => import("@/pages/EditSupplier"));
 
 // Work Order routes
-export const WorkOrders = lazy(() => import("@/pages/workorders/WorkOrders"));
-export const WorkOrderDetail = lazy(() => import("@/pages/workorders/WorkOrderDetail"));
-export const NewWorkOrder = lazy(() => import("@/pages/workorders/NewWorkOrder"));
+export const WorkOrders = lazy(() => import("@/pages/WorkOrders"));
+export const WorkOrderDetail = lazy(() => import("@/pages/WorkOrderDetail"));
+export const NewWorkOrder = lazy(() => import("@/pages/NewWorkOrder"));
 
 // Site routes
-export const Sites = lazy(() => import("@/pages/sites/Sites"));
+export const Sites = lazy(() => import("@/pages/Sites"));
 
 // Activity routes
-export const Activities = lazy(() => import("@/pages/activities/Activities"));
+export const Activities = lazy(() => import("@/pages/Activities"));
 
 // Error Testing Tools
 export const ErrorTesting = lazy(() => import("@/pages/developer/ErrorTesting"));

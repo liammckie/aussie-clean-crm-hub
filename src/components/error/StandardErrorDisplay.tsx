@@ -2,7 +2,7 @@
 import React from 'react';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, RefreshCw, InformationIcon } from "lucide-react";
+import { AlertCircle, RefreshCw, Info } from "lucide-react";
 import { AppLogger, LogCategory } from "@/utils/logging";
 import { ErrorCategory } from "@/utils/logging/error-types";
 
@@ -110,7 +110,7 @@ export const StandardErrorDisplay = ({
         
         {showDetails && (
           <div className="mt-3 text-xs flex items-center text-muted-foreground">
-            <InformationIcon className="h-3 w-3 mr-1" />
+            <Info className="h-3 w-3 mr-1" />
             Error ID: {displayErrorId}
             {errorCategory && <span className="ml-2">Type: {errorCategory}</span>}
           </div>

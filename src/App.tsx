@@ -7,7 +7,7 @@ import { SidebarProvider } from './components/ui/sidebar';
 import { AuthProvider } from './contexts/AuthContext';
 import { AppRoutes } from './routes/AppRoutes';
 import { ErrorReporting } from './utils/errorReporting';
-import { useAuth } from './hooks/useAuth';
+import { useAuth } from './contexts/AuthContext';
 
 // Create Query Client
 const queryClient = new QueryClient({
