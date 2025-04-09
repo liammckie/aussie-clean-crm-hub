@@ -42,7 +42,9 @@ export enum EntityType {
   SITE = 'site',
   SUPPLIER = 'supplier',
   CONTRACT = 'contract',
-  WORK_ORDER = 'work_order'
+  WORK_ORDER = 'work_order',
+  EMPLOYEE = 'employee',
+  FINANCIAL = 'financial'
 }
 
 // Contact types
@@ -80,7 +82,7 @@ export interface ClientRecord {
   abn?: string;
   acn?: string;
   industry?: string;
-  status: string;
+  status: ClientStatus;
   onboarding_date?: string;
   source?: string;
   billing_cycle?: string;
@@ -102,4 +104,15 @@ export interface ClientRecord {
   address?: string;
   // Relationships
   client_contacts?: any[];
+}
+
+// Error category enum
+export enum ErrorCategory {
+  VALIDATION = 'validation',
+  AUTH = 'auth',
+  SERVER = 'server',
+  DATABASE = 'database',
+  NOT_FOUND = 'not_found',
+  BUSINESS_LOGIC = 'business_logic',
+  PERMISSION = 'permission'
 }

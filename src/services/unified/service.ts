@@ -1,4 +1,3 @@
-
 import { ApiResponse } from '@/types/api-response';
 import { 
   UnifiedAddressFormData,
@@ -8,7 +7,7 @@ import {
 import { 
   UnifiedAddressRecord, 
   UnifiedContactRecord
-} from './types';
+} from '@/services/address/types';
 import { addressApi, contactApi } from './api';
 import { MutationOptions } from '@/hooks/use-unified-entities';
 import { AddressType } from '@/types/database-schema';
@@ -31,7 +30,7 @@ export const createUnifiedAddress = async (
       state: addressData.state,
       postcode: addressData.postcode,
       country: addressData.country,
-      address_type: addressData.address_type as AddressType, // Explicitly cast to database enum type
+      address_type: addressData.address_type, // Using enum directly
       is_primary: addressData.is_primary || false,
       name: addressData.name,
       latitude: addressData.latitude,
@@ -130,7 +129,7 @@ export const unifiedService = {
       state: addressData.state,
       postcode: addressData.postcode,
       country: addressData.country,
-      address_type: addressData.address_type as AddressType, // Explicitly cast to database enum type
+      address_type: addressData.address_type, // Using enum directly
       is_primary: addressData.is_primary || false,
       name: addressData.name,
       latitude: addressData.latitude,

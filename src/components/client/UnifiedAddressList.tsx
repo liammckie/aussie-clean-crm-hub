@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useUnifiedAddresses } from '@/hooks/use-unified-addresses';
 import { EntityType } from '@/types/database-schema';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { PlusCircle, Pencil, Trash2, Home } from 'lucide-react';
-import { UnifiedAddressRecord } from '@/services/unified/types';
+import { UnifiedAddressRecord } from '@/services/address/types';
 import { UnifiedAddressForm } from './UnifiedAddressForm';
 import { 
   Dialog,
@@ -60,6 +59,8 @@ export function UnifiedAddressList({
     onAddressCreated: () => setIsAddDialogOpen(false),
     onAddressUpdated: () => setEditingAddress(null)
   });
+
+  const addressesList = Array.isArray(addresses) ? addresses : [];
 
   const handleAddAddress = (data: any) => {
     createAddress(data);
@@ -159,7 +160,7 @@ export function UnifiedAddressList({
         )}
       </div>
 
-      {addresses.length === 0 ? (
+      {addressesList.length === 0 ? (
         <Card>
           <CardContent className="py-8 text-center text-muted-foreground">
             {emptyMessage}
@@ -179,11 +180,10 @@ export function UnifiedAddressList({
         </Card>
       ) : (
         <div>
-          {addresses.map(address => renderAddressItem(address))}
+          {addressesList.map(address => renderAddressItem(address))}
         </div>
       )}
 
-      {/* Add Address Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -200,7 +200,6 @@ export function UnifiedAddressList({
         </DialogContent>
       </Dialog>
 
-      {/* Edit Address Dialog */}
       <Dialog 
         open={editingAddress !== null} 
         onOpenChange={(open) => !open && setEditingAddress(null)}
@@ -233,7 +232,6 @@ export function UnifiedAddressList({
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
       <AlertDialog 
         open={addressToDelete !== null}
         onOpenChange={(open) => !open && setAddressToDelete(null)}

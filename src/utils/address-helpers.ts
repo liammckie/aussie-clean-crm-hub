@@ -1,6 +1,5 @@
-
 import { ClientFormData } from '@/services/client';
-import { UnifiedAddressFormData } from '@/types/form-types';
+import { UnifiedAddressFormData } from '@/services/address/types';
 import { AddressType, EntityType } from '@/types/database-schema';
 
 /**

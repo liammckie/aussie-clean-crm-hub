@@ -22,9 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AddressType } from '@/services/client/types';
-import { EntityType } from '@/services/client/types';
-import { UnifiedAddressRecord } from '@/services/unified/types';
+import { AddressType, EntityType } from '@/types/database-schema';
+import { UnifiedAddressRecord } from '@/services/address/types';
 import { useTypedTransition } from '@/hooks/use-suspense-transition';
 import { AppLogger, LogCategory } from '@/utils/logging';
 

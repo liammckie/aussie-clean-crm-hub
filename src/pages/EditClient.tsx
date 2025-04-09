@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ClientFormData } from '@/services/client';
@@ -15,7 +14,7 @@ import { ClientContractsTab } from '@/components/client/ClientContractsTab';
 import { ClientStatus } from '@/types/database-schema';
 import { isApiError } from '@/types/api-response';
 import { normalizeApiResponse } from '@/types/api-helpers';
-import { ClientRecord } from '@/types/clients';
+import { ClientRecord } from '@/types/database-schema';
 
 const EditClient = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -66,7 +65,7 @@ const EditClient = () => {
             abn: clientData.abn || '',
             acn: clientData.acn || '',
             industry: clientData.industry || '',
-            status: clientData.status,
+            status: clientData.status || ClientStatus.PROSPECT,
             onboarding_date: clientData.onboarding_date || undefined,
             source: clientData.source || '',
             billing_cycle: clientData.billing_cycle || '',
@@ -97,7 +96,7 @@ const EditClient = () => {
         abn: clientData.abn || '',
         acn: clientData.acn || '',
         industry: clientData.industry || '',
-        status: clientData.status,
+        status: clientData.status || ClientStatus.PROSPECT,
         onboarding_date: clientData.onboarding_date || undefined,
         source: clientData.source || '',
         billing_cycle: clientData.billing_cycle || '',
