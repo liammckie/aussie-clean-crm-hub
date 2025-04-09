@@ -6,19 +6,12 @@ import { ErrorReporting } from '@/utils/errorReporting';
 import { toast } from 'sonner';
 import { AppLogger, LogCategory } from '@/utils/logging';
 
-interface AdminSession {
-  timestamp: string;
-  active: boolean;
-}
-
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  setAdminSession: () => void;
-  isAdminSession: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -27,31 +20,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [isAdminSession, setIsAdminSession] = useState<boolean>(false);
-
-  // Check if admin session is valid
-  const checkAdminSession = (): boolean => {
-    try {
-      const adminSessionStr = localStorage.getItem("admin_session");
-      if (!adminSessionStr) return false;
-      
-      const adminSession: AdminSession = JSON.parse(adminSessionStr);
-      
-      // Verify active flag is set
-      if (!adminSession.active) return false;
-      
-      // Add simple expiration check (8 hours)
-      const sessionTime = new Date(adminSession.timestamp).getTime();
-      const now = new Date().getTime();
-      const hoursPassed = (now - sessionTime) / (1000 * 60 * 60);
-      
-      return hoursPassed < 8;
-    } catch (e) {
-      AppLogger.error(LogCategory.AUTH, 'Error parsing admin session', { error: e });
-      localStorage.removeItem('admin_session');
-      return false;
-    }
-  };
 
   useEffect(() => {
     // Function to set the user state from a session
@@ -66,12 +34,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             AppLogger.info(LogCategory.AUTH, `Auth state changed: ${event}`, { 
               hasSession: !!session 
             });
-            
-            // Clear admin session when real auth happens
-            if (session?.user) {
-              localStorage.removeItem('admin_session');
-              setIsAdminSession(false);
-            }
             
             // Update user and authentication state
             setUser(session?.user || null);
@@ -98,18 +60,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Update user and authentication state
         setUser(data.session?.user || null);
-        const hasSupabaseAuth = !!data.session?.user;
-        
-        // Check for admin session only if no Supabase auth
-        const hasAdminSession = !hasSupabaseAuth && checkAdminSession();
-        
-        setIsAuthenticated(hasSupabaseAuth || hasAdminSession);
-        setIsAdminSession(hasAdminSession);
+        setIsAuthenticated(!!data.session?.user);
         
         AppLogger.info(LogCategory.AUTH, 'Auth state initialized:', { 
-          isAuthenticated: hasSupabaseAuth || hasAdminSession,
-          isAdminSession: hasAdminSession,
-          hasSupabaseAuth: hasSupabaseAuth
+          isAuthenticated: !!data.session?.user,
         });
         
         // Clean up subscription when component unmounts
@@ -120,7 +74,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         AppLogger.error(LogCategory.AUTH, 'Error retrieving session', { error });
         ErrorReporting.captureException(error as Error);
         setIsAuthenticated(false);
-        setIsAdminSession(false);
         setUser(null);
       } finally {
         setIsLoading(false);
@@ -143,10 +96,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) throw error;
-
-      // Clear any existing admin session
-      localStorage.removeItem('admin_session');
-      setIsAdminSession(false);
 
       // Log success and important info for debugging
       AppLogger.info(LogCategory.AUTH, 'Sign in successful', { 
@@ -174,10 +123,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       AppLogger.info(LogCategory.AUTH, 'Signing out');
       
       await supabase.auth.signOut();
-      // Clear admin session as well
-      localStorage.removeItem('admin_session');
       setIsAuthenticated(false);
-      setIsAdminSession(false);
       setUser(null);
       toast.success('Logged out successfully');
     } catch (error) {
@@ -189,19 +135,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Set admin session for development purposes
-  const setAdminSession = () => {
-    const timestamp = new Date().toISOString();
-    localStorage.setItem('admin_session', JSON.stringify({ 
-      timestamp,
-      active: true
-    }));
-    setIsAuthenticated(true);
-    setIsAdminSession(true);
-    AppLogger.info(LogCategory.AUTH, 'Admin session set');
-    toast.success('Development mode activated');
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -210,8 +143,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         signIn,
         signOut,
-        setAdminSession,
-        isAdminSession,
       }}
     >
       {children}

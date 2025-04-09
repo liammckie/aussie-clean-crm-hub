@@ -9,6 +9,7 @@ import { AppRoutes } from './routes/AppRoutes';
 import { ErrorReporting } from './utils/errorReporting';
 import { useAuth } from './contexts/AuthContext';
 import { GlobalErrorBoundary } from './components/error/GlobalErrorBoundary';
+import { LoadingScreen } from './components/LoadingScreen';
 
 // Create Query Client with retry configuration for network issues
 const queryClient = new QueryClient({
@@ -63,7 +64,9 @@ function App() {
           <UserContextProvider>
             <SidebarProvider>
               <GlobalErrorBoundary>
-                <AppRoutes />
+                <Suspense fallback={<LoadingScreen />}>
+                  <AppRoutes />
+                </Suspense>
                 <Toaster position="top-right" />
               </GlobalErrorBoundary>
             </SidebarProvider>

@@ -11,7 +11,7 @@ import { SupplierRoutes } from "./route-groups/SupplierRoutes";
 import { ContractRoutes } from "./route-groups/ContractRoutes";
 import { WorkOrderRoutes } from "./route-groups/WorkOrderRoutes";
 import { MiscRoutes } from "./route-groups/MiscRoutes";
-import { Schema, Sales, ErrorTesting } from "./lazyRoutes";
+import { Schema, Sales } from "./lazyRoutes";
 
 export function AppRoutes() {
   return (
@@ -28,21 +28,6 @@ export function AppRoutes() {
             </Suspense>
           }
         />
-        
-        {/* Client Routes */}
-        <Route path="/clients/*" element={<ClientRoutes />} />
-        
-        {/* Supplier Routes */}
-        <Route path="/suppliers/*" element={<SupplierRoutes />} />
-        
-        {/* Contract Routes */}
-        <Route path="/contracts/*" element={<ContractRoutes />} />
-        
-        {/* Work Order Routes */}
-        <Route path="/work-orders/*" element={<WorkOrderRoutes />} />
-        
-        {/* Misc Routes (Dashboard, Sites, Activities) */}
-        <Route path="/*" element={<MiscRoutes />} />
         
         {/* Schema Page */}
         <Route
@@ -72,8 +57,20 @@ export function AppRoutes() {
           }
         />
         
-        {/* Developer Routes - REMOVED for production */}
-        {/* Route for ErrorTesting has been removed as requested */}
+        {/* Client Routes */}
+        <Route path="/clients/*" element={<ClientRoutes />} />
+        
+        {/* Supplier Routes */}
+        <Route path="/suppliers/*" element={<SupplierRoutes />} />
+        
+        {/* Contract Routes */}
+        <Route path="/contracts/*" element={<ContractRoutes />} />
+        
+        {/* Work Order Routes */}
+        <Route path="/work-orders/*" element={<WorkOrderRoutes />} />
+        
+        {/* Misc Routes (Dashboard, Sites, Activities) */}
+        <Route path="/*" element={<MiscRoutes />} />
       </Routes>
     </GlobalErrorBoundary>
   );

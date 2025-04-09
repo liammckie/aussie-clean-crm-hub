@@ -5,14 +5,12 @@ import { TopNavbar } from "./TopNavbar";
 import { NewSidebar } from "./NewSidebar";
 import { MobileSidebar } from "./MobileSidebar";
 import { useSidebar } from "@/components/ui/sidebar";
-import { AlertCircle } from "lucide-react";
 
 interface MainLayoutProps {
   children?: React.ReactNode;
-  showDevBanner?: boolean;
 }
 
-export function MainLayout({ children, showDevBanner = false }: MainLayoutProps) {
+export function MainLayout({ children }: MainLayoutProps) {
   // Get initial sidebar state from localStorage or default to expanded
   const [sidebarExpanded, setSidebarExpanded] = useState(() => {
     const saved = localStorage.getItem("sidebar-expanded");
@@ -34,14 +32,6 @@ export function MainLayout({ children, showDevBanner = false }: MainLayoutProps)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 text-white w-full">
-      {/* Development Mode Banner */}
-      {showDevBanner && (
-        <div className="bg-amber-500 text-black py-1 px-4 text-center text-sm font-medium flex items-center justify-center gap-2">
-          <AlertCircle size={16} />
-          <span>Development Mode Active - No Authentication Required</span>
-        </div>
-      )}
-      
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <NewSidebar 
@@ -62,7 +52,7 @@ export function MainLayout({ children, showDevBanner = false }: MainLayoutProps)
           sidebarExpanded 
             ? 'md:ml-64' // When sidebar is expanded
             : 'md:ml-20' // When sidebar is collapsed
-        } ${showDevBanner ? 'pt-7' : ''}`}
+        }`}
       >
         <TopNavbar />
         <div className="py-6 px-2 sm:px-4 lg:px-6 max-w-full">

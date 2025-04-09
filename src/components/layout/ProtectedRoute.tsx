@@ -4,29 +4,32 @@ import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { MainLayout } from './MainLayout';
 import { AppLogger, LogCategory } from '@/utils/logging';
-import { LogoLoadingSpinner } from '@/components/ui/LogoLoadingSpinner';
+import { LoadingSpinner } from '@/components/ui/spinner';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading, isAdminSession } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
   const location = useLocation();
   
   useEffect(() => {
     AppLogger.debug(
       LogCategory.AUTH, 
       `ProtectedRoute check at ${location.pathname}`,
-      { isAuthenticated, isLoading, isAdminSession }
+      { isAuthenticated, isLoading }
     );
-  }, [location.pathname, isAuthenticated, isLoading, isAdminSession]);
+  }, [location.pathname, isAuthenticated, isLoading]);
   
   // Show loading spinner while checking authentication
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" aria-busy="true" aria-live="polite">
-        <LogoLoadingSpinner size="md" showText={true} />
+        <div className="text-center">
+          <LoadingSpinner size="lg" className="mx-auto mb-4" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
       </div>
     );
   }
@@ -41,7 +44,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   
   // Render children within the main layout if authenticated
   return (
-    <MainLayout showDevBanner={isAdminSession}>
+    <MainLayout>
       {children}
     </MainLayout>
   );
