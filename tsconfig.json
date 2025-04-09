@@ -15,7 +15,7 @@
       "@/*": ["./src/*"]
     },
     "strict": true,
-    "noImplicitAny": false,              // Allow implicit any to resolve initial lint issues
+    "noImplicitAny": true,              // Allow implicit any to resolve initial lint issues
     "noUnusedParameters": false,         // Temporarily disable to prevent constant blocking
     "noUnusedLocals": false,             // Temporarily disable to prevent constant blocking
     "strictNullChecks": true,            // Keep essential null checks
