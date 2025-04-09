@@ -7,7 +7,7 @@ import { ChevronLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCreateWorkOrder } from '@/hooks/use-work-orders';
-import { workOrderFormSchema, WorkOrderCreateData } from '@/types/work-order-types';
+import { workOrderFormSchema, WorkOrderCreateData, WorkOrderData } from '@/types/work-order-types';
 import { WorkOrderForm } from '@/components/work-orders/WorkOrderForm';
 
 const NewWorkOrder: React.FC = () => {
@@ -38,7 +38,7 @@ const NewWorkOrder: React.FC = () => {
   
   const onSubmit = async (data: WorkOrderCreateData) => {
     try {
-      const newWorkOrder = await createWorkOrder(data);
+      const newWorkOrder = await createWorkOrder(data) as WorkOrderData;
       navigate(`/work-orders/${newWorkOrder.id}`);
     } catch (error) {
       console.error('Error creating work order:', error);

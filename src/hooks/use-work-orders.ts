@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { workOrderService } from '@/services/work-order/service';
 import { isApiSuccess } from '@/types/api-response';
 import { toast } from 'sonner';
+import { WorkOrderData, WorkOrderTask, WorkbillData } from '@/types/work-order-types';
 
 /**
  * Custom hook for work orders data and operations
@@ -21,7 +22,7 @@ export function useWorkOrders() {
         if (!isApiSuccess(response)) {
           throw new Error(response.message);
         }
-        return response.data;
+        return response.data as WorkOrderData[];
       }
     });
   };
@@ -39,7 +40,7 @@ export function useWorkOrders() {
         if (!isApiSuccess(response)) {
           throw new Error(response.message);
         }
-        return response.data;
+        return response.data as WorkOrderData;
       },
       enabled: !!workOrderId
     });
@@ -54,7 +55,7 @@ export function useWorkOrders() {
       if (!isApiSuccess(response)) {
         throw new Error(response.message);
       }
-      return response.data;
+      return response.data as WorkOrderData;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['work-orders'] });
@@ -74,7 +75,7 @@ export function useWorkOrders() {
       if (!isApiSuccess(response)) {
         throw new Error(response.message);
       }
-      return response.data;
+      return response.data as WorkOrderData;
     },
     onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: ['work-orders'] });
@@ -119,7 +120,7 @@ export function useWorkOrders() {
         if (!isApiSuccess(response)) {
           throw new Error(response.message);
         }
-        return response.data;
+        return response.data as WorkOrderTask[];
       },
       enabled: !!workOrderId
     });
@@ -138,7 +139,7 @@ export function useWorkOrders() {
         if (!isApiSuccess(response)) {
           throw new Error(response.message);
         }
-        return response.data;
+        return response.data as WorkbillData;
       },
       enabled: !!workOrderId
     });

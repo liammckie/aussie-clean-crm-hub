@@ -57,14 +57,8 @@ export class ErrorTester {
    * @param feedback Feedback text
    * @param category Feedback category
    */
-  static generateTestFeedback(
-    feedback = "This is test feedback", 
-    category = "test"
-  ): void {
+  static generateTestFeedback(feedback = "This is test feedback", category = "test"): void {
     AppLogger.info(LogCategory.SYSTEM, "Sending test feedback", { feedback, category });
-    ErrorReporting.captureFeedback(feedback, category, {
-      source: "ErrorTester",
-      timestamp: new Date().toISOString()
-    });
+    ErrorReporting.captureFeedback(feedback);
   }
 }

@@ -1,73 +1,82 @@
 
+// Error reporting utility to capture and report errors to monitoring services
+
 /**
- * Error reporting utility for sending errors to monitoring tools
+ * Categories for error reporting
+ */
+export type ErrorSeverity = 'info' | 'warning' | 'error';
+
+/**
+ * Utility class for reporting errors to monitoring services
  */
 export class ErrorReporting {
-  static isInitialized = false;
-  
+  private static initialized = false;
+
   /**
-   * Set user context for error reports
+   * Initialize error reporting with your monitoring service
+   * @param options Configuration options for error reporting
    */
-  static setUser(user: { id: string; email?: string; username?: string } | null): void {
-    if (user) {
-      console.info('Setting user context for error reporting', { userId: user.id });
-    } else {
-      console.info('Clearing user context for error reporting');
-    }
-    
-    // In a real implementation, this would set user context in Sentry or similar
+  static init(options?: any): void {
+    this.initialized = true;
+    console.log('Error reporting initialized', options);
   }
-  
+
   /**
-   * Initialize the error reporting system
+   * Check if error reporting is initialized
    */
-  static init(config?: { 
-    environment?: string;
-    release?: string;
-    dsn?: string;
-    debug?: boolean;
-  }): void {
-    console.info('Initializing error reporting', config);
-    ErrorReporting.isInitialized = true;
-    // In a real implementation, this would initialize Sentry or similar
+  static get isInitialized(): boolean {
+    return this.initialized;
   }
-  
+
   /**
-   * Enable or disable error reporting
+   * Set whether error reporting is enabled
+   * @param enabled Whether error reporting is enabled
    */
   static setEnabled(enabled: boolean): void {
-    console.info(`${enabled ? 'Enabling' : 'Disabling'} error reporting`);
-    // In a real implementation, this would enable/disable Sentry or similar
+    console.log(`Error reporting ${enabled ? 'enabled' : 'disabled'}`);
   }
-  
+
   /**
    * Capture an exception for reporting
+   * @param error The error to capture
+   * @param context Additional context data to include
    */
   static captureException(error: Error, context?: Record<string, any>): void {
-    console.error('Error captured:', error, context || {});
-    
-    // In a real implementation, this would send the error to Sentry or similar
+    if (!this.initialized) {
+      console.warn('Error reporting not initialized. Error not reported:', error);
+      return;
+    }
+
+    console.error('Error captured:', error, context);
   }
-  
-  /**
-   * Capture user feedback
-   */
-  static captureFeedback(feedback: {
-    name?: string;
-    email?: string;
-    comments: string;
-  }): void {
-    console.info('Feedback captured:', feedback);
-    
-    // In a real implementation, this would send the feedback to Sentry or similar
-  }
-  
+
   /**
    * Capture a message for reporting
+   * @param message The message to capture
+   * @param level The severity level of the message
    */
-  static captureMessage(message: string, level?: 'info' | 'warning' | 'error', context?: Record<string, any>): void {
-    console[level || 'info']('Message captured:', message, context || {});
-    
-    // In a real implementation, this would send the message to Sentry or similar
+  static captureMessage(message: string, level: ErrorSeverity = 'info'): void {
+    if (!this.initialized) {
+      console.warn('Error reporting not initialized. Message not reported:', message);
+      return;
+    }
+
+    console.log(`[${level.toUpperCase()}] Message captured:`, message);
+  }
+
+  /**
+   * Capture user feedback
+   * @param feedback The feedback text
+   * @param category The feedback category
+   */
+  static captureFeedback(feedback: string): void {
+    if (!this.initialized) {
+      console.warn('Error reporting not initialized. Feedback not captured:', feedback);
+      return;
+    }
+
+    console.log('Feedback captured:', feedback);
   }
 }
+
+export default ErrorReporting;

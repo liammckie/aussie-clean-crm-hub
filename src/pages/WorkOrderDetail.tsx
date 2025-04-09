@@ -17,14 +17,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { WorkOrderTasksList } from '@/components/work-orders/WorkOrderTasksList';
 import { WorkOrderBillingTab } from '@/components/work-orders/WorkOrderBillingTab';
+import { WorkOrderData, WorkOrderTask, WorkbillData } from '@/types/work-order-types';
 
 const WorkOrderDetail: React.FC = () => {
   const { workOrderId } = useParams<{ workOrderId: string }>();
   const navigate = useNavigate();
   
-  const { data: workOrder, isLoading, error } = useWorkOrderById(workOrderId);
-  const { data: tasks = [], isLoading: tasksLoading } = useWorkOrderTasks(workOrderId);
-  const { data: billing = [], isLoading: billingLoading } = useWorkOrderBilling(workOrderId);
+  const { data: workOrder, isLoading, error } = useWorkOrderById(workOrderId || '');
+  const { data: tasks = [] as WorkOrderTask[], isLoading: tasksLoading } = useWorkOrderTasks(workOrderId || '');
+  const { data: billing = null as WorkbillData | null, isLoading: billingLoading } = useWorkOrderBilling(workOrderId || '');
   
   if (isLoading) {
     return (
@@ -48,6 +49,8 @@ const WorkOrderDetail: React.FC = () => {
       </div>
     );
   }
+  
+  const typedWorkOrder = workOrder as WorkOrderData;
   
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -109,18 +112,18 @@ const WorkOrderDetail: React.FC = () => {
             <ChevronLeft className="mr-2 h-4 w-4" />
             Back
           </Button>
-          <h1 className="text-3xl font-bold tracking-tight">{workOrder.work_order_number}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{typedWorkOrder.work_order_number}</h1>
           <div className="flex items-center gap-2">
-            {getStatusBadge(workOrder.status)}
-            {getPriorityBadge(workOrder.priority)}
+            {getStatusBadge(typedWorkOrder.status)}
+            {getPriorityBadge(typedWorkOrder.priority)}
           </div>
         </div>
         
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-semibold">{workOrder.title}</h2>
+            <h2 className="text-2xl font-semibold">{typedWorkOrder.title}</h2>
             <p className="text-muted-foreground">
-              {workOrder.client_name} • {workOrder.site_name}
+              {typedWorkOrder.client_name} • {typedWorkOrder.site_name}
             </p>
           </div>
           <Button onClick={() => navigate(`/work-orders/${workOrderId}/edit`)}>
@@ -161,19 +164,19 @@ const WorkOrderDetail: React.FC = () => {
                       <div className="space-y-2">
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Service Type:</div>
-                          <div className="col-span-2">{workOrder.service_type}</div>
+                          <div className="col-span-2">{typedWorkOrder.service_type}</div>
                         </div>
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Created:</div>
-                          <div className="col-span-2">{formatDate(workOrder.created_at)}</div>
+                          <div className="col-span-2">{formatDate(typedWorkOrder.created_at)}</div>
                         </div>
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Status:</div>
-                          <div className="col-span-2">{getStatusBadge(workOrder.status)}</div>
+                          <div className="col-span-2">{getStatusBadge(typedWorkOrder.status)}</div>
                         </div>
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Priority:</div>
-                          <div className="col-span-2">{getPriorityBadge(workOrder.priority)}</div>
+                          <div className="col-span-2">{getPriorityBadge(typedWorkOrder.priority)}</div>
                         </div>
                       </div>
                     </div>
@@ -183,19 +186,19 @@ const WorkOrderDetail: React.FC = () => {
                       <div className="space-y-2">
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Scheduled Start:</div>
-                          <div className="col-span-2">{formatDate(workOrder.scheduled_start)}</div>
+                          <div className="col-span-2">{formatDate(typedWorkOrder.scheduled_start)}</div>
                         </div>
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Scheduled End:</div>
-                          <div className="col-span-2">{formatDate(workOrder.scheduled_end)}</div>
+                          <div className="col-span-2">{formatDate(typedWorkOrder.scheduled_end)}</div>
                         </div>
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Actual Start:</div>
-                          <div className="col-span-2">{formatDate(workOrder.actual_start)}</div>
+                          <div className="col-span-2">{formatDate(typedWorkOrder.actual_start)}</div>
                         </div>
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Actual End:</div>
-                          <div className="col-span-2">{formatDate(workOrder.actual_end)}</div>
+                          <div className="col-span-2">{formatDate(typedWorkOrder.actual_end)}</div>
                         </div>
                       </div>
                     </div>
@@ -209,9 +212,9 @@ const WorkOrderDetail: React.FC = () => {
                             <Button 
                               variant="link" 
                               className="p-0 h-auto text-left"
-                              onClick={() => navigate(`/clients/${workOrder.client_id}`)}
+                              onClick={() => navigate(`/clients/${typedWorkOrder.client_id}`)}
                             >
-                              {workOrder.client_name}
+                              {typedWorkOrder.client_name}
                             </Button>
                           </div>
                         </div>
@@ -221,9 +224,9 @@ const WorkOrderDetail: React.FC = () => {
                             <Button 
                               variant="link" 
                               className="p-0 h-auto text-left"
-                              onClick={() => navigate(`/sites/${workOrder.site_id}`)}
+                              onClick={() => navigate(`/sites/${typedWorkOrder.site_id}`)}
                             >
-                              {workOrder.site_name}
+                              {typedWorkOrder.site_name}
                             </Button>
                           </div>
                         </div>
@@ -233,7 +236,7 @@ const WorkOrderDetail: React.FC = () => {
                             <Button 
                               variant="link" 
                               className="p-0 h-auto text-left"
-                              onClick={() => navigate(`/contracts/${workOrder.contract_id}`)}
+                              onClick={() => navigate(`/contracts/${typedWorkOrder.contract_id}`)}
                             >
                               View Contract
                             </Button>
@@ -242,13 +245,13 @@ const WorkOrderDetail: React.FC = () => {
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Supplier:</div>
                           <div className="col-span-2">
-                            {workOrder.supplier_id ? (
+                            {typedWorkOrder.supplier_id ? (
                               <Button 
                                 variant="link" 
                                 className="p-0 h-auto text-left"
-                                onClick={() => navigate(`/suppliers/${workOrder.supplier_id}`)}
+                                onClick={() => navigate(`/suppliers/${typedWorkOrder.supplier_id}`)}
                               >
-                                {workOrder.supplier_name}
+                                {typedWorkOrder.supplier_name}
                               </Button>
                             ) : (
                               <span className="text-muted-foreground">Not assigned</span>
@@ -263,15 +266,15 @@ const WorkOrderDetail: React.FC = () => {
                       <div className="space-y-2">
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Billing Method:</div>
-                          <div className="col-span-2">{workOrder.billing_method || 'Not specified'}</div>
+                          <div className="col-span-2">{typedWorkOrder.billing_method || 'Not specified'}</div>
                         </div>
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Estimated Cost:</div>
-                          <div className="col-span-2">{formatCurrency(workOrder.estimated_cost)}</div>
+                          <div className="col-span-2">{formatCurrency(typedWorkOrder.estimated_cost)}</div>
                         </div>
                         <div className="grid grid-cols-3 gap-1">
                           <div className="text-muted-foreground">Actual Cost:</div>
-                          <div className="col-span-2">{formatCurrency(workOrder.actual_cost)}</div>
+                          <div className="col-span-2">{formatCurrency(typedWorkOrder.actual_cost)}</div>
                         </div>
                       </div>
                     </div>
@@ -281,10 +284,10 @@ const WorkOrderDetail: React.FC = () => {
                   
                   <div>
                     <h3 className="font-medium mb-2">Description</h3>
-                    <p className="whitespace-pre-wrap">{workOrder.description || 'No description provided'}</p>
+                    <p className="whitespace-pre-wrap">{typedWorkOrder.description || 'No description provided'}</p>
                   </div>
                   
-                  {workOrder.special_instructions && (
+                  {typedWorkOrder.special_instructions && (
                     <>
                       <Separator className="my-6" />
                       <div>
@@ -292,7 +295,7 @@ const WorkOrderDetail: React.FC = () => {
                           <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
                           Special Instructions
                         </h3>
-                        <p className="whitespace-pre-wrap">{workOrder.special_instructions}</p>
+                        <p className="whitespace-pre-wrap">{typedWorkOrder.special_instructions}</p>
                       </div>
                     </>
                   )}
@@ -311,9 +314,9 @@ const WorkOrderDetail: React.FC = () => {
             <TabsContent value="billing">
               <WorkOrderBillingTab 
                 workOrderId={workOrderId!} 
-                billing={billing} 
+                billing={billing || []} 
                 isLoading={billingLoading}
-                workOrder={workOrder}
+                workOrder={typedWorkOrder}
               />
             </TabsContent>
           </Tabs>
@@ -331,37 +334,37 @@ const WorkOrderDetail: React.FC = () => {
                   <div className="mt-1 h-2 w-2 rounded-full bg-primary" />
                   <div>
                     <div className="text-sm font-medium">Work Order Created</div>
-                    <div className="text-sm text-muted-foreground">{formatDate(workOrder.created_at)}</div>
+                    <div className="text-sm text-muted-foreground">{formatDate(typedWorkOrder.created_at)}</div>
                   </div>
                 </div>
                 
                 {/* Sample timeline entries - in a real app these would be fetched from the API */}
-                {workOrder.status !== 'pending' && (
+                {typedWorkOrder.status !== 'pending' && (
                   <div className="flex items-start gap-4">
                     <div className="mt-1 h-2 w-2 rounded-full bg-blue-500" />
                     <div>
-                      <div className="text-sm font-medium">Status Changed to {workOrder.status}</div>
-                      <div className="text-sm text-muted-foreground">{formatDate(workOrder.updated_at)}</div>
+                      <div className="text-sm font-medium">Status Changed to {typedWorkOrder.status}</div>
+                      <div className="text-sm text-muted-foreground">{formatDate(typedWorkOrder.updated_at)}</div>
                     </div>
                   </div>
                 )}
                 
-                {workOrder.actual_start && (
+                {typedWorkOrder.actual_start && (
                   <div className="flex items-start gap-4">
                     <div className="mt-1 h-2 w-2 rounded-full bg-green-500" />
                     <div>
                       <div className="text-sm font-medium">Work Started</div>
-                      <div className="text-sm text-muted-foreground">{formatDate(workOrder.actual_start)}</div>
+                      <div className="text-sm text-muted-foreground">{formatDate(typedWorkOrder.actual_start)}</div>
                     </div>
                   </div>
                 )}
                 
-                {workOrder.actual_end && (
+                {typedWorkOrder.actual_end && (
                   <div className="flex items-start gap-4">
                     <div className="mt-1 h-2 w-2 rounded-full bg-green-500" />
                     <div>
                       <div className="text-sm font-medium">Work Completed</div>
-                      <div className="text-sm text-muted-foreground">{formatDate(workOrder.actual_end)}</div>
+                      <div className="text-sm text-muted-foreground">{formatDate(typedWorkOrder.actual_end)}</div>
                     </div>
                   </div>
                 )}
