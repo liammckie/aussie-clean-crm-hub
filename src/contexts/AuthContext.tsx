@@ -12,7 +12,7 @@ interface AuthContextType {
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
-  setAdminSession: () => void; // Added missing method
+  setAdminSession: () => void; // Explicitly include admin session method
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -175,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isLoading,
         signIn,
         signOut,
-        setAdminSession, // Add the new method to the context
+        setAdminSession, // Explicitly include the admin session method in the context
       }}
     >
       {children}

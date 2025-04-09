@@ -9,6 +9,7 @@ type UserInfo = {
 };
 
 class ErrorReportingService {
+  // Changed from private to public to fix the error
   public isInitialized = false;
   private isEnabled = true;
 
