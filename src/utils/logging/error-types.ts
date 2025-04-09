@@ -35,5 +35,3 @@ export function isApplicationError(error: unknown): error is ApplicationError {
     Object.values(ErrorCategory).includes((error as ApplicationError).category)
   );
 }
-
-// Export other types as needed

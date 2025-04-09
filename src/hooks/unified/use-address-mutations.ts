@@ -5,18 +5,12 @@ import { toast } from 'sonner';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { isApiError } from '@/types/api-response';
-import { EntityType } from '@/types/database-schema';
+import { EntityType, toDatabaseEntityType } from '@/types/form-types';
 
 export type MutationOptions<T> = {
   onSuccess?: (data: T) => void;
   onError?: (error: Error) => void;
 };
-
-// Create an adapter function to convert between entity type formats if needed
-function adaptEntityType(entityType: EntityType): string {
-  // Return the entity type as is, or map between different formats if needed
-  return entityType.toLowerCase();
-}
 
 /**
  * Hook for address mutations (create, update, delete)
@@ -35,7 +29,7 @@ export function useAddressMutations() {
       addressData: any;
     }) => {
       const response = await unifiedService.createAddress(
-        adaptEntityType(entityType) as any,
+        toDatabaseEntityType(entityType),
         entityId,
         addressData
       );
@@ -112,8 +106,9 @@ export function useAddressMutations() {
       queryClient.invalidateQueries({
         queryKey: ['unified-addresses'],
       });
-      const addressId = data && typeof data === 'object' && 'id' in data ? data.id : 'unknown';
-      AppLogger.info(LogCategory.ADDRESS, 'Address deleted successfully', { addressId });
+      AppLogger.info(LogCategory.ADDRESS, 'Address deleted successfully', { 
+        addressId: typeof data === 'object' && data && 'id' in data ? data.id : 'unknown' 
+      });
     },
     onError: (error, variables) => {
       AppLogger.error(LogCategory.ADDRESS, `Failed to delete address: ${error.message}`, {

@@ -1,3 +1,4 @@
+
 import { ApiErrorResponse, ApiResponse, ApiSuccessResponse, isApiError, createSuccessResponse, createErrorResponse } from '@/types/api-response';
 import { ErrorCategory } from '@/utils/logging/error-types';
 import { PostgrestError } from '@supabase/supabase-js';
@@ -17,6 +18,19 @@ export function formatError(error: any, message = 'An error occurred'): ApiError
     error?.message || message,
     { error }
   );
+}
+
+/**
+ * Normalize API response for consistency
+ */
+export function normalizeApiResponse<T>(response: any): ApiResponse<T> {
+  // If it's already a properly structured ApiResponse, return it
+  if ((response && 'data' in response) || (response && 'category' in response)) {
+    return response as ApiResponse<T>;
+  }
+  
+  // If it's a plain data object, wrap it in a success response
+  return createSuccessResponse(response as T, 'Operation successful');
 }
 
 /**

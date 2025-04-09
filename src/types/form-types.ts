@@ -1,140 +1,99 @@
 
-import { z } from 'zod';
-import { AddressType } from './database-schema';
+import { AddressType as DatabaseAddressType, ContactType as DatabaseContactType, EntityType as DatabaseEntityType } from "@/types/database-schema";
 
-// Define EntityType for unified systems
-export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
-
-// Define ContactType to match database constraints
-export type ContactType = 'Primary' | 'Billing' | 'Operations' | 'Technical' | 'Emergency';
-
-// Define PreferredCommunication type
-export type PreferredCommunication = 'email' | 'phone' | 'portal';
-
-// Unified Address Form Data
-export interface UnifiedAddressFormData {
-  entity_type?: EntityType;
-  entity_id?: string;
-  address_type: AddressType;
-  is_primary?: boolean;
-  name?: string;
-  address_line_1: string;
-  address_line_2?: string;
-  suburb: string;
-  state: string;
-  postcode: string;
-  country: string;
-  latitude?: number;
-  longitude?: number;
-  notes?: string;
+// Form-specific types for contact forms
+export enum ContactType {
+  PRIMARY = 'Primary',
+  BILLING = 'Billing',
+  OPERATIONS = 'Operations',
+  TECHNICAL = 'Technical',
+  EMERGENCY = 'Emergency'
 }
 
-// Unified Contact Form Data
-export interface UnifiedContactFormData {
-  entity_type?: EntityType;
-  entity_id?: string;
-  first_name: string;
-  last_name?: string;
-  name?: string;
-  title?: string;
-  position?: string;
-  email: string;
-  phone?: string;
-  phone_landline?: string;
-  mobile?: string;
-  company?: string;
-  contact_type: ContactType;
-  is_primary?: boolean;
-  notes?: string;
-  account_manager?: string;
-  state_manager?: string;
-  national_manager?: string;
-  preferred_communication?: PreferredCommunication;
+// Form-specific types for address forms
+export enum AddressType {
+  BILLING = 'Billing',
+  SHIPPING = 'Shipping',
+  PHYSICAL = 'Physical',
+  POSTAL = 'Postal',
+  REGISTERED = 'Registered'
 }
 
-// Contact schema for form validation
-export const unifiedContactSchema = z.object({
-  first_name: z.string().min(1, { message: "First name is required" }),
-  last_name: z.string().optional(),
-  email: z.string().email({ message: "Please enter a valid email address" }),
-  phone: z.string().optional(),
-  phone_landline: z.string().optional(),
-  mobile: z.string().optional(),
-  position: z.string().optional(),
-  title: z.string().optional(),
-  company: z.string().optional(),
-  contact_type: z.string(),
-  is_primary: z.boolean().default(false),
-  notes: z.string().optional(),
-  account_manager: z.string().optional(),
-  state_manager: z.string().optional(),
-  national_manager: z.string().optional(),
-  preferred_communication: z.string().optional()
-});
+export enum EntityType {
+  CLIENT = 'client',
+  SUPPLIER = 'supplier',
+  EMPLOYEE = 'employee',
+  SITE = 'site',
+  INTERNAL = 'internal'
+}
 
-// Helper to create default values for contact form
-export function createDefaultContactValues(initialData?: Partial<UnifiedContactFormData>): UnifiedContactFormData {
-  return {
-    first_name: initialData?.first_name || '',
-    last_name: initialData?.last_name || '',
-    email: initialData?.email || '',
-    phone: initialData?.phone || '',
-    phone_landline: initialData?.phone_landline || '',
-    mobile: initialData?.mobile || '',
-    position: initialData?.position || '',
-    title: initialData?.title || '',
-    company: initialData?.company || '',
-    contact_type: initialData?.contact_type || 'Primary',
-    is_primary: initialData?.is_primary || false,
-    notes: initialData?.notes || '',
-    account_manager: initialData?.account_manager || '',
-    state_manager: initialData?.state_manager || '',
-    national_manager: initialData?.national_manager || '',
-    preferred_communication: initialData?.preferred_communication || 'email'
+// Adapter functions to convert between form and database types
+export function toDatabaseContactType(formType: ContactType): DatabaseContactType {
+  const mapping: Record<ContactType, DatabaseContactType> = {
+    [ContactType.PRIMARY]: 'primary',
+    [ContactType.BILLING]: 'billing',
+    [ContactType.OPERATIONS]: 'operations',
+    [ContactType.TECHNICAL]: 'technical',
+    [ContactType.EMERGENCY]: 'emergency'
   };
+  return mapping[formType];
 }
 
-// Type for unified address record that matches database schema
-export interface UnifiedAddressRecord {
-  id: string;
-  entity_type: EntityType;
-  entity_id: string;
-  address_type: AddressType;
-  is_primary: boolean;
-  name?: string;
+export function toFormContactType(dbType: DatabaseContactType): ContactType {
+  const mapping: Record<DatabaseContactType, ContactType> = {
+    'primary': ContactType.PRIMARY,
+    'billing': ContactType.BILLING,
+    'operations': ContactType.OPERATIONS,
+    'technical': ContactType.TECHNICAL,
+    'emergency': ContactType.EMERGENCY
+  };
+  return mapping[dbType];
+}
+
+export function toDatabaseEntityType(formType: EntityType): DatabaseEntityType {
+  return formType.toLowerCase() as DatabaseEntityType;
+}
+
+export function toFormEntityType(dbType: DatabaseEntityType): EntityType {
+  const mapping: Record<DatabaseEntityType, EntityType> = {
+    'client': EntityType.CLIENT,
+    'supplier': EntityType.SUPPLIER,
+    'employee': EntityType.EMPLOYEE,
+    'site': EntityType.SITE,
+    'internal': EntityType.INTERNAL
+  };
+  return mapping[dbType];
+}
+
+export interface UnifiedAddressFormData {
   address_line_1: string;
   address_line_2?: string;
   suburb: string;
   state: string;
   postcode: string;
   country: string;
-  latitude?: number;
-  longitude?: number;
-  notes?: string;
-  created_at: string;
-  updated_at: string;
+  address_type: string;
+  is_primary: boolean;
+  [key: string]: any;
 }
 
-// Type for unified contact record that matches database schema
-export interface UnifiedContactRecord {
-  id: string;
-  entity_type: EntityType;
-  entity_id: string;
-  first_name?: string;
-  last_name?: string;
+export interface UnifiedContactFormData {
   name: string;
   email: string;
   phone?: string;
   mobile?: string;
   position?: string;
-  company?: string;
-  contact_type: string;
+  contact_type: ContactType;
   is_primary: boolean;
+  first_name?: string;
+  last_name?: string;
   title?: string;
+  company?: string;
   account_manager?: string;
   state_manager?: string;
   national_manager?: string;
-  created_at: string;
-  updated_at: string;
-  notes?: string;
+  [key: string]: any;
 }
+
+// Export the AddressFormData for backward compatibility
+export type AddressFormData = UnifiedAddressFormData;

@@ -1,10 +1,11 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { unifiedService } from '@/services/unified/service';
+
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { isApiError } from '@/types/api-response';
-import { AddressType, EntityType } from '@/types/database-schema';
+import { contractService } from '@/services/contract';
+import { EntityType, toFormEntityType } from '@/types/form-types';
 
 export type MutationOptions<T> = {
   onSuccess?: (data: T) => void;
@@ -12,168 +13,108 @@ export type MutationOptions<T> = {
 };
 
 /**
- * Hook for address mutations (create, update, delete)
+ * Hook for contract-related queries and mutations
  */
-export function useAddressMutations() {
+export function useContracts() {
   const queryClient = useQueryClient();
 
-  const createAddress = useMutation({
-    mutationFn: async ({
-      entityType,
-      entityId,
-      addressData,
-    }: {
-      entityType: EntityType;
-      entityId: string;
-      addressData: any;
-    }) => {
-      const response = await unifiedService.createAddress(
-        entityType,
-        entityId,
-        addressData
-      );
-
+  const getContracts = useQuery({
+    queryKey: ['contracts'],
+    queryFn: async () => {
+      const response = await contractService.getContracts();
+      
       if (isApiError(response)) {
         throw new Error(response.message);
       }
-
+      
       return response.data;
-    },
-    onSuccess: (data, variables) => {
-      queryClient.invalidateQueries({
-        queryKey: ['unified-addresses', variables.entityType, variables.entityId],
-      });
-      AppLogger.info(LogCategory.ADDRESS, 'Address created successfully', { 
-        addressId: data?.id || 'unknown' 
-      });
-    },
-    onError: (error, variables) => {
-      AppLogger.error(LogCategory.ADDRESS, `Failed to create address: ${error.message}`, {
-        entityType: variables.entityType,
-        entityId: variables.entityId,
-        error,
-      });
-      ErrorReporting.captureException(error);
-    },
+    }
   });
 
-  const updateAddress = useMutation({
-    mutationFn: async ({
-      addressId,
-      addressData,
-    }: {
-      addressId: string;
-      addressData: any;
-    }) => {
-      const response = await unifiedService.updateAddress(addressId, addressData);
+  const getContractsByClientId = (clientId: string) => {
+    return useQuery({
+      queryKey: ['contracts', 'client', clientId],
+      queryFn: async () => {
+        const response = await contractService.getContractsByClientId(clientId);
+        
+        if (isApiError(response)) {
+          throw new Error(response.message);
+        }
+        
+        return response.data;
+      },
+      enabled: !!clientId
+    });
+  };
 
+  const createContract = useMutation({
+    mutationFn: async (contractData: any) => {
+      const response = await contractService.createContract(contractData);
+      
       if (isApiError(response)) {
         throw new Error(response.message);
       }
-
+      
       return response.data;
     },
-    onSuccess: (data) => {
-      // Since we don't know the entity type and ID here, invalidate all address queries
-      queryClient.invalidateQueries({
-        queryKey: ['unified-addresses'],
-      });
-      AppLogger.info(LogCategory.ADDRESS, 'Address updated successfully', { addressId: data.id });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      toast.success('Contract created successfully');
     },
-    onError: (error, variables) => {
-      AppLogger.error(LogCategory.ADDRESS, `Failed to update address: ${error.message}`, {
-        addressId: variables.addressId,
-        error,
-      });
+    onError: (error) => {
+      toast.error(`Failed to create contract: ${error.message}`);
       ErrorReporting.captureException(error);
-    },
+    }
   });
 
-  const deleteAddress = useMutation({
-    mutationFn: async ({ addressId }: { addressId: string }) => {
-      const response = await unifiedService.deleteAddress(addressId);
-
+  const updateContract = useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      const response = await contractService.updateContract(id, data);
+      
       if (isApiError(response)) {
         throw new Error(response.message);
       }
-
-      // Return success response properly
-      return response.data || { success: true, id: addressId };
+      
+      return response.data;
     },
-    onSuccess: (data) => {
-      // Since we don't know the entity type and ID here, invalidate all address queries
-      queryClient.invalidateQueries({
-        queryKey: ['unified-addresses'],
-      });
-      const addressId = 'id' in data ? data.id : 'unknown';
-      AppLogger.info(LogCategory.ADDRESS, 'Address deleted successfully', { addressId });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      toast.success('Contract updated successfully');
     },
-    onError: (error, variables) => {
-      AppLogger.error(LogCategory.ADDRESS, `Failed to delete address: ${error.message}`, {
-        addressId: variables.addressId,
-        error,
-      });
+    onError: (error) => {
+      toast.error(`Failed to update contract: ${error.message}`);
       ErrorReporting.captureException(error);
+    }
+  });
+
+  const deleteContract = useMutation({
+    mutationFn: async (id: string) => {
+      const response = await contractService.deleteContract(id);
+      
+      if (isApiError(response)) {
+        throw new Error(response.message);
+      }
+      
+      return response.data;
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contracts'] });
+      toast.success('Contract deleted successfully');
+    },
+    onError: (error) => {
+      toast.error(`Failed to delete contract: ${error.message}`);
+      ErrorReporting.captureException(error);
+    }
   });
 
   return {
-    createAddress: (
-      variables: {
-        entityType: EntityType;
-        entityId: string;
-        addressData: any;
-      },
-      options?: MutationOptions<any>
-    ) => {
-      return createAddress.mutateAsync(variables, {
-        onSuccess: (data) => {
-          toast.success('Address created successfully');
-          options?.onSuccess?.(data);
-        },
-        onError: (error) => {
-          toast.error(`Failed to create address: ${error.message}`);
-          options?.onError?.(error);
-        },
-      });
-    },
-    updateAddress: (
-      variables: {
-        addressId: string;
-        addressData: any;
-      },
-      options?: MutationOptions<any>
-    ) => {
-      return updateAddress.mutateAsync(variables, {
-        onSuccess: (data) => {
-          toast.success('Address updated successfully');
-          options?.onSuccess?.(data);
-        },
-        onError: (error) => {
-          toast.error(`Failed to update address: ${error.message}`);
-          options?.onError?.(error);
-        },
-      });
-    },
-    deleteAddress: (
-      variables: {
-        addressId: string;
-      },
-      options?: MutationOptions<any>
-    ) => {
-      return deleteAddress.mutateAsync(variables, {
-        onSuccess: (data) => {
-          toast.success('Address deleted successfully');
-          options?.onSuccess?.(data);
-        },
-        onError: (error) => {
-          toast.error(`Failed to delete address: ${error.message}`);
-          options?.onError?.(error);
-        },
-      });
-    },
-    isCreatingAddress: createAddress.isPending,
-    isDeletingAddress: deleteAddress.isPending,
-    isUpdatingAddress: updateAddress.isPending,
+    getContracts,
+    getContractsByClientId,
+    createContract: createContract.mutate,
+    updateContract: updateContract.mutate,
+    deleteContract: deleteContract.mutate,
+    isCreatingContract: createContract.isPending,
+    isUpdatingContract: updateContract.isPending,
+    isDeletingContract: deleteContract.isPending
   };
 }
