@@ -44,7 +44,9 @@ export function useAddressMutations() {
       queryClient.invalidateQueries({
         queryKey: ['unified-addresses', variables.entityType, variables.entityId],
       });
-      AppLogger.info(LogCategory.ADDRESS, 'Address created successfully', { addressId: data.id });
+      AppLogger.info(LogCategory.ADDRESS, 'Address created successfully', { 
+        addressId: data?.id || 'unknown' 
+      });
     },
     onError: (error, variables) => {
       AppLogger.error(LogCategory.ADDRESS, `Failed to create address: ${error.message}`, {

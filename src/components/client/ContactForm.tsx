@@ -18,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 
 const contactSchema = z.object({
+  name: z.string().optional(),
   first_name: z.string().min(1, { message: "First name is required" }),
   last_name: z.string().min(1, { message: "Last name is required" }),
   email: z.string().email({ message: "Please enter a valid email address" }),
@@ -28,18 +29,21 @@ const contactSchema = z.object({
   is_primary: z.boolean().default(false),
 });
 
+type ContactFormValues = z.infer<typeof contactSchema>;
+
 interface ContactFormProps {
-  onSubmit: (data: Omit<ContactFormData, 'client_id'>) => void;
+  onSubmit: (data: Omit<ContactFormData, "client_id">) => void;
   isLoading?: boolean;
   initialData?: Partial<ContactFormData>;
 }
 
 export function ContactForm({ onSubmit, isLoading = false, initialData = {} }: ContactFormProps) {
-  const form = useForm<Omit<ContactFormData, 'client_id'>>({
+  const form = useForm<ContactFormValues>({
     resolver: zodResolver(contactSchema),
     defaultValues: {
       first_name: initialData.first_name || '',
       last_name: initialData.last_name || '',
+      name: initialData.name || '',
       email: initialData.email || '',
       position: initialData.position || '',
       phone: initialData.phone || '',
@@ -48,6 +52,16 @@ export function ContactForm({ onSubmit, isLoading = false, initialData = {} }: C
       is_primary: initialData.is_primary || false,
     }
   });
+
+  const handleFormSubmit = (data: ContactFormValues) => {
+    // Construct a combined name from first and last name if not provided
+    if (!data.name && data.first_name && data.last_name) {
+      data.name = `${data.first_name} ${data.last_name}`.trim();
+    }
+    
+    // Pass the data to the parent component's onSubmit handler
+    onSubmit(data as Omit<ContactFormData, "client_id">);
+  };
 
   const contactTypes = [
     { value: ContactType.PRIMARY, label: 'Primary' },
@@ -59,7 +73,7 @@ export function ContactForm({ onSubmit, isLoading = false, initialData = {} }: C
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}

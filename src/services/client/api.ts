@@ -264,7 +264,7 @@ export const clientApi = {
       // Transform to match database schema
       const dbAddressData = {
         client_id: addressData.client_id,
-        street: addressData.street,
+        street: addressData.address_line_1,
         suburb: addressData.suburb,
         state: addressData.state,
         postcode: addressData.postcode,

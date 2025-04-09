@@ -1,7 +1,6 @@
-
 import React, { useEffect, useState, Suspense, useTransition } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ClientFormData } from '@/services/client';
+import { ClientFormData, ClientStatus } from '@/services/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ArrowLeft, Users, Map, FileText, Building } from 'lucide-react';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
@@ -12,7 +11,6 @@ import { ClientDetailsTab } from '@/components/client/ClientDetailsTab';
 import { ClientContactsTab } from '@/components/client/ClientContactsTab';
 import { ClientSitesTab } from '@/components/client/ClientSitesTab';
 import { ClientContractsTab } from '@/components/client/ClientContractsTab';
-import { ClientStatus } from '@/types/database-schema';
 import { isApiError } from '@/types/api-response';
 import { ClientRecord } from '@/types/clients';
 import { AppLogger, LogCategory } from '@/utils/logging';
@@ -69,13 +67,16 @@ const EditClient = () => {
             const typedClientData = response.data as ClientRecord;
             AppLogger.info(LogCategory.DATA, `Client data loaded successfully`, { clientId });
             
+            // Ensure status is properly cast to the enum type
+            const clientStatus = typedClientData.status as ClientStatus || ClientStatus.PROSPECT;
+            
             setClientData({
               business_name: typedClientData.business_name,
               trading_name: typedClientData.trading_name || '',
               abn: typedClientData.abn || '',
               acn: typedClientData.acn || '',
               industry: typedClientData.industry || '',
-              status: typedClientData.status || ClientStatus.PROSPECT,
+              status: clientStatus,
               onboarding_date: typedClientData.onboarding_date || undefined,
               source: typedClientData.source || '',
               billing_cycle: typedClientData.billing_cycle || '',
@@ -105,13 +106,16 @@ const EditClient = () => {
         AppLogger.info(LogCategory.DATA, `Using client data from React Query cache`, { clientId });
         
         const typedClientData = clientDetailsData as ClientRecord;
+        // Ensure status is properly cast to the enum type
+        const clientStatus = typedClientData.status as ClientStatus || ClientStatus.PROSPECT;
+        
         setClientData({
           business_name: typedClientData.business_name,
           trading_name: typedClientData.trading_name || '',
           abn: typedClientData.abn || '',
           acn: typedClientData.acn || '',
           industry: typedClientData.industry || '',
-          status: typedClientData.status || ClientStatus.PROSPECT,
+          status: clientStatus,
           onboarding_date: typedClientData.onboarding_date || undefined,
           source: typedClientData.source || '',
           billing_cycle: typedClientData.billing_cycle || '',

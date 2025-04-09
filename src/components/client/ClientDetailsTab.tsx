@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { ClientFormData } from '@/services/client';
@@ -36,9 +37,9 @@ export function ClientDetailsTab({ clientId, onSaveSuccess, initialData }: Clien
     // Convert potential string date to Date object for form handling
     const preparedData = {
       ...prepareClientDataForSubmission(data),
-      onboarding_date: typeof data.onboarding_date === 'string'
-        ? data.onboarding_date
-        : data.onboarding_date?.toISOString?.().split('T')[0]
+      onboarding_date: data.onboarding_date instanceof Date
+        ? data.onboarding_date.toISOString().split('T')[0]
+        : data.onboarding_date
     };
 
     AppLogger.info(LogCategory.CLIENT, `Updating client ${clientId}`, { 

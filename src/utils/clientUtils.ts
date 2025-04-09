@@ -52,61 +52,36 @@ export function validateClientContactInfo({ phone, email }: { phone?: string, em
 }
 
 /**
- * Prepares client data for submission to the API
- * - Cleans business identifiers
- * - Formats dates
- * - Validates required fields match database schema
- * - Validates contact information
+ * Prepare client data for submission to the API
  */
-export function prepareClientDataForSubmission(data: ClientFormData): ClientFormData {
-  const preparedData: ClientFormData = { ...data };
-
-  if (preparedData.abn) {
-    preparedData.abn = validationService.cleanBusinessIdentifier(preparedData.abn);
+export const prepareClientDataForSubmission = (formData: ClientFormData): Partial<ClientRecord> => {
+  // Start with a copy of the form data
+  const preparedData: Partial<ClientRecord> = { ...formData };
+  
+  // Format date if present
+  if (preparedData.onboarding_date instanceof Date) {
+    preparedData.onboarding_date = preparedData.onboarding_date.toISOString().split('T')[0];
   }
 
-  if (preparedData.acn) {
-    preparedData.acn = validationService.cleanBusinessIdentifier(preparedData.acn);
+  // Convert credit limit to number if present
+  if (typeof preparedData.credit_limit === 'string' && preparedData.credit_limit !== '') {
+    preparedData.credit_limit = parseFloat(preparedData.credit_limit);
   }
 
-  if (preparedData.phone) {
-    preparedData.phone = preparedData.phone.trim();
-  }
+  // Remove any temporary or UI-only fields that shouldn't be sent to the API
+  // These fields don't exist in the actual database schema
+  const fieldsToDelete: (keyof Partial<ClientRecord>)[] = [
+    // Any UI-only fields that should be excluded from API calls
+  ];
 
-  if (!preparedData.status) {
-    preparedData.status = ClientStatus.PROSPECT;
-  }
-
-  if (!preparedData.onboarding_date) {
-    const today = new Date();
-    preparedData.onboarding_date = today.toISOString().split('T')[0];
-  } else if (typeof preparedData.onboarding_date === 'string') {
-    try {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-      if (dateRegex.test(preparedData.onboarding_date)) {
-      } else {
-        const dateObj = new Date(preparedData.onboarding_date);
-        if (!isNaN(dateObj.getTime())) {
-          preparedData.onboarding_date = dateObj.toISOString().split('T')[0];
-        } else {
-          console.warn('Invalid date format for onboarding_date:', preparedData.onboarding_date);
-          const today = new Date();
-          preparedData.onboarding_date = today.toISOString().split('T')[0];
-        }
-      }
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      const today = new Date();
-      preparedData.onboarding_date = today.toISOString().split('T')[0];
+  fieldsToDelete.forEach(field => {
+    if (field in preparedData) {
+      delete preparedData[field];
     }
-  }
-
-  if (!preparedData.country) {
-    preparedData.country = 'Australia';
-  }
+  });
 
   return preparedData;
-}
+};
 
 /**
  * Alias function for prepareClientDataForSubmission, used for form data preparation

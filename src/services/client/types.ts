@@ -16,7 +16,7 @@ export interface ClientFormData extends AddressFieldsFormData {
   acn?: string;
   industry?: string;
   status: ClientStatus;
-  onboarding_date?: string;
+  onboarding_date?: string | Date;
   source?: string;
   billing_cycle?: string;
   payment_terms?: string;
@@ -32,6 +32,7 @@ export type ClientsApiResponse = ApiResponse<ClientRecord[]>;
 
 // Contact types
 export interface ContactFormData {
+  client_id?: string;
   name: string;
   position?: string;
   email: string;
@@ -39,6 +40,8 @@ export interface ContactFormData {
   mobile?: string;
   contact_type: ContactType;
   is_primary: boolean;
+  first_name?: string;
+  last_name?: string;
 }
 
 export interface ContactRecord {
@@ -51,12 +54,15 @@ export interface ContactRecord {
   mobile?: string;
   contact_type: ContactType;
   is_primary: boolean;
+  first_name?: string;
+  last_name?: string;
   created_at?: string;
   updated_at?: string;
 }
 
 // Address form data
 export interface AddressFormData {
+  client_id?: string;
   address_line_1: string;
   address_line_2?: string;
   suburb: string;
