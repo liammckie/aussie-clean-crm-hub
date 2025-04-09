@@ -28,22 +28,33 @@ serve(async (req) => {
     const metadata = {
       ip: req.headers.get("x-forwarded-for") || "unknown",
       userAgent: req.headers.get("user-agent") || "unknown",
-      referer: req.headers.get("referer") || "unknown"
+      referer: req.headers.get("referer") || "unknown",
+      host: req.headers.get("host") || "unknown",
+      origin: req.headers.get("origin") || "unknown",
     };
+
+    // Validate payload
+    if (!type || !['exception', 'message', 'feedback'].includes(type)) {
+      throw new Error('Invalid log type');
+    }
+
+    // Sanitize and clean up data before inserting
+    const sanitizedData = typeof data === 'object' && data !== null ? data : { message: String(data) };
 
     // Insert the log into the database
     const { error } = await supabase
       .from("error_logs")
       .insert([{
         type,
-        timestamp,
+        timestamp: timestamp || new Date().toISOString(),
         app_version: appVersion,
         environment,
-        data,
+        data: sanitizedData,
         metadata
       }]);
 
     if (error) {
+      console.error("Error inserting log:", error);
       throw new Error(`Failed to insert log: ${error.message}`);
     }
 
@@ -61,7 +72,8 @@ serve(async (req) => {
     
     return new Response(JSON.stringify({
       success: false,
-      error: error.message
+      error: error.message,
+      timestamp: new Date().toISOString()
     }), {
       status: 500,
       headers: {

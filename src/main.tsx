@@ -4,6 +4,10 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import { AppLogger, LogCategory } from "@/utils/logging";
+import { ErrorReporting } from "@/utils/errorReporting";
+
+// Initialize error reporting system
+ErrorReporting.init();
 
 // Initialize logging
 AppLogger.info(LogCategory.UI, "Application starting", {

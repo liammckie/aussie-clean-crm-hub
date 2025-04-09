@@ -1,11 +1,13 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { BrowserRouter, HashRouter } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { SidebarProvider } from './components/ui/sidebar';
 import { AuthProvider } from './contexts/AuthContext';
 import { AppRoutes } from './routes/AppRoutes';
+import { ErrorReporting } from './utils/errorReporting';
+import { useAuth } from './hooks/useAuth';
 
 // Create Query Client
 const queryClient = new QueryClient({
@@ -28,6 +30,26 @@ const isInLovableIframe = () => {
   }
 };
 
+// User context provider to set user data for error reporting
+const UserContextProvider = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  
+  useEffect(() => {
+    // Set user context for error reporting when authenticated
+    if (user) {
+      ErrorReporting.setUser({
+        id: user.id,
+        email: user.email,
+        username: user.user_metadata?.name
+      });
+    } else {
+      ErrorReporting.setUser(null);
+    }
+  }, [user]);
+  
+  return <>{children}</>;
+};
+
 function App() {
   // Use HashRouter when in Lovable's iframe environment to avoid routing issues
   const Router = isInLovableIframe() ? HashRouter : BrowserRouter;
@@ -36,10 +58,12 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <Router>
-          <SidebarProvider>
-            <AppRoutes />
-            <Toaster position="top-right" />
-          </SidebarProvider>
+          <UserContextProvider>
+            <SidebarProvider>
+              <AppRoutes />
+              <Toaster position="top-right" />
+            </SidebarProvider>
+          </UserContextProvider>
         </Router>
       </AuthProvider>
     </QueryClientProvider>

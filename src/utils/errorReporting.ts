@@ -1,5 +1,4 @@
 
-import * as Sentry from '@sentry/browser';
 import { isApiError, ApiResponse } from '@/types/api-response';
 import { isApplicationError } from '@/utils/logging/error-types';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,41 +9,42 @@ import { AppLogger, LogCategory } from '@/utils/logging';
  */
 export class ErrorReporting {
   private static isInitialized = false;
+  private static loggingEnabled = true;
+  private static appVersion = import.meta.env.VITE_APP_VERSION || 'development';
+  private static environment = import.meta.env.VITE_ENVIRONMENT || 'development';
+  private static userContext: { id: string; email?: string; username?: string } | null = null;
 
   /**
    * Initialize error reporting
    */
   public static init(): void {
     if (this.isInitialized) return;
-
-    // Only initialize in production or if explicitly enabled in other environments
-    if (import.meta.env.PROD || import.meta.env.VITE_ENABLE_ERROR_REPORTING) {
-      const dsn = import.meta.env.VITE_SENTRY_DSN;
-      if (dsn) {
-        Sentry.init({
-          dsn,
-          environment: import.meta.env.VITE_ENVIRONMENT || 'development',
-          tracesSampleRate: 0.2,
-          ignoreErrors: [
-            // Ignore network errors that are typically not actionable
-            'Network Error',
-            'Failed to fetch',
-            'NetworkError',
-            'ChunkLoadError',
-          ],
-        });
-        this.isInitialized = true;
-        console.log('Error reporting initialized');
-      } else {
-        console.warn('Error reporting DSN not provided');
-      }
+    
+    // In development, we might want to skip some types of logging
+    if (import.meta.env.DEV) {
+      console.log('🔍 Error reporting initialized in development mode');
     }
+    
+    this.isInitialized = true;
+    console.log('🔍 Error reporting system initialized');
+  }
+
+  /**
+   * Enable or disable error reporting
+   */
+  public static setEnabled(enabled: boolean): void {
+    this.loggingEnabled = enabled;
+    AppLogger.info(LogCategory.SYSTEM, 
+      `Error reporting ${enabled ? 'enabled' : 'disabled'}`
+    );
   }
 
   /**
    * Report an exception to the error tracking service
    */
   public static captureException(error: unknown, context?: Record<string, any>): void {
+    if (!this.loggingEnabled) return;
+
     // Always log to console for development visibility
     console.error('Error captured:', error, context || {});
 
@@ -57,26 +57,14 @@ export class ErrorReporting {
       stack: formattedError.stack,
       context: context || {}
     });
-    
-    // Report to Sentry if initialized
-    if (this.isInitialized) {
-      if (context) {
-        Sentry.withScope(scope => {
-          Object.entries(context).forEach(([key, value]) => {
-            scope.setExtra(key, value);
-          });
-          Sentry.captureException(formattedError);
-        });
-      } else {
-        Sentry.captureException(formattedError);
-      }
-    }
   }
 
   /**
    * Log an informational message
    */
-  public static captureMessage(message: string, level: Sentry.SeverityLevel = 'info'): void {
+  public static captureMessage(message: string, level: 'info' | 'warning' | 'error' = 'info'): void {
+    if (!this.loggingEnabled) return;
+
     console.log(`[${level}]`, message);
     
     // Log to Supabase edge function
@@ -84,16 +72,14 @@ export class ErrorReporting {
       message,
       level
     });
-    
-    if (this.isInitialized) {
-      Sentry.captureMessage(message, level);
-    }
   }
 
   /**
    * Send user feedback to the error tracking system
    */
   public static captureFeedback(feedback: string, category: string = 'general', metadata?: Record<string, any>): void {
+    if (!this.loggingEnabled) return;
+
     console.log(`[Feedback][${category}]`, feedback, metadata || {});
     
     // Log to Supabase edge function
@@ -102,49 +88,50 @@ export class ErrorReporting {
       category,
       metadata: metadata || {}
     });
-    
-    // Also log to Sentry as a breadcrumb if initialized
-    if (this.isInitialized) {
-      Sentry.addBreadcrumb({
-        category: `feedback-${category}`,
-        message: feedback,
-        data: metadata,
-        level: 'info'
-      });
-      
-      // Send as a custom event
-      Sentry.captureEvent({
-        message: `User Feedback: ${feedback}`,
-        level: 'info',
-        tags: { 
-          feedback_category: category 
-        },
-        extra: metadata
-      });
-    }
   }
 
   /**
    * Set user context for error reporting
    */
   public static setUser(user: { id: string; email?: string; username?: string } | null): void {
-    if (this.isInitialized) {
-      Sentry.setUser(user);
+    this.userContext = user;
+    
+    if (user) {
+      AppLogger.info(LogCategory.SYSTEM, "User context set for error reporting", {
+        userId: user.id
+      });
+    } else {
+      AppLogger.info(LogCategory.SYSTEM, "User context cleared from error reporting");
     }
   }
 
   /**
-   * Log to Supabase edge function
-   * This sends the log to the Supabase edge function for storage and analysis
+   * Get the current user context
+   */
+  public static getUser(): { id: string; email?: string; username?: string } | null {
+    return this.userContext;
+  }
+
+  /**
+   * Log to Supabase edge function or directly to the database
    */
   private static async logToSupabase(type: 'exception' | 'message' | 'feedback', data: Record<string, any>): Promise<void> {
     try {
       const payload = {
         type,
         timestamp: new Date().toISOString(),
-        appVersion: import.meta.env.VITE_APP_VERSION || 'unknown',
-        environment: import.meta.env.VITE_ENVIRONMENT || 'development',
-        data
+        appVersion: this.appVersion,
+        environment: this.environment,
+        data: {
+          ...data,
+          // Include user context if available
+          user: this.userContext ? {
+            id: this.userContext.id,
+            // Only include email in non-production environments
+            ...(this.environment !== 'production' ? { email: this.userContext.email } : {}),
+            username: this.userContext.username
+          } : null
+        }
       };
       
       // Log directly to database using Supabase client
@@ -153,7 +140,7 @@ export class ErrorReporting {
         .insert([payload]);
         
       if (error) {
-        console.error('Failed to log to Supabase:', error);
+        console.error('Failed to log to Supabase database:', error);
         
         // Fall back to edge function if database insert fails
         const { error: fnError } = await supabase.functions.invoke('log-error', {
@@ -204,5 +191,14 @@ export class ErrorReporting {
     
     // For primitive values
     return new Error(`Unknown error: ${String(error)}`);
+  }
+  
+  /**
+   * Add debugging information to use in development
+   */
+  public static debug(message: string, data?: any): void {
+    if (!import.meta.env.DEV) return;
+    
+    console.log(`[Debug] ${message}`, data);
   }
 }

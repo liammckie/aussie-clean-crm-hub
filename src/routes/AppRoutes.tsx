@@ -1,4 +1,3 @@
-
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -14,6 +13,7 @@ import { Contracts, ContractDetail, NewContract, EditContract } from './lazyRout
 import { Suppliers, NewSupplier, SupplierDetail, EditSupplier } from './lazyRoutes';
 import { WorkOrders, WorkOrderDetail, NewWorkOrder } from './lazyRoutes';
 import { Sites, Activities } from './lazyRoutes';
+import { ErrorTesting } from './lazyRoutes';
 
 export function AppRoutes() {
   const { isLoading, isAuthenticated } = useAuth();
@@ -157,6 +157,13 @@ export function AppRoutes() {
         <Route path="/activities" element={
           <ProtectedRoute>
             <Activities />
+          </ProtectedRoute>
+        } />
+        
+        {/* Developer Tools */}
+        <Route path="/developer/error-testing" element={
+          <ProtectedRoute>
+            <ErrorTesting />
           </ProtectedRoute>
         } />
         
