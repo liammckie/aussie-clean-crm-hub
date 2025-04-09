@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LogoLoadingSpinner } from "@/components/ui/LogoLoadingSpinner";
 
 interface LoadingScreenProps {
   duration?: number;
@@ -45,18 +46,15 @@ export function LoadingScreen({
       
       {loadingStage === 'initial' && (
         <div className="text-center relative z-10">
-          <div className="w-24 h-24 rounded-full bg-purple-700/20 mx-auto mb-8 animate-pulse flex items-center justify-center">
-            <div className="w-16 h-16 rounded-full bg-purple-600/40 flex items-center justify-center">
-              <div className="w-8 h-8 rounded-full bg-purple-500/60"></div>
-            </div>
-          </div>
-          <p className="text-white text-lg font-light">Initializing system...</p>
+          <LogoLoadingSpinner size="xl" />
+          <p className="mt-4 text-white text-lg font-light">Initializing system...</p>
         </div>
       )}
       
       {loadingStage === 'assets' && (
         <div className="text-center relative z-10 flex flex-col items-center">
-          <div className="loader mb-8">
+          <LogoLoadingSpinner size="lg" />
+          <div className="loader mt-8 mb-4">
             <div className="h-1 w-64 bg-slate-800 rounded-full overflow-hidden">
               <div className="h-full bg-gradient-to-r from-purple-600 to-indigo-500 animate-pulse w-3/4"></div>
             </div>

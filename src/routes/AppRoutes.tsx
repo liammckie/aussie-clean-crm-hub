@@ -6,6 +6,7 @@ import { Login } from './lazyRoutes';
 import { NotFound } from './lazyRoutes';
 import { Dashboard } from './lazyRoutes';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
+import { LogoLoadingSpinner } from '@/components/ui/LogoLoadingSpinner';
 
 // Import all the pages directly instead of route group components
 import { Clients, NewClient, ClientDetail, EditClient } from './lazyRoutes';
@@ -21,10 +22,7 @@ export function AppRoutes() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen" aria-busy="true" aria-live="polite">
-        <div className="animate-pulse flex flex-col items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-slate-700"></div>
-          <div className="h-4 w-32 rounded bg-slate-700"></div>
-        </div>
+        <LogoLoadingSpinner size="lg" showText={true} />
       </div>
     );
   }
@@ -35,10 +33,7 @@ export function AppRoutes() {
   return (
     <Suspense fallback={
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-pulse flex flex-col items-center gap-2">
-          <div className="h-8 w-8 rounded-full bg-slate-700"></div>
-          <div className="h-4 w-32 rounded bg-slate-700"></div>
-        </div>
+        <LogoLoadingSpinner size="md" showText={true} />
       </div>
     }>
       <Routes>

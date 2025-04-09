@@ -2,10 +2,15 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LogoLoadingSpinner } from "@/components/ui/LogoLoadingSpinner";
 
 export function ClientsLoadingState() {
   return (
     <div className="space-y-6">
+      <div className="flex justify-center py-6">
+        <LogoLoadingSpinner size="sm" />
+      </div>
+
       {/* Skeleton for summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map((i) => (

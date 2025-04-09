@@ -8,6 +8,15 @@ export function BrandSection() {
     <div className="w-full md:w-1/2 flex flex-col items-center justify-center p-8 relative overflow-hidden">
       <div className="relative z-10 max-w-xl">
         <div className="mb-12 text-center">
+          {/* Logo image */}
+          <div className="mb-4 flex justify-center">
+            <img 
+              src="/lovable-uploads/Logo.png"
+              alt="Aussie Clean ERP Logo"
+              className="h-24 w-auto object-contain animate-fade-in"
+            />
+          </div>
+          
           {/* Animated gradient text */}
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 relative">
             <span className="bg-gradient-to-r from-purple-300 via-indigo-300 to-purple-200 bg-clip-text text-transparent drop-shadow-sm animate-gradient-shift">
