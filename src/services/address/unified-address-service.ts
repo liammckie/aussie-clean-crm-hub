@@ -1,134 +1,104 @@
-
 import { supabase } from '@/integrations/supabase/client';
-import { ApiResponse, createErrorResponse, createSuccessResponse, isApiError } from '@/types/api-response';
+import { handleSupabaseError } from '@/utils/supabaseErrors';
+import { ApiResponse, createSuccessResponse } from '@/types/api-response';
+import { UnifiedAddressRecord } from '@/services/unified/types';
 import { ErrorCategory } from '@/utils/logging/error-types';
-import { AppLogger, LogCategory } from '@/utils/logging';
-import { UnifiedAddressFormData } from '@/types/form-types';
-
-// Type definition for unified_addresses table record
-export interface UnifiedAddressRecord {
-  id: string;
-  entity_type: string;
-  entity_id: string;
-  address_line_1: string;
-  address_line_2: string | null;
-  suburb: string;
-  state: string;
-  postcode: string;
-  country: string;
-  address_type: string;
-  is_primary: boolean;
-  created_at: string;
-  updated_at: string;
-}
 
 /**
- * Unified service for address management across different entity types
+ * Service for managing unified addresses
  */
-class UnifiedAddressService {
+export class UnifiedAddressService {
   /**
-   * Create a new address for an entity
+   * Get addresses for an entity
+   * @param entityType Type of entity (client, site, etc.)
+   * @param entityId Entity ID
+   * @returns Promise with the addresses
    */
-  async createAddress(
-    entityType: string,
-    entityId: string,
-    addressData: Omit<UnifiedAddressFormData, 'entity_type' | 'entity_id'>
-  ): Promise<ApiResponse<UnifiedAddressRecord>> {
-    try {
-      // Ensure we don't have multiple primary addresses if this is set as primary
-      if (addressData.is_primary) {
-        await this.clearPrimaryFlagForEntity(entityType, entityId, addressData.address_type);
-      }
-
-      // Insert the new address
-      const { data, error } = await supabase
-        .from('unified_addresses')
-        .insert({
-          entity_type: entityType,
-          entity_id: entityId,
-          ...addressData
-        })
-        .select('*')
-        .single();
-
-      if (error) {
-        AppLogger.error(LogCategory.ADDRESS, `Failed to create address: ${error.message}`, {
-          entityType,
-          entityId,
-          error
-        });
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to create address: ${error.message}`,
-          { supabase_error: error }
-        );
-      }
-
-      AppLogger.info(LogCategory.ADDRESS, 'Address created successfully', {
-        entityType,
-        entityId,
-        addressId: data.id
-      });
-      
-      return createSuccessResponse(data as UnifiedAddressRecord, 'Address created successfully');
-    } catch (error) {
-      AppLogger.error(LogCategory.ADDRESS, `Error in createAddress: ${error instanceof Error ? error.message : String(error)}`, {
-        entityType,
-        entityId,
-        error
-      });
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        'An unexpected error occurred while creating the address',
-        { error }
-      );
-    }
-  }
-
-  /**
-   * Get all addresses for an entity
-   */
-  async getAddresses(
-    entityType: string,
-    entityId: string
-  ): Promise<ApiResponse<UnifiedAddressRecord[]>> {
+  async getEntityAddresses(entityType: string, entityId: string): Promise<ApiResponse<UnifiedAddressRecord[]>> {
     try {
       const { data, error } = await supabase
         .from('unified_addresses')
         .select('*')
         .eq('entity_type', entityType)
         .eq('entity_id', entityId)
-        .order('is_primary', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) {
-        AppLogger.error(LogCategory.ADDRESS, `Failed to fetch addresses: ${error.message}`, {
-          entityType,
-          entityId,
-          error
-        });
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to fetch addresses: ${error.message}`,
-          { supabase_error: error }
-        );
+        throw error;
       }
 
-      return createSuccessResponse(
-        data as UnifiedAddressRecord[],
-        'Addresses fetched successfully',
-        data.length
-      );
+      return createSuccessResponse(data, 'Addresses fetched successfully');
     } catch (error) {
-      AppLogger.error(LogCategory.ADDRESS, `Error in getAddresses: ${error instanceof Error ? error.message : String(error)}`, {
-        entityType,
-        entityId,
-        error
+      return handleSupabaseError(error, 'Failed to fetch addresses', {
+        entity_type: entityType,
+        entity_id: entityId,
+        operation: 'getEntityAddresses'
       });
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        'An unexpected error occurred while fetching addresses',
-        { error }
-      );
+    }
+  }
+
+  /**
+   * Get address by ID
+   * @param addressId Address ID
+   * @returns Promise with the address
+   */
+  async getAddressById(addressId: string): Promise<ApiResponse<UnifiedAddressRecord>> {
+    try {
+      const { data, error } = await supabase
+        .from('unified_addresses')
+        .select('*')
+        .eq('id', addressId)
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return createSuccessResponse(data, 'Address fetched successfully');
+    } catch (error) {
+      return handleSupabaseError(error, 'Failed to fetch address', {
+        address_id: addressId,
+        operation: 'getAddressById'
+      });
+    }
+  }
+
+  /**
+   * Create address
+   * @param entityType Type of entity
+   * @param entityId ID of the entity
+   * @param addressData Address data
+   * @returns Promise with the created address
+   */
+  async createAddress(
+    entityType: string,
+    entityId: string,
+    addressData: any
+  ): Promise<ApiResponse<UnifiedAddressRecord>> {
+    try {
+      const preparedData = {
+        entity_type: entityType,
+        entity_id: entityId,
+        ...addressData
+      };
+
+      const { data, error } = await supabase
+        .from('unified_addresses')
+        .insert(preparedData)
+        .select()
+        .single();
+
+      if (error) {
+        throw error;
+      }
+
+      return createSuccessResponse(data, 'Address created successfully');
+    } catch (error) {
+      return handleSupabaseError(error, 'Failed to create address', {
+        entity_type: entityType,
+        entity_id: entityId,
+        operation: 'createAddress'
+      });
     }
   }
 

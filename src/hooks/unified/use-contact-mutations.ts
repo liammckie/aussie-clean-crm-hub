@@ -1,3 +1,4 @@
+
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ErrorReporting } from '@/utils/errorReporting';
@@ -5,6 +6,7 @@ import { unifiedService } from '@/services/unified';
 import { UnifiedContactFormData, EntityType } from '@/types/form-types';
 import { ValidationErrorResponse } from '@/services/unified/types';
 import { isApiError } from '@/types/api-response';
+import { MutationOptions } from '@/hooks/use-unified-entities';
 
 /**
  * Hook for contact mutations (create, update, delete)
@@ -129,11 +131,64 @@ export function useContactMutations() {
   });
 
   return {
-    createContact: createContactMutation.mutateAsync,
+    createContact: (
+      variables: {
+        entityType: EntityType;
+        entityId: string;
+        contactData: Omit<UnifiedContactFormData, 'entity_type' | 'entity_id'>;
+      },
+      options?: MutationOptions<any>
+    ) => {
+      return createContactMutation.mutateAsync(variables, {
+        onSuccess: (data) => {
+          if (options?.onSuccess) options.onSuccess(data);
+        },
+        onError: (error) => {
+          toast.error(`Failed to create contact: ${error.message}`);
+          if (options?.onError) options.onError(error);
+        },
+      });
+    },
+    updateContact: (
+      variables: {
+        contactId: string;
+        contactData: Partial<UnifiedContactFormData>;
+      },
+      options?: MutationOptions<any>
+    ) => {
+      return updateContactMutation.mutateAsync(variables, {
+        onSuccess: (data) => {
+          toast.success('Contact updated successfully');
+          if (options?.onSuccess) options.onSuccess(data);
+        },
+        onError: (error) => {
+          toast.error(`Failed to update contact: ${error.message}`);
+          if (options?.onError) options.onError(error);
+        },
+      });
+    },
+    deleteContact: (
+      variables: {
+        contactId: string;
+      },
+      options?: MutationOptions<any>
+    ) => {
+      return deleteContactMutation.mutateAsync(variables, {
+        onSuccess: (data) => {
+          toast.success('Contact deleted successfully');
+          if (options?.onSuccess) options.onSuccess(data);
+        },
+        onError: (error) => {
+          toast.error(`Failed to delete contact: ${error.message}`);
+          if (options?.onError) options.onError(error);
+        },
+      });
+    },
     isCreatingContact: createContactMutation.isPending,
-    updateContact: updateContactMutation.mutateAsync,
-    isUpdatingContact: updateContactMutation.isPending,
-    deleteContact: deleteContactMutation.mutateAsync,
     isDeletingContact: deleteContactMutation.isPending,
+    isUpdatingContact: updateContactMutation.isPending,
   };
 }
+
+// Export the hook with the alias that the code expects
+export const useUnifiedContacts = useContactMutations;

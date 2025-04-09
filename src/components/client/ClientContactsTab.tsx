@@ -5,16 +5,17 @@ import { PlusIcon } from 'lucide-react';
 import { ContactsList } from './ContactsList';
 import { ClientContactModal } from './ClientContactModal';
 import { UnifiedContactFormData, ContactType } from '@/types/form-types';
-import { useUnifiedContacts } from '@/hooks/unified/use-contact-mutations';
+import { useContactMutations } from '@/hooks/unified/use-contact-mutations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface ClientContactsTabProps {
   clientId: string;
+  onContactAdded?: () => void;
 }
 
-const ClientContactsTab = ({ clientId }: ClientContactsTabProps) => {
+const ClientContactsTab = ({ clientId, onContactAdded }: ClientContactsTabProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { createContact, isCreatingContact } = useUnifiedContacts();
+  const { createContact, isCreatingContact } = useContactMutations();
 
   const handleAddContact = async (contactData: UnifiedContactFormData) => {
     await createContact({
@@ -24,6 +25,9 @@ const ClientContactsTab = ({ clientId }: ClientContactsTabProps) => {
     }, {
       onSuccess: () => {
         setIsModalOpen(false);
+        if (onContactAdded) {
+          onContactAdded();
+        }
       }
     });
   };
@@ -55,16 +59,16 @@ const ClientContactsTab = ({ clientId }: ClientContactsTabProps) => {
           <TabsTrigger value="operations">Operations</TabsTrigger>
         </TabsList>
         <TabsContent value="all">
-          <ContactsList clientId={clientId} />
+          <ContactsList entityType="client" entityId={clientId} />
         </TabsContent>
         <TabsContent value="primary">
-          <ContactsList clientId={clientId} contactType="primary" />
+          <ContactsList entityType="client" entityId={clientId} contactType="primary" />
         </TabsContent>
         <TabsContent value="billing">
-          <ContactsList clientId={clientId} contactType="billing" />
+          <ContactsList entityType="client" entityId={clientId} contactType="billing" />
         </TabsContent>
         <TabsContent value="operations">
-          <ContactsList clientId={clientId} contactType="operations" />
+          <ContactsList entityType="client" entityId={clientId} contactType="operations" />
         </TabsContent>
       </Tabs>
 
@@ -79,4 +83,6 @@ const ClientContactsTab = ({ clientId }: ClientContactsTabProps) => {
   );
 };
 
+// Export the component properly
+export { ClientContactsTab };
 export default ClientContactsTab;

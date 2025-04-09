@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ClientFormData } from '@/services/client';
@@ -8,7 +9,7 @@ import { toast } from 'sonner';
 import { clientService } from '@/services';
 import { useClients } from '@/hooks/use-clients';
 import { ClientDetailsTab } from '@/components/client/ClientDetailsTab';
-import { ClientContactsTab } from '@/components/client/ClientContactsTab';
+import ClientContactsTab from '@/components/client/ClientContactsTab';
 import { ClientSitesTab } from '@/components/client/ClientSitesTab';
 import { ClientContractsTab } from '@/components/client/ClientContractsTab';
 import { ClientStatus } from '@/types/database-schema';

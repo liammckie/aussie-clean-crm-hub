@@ -1,8 +1,9 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { unifiedService } from '@/services/unified/service';
-import { isApiError } from '@/types/api-response';
 import { EntityType, toDatabaseEntityType } from '@/types/form-types';
+import { isApiError } from '@/types/api-response';
+import { ErrorReporting } from '@/utils/errorReporting';
 
 /**
  * Hook for fetching addresses for a specific entity
@@ -18,7 +19,7 @@ export function useUnifiedAddresses(entityType: EntityType, entityId: string | u
         throw new Error('Entity ID is required');
       }
       
-      const response = await unifiedService.getAddresses(
+      const response = await unifiedService.getEntityAddresses(
         toDatabaseEntityType(entityType),
         entityId
       );
@@ -47,7 +48,7 @@ export function useUnifiedAddress(addressId: string | undefined) {
         throw new Error('Address ID is required');
       }
       
-      const response = await unifiedService.getAddress(addressId);
+      const response = await unifiedService.getAddressById(addressId);
       
       if (isApiError(response)) {
         throw new Error(response.message);

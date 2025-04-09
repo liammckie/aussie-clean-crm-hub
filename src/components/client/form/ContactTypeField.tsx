@@ -25,11 +25,11 @@ interface ContactTypeFieldProps {
 export function ContactTypeField({ form, availableTypes }: ContactTypeFieldProps) {
   // Default contact types to use if not provided
   const defaultTypes: ContactType[] = [
-    'Primary',
-    'Billing',
-    'Operations',
-    'Technical',
-    'Emergency'
+    ContactType.PRIMARY,
+    ContactType.BILLING,
+    ContactType.OPERATIONS,
+    ContactType.TECHNICAL,
+    ContactType.EMERGENCY
   ];
 
   const types = availableTypes || defaultTypes;
@@ -43,7 +43,7 @@ export function ContactTypeField({ form, availableTypes }: ContactTypeFieldProps
           <FormLabel>Contact Type</FormLabel>
           <Select
             onValueChange={field.onChange}
-            value={field.value || 'Primary'}
+            value={field.value || ContactType.PRIMARY}
           >
             <FormControl>
               <SelectTrigger>
@@ -53,7 +53,7 @@ export function ContactTypeField({ form, availableTypes }: ContactTypeFieldProps
             <SelectContent>
               {types.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {type}
+                  {type.charAt(0).toUpperCase() + type.slice(1)}
                 </SelectItem>
               ))}
             </SelectContent>

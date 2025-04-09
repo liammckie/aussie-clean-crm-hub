@@ -15,27 +15,30 @@ export type MutationOptions<T> = {
 /**
  * Hook for contract-related queries and mutations
  */
-export function useContracts() {
+export function useContracts(clientId?: string) {
   const queryClient = useQueryClient();
 
-  const getContracts = useQuery({
-    queryKey: ['contracts'],
+  const contractsQuery = useQuery({
+    queryKey: ['contracts', clientId],
     queryFn: async () => {
-      const response = await contractService.getContracts();
+      const response = clientId 
+        ? await contractService.getClientContracts(clientId)
+        : await contractService.getAllContracts();
       
       if (isApiError(response)) {
         throw new Error(response.message);
       }
       
       return response.data;
-    }
+    },
+    enabled: clientId ? !!clientId : true
   });
 
   const getContractsByClientId = (clientId: string) => {
     return useQuery({
       queryKey: ['contracts', 'client', clientId],
       queryFn: async () => {
-        const response = await contractService.getContractsByClientId(clientId);
+        const response = await contractService.getClientContracts(clientId);
         
         if (isApiError(response)) {
           throw new Error(response.message);
@@ -108,7 +111,14 @@ export function useContracts() {
   });
 
   return {
-    getContracts,
+    // Return the contracts data from the query
+    contracts: contractsQuery.data,
+    isLoadingContracts: contractsQuery.isLoading,
+    contractsError: contractsQuery.error,
+    refetchContracts: contractsQuery.refetch,
+    
+    // Original methods
+    getContracts: contractsQuery,
     getContractsByClientId,
     createContract: createContract.mutate,
     updateContract: updateContract.mutate,

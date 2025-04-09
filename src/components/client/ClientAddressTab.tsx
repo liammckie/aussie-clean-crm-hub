@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback } from 'react';
 import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { Button } from '@/components/ui/button';
@@ -22,8 +23,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AddressType, EntityType } from '@/types/database-schema';
-import { UnifiedAddressRecord } from '@/services/address/types';
+import { AddressType } from '@/types/database-schema';
+import { EntityType } from '@/types/form-types';
+import { UnifiedAddressRecord } from '@/services/unified/types';
 import { useTypedTransition } from '@/hooks/use-suspense-transition';
 import { AppLogger, LogCategory } from '@/utils/logging';
 

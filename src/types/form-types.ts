@@ -1,22 +1,27 @@
 
+import { z } from 'zod';
 import { AddressType as DatabaseAddressType, ContactType as DatabaseContactType, EntityType as DatabaseEntityType } from "@/types/database-schema";
 
-// Form-specific types for contact forms
+// Form-specific types for contact forms - align with DatabaseContactType
 export enum ContactType {
-  PRIMARY = 'Primary',
-  BILLING = 'Billing',
-  OPERATIONS = 'Operations',
-  TECHNICAL = 'Technical',
-  EMERGENCY = 'Emergency'
+  PRIMARY = 'primary',
+  BILLING = 'billing',
+  OPERATIONS = 'operations',
+  TECHNICAL = 'technical',
+  EMERGENCY = 'emergency',
+  SALES = 'sales',
+  SUPPORT = 'support',
+  MANAGER = 'manager',
+  OTHER = 'other'
 }
 
 // Form-specific types for address forms
 export enum AddressType {
-  BILLING = 'Billing',
-  SHIPPING = 'Shipping',
-  PHYSICAL = 'Physical',
-  POSTAL = 'Postal',
-  REGISTERED = 'Registered'
+  BILLING = 'billing',
+  SHIPPING = 'shipping',
+  PHYSICAL = 'physical',
+  POSTAL = 'postal',
+  REGISTERED = 'registered'
 }
 
 export enum EntityType {
@@ -24,28 +29,26 @@ export enum EntityType {
   SUPPLIER = 'supplier',
   EMPLOYEE = 'employee',
   SITE = 'site',
-  INTERNAL = 'internal'
+  INTERNAL = 'internal',
+  CONTACT = 'contact'
 }
 
 // Adapter functions to convert between form and database types
 export function toDatabaseContactType(formType: ContactType): DatabaseContactType {
-  const mapping: Record<ContactType, DatabaseContactType> = {
-    [ContactType.PRIMARY]: 'primary',
-    [ContactType.BILLING]: 'billing',
-    [ContactType.OPERATIONS]: 'operations',
-    [ContactType.TECHNICAL]: 'technical',
-    [ContactType.EMERGENCY]: 'emergency'
-  };
-  return mapping[formType];
+  return formType.toLowerCase() as DatabaseContactType;
 }
 
 export function toFormContactType(dbType: DatabaseContactType): ContactType {
-  const mapping: Record<DatabaseContactType, ContactType> = {
+  const mapping: Record<string, ContactType> = {
     'primary': ContactType.PRIMARY,
     'billing': ContactType.BILLING,
     'operations': ContactType.OPERATIONS,
     'technical': ContactType.TECHNICAL,
-    'emergency': ContactType.EMERGENCY
+    'emergency': ContactType.EMERGENCY,
+    'sales': ContactType.SALES,
+    'support': ContactType.SUPPORT,
+    'manager': ContactType.MANAGER,
+    'other': ContactType.OTHER
   };
   return mapping[dbType];
 }
@@ -55,12 +58,13 @@ export function toDatabaseEntityType(formType: EntityType): DatabaseEntityType {
 }
 
 export function toFormEntityType(dbType: DatabaseEntityType): EntityType {
-  const mapping: Record<DatabaseEntityType, EntityType> = {
+  const mapping: Record<string, EntityType> = {
     'client': EntityType.CLIENT,
     'supplier': EntityType.SUPPLIER,
     'employee': EntityType.EMPLOYEE,
     'site': EntityType.SITE,
-    'internal': EntityType.INTERNAL
+    'internal': EntityType.INTERNAL,
+    'contact': EntityType.CONTACT
   };
   return mapping[dbType];
 }
@@ -97,3 +101,49 @@ export interface UnifiedContactFormData {
 
 // Export the AddressFormData for backward compatibility
 export type AddressFormData = UnifiedAddressFormData;
+
+// Add the missing schema and helper for UnifiedContactForm
+export const unifiedContactSchema = z.object({
+  name: z.string().min(1, 'Name is required'),
+  email: z.string().email('Invalid email format'),
+  phone: z.string().optional(),
+  mobile: z.string().optional(),
+  position: z.string().optional(),
+  contact_type: z.nativeEnum(ContactType),
+  is_primary: z.boolean().default(false),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  title: z.string().optional(),
+  company: z.string().optional(),
+  account_manager: z.string().optional(),
+  state_manager: z.string().optional(),
+  national_manager: z.string().optional(),
+});
+
+// Add the missing enum for preferred communication
+export enum PreferredCommunication {
+  EMAIL = 'Email',
+  PHONE = 'Phone',
+  MOBILE = 'Mobile',
+  MAIL = 'Mail'
+}
+
+// Create default values helper for contact form
+export function createDefaultContactValues(initialData?: Partial<UnifiedContactFormData>): UnifiedContactFormData {
+  return {
+    name: initialData?.name || '',
+    email: initialData?.email || '',
+    phone: initialData?.phone || '',
+    mobile: initialData?.mobile || '',
+    position: initialData?.position || '',
+    contact_type: initialData?.contact_type || ContactType.PRIMARY,
+    is_primary: initialData?.is_primary || false,
+    first_name: initialData?.first_name || '',
+    last_name: initialData?.last_name || '',
+    title: initialData?.title || '',
+    company: initialData?.company || '',
+    account_manager: initialData?.account_manager || '',
+    state_manager: initialData?.state_manager || '',
+    national_manager: initialData?.national_manager || '',
+  };
+}
