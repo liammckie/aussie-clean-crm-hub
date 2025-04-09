@@ -48,7 +48,7 @@ export function ContactForm({ onSubmit, isLoading = false, initialData = {} }: C
       position: initialData.position || '',
       phone: initialData.phone || '',
       mobile: initialData.mobile || '',
-      contact_type: initialData.contact_type || ContactType.PRIMARY,
+      contact_type: (initialData.contact_type as 'primary' | 'billing' | 'operations' | 'emergency' | 'technical') || 'primary',
       is_primary: initialData.is_primary || false,
     }
   });
@@ -64,11 +64,11 @@ export function ContactForm({ onSubmit, isLoading = false, initialData = {} }: C
   };
 
   const contactTypes = [
-    { value: ContactType.PRIMARY, label: 'Primary' },
-    { value: ContactType.BILLING, label: 'Billing' },
-    { value: ContactType.OPERATIONS, label: 'Operations' }, 
-    { value: ContactType.TECHNICAL, label: 'Technical' },
-    { value: ContactType.EMERGENCY, label: 'Emergency' }
+    { value: 'primary', label: 'Primary' },
+    { value: 'billing', label: 'Billing' },
+    { value: 'operations', label: 'Operations' }, 
+    { value: 'technical', label: 'Technical' },
+    { value: 'emergency', label: 'Emergency' }
   ];
 
   return (

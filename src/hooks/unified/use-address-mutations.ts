@@ -98,14 +98,16 @@ export function useAddressMutations() {
         throw new Error(response.message);
       }
 
-      return response.data;
+      // Return success response properly
+      return response.data || { success: true, id: addressId };
     },
     onSuccess: (data) => {
       // Since we don't know the entity type and ID here, invalidate all address queries
       queryClient.invalidateQueries({
         queryKey: ['unified-addresses'],
       });
-      AppLogger.info(LogCategory.ADDRESS, 'Address deleted successfully', { addressId: data.id });
+      const addressId = 'id' in data ? data.id : 'unknown';
+      AppLogger.info(LogCategory.ADDRESS, 'Address deleted successfully', { addressId });
     },
     onError: (error, variables) => {
       AppLogger.error(LogCategory.ADDRESS, `Failed to delete address: ${error.message}`, {

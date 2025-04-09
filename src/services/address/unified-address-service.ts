@@ -1,527 +1,233 @@
-import { AddressType, ContactType, EntityType } from '@/types/database-schema';
+
+// Import necessary modules and types
 import { supabase } from '@/integrations/supabase/client';
-import {
-  UnifiedAddressFormData,
-  UnifiedAddressRecord,
-  UnifiedContactFormData,
-  UnifiedContactRecord,
-  AddressesApiResponse,
-  AddressApiResponse,
-  ContactsApiResponse,
-  ContactApiResponse
-} from './types';
-import { ApiResponse, createSuccessResponse, createErrorResponse, isApiSuccess } from '@/types/api-response';
+import { ApiResponse, createSuccessResponse, createErrorResponse } from '@/types/api-response';
+import { AddressFormData, UnifiedAddressRecord } from '@/types/form-types';
+import { AddressType, EntityType } from '@/types/database-schema'; 
 import { ErrorCategory } from '@/utils/logging/error-types';
 
 /**
- * Unified Address Service
- *
- * This service provides methods for managing unified addresses and contacts,
- * abstracting the data layer and providing a consistent API for the application.
+ * Unified address service for managing addresses across different entity types
  */
 export const unifiedAddressService = {
   /**
-   * Get all addresses for a given entity (e.g., client, site, etc.)
-   * @param entityType The type of entity (e.g., 'client', 'site')
-   * @param entityId The ID of the entity
-   * @returns Promise<AddressesApiResponse>
-   */
-  getAddresses: async (entityType: EntityType, entityId: string): Promise<AddressesApiResponse> => {
-    try {
-      const { data, error } = await supabase
-        .from('unified_addresses')
-        .select('*')
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to get addresses for ${entityType} ${entityId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedAddressRecord[]);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to get addresses for ${entityType} ${entityId}: ${error.message}`,
-        { error: error.message }
-      );
-    }
-  },
-
-  /**
-   * Get a single address by ID
-   * @param addressId The ID of the address to retrieve
-   * @returns Promise<AddressApiResponse>
-   */
-  getAddress: async (addressId: string): Promise<AddressApiResponse> => {
-    try {
-      const { data, error } = await supabase
-        .from('unified_addresses')
-        .select('*')
-        .eq('id', addressId)
-        .single();
-
-      if (error) {
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to get address ${addressId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedAddressRecord);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to get address ${addressId}: ${error.message}`,
-        { error: error.message }
-      );
-    }
-  },
-
-  /**
-   * Get the primary address for a given entity
-   * @param entityType The type of entity (e.g., 'client', 'site')
-   * @param entityId The ID of the entity
-   */
-  getPrimaryAddress: async (entityType: EntityType, entityId: string): Promise<AddressApiResponse> => {
-    try {
-      const { data, error } = await supabase
-        .from('unified_addresses')
-        .select('*')
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .eq('is_primary', true)
-        .single();
-
-      if (error) {
-        // If no primary address is found, return a success with null data
-        if (error.message.includes('No rows found')) {
-          return createSuccessResponse(null);
-        }
-
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to get primary address for ${entityType} ${entityId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedAddressRecord);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to get primary address for ${entityType} ${entityId}: ${error.message}`,
-        { error: error.message }
-      );
-    }
-  },
-
-  /**
-   * Create a new address for a given entity
-   * @param entityType The type of entity (e.g., 'client', 'site')
-   * @param entityId The ID of the entity
-   * @param addressData The address data to create
-   * @returns Promise<AddressApiResponse>
+   * Create a new address for an entity
    */
   createAddress: async (
-    entityType: EntityType,
-    entityId: string,
-    addressData: Omit<UnifiedAddressFormData, 'entity_type' | 'entity_id'>
-  ): Promise<AddressApiResponse> => {
+    entityType: EntityType, 
+    entityId: string, 
+    addressData: Omit<AddressFormData, 'entity_type' | 'entity_id'>
+  ): Promise<ApiResponse<UnifiedAddressRecord>> => {
     try {
-      // Consolidate entity information into the address data
-      const newAddress: UnifiedAddressFormData = {
-        ...addressData,
-        entity_type: entityType,
-        entity_id: entityId
-      } as UnifiedAddressFormData;
-
-      const { data, error } = await supabase
-        .from('unified_addresses')
-        .insert([newAddress])
-        .select('*')
-        .single();
-
-      if (error) {
+      // Validate required fields
+      if (!addressData.address_line_1) {
         return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to create address for ${entityType} ${entityId}: ${error.message}`,
-          { error }
+          ErrorCategory.VALIDATION,
+          'Address line 1 is required',
+          { field: 'address_line_1' }
         );
       }
-
-      return createSuccessResponse(data as UnifiedAddressRecord);
-    } catch (error: any) {
+      
+      if (!addressData.suburb) {
+        return createErrorResponse(
+          ErrorCategory.VALIDATION,
+          'Suburb is required',
+          { field: 'suburb' }
+        );
+      }
+      
+      if (!addressData.state) {
+        return createErrorResponse(
+          ErrorCategory.VALIDATION,
+          'State is required',
+          { field: 'state' }
+        );
+      }
+      
+      if (!addressData.postcode) {
+        return createErrorResponse(
+          ErrorCategory.VALIDATION,
+          'Postcode is required',
+          { field: 'postcode' }
+        );
+      }
+      
+      // Check if this is set as primary address and handle accordingly
+      if (addressData.is_primary) {
+        // If setting as primary, update other addresses to not be primary
+        if (entityId) {
+          const { error: updateError } = await supabase
+            .from('unified_addresses')
+            .update({ is_primary: false })
+            .match({ entity_type: entityType, entity_id: entityId });
+            
+          if (updateError) {
+            console.warn('Error updating existing primary addresses:', updateError);
+          }
+        }
+      }
+      
+      // Create address record
+      const { data, error } = await supabase
+        .from('unified_addresses')
+        .insert({
+          entity_type: entityType,
+          entity_id: entityId,
+          address_type: addressData.address_type,
+          address_line_1: addressData.address_line_1,
+          address_line_2: addressData.address_line_2 || null,
+          suburb: addressData.suburb,
+          state: addressData.state,
+          postcode: addressData.postcode,
+          country: addressData.country || 'Australia',
+          is_primary: Boolean(addressData.is_primary),
+          name: addressData.name || null,
+          latitude: addressData.latitude || null,
+          longitude: addressData.longitude || null,
+          notes: addressData.notes || null
+        })
+        .select()
+        .single();
+      
+      if (error) {
+        console.error('Error creating address:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
+      }
+      
+      return createSuccessResponse(
+        data,
+        'Address created successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error creating address:', err);
       return createErrorResponse(
         ErrorCategory.SERVER,
-        `Failed to create address for ${entityType} ${entityId}: ${error.message}`,
-        { error: error.message }
+        'An unexpected error occurred while creating the address'
       );
     }
   },
-
+  
   /**
    * Update an existing address
-   * @param addressId The ID of the address to update
-   * @param addressData The address data to update
-   * @returns Promise<AddressApiResponse>
    */
-  updateAddress: async (
-    addressId: string,
-    addressData: Partial<UnifiedAddressFormData>
-  ): Promise<AddressApiResponse> => {
+  updateAddress: async (addressId: string, addressData: Partial<AddressFormData>): Promise<ApiResponse<UnifiedAddressRecord>> => {
     try {
+      // If setting as primary, first get entity info to update other addresses
+      if (addressData.is_primary) {
+        const { data: addressInfo } = await supabase
+          .from('unified_addresses')
+          .select('entity_type, entity_id')
+          .eq('id', addressId)
+          .single();
+          
+        if (addressInfo) {
+          const { error: updateError } = await supabase
+            .from('unified_addresses')
+            .update({ is_primary: false })
+            .match({ 
+              entity_type: addressInfo.entity_type, 
+              entity_id: addressInfo.entity_id 
+            })
+            .neq('id', addressId);
+            
+          if (updateError) {
+            console.warn('Error updating existing primary addresses:', updateError);
+          }
+        }
+      }
+      
+      // Update address record
       const { data, error } = await supabase
         .from('unified_addresses')
         .update(addressData)
         .eq('id', addressId)
-        .select('*')
+        .select()
         .single();
-
+      
       if (error) {
+        console.error('Error updating address:', error);
         return createErrorResponse(
           ErrorCategory.DATABASE,
-          `Failed to update address ${addressId}: ${error.message}`,
-          { error }
+          error.message
         );
       }
-
-      return createSuccessResponse(data as UnifiedAddressRecord);
-    } catch (error: any) {
+      
+      return createSuccessResponse(
+        data,
+        'Address updated successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error updating address:', err);
       return createErrorResponse(
         ErrorCategory.SERVER,
-        `Failed to update address ${addressId}: ${error.message}`,
-        { error: error.message }
+        'An unexpected error occurred while updating the address'
       );
     }
   },
-
+  
   /**
    * Delete an address
-   * @param addressId The ID of the address to delete
-   * @returns Promise<ApiResponse<UnifiedAddressRecord>>
    */
-  deleteAddress: async (addressId: string): Promise<ApiResponse<UnifiedAddressRecord>> => {
+  deleteAddress: async (addressId: string): Promise<ApiResponse<{ success: boolean, id: string }>> => {
+    try {
+      // Delete address record
+      const { error } = await supabase
+        .from('unified_addresses')
+        .delete()
+        .eq('id', addressId);
+      
+      if (error) {
+        console.error('Error deleting address:', error);
+        return createErrorResponse(
+          ErrorCategory.DATABASE,
+          error.message
+        );
+      }
+      
+      return createSuccessResponse(
+        { success: true, id: addressId },
+        'Address deleted successfully'
+      );
+    } catch (err) {
+      console.error('Unexpected error deleting address:', err);
+      return createErrorResponse(
+        ErrorCategory.SERVER,
+        'An unexpected error occurred while deleting the address'
+      );
+    }
+  },
+  
+  /**
+   * Get all addresses for an entity
+   */
+  getAddresses: async (entityType: EntityType, entityId: string): Promise<ApiResponse<UnifiedAddressRecord[]>> => {
     try {
       const { data, error } = await supabase
         .from('unified_addresses')
-        .delete()
-        .eq('id', addressId)
         .select()
-        .single();
-
-      if (error) {
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to delete address ${addressId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedAddressRecord);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to delete address ${addressId}: ${error.message}`,
-        { error: error.message }
-      );
-    }
-  },
-
-  /**
-   * Migrate address data from legacy tables to the unified_addresses table
-   * @param entityType The type of entity (e.g., 'client', 'site')
-   * @param entityId The ID of the entity
-   * @param legacyAddressData The legacy address data to migrate
-   */
-  migrateAddressData: async (
-    entityType: EntityType,
-    entityId: string,
-    legacyAddressData: Omit<UnifiedAddressFormData, 'entity_type' | 'entity_id' | 'address_type' | 'is_primary'>
-  ): Promise<ApiResponse<UnifiedAddressRecord>> => {
-    try {
-      // Check if address already exists
-      const existingAddresses = await unifiedAddressService.getAddresses(entityType, entityId);
-
-      if (isApiSuccess(existingAddresses) && existingAddresses.data && existingAddresses.data.length > 0) {
-        return createErrorResponse(
-          ErrorCategory.BUSINESS_LOGIC,
-          'Address already migrated',
-          { entityType, entityId }
-        );
-      }
-
-      // Check if there's any address data to migrate
-      if (
-        !legacyAddressData.address_line_1 &&
-        !legacyAddressData.address_line_2 &&
-        !legacyAddressData.suburb &&
-        !legacyAddressData.state &&
-        !legacyAddressData.postcode &&
-        !legacyAddressData.country
-      ) {
-        return createErrorResponse(
-          ErrorCategory.BUSINESS_LOGIC,
-          'No address data to migrate',
-          { entityType, entityId }
-        );
-      }
-
-      // Create the new address
-      const newAddress: UnifiedAddressFormData = {
-        ...legacyAddressData,
-        entity_type: entityType,
-        entity_id: entityId,
-        address_type: AddressType.BILLING, // Default to billing address
-        is_primary: true // Set as primary by default
-      } as UnifiedAddressFormData;
-
-      const { data, error } = await supabase
-        .from('unified_addresses')
-        .insert([newAddress])
-        .select('*')
-        .single();
-
-      if (error) {
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to migrate address for ${entityType} ${entityId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedAddressRecord);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to migrate address for ${entityType} ${entityId}: ${error.message}`,
-        { error: error.message }
-      );
-    }
-  },
-
-  /**
-   * Get all contacts for a given entity
-   * @param entityType The type of entity (e.g., 'client', 'site')
-   * @param entityId The ID of the entity
-   * @returns Promise<ContactsApiResponse>
-   */
-  getContacts: async (entityType: EntityType, entityId: string): Promise<ContactsApiResponse> => {
-    try {
-      const { data, error } = await supabase
-        .from('unified_contacts')
-        .select('*')
         .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .order('created_at', { ascending: false });
-
+        .eq('entity_id', entityId);
+      
       if (error) {
+        console.error('Error fetching addresses:', error);
         return createErrorResponse(
           ErrorCategory.DATABASE,
-          `Failed to get contacts for ${entityType} ${entityId}: ${error.message}`,
-          { error }
+          error.message
         );
       }
-
-      return createSuccessResponse(data as UnifiedContactRecord[]);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to get contacts for ${entityType} ${entityId}: ${error.message}`,
-        { error: error.message }
+      
+      return createSuccessResponse(
+        data || [],
+        'Addresses retrieved successfully'
       );
-    }
-  },
-
-  /**
-   * Get a single contact by ID
-   * @param contactId The ID of the contact to retrieve
-   * @returns Promise<ContactApiResponse>
-   */
-  getContact: async (contactId: string): Promise<ContactApiResponse> => {
-    try {
-      const { data, error } = await supabase
-        .from('unified_contacts')
-        .select('*')
-        .eq('id', contactId)
-        .single();
-
-      if (error) {
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to get contact ${contactId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedContactRecord);
-    } catch (error: any) {
+    } catch (err) {
+      console.error('Unexpected error fetching addresses:', err);
       return createErrorResponse(
         ErrorCategory.SERVER,
-        `Failed to get contact ${contactId}: ${error.message}`,
-        { error: error.message }
-      );
-    }
-  },
-
-  /**
-   * Get the primary contact for a given entity
-   * @param entityType The type of entity (e.g., 'client', 'site')
-   * @param entityId The ID of the entity
-   */
-  getPrimaryContact: async (entityType: EntityType, entityId: string): Promise<ContactApiResponse> => {
-    try {
-      const { data, error } = await supabase
-        .from('unified_contacts')
-        .select('*')
-        .eq('entity_type', entityType)
-        .eq('entity_id', entityId)
-        .eq('is_primary', true)
-        .single();
-
-      if (error) {
-        // If no primary contact is found, return a success with null data
-        if (error.message.includes('No rows found')) {
-          return createSuccessResponse(null);
-        }
-
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to get primary contact for ${entityType} ${entityId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedContactRecord);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to get primary contact for ${entityType} ${entityId}: ${error.message}`,
-        { error: error.message }
-      );
-    }
-  },
-
-  /**
-   * Create a new contact for a given entity
-   * @param entityType The type of entity (e.g., 'client', 'site')
-   * @param entityId The ID of the entity
-   * @param contactData The contact data to create
-   * @returns Promise<ContactApiResponse>
-   */
-  createContact: async (
-    entityType: EntityType,
-    entityId: string,
-    contactData: Omit<UnifiedContactFormData, 'entity_type' | 'entity_id'>
-  ): Promise<ContactApiResponse> => {
-    try {
-      // Consolidate entity information into the contact data
-      const newContact: UnifiedContactFormData = {
-        ...contactData,
-        entity_type: entityType,
-        entity_id: entityId
-      } as UnifiedContactFormData;
-
-      // Derive the contact name from first and last name
-      const contactName = `${contactData.first_name} ${contactData.last_name || ''}`.trim();
-
-      const { data, error } = await supabase
-        .from('unified_contacts')
-        .insert([{ ...newContact, name: contactName }])
-        .select('*')
-        .single();
-
-      if (error) {
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to create contact for ${entityType} ${entityId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedContactRecord);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to create contact for ${entityType} ${entityId}: ${error.message}`,
-        { error: error.message }
-      );
-    }
-  },
-
-  /**
-   * Update an existing contact
-   * @param contactId The ID of the contact to update
-   * @param contactData The contact data to update
-   * @returns Promise<ContactApiResponse>
-   */
-  updateContact: async (
-    contactId: string,
-    contactData: Partial<UnifiedContactFormData>
-  ): Promise<ContactApiResponse> => {
-    try {
-      // Derive the contact name from first and last name
-      const contactName = `${contactData.first_name} ${contactData.last_name || ''}`.trim();
-
-      const { data, error } = await supabase
-        .from('unified_contacts')
-        .update({ ...contactData, name: contactName })
-        .eq('id', contactId)
-        .select('*')
-        .single();
-
-      if (error) {
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to update contact ${contactId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedContactRecord);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to update contact ${contactId}: ${error.message}`,
-        { error: error.message }
-      );
-    }
-  },
-
-  /**
-   * Delete a contact
-   * @param contactId The ID of the contact to delete
-   * @returns Promise<ApiResponse<UnifiedContactRecord>>
-   */
-  deleteContact: async (contactId: string): Promise<ApiResponse<UnifiedContactRecord>> => {
-    try {
-      const { data, error } = await supabase
-        .from('unified_contacts')
-        .delete()
-        .eq('id', contactId)
-        .select()
-        .single();
-
-      if (error) {
-        return createErrorResponse(
-          ErrorCategory.DATABASE,
-          `Failed to delete contact ${contactId}: ${error.message}`,
-          { error }
-        );
-      }
-
-      return createSuccessResponse(data as UnifiedContactRecord);
-    } catch (error: any) {
-      return createErrorResponse(
-        ErrorCategory.SERVER,
-        `Failed to delete contact ${contactId}: ${error.message}`,
-        { error: error.message }
+        'An unexpected error occurred while fetching addresses'
       );
     }
   }

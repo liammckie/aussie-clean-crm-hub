@@ -1,12 +1,15 @@
 
 // Import types from database schema
 import { AddressFieldsFormData } from '@/components/client/form/AddressFields';
-import { AddressType, ClientStatus, ContactType, EntityType } from '@/types/database-schema';
+import { AddressType, ClientStatus, EntityType } from '@/types/database-schema';
 import { ApiResponse } from '@/types/api-response';
 import { ClientRecord } from '@/types/database-schema';
 
+// Define ContactType to match database constraints
+export type ContactType = 'primary' | 'billing' | 'operations' | 'technical' | 'emergency';
+
 // Re-export types from database schema for backward compatibility
-export { AddressType, ClientStatus, ContactType, EntityType };
+export { AddressType, ClientStatus, EntityType };
 
 // Ensure ClientFormData includes all fields from AddressFieldsFormData
 export interface ClientFormData extends AddressFieldsFormData {

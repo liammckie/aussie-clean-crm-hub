@@ -1,49 +1,50 @@
 
 import { z } from 'zod';
-import { AddressType, EntityType as DbEntityType, ContactType as DbContactType } from './database-schema';
+import { AddressType } from './database-schema';
 
-// Type for entity types - use the database schema enum
-export type EntityType = DbEntityType | 'client' | 'supplier' | 'site' | 'work_order' | 'contract';
+// Define EntityType for unified systems
+export type EntityType = 'client' | 'supplier' | 'employee' | 'site' | 'internal';
 
-// Type for contact types - consolidate with database enum eventually
-export type ContactType = 
-  | 'Primary'
-  | 'Billing'
-  | 'Operations'
-  | 'Emergency'
-  | 'Technical'
-  | 'Support'
-  | 'Sales'
-  | 'Management'
-  | 'client_primary'
-  | 'client_site'
-  | 'supplier'
-  | 'employee'
-  | 'hr_payroll'
-  | 'emergency'
-  | 'sales_lead'
-  | 'subcontractor'
-  | DbContactType; // Include database enum values
+// Define ContactType to match database constraints
+export type ContactType = 'Primary' | 'Billing' | 'Operations' | 'Technical' | 'Emergency';
 
-// Use the database schema's AddressType enum to ensure consistency
-export { AddressType } from './database-schema';
-
-// Define preferred communication type
+// Define PreferredCommunication type
 export type PreferredCommunication = 'email' | 'phone' | 'portal';
 
-// Form data for unified contact form
+// Unified Address Form Data
+export interface UnifiedAddressFormData {
+  entity_type?: EntityType;
+  entity_id?: string;
+  address_type: AddressType;
+  is_primary?: boolean;
+  name?: string;
+  address_line_1: string;
+  address_line_2?: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  country: string;
+  latitude?: number;
+  longitude?: number;
+  notes?: string;
+}
+
+// Unified Contact Form Data
 export interface UnifiedContactFormData {
+  entity_type?: EntityType;
+  entity_id?: string;
   first_name: string;
-  last_name: string;
+  last_name?: string;
+  name?: string;
   title?: string;
+  position?: string;
   email: string;
-  position?: string; // job title
-  company?: string;
   phone?: string;
-  phone_landline?: string; // Added for ContactAdditionalFields component
+  phone_landline?: string;
   mobile?: string;
+  company?: string;
   contact_type: ContactType;
-  is_primary: boolean;
+  is_primary?: boolean;
   notes?: string;
   account_manager?: string;
   state_manager?: string;
@@ -51,18 +52,18 @@ export interface UnifiedContactFormData {
   preferred_communication?: PreferredCommunication;
 }
 
-// Define contact schema using Zod for validation
+// Contact schema for form validation
 export const unifiedContactSchema = z.object({
   first_name: z.string().min(1, { message: "First name is required" }),
   last_name: z.string().optional(),
-  title: z.string().optional(),
-  email: z.string().email({ message: "Valid email is required" }),
-  position: z.string().optional(),
-  company: z.string().optional(),
+  email: z.string().email({ message: "Please enter a valid email address" }),
   phone: z.string().optional(),
   phone_landline: z.string().optional(),
   mobile: z.string().optional(),
-  contact_type: z.string().min(1, { message: "Contact type is required" }),
+  position: z.string().optional(),
+  title: z.string().optional(),
+  company: z.string().optional(),
+  contact_type: z.string(),
   is_primary: z.boolean().default(false),
   notes: z.string().optional(),
   account_manager: z.string().optional(),
@@ -71,79 +72,69 @@ export const unifiedContactSchema = z.object({
   preferred_communication: z.string().optional()
 });
 
-// Helper function to create default values for contact form
+// Helper to create default values for contact form
 export function createDefaultContactValues(initialData?: Partial<UnifiedContactFormData>): UnifiedContactFormData {
   return {
     first_name: initialData?.first_name || '',
     last_name: initialData?.last_name || '',
-    title: initialData?.title || '',
     email: initialData?.email || '',
-    position: initialData?.position || '',
-    company: initialData?.company || '',
     phone: initialData?.phone || '',
     phone_landline: initialData?.phone_landline || '',
     mobile: initialData?.mobile || '',
+    position: initialData?.position || '',
+    title: initialData?.title || '',
+    company: initialData?.company || '',
     contact_type: initialData?.contact_type || 'Primary',
-    is_primary: initialData?.is_primary === true,
+    is_primary: initialData?.is_primary || false,
     notes: initialData?.notes || '',
     account_manager: initialData?.account_manager || '',
     state_manager: initialData?.state_manager || '',
     national_manager: initialData?.national_manager || '',
-    preferred_communication: initialData?.preferred_communication || undefined,
+    preferred_communication: initialData?.preferred_communication || 'email'
   };
 }
 
-// Form data for unified address form - Ensuring field names match our AddressFields component
-export interface UnifiedAddressFormData {
+// Type for unified address record that matches database schema
+export interface UnifiedAddressRecord {
+  id: string;
+  entity_type: EntityType;
+  entity_id: string;
+  address_type: AddressType;
+  is_primary: boolean;
+  name?: string;
   address_line_1: string;
   address_line_2?: string;
   suburb: string;
   state: string;
   postcode: string;
   country: string;
-  address_type: AddressType;
-  is_primary: boolean;
   latitude?: number;
   longitude?: number;
   notes?: string;
-  name?: string;  // Added for address.ts usage
+  created_at: string;
+  updated_at: string;
 }
 
-// Define the schema for address validation, using enum values from AddressType
-export const unifiedAddressSchema = z.object({
-  address_line_1: z.string().min(1, { message: "Address line 1 is required" }),
-  address_line_2: z.string().optional(),
-  suburb: z.string().min(1, { message: "Suburb is required" }),
-  state: z.string().min(1, { message: "State is required" }),
-  postcode: z.string().min(1, { message: "Postcode is required" }),
-  country: z.string().min(1, { message: "Country is required" }),
-  address_type: z.nativeEnum(AddressType),
-  is_primary: z.boolean().default(false),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
-  notes: z.string().optional(),
-  name: z.string().optional()
-});
-
-// Helper function to create default values for address form
-export function createDefaultAddressValues(initialData?: Partial<UnifiedAddressFormData>): UnifiedAddressFormData {
-  return {
-    address_line_1: initialData?.address_line_1 || '',
-    address_line_2: initialData?.address_line_2 || '',
-    suburb: initialData?.suburb || '',
-    state: initialData?.state || '',
-    postcode: initialData?.postcode || '',
-    country: initialData?.country || 'Australia',
-    address_type: initialData?.address_type || AddressType.BILLING,
-    is_primary: initialData?.is_primary === true,
-    latitude: initialData?.latitude,
-    longitude: initialData?.longitude,
-    notes: initialData?.notes || '',
-    name: initialData?.name || '',
-  };
-}
-
-// Form data types with common fields
-export interface FormDataWithIsPrimary {
-  is_primary?: boolean;
+// Type for unified contact record that matches database schema
+export interface UnifiedContactRecord {
+  id: string;
+  entity_type: EntityType;
+  entity_id: string;
+  first_name?: string;
+  last_name?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  mobile?: string;
+  position?: string;
+  company?: string;
+  contact_type: string;
+  is_primary: boolean;
+  title?: string;
+  account_manager?: string;
+  state_manager?: string;
+  national_manager?: string;
+  created_at: string;
+  updated_at: string;
+  notes?: string;
 }

@@ -1,7 +1,7 @@
 import { ClientFormData } from "@/services/client";
 import { validationService } from "@/services/validation.service";
 import { validateContactInfo } from "./db-type-helpers";
-import { ClientStatus } from '@/types/database-schema';
+import { ClientStatus, ClientRecord } from '@/types/database-schema';
 
 /**
  * Validates business identifiers (ABN, ACN)
@@ -117,8 +117,7 @@ export function loadSampleClientData(setFormData: (data: ClientFormData) => void
     state: 'VIC',
     postcode: '3000',
     country: 'Australia',
-    phone: '+61 2 9876 5432',
-    address: 'Corporate Park, Building C',
+    phone: '+61 2 9876 5432'
   };
 
   setFormData(sampleClient);
