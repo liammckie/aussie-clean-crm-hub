@@ -28,8 +28,9 @@ export function useAddressMutations() {
       entityId: string;
       addressData: any;
     }) => {
+      const dbEntityType = toDatabaseEntityType(entityType);
       const response = await unifiedService.createAddress(
-        toDatabaseEntityType(entityType),
+        dbEntityType,
         entityId,
         addressData
       );

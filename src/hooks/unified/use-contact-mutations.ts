@@ -3,10 +3,10 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { unifiedService } from '@/services/unified';
-import { UnifiedContactFormData, EntityType } from '@/types/form-types';
+import { UnifiedContactFormData, EntityType, toDatabaseEntityType } from '@/types/form-types';
 import { ValidationErrorResponse } from '@/services/unified/types';
 import { isApiError } from '@/types/api-response';
-import { MutationOptions } from '@/hooks/use-unified-entities';
+import { MutationOptions } from '@/hooks/unified/use-address-mutations';
 
 /**
  * Hook for contact mutations (create, update, delete)
@@ -33,7 +33,8 @@ export function useContactMutations() {
         is_primary: Boolean(contactData.is_primary)
       };
       
-      const response = await unifiedService.createContact(entityType, entityId, processedData);
+      const dbEntityType = toDatabaseEntityType(entityType);
+      const response = await unifiedService.createContact(dbEntityType, entityId, processedData);
       
       if (isApiError(response)) {
         if (response.category === 'validation') {
@@ -191,4 +192,4 @@ export function useContactMutations() {
 }
 
 // Export the hook with the alias that the code expects
-export const useUnifiedContacts = useContactMutations;
+export { useContactMutations as useUnifiedContacts };

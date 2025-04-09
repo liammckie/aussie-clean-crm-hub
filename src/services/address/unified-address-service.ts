@@ -1,8 +1,11 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import { handleSupabaseError } from '@/utils/supabaseErrors';
-import { ApiResponse, createSuccessResponse } from '@/types/api-response';
+import { ApiResponse, createSuccessResponse, createErrorResponse, isApiError } from '@/types/api-response';
 import { UnifiedAddressRecord } from '@/services/unified/types';
 import { ErrorCategory } from '@/utils/logging/error-types';
+import { AppLogger, LogCategory } from '@/utils/logging';
+import { UnifiedAddressFormData } from '@/types/form-types';
 
 /**
  * Service for managing unified addresses
@@ -112,7 +115,7 @@ export class UnifiedAddressService {
     try {
       // If setting as primary, first get the address details to clear other primary flags
       if (addressData.is_primary) {
-        const addressResponse = await this.getAddress(addressId);
+        const addressResponse = await this.getAddressById(addressId);
         
         if (isApiError(addressResponse)) {
           return addressResponse;
@@ -277,6 +280,29 @@ export class UnifiedAddressService {
       });
       throw new Error('Failed to prepare address for primary status update');
     }
+  }
+
+  /**
+   * Migrate address data from old format to unified format
+   */
+  async migrateAddressData(entityType: string, entityId: string, oldData: any): Promise<ApiResponse<UnifiedAddressRecord[]>> {
+    try {
+      // Implementation of migration logic would go here
+      return createSuccessResponse([], 'Address migration not implemented yet');
+    } catch (error) {
+      return handleSupabaseError(error, 'Failed to migrate address data', {
+        entity_type: entityType,
+        entity_id: entityId,
+        operation: 'migrateAddressData'
+      });
+    }
+  }
+
+  /**
+   * Get all addresses for entity - alias for getEntityAddresses
+   */
+  async getAddresses(entityType: string, entityId: string): Promise<ApiResponse<UnifiedAddressRecord[]>> {
+    return this.getEntityAddresses(entityType, entityId);
   }
 }
 

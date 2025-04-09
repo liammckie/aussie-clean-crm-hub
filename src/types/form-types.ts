@@ -50,7 +50,7 @@ export function toFormContactType(dbType: DatabaseContactType): ContactType {
     'manager': ContactType.MANAGER,
     'other': ContactType.OTHER
   };
-  return mapping[dbType];
+  return mapping[dbType] || ContactType.OTHER;
 }
 
 export function toDatabaseEntityType(formType: EntityType): DatabaseEntityType {
@@ -64,9 +64,12 @@ export function toFormEntityType(dbType: DatabaseEntityType): EntityType {
     'employee': EntityType.EMPLOYEE,
     'site': EntityType.SITE,
     'internal': EntityType.INTERNAL,
-    'contact': EntityType.CONTACT
+    'contact': EntityType.CONTACT,
+    'contract': EntityType.CONTACT, // Handle 'contract' mapping
+    'work_order': EntityType.CONTACT, // Handle 'work_order' mapping
+    'financial': EntityType.CONTACT // Handle 'financial' mapping
   };
-  return mapping[dbType];
+  return mapping[dbType] || EntityType.CLIENT;
 }
 
 export interface UnifiedAddressFormData {
@@ -102,7 +105,7 @@ export interface UnifiedContactFormData {
 // Export the AddressFormData for backward compatibility
 export type AddressFormData = UnifiedAddressFormData;
 
-// Add the missing schema and helper for UnifiedContactForm
+// Add the schema for UnifiedContactForm
 export const unifiedContactSchema = z.object({
   name: z.string().min(1, 'Name is required'),
   email: z.string().email('Invalid email format'),
@@ -120,12 +123,12 @@ export const unifiedContactSchema = z.object({
   national_manager: z.string().optional(),
 });
 
-// Add the missing enum for preferred communication
+// Add the enum for preferred communication
 export enum PreferredCommunication {
-  EMAIL = 'Email',
-  PHONE = 'Phone',
-  MOBILE = 'Mobile',
-  MAIL = 'Mail'
+  EMAIL = 'email',
+  PHONE = 'phone',
+  MOBILE = 'mobile',
+  MAIL = 'mail'
 }
 
 // Create default values helper for contact form

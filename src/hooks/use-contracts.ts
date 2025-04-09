@@ -12,6 +12,8 @@ export type MutationOptions<T> = {
   onError?: (error: Error) => void;
 };
 
+export type ContractData = any;
+
 /**
  * Hook for contract-related queries and mutations
  */
@@ -125,6 +127,41 @@ export function useContracts(clientId?: string) {
     deleteContract: deleteContract.mutate,
     isCreatingContract: createContract.isPending,
     isUpdatingContract: updateContract.isPending,
-    isDeletingContract: deleteContract.isPending
+    isDeletingContract: deleteContract.isPending,
+    
+    // Additional methods needed by other components
+    useContractBillingLines: (contractId?: string) => {
+      return useQuery({
+        queryKey: ['contract-billing-lines', contractId],
+        queryFn: async () => {
+          if (!contractId) return [];
+          const response = await contractService.getContractBillingLines(contractId);
+          if (isApiError(response)) {
+            throw new Error(response.message);
+          }
+          return response.data;
+        },
+        enabled: !!contractId
+      });
+    },
+    
+    useContractDetails: (contractId?: string) => {
+      return useQuery({
+        queryKey: ['contract-details', contractId],
+        queryFn: async () => {
+          if (!contractId) return null;
+          const response = await contractService.getContractById(contractId);
+          if (isApiError(response)) {
+            throw new Error(response.message);
+          }
+          return response.data;
+        },
+        enabled: !!contractId
+      });
+    },
+    
+    useUpdateContract: () => updateContract,
+    
+    useCreateContract: () => createContract
   };
 }

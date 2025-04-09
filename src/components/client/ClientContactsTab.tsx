@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { PlusIcon } from 'lucide-react';
 import { ContactsList } from './ContactsList';
 import { ClientContactModal } from './ClientContactModal';
-import { UnifiedContactFormData, ContactType } from '@/types/form-types';
+import { UnifiedContactFormData, ContactType, EntityType } from '@/types/form-types';
 import { useContactMutations } from '@/hooks/unified/use-contact-mutations';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -19,7 +19,7 @@ const ClientContactsTab = ({ clientId, onContactAdded }: ClientContactsTabProps)
 
   const handleAddContact = async (contactData: UnifiedContactFormData) => {
     await createContact({
-      entityType: 'client',
+      entityType: EntityType.CLIENT,
       entityId: clientId,
       contactData
     }, {
@@ -59,16 +59,16 @@ const ClientContactsTab = ({ clientId, onContactAdded }: ClientContactsTabProps)
           <TabsTrigger value="operations">Operations</TabsTrigger>
         </TabsList>
         <TabsContent value="all">
-          <ContactsList entityType="client" entityId={clientId} />
+          <ContactsList entityType={EntityType.CLIENT} entityId={clientId} />
         </TabsContent>
         <TabsContent value="primary">
-          <ContactsList entityType="client" entityId={clientId} contactType="primary" />
+          <ContactsList entityType={EntityType.CLIENT} entityId={clientId} contactType={ContactType.PRIMARY} />
         </TabsContent>
         <TabsContent value="billing">
-          <ContactsList entityType="client" entityId={clientId} contactType="billing" />
+          <ContactsList entityType={EntityType.CLIENT} entityId={clientId} contactType={ContactType.BILLING} />
         </TabsContent>
         <TabsContent value="operations">
-          <ContactsList entityType="client" entityId={clientId} contactType="operations" />
+          <ContactsList entityType={EntityType.CLIENT} entityId={clientId} contactType={ContactType.OPERATIONS} />
         </TabsContent>
       </Tabs>
 

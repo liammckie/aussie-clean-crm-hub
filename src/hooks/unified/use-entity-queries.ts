@@ -5,6 +5,7 @@ import { EntityType } from '@/types/form-types';
 import { ApiResponse, isApiError } from '@/types/api-response';
 import { UnifiedAddressRecord, UnifiedContactRecord } from '@/services/unified/types';
 import { ErrorReporting } from '@/utils/errorReporting';
+import { toDatabaseEntityType } from '@/types/form-types';
 
 /**
  * Hook for querying unified entities (addresses and contacts)
@@ -29,7 +30,10 @@ export function useEntityQueries() {
           return [];
         }
 
-        const response = await unifiedService.getEntityAddresses(entityType, entityId);
+        const response = await unifiedService.getEntityAddresses(
+          toDatabaseEntityType(entityType), 
+          entityId
+        );
         
         if (isApiError(response)) {
           console.error('Error fetching addresses:', response);
@@ -69,7 +73,10 @@ export function useEntityQueries() {
           return [];
         }
         
-        const response = await unifiedService.getEntityContacts(entityType, entityId);
+        const response = await unifiedService.getEntityContacts(
+          toDatabaseEntityType(entityType), 
+          entityId
+        );
         
         if (isApiError(response)) {
           console.error('Error fetching contacts:', response);

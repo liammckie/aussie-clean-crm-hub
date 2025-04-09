@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
@@ -6,10 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { Form } from '@/components/ui/form';
-import { prepareClientDataForSubmission, prepareClientFormData } from '@/utils/clientUtils';
+import { parseClientData, prepareClientFormData, loadSampleClientData } from '@/utils/clientUtils';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { ClientFormFields } from '@/components/client/ClientFormFields';
-import { loadSampleClientData } from '@/utils/clientUtils';
 import { LoadSampleButton } from '@/components/ui/load-sample-button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
@@ -81,7 +81,7 @@ const NewClient = () => {
 
     setIsCreating(true);
     try {
-      const preparedData = prepareClientFormData(data);
+      const preparedData = parseClientData(data);
       console.log('Submitting client data:', preparedData);
       
       const response = await clientService.createClient(preparedData);
@@ -127,9 +127,9 @@ const NewClient = () => {
   };
 
   const handleLoadSampleData = () => {
-    loadSampleClientData(data => {
+    loadSampleClientData((data: any) => {
       Object.entries(data).forEach(([key, value]) => {
-        form.setValue(key as keyof ClientFormData, value);
+        form.setValue(key as keyof ClientFormData, value as string | number | Date);
       });
       setIsSampleLoaded(true);
     });

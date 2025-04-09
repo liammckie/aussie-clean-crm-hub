@@ -1,21 +1,19 @@
+
 import React, { useState } from 'react';
-import { useUnifiedAddresses } from '@/hooks/use-unified-addresses';
-import { EntityType } from '@/types/database-schema';
+import { useEntityQueries } from '@/hooks/unified/use-entity-queries';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { PlusCircle, Pencil, Trash2, Home } from 'lucide-react';
-import { UnifiedAddressRecord } from '@/services/address/types';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { EntityType } from '@/types/form-types';
 import { UnifiedAddressForm } from './UnifiedAddressForm';
+import { Pencil, Trash } from 'lucide-react';
 import { 
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+  DialogTitle, 
+  DialogDescription
 } from '@/components/ui/dialog';
-import {
+import { 
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -25,231 +23,209 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { formatAddressDisplay } from '@/utils/formatters';
+import { UnifiedAddressRecord } from '@/services/unified/types';
+import { useAddressMutations } from '@/hooks/unified/use-address-mutations';
 
 interface UnifiedAddressListProps {
   entityType: EntityType;
   entityId: string;
-  title?: string;
-  emptyMessage?: string;
-  showAddButton?: boolean;
 }
 
-export function UnifiedAddressList({
-  entityType,
-  entityId,
-  title = "Addresses",
-  emptyMessage = "No addresses found",
-  showAddButton = true
-}: UnifiedAddressListProps) {
+export function UnifiedAddressList({ entityType, entityId }: UnifiedAddressListProps) {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [editingAddress, setEditingAddress] = useState<UnifiedAddressRecord | null>(null);
-  const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
-  
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [selectedAddress, setSelectedAddress] = useState<UnifiedAddressRecord | null>(null);
+
+  // Get entity queries and address mutations
+  const { useEntityAddresses } = useEntityQueries();
+  const addressQuery = useEntityAddresses(entityType, entityId);
   const { 
-    addresses, 
-    isLoading, 
     createAddress, 
-    updateAddress,
+    updateAddress, 
     deleteAddress,
-    isCreating,
-    isUpdating,
-    isDeleting
-  } = useUnifiedAddresses(entityType, entityId, {
-    onAddressCreated: () => setIsAddDialogOpen(false),
-    onAddressUpdated: () => setEditingAddress(null)
-  });
-
-  const addressesList = Array.isArray(addresses) ? addresses : [];
-
-  const handleAddAddress = (data: any) => {
-    createAddress(data);
-  };
-
-  const handleUpdateAddress = (data: any) => {
-    if (editingAddress) {
-      updateAddress({ addressId: editingAddress.id, addressData: data });
-    }
-  };
-
-  const handleDeleteConfirm = () => {
-    if (addressToDelete) {
-      deleteAddress(addressToDelete);
-      setAddressToDelete(null);
-    }
-  };
-
-  const renderAddressItem = (address: UnifiedAddressRecord) => {
-    const addressDisplay = formatAddressDisplay(address);
-
-    return (
-      <Card key={address.id} className="mb-4">
-        <CardHeader className="pb-2">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              {address.name && <span className="font-medium">{address.name}</span>}
-              <Badge>{address.address_type}</Badge>
-              {address.is_primary && (
-                <Badge variant="outline" className="bg-primary/10 text-primary flex items-center gap-1">
-                  <Home className="h-3 w-3" />
-                  Primary
-                </Badge>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                onClick={() => setEditingAddress(address)}
-                title="Edit address"
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon"
-                onClick={() => setAddressToDelete(address.id)}
-                title="Delete address"
-                disabled={address.is_primary && addresses.length > 1}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent className="py-2">
-          <div className="text-sm">
-            {addressDisplay.map((line, i) => (
-              <div key={i}>{line}</div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+    isCreatingAddress,
+    isUpdatingAddress,
+    isDeletingAddress
+  } = useAddressMutations();
+  
+  const addresses = addressQuery.data || [];
+  const isLoading = addressQuery.isLoading;
+  const error = addressQuery.error;
+  
+  // Handle add new address
+  const handleAddAddress = async (data: any) => {
+    await createAddress(
+      { 
+        entityType, 
+        entityId, 
+        addressData: data 
+      }, 
+      {
+        onSuccess: () => {
+          setIsAddDialogOpen(false);
+          addressQuery.refetch();
+        }
+      }
     );
+  };
+
+  // Handle edit address
+  const handleEditAddress = async (data: any) => {
+    if (!selectedAddress) return;
+    
+    await updateAddress(
+      { 
+        addressId: selectedAddress.id, 
+        addressData: data 
+      },
+      {
+        onSuccess: () => {
+          setIsEditDialogOpen(false);
+          setSelectedAddress(null);
+          addressQuery.refetch();
+        }
+      }
+    );
+  };
+
+  // Handle delete address
+  const handleDeleteAddress = async () => {
+    if (!selectedAddress) return;
+    
+    await deleteAddress(
+      { addressId: selectedAddress.id },
+      {
+        onSuccess: () => {
+          setIsDeleteDialogOpen(false);
+          setSelectedAddress(null);
+          addressQuery.refetch();
+        }
+      }
+    );
+  };
+
+  // Handle edit button click
+  const handleEditClick = (address: UnifiedAddressRecord) => {
+    setSelectedAddress(address);
+    setIsEditDialogOpen(true);
+  };
+
+  // Handle delete button click
+  const handleDeleteClick = (address: UnifiedAddressRecord) => {
+    setSelectedAddress(address);
+    setIsDeleteDialogOpen(true);
   };
 
   if (isLoading) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{title}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    return <div className="text-center p-4">Loading addresses...</div>;
+  }
+
+  if (error) {
+    return <div className="text-red-500 p-4">Error loading addresses: {error.message}</div>;
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">{title}</h3>
-        {showAddButton && (
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => setIsAddDialogOpen(true)}
-            className="flex items-center gap-1"
-          >
-            <PlusCircle className="h-4 w-4" />
-            Add Address
-          </Button>
-        )}
+      <div className="flex justify-between mb-4">
+        <h3 className="text-lg font-semibold">Addresses</h3>
+        <Button onClick={() => setIsAddDialogOpen(true)}>Add Address</Button>
       </div>
 
-      {addressesList.length === 0 ? (
+      {addresses.length === 0 ? (
         <Card>
-          <CardContent className="py-8 text-center text-muted-foreground">
-            {emptyMessage}
+          <CardContent className="p-4 text-center text-gray-500">
+            No addresses found. Click "Add Address" to create one.
           </CardContent>
-          {showAddButton && (
-            <CardFooter className="flex justify-center pb-6 pt-0">
-              <Button 
-                variant="outline" 
-                onClick={() => setIsAddDialogOpen(true)}
-                className="flex items-center gap-1"
-              >
-                <PlusCircle className="h-4 w-4" />
-                Add Address
-              </Button>
-            </CardFooter>
-          )}
         </Card>
       ) : (
-        <div>
-          {addressesList.map(address => renderAddressItem(address))}
+        <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+          {addresses.map((address) => (
+            <Card key={address.id}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex justify-between items-center">
+                  <span>{address.address_type.charAt(0).toUpperCase() + address.address_type.slice(1)} Address</span>
+                  {address.is_primary && (
+                    <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">Primary</span>
+                  )}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p>{address.address_line_1}</p>
+                {address.address_line_2 && <p>{address.address_line_2}</p>}
+                <p>
+                  {address.suburb}, {address.state} {address.postcode}
+                </p>
+                <p>{address.country}</p>
+
+                <div className="mt-4 flex justify-end space-x-2">
+                  <Button variant="outline" size="sm" onClick={() => handleEditClick(address)}>
+                    <Pencil className="h-4 w-4 mr-1" />
+                    Edit
+                  </Button>
+                  <Button variant="outline" size="sm" className="text-red-500" onClick={() => handleDeleteClick(address)}>
+                    <Trash className="h-4 w-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
+      {/* Add Address Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Add New Address</DialogTitle>
             <DialogDescription>
-              Add an address for this entity. You can set it as the primary address.
+              Enter the address details below.
             </DialogDescription>
           </DialogHeader>
           <UnifiedAddressForm 
             onSubmit={handleAddAddress} 
-            isLoading={isCreating}
-            buttonText="Add Address"
+            isLoading={isCreatingAddress} 
           />
         </DialogContent>
       </Dialog>
 
-      <Dialog 
-        open={editingAddress !== null} 
-        onOpenChange={(open) => !open && setEditingAddress(null)}
-      >
-        <DialogContent className="max-w-lg">
+      {/* Edit Address Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Edit Address</DialogTitle>
             <DialogDescription>
-              Update the address information.
+              Update the address details below.
             </DialogDescription>
           </DialogHeader>
-          {editingAddress && (
+          {selectedAddress && (
             <UnifiedAddressForm 
-              initialData={{
-                address_line_1: editingAddress.address_line_1,
-                address_line_2: editingAddress.address_line_2,
-                suburb: editingAddress.suburb,
-                state: editingAddress.state,
-                postcode: editingAddress.postcode,
-                country: editingAddress.country,
-                address_type: editingAddress.address_type,
-                is_primary: editingAddress.is_primary,
-                name: editingAddress.name
-              }}
-              onSubmit={handleUpdateAddress} 
-              isLoading={isUpdating}
-              buttonText="Update Address"
+              onSubmit={handleEditAddress} 
+              isLoading={isUpdatingAddress}
+              initialData={selectedAddress}
             />
           )}
         </DialogContent>
       </Dialog>
 
-      <AlertDialog 
-        open={addressToDelete !== null}
-        onOpenChange={(open) => !open && setAddressToDelete(null)}
-      >
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the address.
+              This action cannot be undone. This will permanently delete the address from our servers.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleDeleteConfirm}
-              disabled={isDeleting}
+              onClick={handleDeleteAddress}
+              disabled={isDeletingAddress}
+              className="bg-red-600 hover:bg-red-700"
             >
-              {isDeleting ? 'Deleting...' : 'Delete'}
+              {isDeletingAddress ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -257,5 +233,3 @@ export function UnifiedAddressList({
     </div>
   );
 }
-
-export default UnifiedAddressList;

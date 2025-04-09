@@ -1,54 +1,31 @@
 
 import React from 'react';
-import { useUnifiedEntities } from '@/hooks/use-unified-entities';
-import { EntityType } from '@/types/form-types';
-import { Badge } from '@/components/ui/badge';
+import { useEntityQueries } from '@/hooks/unified/use-entity-queries';
+import { EntityType, ContactType } from '@/types/form-types';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Pencil, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
+import { Edit2, Trash2 } from 'lucide-react';
 import { UnifiedContactRecord } from '@/services/unified/types';
 
-export interface ContactsListProps {
-  entityType: string;
+interface ContactsListProps {
+  entityType: EntityType;
   entityId: string;
-  contactType?: string;
-  onEdit?: (contact: UnifiedContactRecord) => void;
-  onDelete?: (contactId: string) => void;
+  contactType?: ContactType;
 }
 
-export function ContactsList({ 
-  entityType, 
-  entityId, 
-  contactType,
-  onEdit,
-  onDelete
-}: ContactsListProps) {
-  const { useEntityContacts, deleteContact, isDeletingContact } = useUnifiedEntities();
+export function ContactsList({ entityType, entityId, contactType }: ContactsListProps) {
+  const { useEntityContacts } = useEntityQueries();
+  const { data: contacts, isLoading, error } = useEntityContacts(entityType, entityId);
 
-  const { data: contacts = [], isLoading, error } = useEntityContacts(
-    entityType as EntityType, 
-    entityId,
-    { enabled: !!entityId }
-  );
-
-  const filteredContacts = contactType 
-    ? contacts.filter(contact => contact.contact_type === contactType.toLowerCase())
-    : contacts;
-
-  const handleDelete = async (contactId: string) => {
-    if (!onDelete) {
-      if (window.confirm('Are you sure you want to delete this contact?')) {
-        try {
-          await deleteContact({ contactId });
-          toast.success('Contact deleted successfully');
-        } catch (error) {
-          toast.error(`Failed to delete contact: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-      }
-    } else {
-      onDelete(contactId);
-    }
-  };
+  // Filter contacts by type if specified
+  const filteredContacts = React.useMemo(() => {
+    if (!contacts) return [];
+    if (!contactType) return contacts;
+    
+    return contacts.filter(contact => 
+      contact.contact_type?.toLowerCase() === contactType.toLowerCase()
+    );
+  }, [contacts, contactType]);
 
   if (isLoading) {
     return <div className="text-center py-4">Loading contacts...</div>;
@@ -62,71 +39,61 @@ export function ContactsList({
     );
   }
 
-  if (filteredContacts.length === 0) {
+  if (!filteredContacts.length) {
     return (
-      <div className="text-center py-8 border rounded-md">
-        <p className="text-gray-500">No contacts found</p>
+      <div className="text-center py-4 text-gray-500">
+        No {contactType ? contactType.toLowerCase() + " " : ""}contacts found.
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
       {filteredContacts.map((contact) => (
-        <div key={contact.id} className="p-4 border rounded-md shadow-sm">
-          <div className="flex justify-between items-start">
-            <div>
-              <div className="flex items-center gap-2">
-                <h4 className="font-medium">
-                  {contact.first_name || contact.last_name 
-                    ? `${contact.first_name || ''} ${contact.last_name || ''}` 
-                    : contact.name}
-                </h4>
-                {contact.is_primary && (
-                  <Badge variant="outline" className="text-xs">Primary</Badge>
-                )}
-                {contact.contact_type && (
-                  <Badge variant="secondary" className="text-xs">
-                    {contact.contact_type.charAt(0).toUpperCase() + contact.contact_type.slice(1)}
-                  </Badge>
-                )}
-              </div>
-              {contact.position && (
-                <p className="text-sm text-muted-foreground">{contact.position}</p>
-              )}
-              <p className="text-sm mt-1">{contact.email}</p>
-              {contact.phone && (
-                <p className="text-sm">{contact.phone}</p>
-              )}
-              {contact.mobile && (
-                <p className="text-sm">Mobile: {contact.mobile}</p>
-              )}
-            </div>
-            
-            <div className="flex space-x-2">
-              {onEdit && (
-                <Button
-                  variant="outline"
-                  size="icon"
-                  onClick={() => onEdit(contact)}
-                  className="h-8 w-8"
-                >
-                  <Pencil className="h-4 w-4" />
-                </Button>
-              )}
-              <Button
-                variant="outline"
-                size="icon"
-                onClick={() => handleDelete(contact.id)}
-                disabled={isDeletingContact}
-                className="h-8 w-8 text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
+        <ContactCard key={contact.id} contact={contact} />
       ))}
     </div>
+  );
+}
+
+interface ContactCardProps {
+  contact: UnifiedContactRecord;
+}
+
+function ContactCard({ contact }: ContactCardProps) {
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="flex justify-between items-start">
+          <div>
+            <h4 className="font-medium">{contact.name}</h4>
+            <p className="text-sm text-gray-500">{contact.position || 'No position'}</p>
+            <p className="text-sm mt-2">{contact.email}</p>
+            {contact.phone && <p className="text-sm">{contact.phone}</p>}
+            {contact.mobile && <p className="text-sm">{contact.mobile}</p>}
+            {contact.contact_type && (
+              <div className="mt-2">
+                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  {contact.contact_type}
+                </span>
+                {contact.is_primary && (
+                  <span className="ml-2 inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                    Primary
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          <div className="flex space-x-2">
+            <Button size="sm" variant="outline">
+              <Edit2 className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="outline" className="text-red-500">
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
