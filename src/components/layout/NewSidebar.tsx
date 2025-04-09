@@ -1,76 +1,122 @@
 
-import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { useLocation } from 'react-router-dom';
-import {
-  BarChart3,
-  Building,
-  ClipboardCheck,
-  Database,
-  FileText,
-  Home,
-  LayoutDashboard,
-  Map,
-  Truck,
-  Contact,
+import { 
+  Home, 
+  Users, 
+  FileText, 
+  Package, 
+  Briefcase, 
+  Map, 
+  Calendar, 
   Settings,
-  Activity,
-  DollarSign,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  BarChart,
+  Database
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { useAuth } from '@/contexts/AuthContext';
+import { cn } from '@/lib/utils';
 
 interface NewSidebarProps {
-  expanded?: boolean;
-  onToggle?: () => void;
+  expanded: boolean;
+  onToggle: () => void;
 }
 
 export function NewSidebar({ expanded, onToggle }: NewSidebarProps) {
-  const location = useLocation();
-  const currentPath = location.pathname;
+  const { user } = useAuth();
+  const initials = user?.email ? user.email.substring(0, 2).toUpperCase() : 'AU';
 
-  const isActive = (path: string) => {
-    if (path === '/') {
-      return currentPath === '/';
-    }
-    return currentPath.startsWith(path);
-  };
-
-  const navItems = [
-    { name: 'Dashboard', path: '/', icon: <LayoutDashboard className="h-5 w-5" /> },
-    { name: 'Sales', path: '/sales', icon: <DollarSign className="h-5 w-5" /> },
-    { name: 'Clients', path: '/clients', icon: <Building className="h-5 w-5" /> },
-    { name: 'Sites', path: '/sites', icon: <Map className="h-5 w-5" /> },
-    { name: 'Contracts', path: '/contracts', icon: <FileText className="h-5 w-5" /> },
-    { name: 'Work Orders', path: '/work-orders', icon: <ClipboardCheck className="h-5 w-5" /> },
-    { name: 'Suppliers', path: '/suppliers', icon: <Truck className="h-5 w-5" /> },
-    { name: 'Activities', path: '/activities', icon: <Activity className="h-5 w-5" /> },
-    { name: 'Reports', path: '/reports', icon: <BarChart3 className="h-5 w-5" /> },
-    { name: 'Contacts', path: '/contacts', icon: <Contact className="h-5 w-5" /> },
-    { name: 'Schema', path: '/schema', icon: <Database className="h-5 w-5" /> },
-    { name: 'Settings', path: '/settings', icon: <Settings className="h-5 w-5" /> },
-  ];
-
-  return (
-    <div className="fixed left-0 top-0 z-40 h-screen w-64 border-r bg-background pt-16">
-      <div className="h-full overflow-y-auto px-3 py-4">
-        <ul className="space-y-2">
-          {navItems.map((item, index) => (
-            <li key={index}>
+  const NavItem = ({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) => {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <li>
               <NavLink
-                to={item.path}
-                className={({ isActive }) =>
-                  `flex items-center rounded-lg px-3 py-2 text-sm font-medium ${
-                    isActive
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                  }`
-                }
+                to={to}
+                className={({ isActive }) => cn(
+                  'flex items-center space-x-2 py-3 px-4 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800/50 transition-colors',
+                  isActive ? 'bg-slate-800 text-white font-medium' : 'bg-transparent'
+                )}
               >
-                <div className="mr-2">{item.icon}</div>
-                {item.name}
+                <Icon size={20} />
+                {expanded && <span>{label}</span>}
               </NavLink>
             </li>
-          ))}
-        </ul>
+          </TooltipTrigger>
+          {!expanded && <TooltipContent side="right">{label}</TooltipContent>}
+        </Tooltip>
+      </TooltipProvider>
+    );
+  };
+
+  return (
+    <div 
+      className={cn(
+        'fixed left-0 top-0 bottom-0 z-40 bg-slate-900 border-r border-slate-800 transition-all duration-300',
+        expanded ? 'w-64' : 'w-20'
+      )}
+    >
+      <div className="flex flex-col h-full">
+        <div className="p-4 flex justify-between items-center border-b border-slate-800">
+          {expanded ? (
+            <h1 className="text-xl font-bold text-white">Aussie Clean</h1>
+          ) : (
+            <div className="mx-auto">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-slate-800 text-white">AC</AvatarFallback>
+              </Avatar>
+            </div>
+          )}
+          <button 
+            onClick={onToggle}
+            className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+            aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+          >
+            {expanded ? <ChevronLeft size={16} /> : <ChevronRight size={16} />}
+          </button>
+        </div>
+        
+        <div className="flex-1 overflow-y-auto py-4 px-2">
+          <nav>
+            <ul className="space-y-1">
+              <NavItem to="/" icon={Home} label="Dashboard" />
+              <NavItem to="/clients" icon={Users} label="Clients" />
+              <NavItem to="/contracts" icon={FileText} label="Contracts" />
+              <NavItem to="/suppliers" icon={Package} label="Suppliers" />
+              <NavItem to="/work-orders" icon={Briefcase} label="Work Orders" />
+              <NavItem to="/sites" icon={Map} label="Sites" />
+              <NavItem to="/activities" icon={Calendar} label="Activities" />
+              <NavItem to="/sales" icon={BarChart} label="Sales" />
+              <NavItem to="/schema" icon={Database} label="Schema" />
+            </ul>
+          </nav>
+        </div>
+        
+        <div className="p-4 border-t border-slate-800">
+          {expanded ? (
+            <div className="flex items-center space-x-3">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-slate-800 text-white">{initials}</AvatarFallback>
+              </Avatar>
+              <div>
+                <p className="text-sm font-medium text-white truncate">
+                  {user?.email || 'User'}
+                </p>
+                <p className="text-xs text-slate-400">Administrator</p>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-center">
+              <Avatar className="h-10 w-10">
+                <AvatarFallback className="bg-slate-800 text-white">{initials}</AvatarFallback>
+              </Avatar>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
