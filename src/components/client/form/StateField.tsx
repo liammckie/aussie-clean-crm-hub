@@ -15,13 +15,17 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { UseFormReturn } from 'react-hook-form';
-import { UnifiedAddressFormData } from '@/types/form-types';
 
-interface StateFieldProps {
-  form: UseFormReturn<UnifiedAddressFormData>;
+// Create a generic type that requires at least the state field
+interface StateFieldFormData {
+  state?: string;
 }
 
-export function StateField({ form }: StateFieldProps) {
+interface StateFieldProps<T extends StateFieldFormData> {
+  form: UseFormReturn<T>;
+}
+
+export function StateField<T extends StateFieldFormData>({ form }: StateFieldProps<T>) {
   const australianStates = [
     { value: 'NSW', label: 'New South Wales' },
     { value: 'VIC', label: 'Victoria' },

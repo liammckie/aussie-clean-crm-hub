@@ -59,6 +59,7 @@ export function UnifiedAddressForm({
       <form onSubmit={form.handleSubmit(handleFormSubmit)} className="space-y-4">
         {showAddressType && <AddressTypeField form={form} />}
         
+        {/* Now this is compatible since our AddressFields component is generic */}
         <AddressFields form={form} />
 
         {showIsPrimary && (

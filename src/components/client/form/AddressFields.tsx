@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
-import { ClientFormData } from '@/services/client';
 import {
   FormField,
   FormItem,
@@ -10,36 +9,29 @@ import {
   FormMessage
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from '@/components/ui/select';
+import { StateField } from './StateField';
 
-interface AddressFieldsProps {
-  form: UseFormReturn<ClientFormData>;
+// Create a generic type that defines the minimal fields needed for this component
+interface AddressFieldsFormData {
+  address_line_1?: string;
+  address_line_2?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
 }
 
-const AUSTRALIAN_STATES = [
-  { value: 'NSW', label: 'New South Wales' },
-  { value: 'VIC', label: 'Victoria' },
-  { value: 'QLD', label: 'Queensland' },
-  { value: 'WA', label: 'Western Australia' },
-  { value: 'SA', label: 'South Australia' },
-  { value: 'TAS', label: 'Tasmania' },
-  { value: 'NT', label: 'Northern Territory' },
-  { value: 'ACT', label: 'Australian Capital Territory' }
-];
+interface AddressFieldsProps<T extends AddressFieldsFormData> {
+  form: UseFormReturn<T>;
+}
 
-export const AddressFields: React.FC<AddressFieldsProps> = ({ form }) => {
+export function AddressFields<T extends AddressFieldsFormData>({ form }: AddressFieldsProps<T>) {
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <FormField
           control={form.control}
-          name="address_line_1"
+          name="address_line_1" 
           render={({ field }) => (
             <FormItem>
               <FormLabel>Address Line 1</FormLabel>
@@ -81,33 +73,7 @@ export const AddressFields: React.FC<AddressFieldsProps> = ({ form }) => {
           )}
         />
         
-        <FormField
-          control={form.control}
-          name="state"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>State</FormLabel>
-              <Select 
-                onValueChange={field.onChange} 
-                value={field.value || ''}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select state" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {AUSTRALIAN_STATES.map(state => (
-                    <SelectItem key={state.value} value={state.value}>
-                      {state.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <StateField form={form as any} />
 
         <FormField
           control={form.control}
@@ -139,4 +105,4 @@ export const AddressFields: React.FC<AddressFieldsProps> = ({ form }) => {
       />
     </>
   );
-};
+}
