@@ -15,9 +15,6 @@ AppLogger.info(LogCategory.UI, "Application starting", {
   version: import.meta.env.VITE_APP_VERSION || 'development'
 });
 
-// Add dark theme to document
-document.documentElement.classList.add('dark');
-
 // Render app with error handling
 try {
   const rootElement = document.getElementById("root");
