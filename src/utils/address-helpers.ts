@@ -22,8 +22,8 @@ export function convertClientFormToUnifiedAddress(
     country: clientData.country || 'Australia',
     address_type: AddressType.BILLING, // Default to billing address for clients
     is_primary: true, // Default the first address as primary
-    entity_type: EntityType.CLIENT,
-    entity_id: clientId,
+    entity_type: EntityType.CLIENT, // Make sure entity_type is not optional
+    entity_id: clientId, // Make sure entity_id is not optional
   };
 }
 

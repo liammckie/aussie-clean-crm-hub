@@ -83,8 +83,8 @@ export function toFormEntityType(dbType: DatabaseEntityType): EntityType {
 
 // Standardized UnifiedAddressFormData that matches the database schema
 export interface UnifiedAddressFormData {
-  entity_id?: string;
-  entity_type?: DatabaseEntityType;
+  entity_id: string;
+  entity_type: DatabaseEntityType;
   address_type: DatabaseAddressType;
   address_line_1: string;
   address_line_2?: string;
@@ -193,5 +193,7 @@ export function createDefaultAddressValues(initialData?: Partial<UnifiedAddressF
     is_primary: initialData?.is_primary !== undefined ? initialData.is_primary : false,
     name: initialData?.name || '',
     notes: initialData?.notes || '',
+    entity_id: initialData?.entity_id || '',
+    entity_type: initialData?.entity_type || DatabaseEntityType.CLIENT,
   };
 }
