@@ -122,7 +122,7 @@ export type AddressFormData = UnifiedAddressFormData;
 
 // Add the schema for UnifiedContactForm
 export const unifiedContactSchema = z.object({
-  name: z.string().min(1, 'Name is required'),
+  name: z.string().min(1, { message: "Name is required" }),
   email: z.string().email('Invalid email format'),
   phone: z.string().optional(),
   mobile: z.string().optional(),
@@ -140,16 +140,20 @@ export const unifiedContactSchema = z.object({
 
 // Create a schema for UnifiedAddressForm
 export const unifiedAddressSchema = z.object({
-  address_line_1: z.string().min(1, 'Address line 1 is required'),
+  address_line_1: z.string().min(1, { message: "Address line 1 is required" }),
   address_line_2: z.string().optional(),
-  suburb: z.string().min(1, 'Suburb is required'),
-  state: z.string().min(1, 'State is required'),
-  postcode: z.string().min(1, 'Postcode is required'),
-  country: z.string().min(1, 'Country is required').default('Australia'),
-  address_type: z.string().min(1, 'Address type is required'),
+  suburb: z.string().min(1, { message: "Suburb is required" }),
+  state: z.string().min(1, { message: "State is required" }),
+  postcode: z.string().min(1, { message: "Postcode is required" }),
+  country: z.string().min(1, { message: "Country is required" }).default('Australia'),
+  address_type: z.string().min(1, { message: "Address type is required" }),
   is_primary: z.boolean().default(false),
   name: z.string().optional(),
-  notes: z.string().optional()
+  notes: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  entity_id: z.string().optional(), // Made optional in form for creation flows
+  entity_type: z.string().optional(), // Made optional in form for creation flows
 });
 
 // Add the enum for preferred communication
@@ -195,5 +199,7 @@ export function createDefaultAddressValues(initialData?: Partial<UnifiedAddressF
     notes: initialData?.notes || '',
     entity_id: initialData?.entity_id || '',
     entity_type: initialData?.entity_type || DatabaseEntityType.CLIENT,
+    latitude: initialData?.latitude,
+    longitude: initialData?.longitude,
   };
 }

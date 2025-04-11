@@ -20,7 +20,11 @@ export const siteSchema = z.object({
   status: z.nativeEnum(SiteStatus).default(SiteStatus.PENDING_ACTIVATION),
   site_type: z.nativeEnum(SiteType).optional(),
   square_meters: z.number().optional(),
-  description: z.string().optional(), // Added new field
+  description: z.string().optional(),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
+  access_instructions: z.string().optional(),
+  emergency_instructions: z.string().optional(),
 });
 
 export type SiteFormData = z.infer<typeof siteSchema>;

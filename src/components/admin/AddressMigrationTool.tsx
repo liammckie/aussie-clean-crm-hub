@@ -2,84 +2,115 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { DataMigrationService } from '@/utils/migrationUtils';
 import { AppLogger, LogCategory } from '@/utils/logging';
-import { toast } from 'sonner';
-import { AlertCircle, ArrowRightLeft, CheckCircle2 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export function AddressMigrationTool() {
-  const [isRunning, setIsRunning] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; message: string; count: number } | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle');
+  const [statusMessage, setStatusMessage] = useState('');
+  const [progress, setProgress] = useState(0);
+  const [clientsProcessed, setClientsProcessed] = useState(0);
+  const [sitesProcessed, setSitesProcessed] = useState(0);
+  const [totalEntities, setTotalEntities] = useState(0);
   
-  const handleMigration = async () => {
+  const runMigration = async () => {
     try {
-      setIsRunning(true);
-      setResult(null);
-      toast.info("Starting address migration...");
+      setIsLoading(true);
+      setMigrationStatus('running');
+      setStatusMessage('Starting address migration...');
+      setProgress(0);
       
-      const migratedCount = await DataMigrationService.migrateAllClientAddresses();
+      // Migrate client addresses
+      setStatusMessage('Migrating client addresses...');
+      const clientsMigrated = await DataMigrationService.migrateAllClientAddresses();
+      setClientsProcessed(clientsMigrated);
+      setProgress(33);
       
-      setResult({
-        success: true,
-        message: `Successfully migrated addresses for ${migratedCount} clients`,
-        count: migratedCount
+      // Migrate site addresses
+      setStatusMessage('Migrating site addresses...');
+      const sitesMigrated = await DataMigrationService.migrateAllSiteAddresses();
+      setSitesProcessed(sitesMigrated);
+      setProgress(66);
+      
+      // Future: Migrate supplier addresses
+      setStatusMessage('Completing migration...');
+      setProgress(100);
+      
+      // Set success state
+      setMigrationStatus('success');
+      setStatusMessage(`Migration completed: ${clientsMigrated} clients and ${sitesMigrated} sites processed`);
+      setTotalEntities(clientsMigrated + sitesMigrated);
+      
+      AppLogger.info(LogCategory.SYSTEM, 'Address migration completed successfully', {
+        clientsMigrated,
+        sitesMigrated,
+        totalEntities: clientsMigrated + sitesMigrated
       });
-      
-      AppLogger.info(LogCategory.SYSTEM, `Address migration completed`, { migratedCount });
     } catch (error: any) {
-      AppLogger.error(LogCategory.SYSTEM, `Address migration error: ${error.message}`, { error });
-      
-      setResult({
-        success: false,
-        message: `Error during address migration: ${error.message}`,
-        count: 0
-      });
-      
-      toast.error(`Address migration failed: ${error.message}`);
+      setMigrationStatus('error');
+      setStatusMessage(`Error during migration: ${error.message}`);
+      AppLogger.error(LogCategory.SYSTEM, `Error during address migration: ${error.message}`, { error });
     } finally {
-      setIsRunning(false);
+      setIsLoading(false);
     }
   };
   
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ArrowRightLeft className="h-5 w-5" />
-          Address Migration Tool
-        </CardTitle>
+        <CardTitle>Address Migration Tool</CardTitle>
         <CardDescription>
-          Migrate client addresses to the unified address system
+          Migrate existing address data to the unified address system
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm mb-4">
-          This tool will migrate all client addresses from the old format to the new unified address system.
-          The migration is performed safely and will not delete any existing data.
-        </p>
+        {migrationStatus === 'running' && (
+          <div className="space-y-4">
+            <div className="text-sm text-muted-foreground">{statusMessage}</div>
+            <Progress value={progress} className="h-2 w-full" />
+          </div>
+        )}
         
-        {result && (
-          <Alert variant={result.success ? "default" : "destructive"} className="mb-4">
-            {result.success ? (
-              <CheckCircle2 className="h-4 w-4" />
-            ) : (
-              <AlertCircle className="h-4 w-4" />
-            )}
-            <AlertTitle>{result.success ? "Migration Complete" : "Migration Error"}</AlertTitle>
+        {migrationStatus === 'success' && (
+          <Alert variant="default" className="border-green-500 bg-green-50">
+            <CheckCircle2 className="h-4 w-4 text-green-600" />
+            <AlertTitle>Migration Completed</AlertTitle>
             <AlertDescription>
-              {result.message}
+              Successfully migrated address data for {totalEntities} entities.
+              <ul className="mt-2 list-disc pl-5">
+                <li>Clients processed: {clientsProcessed}</li>
+                <li>Sites processed: {sitesProcessed}</li>
+              </ul>
             </AlertDescription>
           </Alert>
+        )}
+        
+        {migrationStatus === 'error' && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Migration Failed</AlertTitle>
+            <AlertDescription>{statusMessage}</AlertDescription>
+          </Alert>
+        )}
+        
+        {migrationStatus === 'idle' && (
+          <p className="text-sm text-muted-foreground">
+            This tool will migrate existing address data from various entity tables to the unified address system.
+            This includes client addresses, site addresses, and potentially other entity types.
+          </p>
         )}
       </CardContent>
       <CardFooter>
         <Button 
-          onClick={handleMigration} 
-          disabled={isRunning}
-          variant={result?.success ? "outline" : "default"}
+          onClick={runMigration} 
+          disabled={isLoading || migrationStatus === 'running'} 
+          className="w-full"
         >
-          {isRunning ? "Migrating..." : "Start Address Migration"}
+          {isLoading ? 'Migrating...' : 'Start Migration'}
         </Button>
       </CardFooter>
     </Card>

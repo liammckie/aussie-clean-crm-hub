@@ -13,6 +13,9 @@ import { AddressTypeField } from './form/AddressTypeField';
 import { AddressFields } from './form/AddressFields';
 import { IsPrimaryField } from '../shared/IsPrimaryField';
 import { AddressType } from '@/types/database-schema';
+import { FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 interface UnifiedAddressFormProps {
   onSubmit: (data: UnifiedAddressFormData) => void;
@@ -21,6 +24,8 @@ interface UnifiedAddressFormProps {
   buttonText?: string;
   showAddressType?: boolean;
   showIsPrimary?: boolean;
+  showLocationFields?: boolean;
+  showNotes?: boolean;
 }
 
 export function UnifiedAddressForm({
@@ -30,6 +35,8 @@ export function UnifiedAddressForm({
   buttonText = "Save Address",
   showAddressType = true,
   showIsPrimary = true,
+  showLocationFields = false,
+  showNotes = false,
 }: UnifiedAddressFormProps) {
   // Always ensure we have properly initialized form data
   const formInitialData = createDefaultAddressValues(initialData);
@@ -43,7 +50,9 @@ export function UnifiedAddressForm({
     // Ensure is_primary is always a boolean
     const submissionData = {
       ...data,
-      is_primary: Boolean(data.is_primary) 
+      is_primary: Boolean(data.is_primary),
+      latitude: data.latitude ? Number(data.latitude) : undefined,
+      longitude: data.longitude ? Number(data.longitude) : undefined
     };
     onSubmit(submissionData);
   };
@@ -60,6 +69,70 @@ export function UnifiedAddressForm({
             form={form} 
             label="Set as primary address"
             name="is_primary"
+          />
+        )}
+
+        {showLocationFields && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="latitude"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Latitude</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      step="0.000001" 
+                      placeholder="e.g. -33.865143"
+                      {...field}
+                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="longitude"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Longitude</FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="number" 
+                      step="0.000001"
+                      placeholder="e.g. 151.209900"
+                      {...field} 
+                      onChange={e => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
+
+        {showNotes && (
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Notes</FormLabel>
+                <FormControl>
+                  <Textarea 
+                    placeholder="Additional information about this address"
+                    className="resize-none"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
         )}
 

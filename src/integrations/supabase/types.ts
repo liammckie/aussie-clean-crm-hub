@@ -1030,7 +1030,10 @@ export type Database = {
           entity_type: string
           id: string
           is_primary: boolean | null
+          latitude: number | null
+          longitude: number | null
           name: string | null
+          notes: string | null
           postcode: string
           state: string
           suburb: string
@@ -1046,7 +1049,10 @@ export type Database = {
           entity_type: string
           id?: string
           is_primary?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string | null
+          notes?: string | null
           postcode: string
           state: string
           suburb: string
@@ -1062,7 +1068,10 @@ export type Database = {
           entity_type?: string
           id?: string
           is_primary?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
           name?: string | null
+          notes?: string | null
           postcode?: string
           state?: string
           suburb?: string
