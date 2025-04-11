@@ -1,6 +1,5 @@
 
 import React, { useState, useCallback } from 'react';
-import { useUnifiedEntities } from '@/hooks/use-unified-entities';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { UnifiedAddressForm } from '@/components/client/UnifiedAddressForm';
@@ -23,11 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { AddressType } from '@/types/database-schema';
-import { EntityType } from '@/types/form-types';
+import { AddressType, EntityType } from '@/types/database-schema';
 import { UnifiedAddressRecord } from '@/services/unified/types';
 import { useTypedTransition } from '@/hooks/use-suspense-transition';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { DataMigrationService } from '@/utils/migrationUtils';
+import { unifiedAddressService } from '@/services/unified/address-service';
+import { isApiError } from '@/types/api-response';
 
 interface ClientAddressTabProps {
   clientId: string;
@@ -39,113 +40,137 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
   const [selectedAddressType, setSelectedAddressType] = useState<AddressType>(AddressType.BILLING);
   const [addressToDelete, setAddressToDelete] = useState<string | null>(null);
   const [deleteAlertOpen, setDeleteAlertOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [addressToEdit, setAddressToEdit] = useState<UnifiedAddressRecord | null>(null);
+  const [addresses, setAddresses] = useState<UnifiedAddressRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
   const { isPending, startTypedTransition } = useTypedTransition<void>();
   
-  const { 
-    useEntityAddresses, 
-    createAddress, 
-    isCreatingAddress, 
-    deleteAddress, 
-    isDeletingAddress 
-  } = useUnifiedEntities();
-  
-  const { 
-    data: addresses, 
-    isLoading, 
-    error, 
-    refetch 
-  } = useEntityAddresses(EntityType.CLIENT, clientId);
+  // Load addresses when component mounts
+  const loadAddresses = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      // First check if we need to migrate addresses
+      await DataMigrationService.migrateClientAddresses(clientId);
+      
+      // Then load the addresses
+      const response = await unifiedAddressService.getEntityAddresses(EntityType.CLIENT, clientId);
+      
+      if (isApiError(response)) {
+        throw new Error(response.message);
+      }
+      
+      setAddresses(response.data);
+    } catch (error: any) {
+      AppLogger.error(LogCategory.CLIENT, `Error loading addresses: ${error.message}`, { clientId, error });
+      setError(error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [clientId]);
 
-  const handleAddAddress = useCallback((formData: any) => {
-    AppLogger.debug(LogCategory.CLIENT, `Creating address for client ${clientId}`, { formData });
-    
-    startTypedTransition(() => {
-      createAddress(
-        { 
-          entityType: EntityType.CLIENT, 
-          entityId: clientId, 
-          addressData: {
-            ...formData,
-            is_primary: formData.is_primary || false
-          }
-        },
+  React.useEffect(() => {
+    loadAddresses();
+  }, [loadAddresses]);
+
+  const handleAddAddress = async (formData: any) => {
+    try {
+      AppLogger.debug(LogCategory.CLIENT, `Creating address for client ${clientId}`, { formData });
+      
+      const response = await unifiedAddressService.createAddress(
+        EntityType.CLIENT,
+        clientId,
         {
-          onSuccess: () => {
-            setOpenDialog(false);
-            if (onAddressAdded) {
-              onAddressAdded();
-            }
-            refetch();
-            toast.success("Address added successfully");
-          },
-          onError: (error: Error) => {
-            AppLogger.error(LogCategory.ERROR, `Failed to add address: ${error.message}`, { clientId, error });
-            toast.error(`Failed to add address: ${error.message}`);
-          }
+          ...formData,
+          is_primary: Boolean(formData.is_primary)
         }
       );
-    });
-  }, [clientId, createAddress, onAddressAdded, refetch, startTypedTransition]);
-
-  const handleEditAddress = (address: UnifiedAddressRecord) => {
-    toast.info("Edit functionality will be implemented in future sprint");
+      
+      if (isApiError(response)) {
+        throw new Error(response.message);
+      }
+      
+      setOpenDialog(false);
+      loadAddresses();
+      toast.success("Address added successfully");
+      
+      if (onAddressAdded) {
+        onAddressAdded();
+      }
+    } catch (error: any) {
+      AppLogger.error(LogCategory.CLIENT, `Failed to add address: ${error.message}`, { clientId, error });
+      toast.error(`Failed to add address: ${error.message}`);
+    }
   };
 
-  const handleDeleteAddress = (addressId: string) => {
-    setAddressToDelete(addressId);
-    setDeleteAlertOpen(true);
+  const handleEditAddress = async (formData: any) => {
+    if (!addressToEdit) return;
+    
+    try {
+      const response = await unifiedAddressService.updateAddress(
+        addressToEdit.id,
+        {
+          ...formData,
+          is_primary: Boolean(formData.is_primary)
+        }
+      );
+      
+      if (isApiError(response)) {
+        throw new Error(response.message);
+      }
+      
+      setEditDialogOpen(false);
+      setAddressToEdit(null);
+      loadAddresses();
+      toast.success("Address updated successfully");
+    } catch (error: any) {
+      AppLogger.error(LogCategory.CLIENT, `Failed to update address: ${error.message}`, { clientId, error });
+      toast.error(`Failed to update address: ${error.message}`);
+    }
   };
 
-  const confirmDeleteAddress = useCallback(() => {
+  const confirmDeleteAddress = async () => {
     if (!addressToDelete) return;
     
-    AppLogger.debug(LogCategory.CLIENT, `Deleting address ${addressToDelete} for client ${clientId}`);
-    
-    startTypedTransition(() => {
-      deleteAddress(
-        { addressId: addressToDelete },
-        {
-          onSuccess: () => {
-            toast.success("Address deleted successfully");
-            refetch();
-            setDeleteAlertOpen(false);
-            setAddressToDelete(null);
-          },
-          onError: (error: Error) => {
-            AppLogger.error(LogCategory.ERROR, `Failed to delete address: ${error.message}`, { clientId, addressId: addressToDelete, error });
-            toast.error(`Failed to delete address: ${error.message}`);
-            setDeleteAlertOpen(false);
-            setAddressToDelete(null);
-          }
-        }
-      );
-    });
-  }, [addressToDelete, clientId, deleteAddress, refetch, startTypedTransition]);
+    try {
+      const response = await unifiedAddressService.deleteAddress(addressToDelete);
+      
+      if (isApiError(response)) {
+        throw new Error(response.message);
+      }
+      
+      toast.success("Address deleted successfully");
+      loadAddresses();
+      setDeleteAlertOpen(false);
+      setAddressToDelete(null);
+    } catch (error: any) {
+      AppLogger.error(LogCategory.CLIENT, `Failed to delete address: ${error.message}`, { 
+        clientId, 
+        addressId: addressToDelete, 
+        error 
+      });
+      toast.error(`Failed to delete address: ${error.message}`);
+      setDeleteAlertOpen(false);
+      setAddressToDelete(null);
+    }
+  };
 
   const handleAddClick = () => {
     setOpenDialog(true);
   };
+  
+  const handleEditClick = (address: UnifiedAddressRecord) => {
+    setAddressToEdit(address);
+    setEditDialogOpen(true);
+  };
 
-  const typedAddresses = React.useMemo(() => {
-    if (!addresses) return [] as UnifiedAddressRecord[];
-    
-    return (addresses as any[]).map((address: any): UnifiedAddressRecord => ({
-      id: address.id,
-      entity_id: address.entity_id,
-      entity_type: address.entity_type,
-      address_type: address.address_type,
-      address_line_1: address.address_line_1,
-      address_line_2: address.address_line_2,
-      suburb: address.suburb,
-      state: address.state,
-      postcode: address.postcode,
-      country: address.country || 'Australia',
-      is_primary: Boolean(address.is_primary),
-      name: address.name,
-      created_at: address.created_at,
-      updated_at: address.updated_at
-    }));
-  }, [addresses]);
+  const handleDeleteClick = (addressId: string) => {
+    setAddressToDelete(addressId);
+    setDeleteAlertOpen(true);
+  };
 
   return (
     <Card>
@@ -163,18 +188,19 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
           <div className="text-center py-4">Loading addresses...</div>
         ) : error ? (
           <div className="p-4 border rounded bg-red-50 text-red-800">
-            Error loading addresses: {error instanceof Error ? error.message : 'Unknown error'}
+            Error loading addresses: {error.message}
           </div>
         ) : (
           <AddressTable 
-            addresses={typedAddresses}
-            onEdit={handleEditAddress}
-            onDelete={handleDeleteAddress}
+            addresses={addresses}
+            onEdit={handleEditClick}
+            onDelete={handleDeleteClick}
             onAdd={handleAddClick}
-            isLoading={isLoading || isDeletingAddress || isPending}
+            isLoading={isLoading || isPending}
           />
         )}
 
+        {/* Add Address Dialog */}
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
             <DialogHeader>
@@ -185,13 +211,34 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
             </DialogHeader>
             <UnifiedAddressForm 
               onSubmit={handleAddAddress} 
-              isLoading={isCreatingAddress || isPending}
+              isLoading={isPending}
               initialData={{ address_type: selectedAddressType }}
               buttonText="Add Address"
             />
           </DialogContent>
         </Dialog>
 
+        {/* Edit Address Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Address</DialogTitle>
+              <DialogDescription>
+                Update the address details below.
+              </DialogDescription>
+            </DialogHeader>
+            {addressToEdit && (
+              <UnifiedAddressForm 
+                onSubmit={handleEditAddress} 
+                isLoading={isPending}
+                initialData={addressToEdit}
+                buttonText="Update Address"
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Confirmation Dialog */}
         <AlertDialog open={deleteAlertOpen} onOpenChange={setDeleteAlertOpen}>
           <AlertDialogContent>
             <AlertDialogHeader>
@@ -205,9 +252,9 @@ export function ClientAddressTab({ clientId, onAddressAdded }: ClientAddressTabP
               <AlertDialogAction 
                 onClick={confirmDeleteAddress}
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                disabled={isDeletingAddress || isPending}
+                disabled={isPending}
               >
-                {isDeletingAddress || isPending ? "Deleting..." : "Delete"}
+                {isPending ? "Deleting..." : "Delete"}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>

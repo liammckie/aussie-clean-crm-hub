@@ -26,6 +26,13 @@ export function AddressTypeField({ form }: AddressTypeFieldProps) {
   // Address types from the enum - use the database schema enum to ensure consistency
   const addressTypes: AddressType[] = Object.values(AddressType);
 
+  const formatAddressType = (type: string): string => {
+    return type
+      .split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
   return (
     <FormField
       control={form.control}
@@ -46,7 +53,7 @@ export function AddressTypeField({ form }: AddressTypeFieldProps) {
             <SelectContent>
               {addressTypes.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {type.charAt(0).toUpperCase() + type.slice(1).replace('_', ' ')}
+                  {formatAddressType(type)}
                 </SelectItem>
               ))}
             </SelectContent>

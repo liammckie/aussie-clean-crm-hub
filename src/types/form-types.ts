@@ -15,7 +15,7 @@ export enum ContactType {
   OTHER = 'other'
 }
 
-// Form-specific types for address forms
+// Deprecated - use database AddressType directly
 export enum AddressType {
   BILLING = 'billing',
   SHIPPING = 'shipping',
@@ -81,16 +81,22 @@ export function toFormEntityType(dbType: DatabaseEntityType): EntityType {
   return mapping[dbType] || EntityType.CLIENT;
 }
 
+// Standardized UnifiedAddressFormData that matches the database schema
 export interface UnifiedAddressFormData {
+  entity_id?: string;
+  entity_type?: DatabaseEntityType;
+  address_type: DatabaseAddressType;
   address_line_1: string;
   address_line_2?: string;
   suburb: string;
   state: string;
   postcode: string;
   country: string;
-  address_type: string;
-  is_primary: boolean;
-  [key: string]: any;
+  is_primary?: boolean;
+  name?: string;
+  latitude?: number;
+  longitude?: number;
+  notes?: string;
 }
 
 export interface UnifiedContactFormData {
@@ -132,6 +138,20 @@ export const unifiedContactSchema = z.object({
   national_manager: z.string().optional(),
 });
 
+// Create a schema for UnifiedAddressForm
+export const unifiedAddressSchema = z.object({
+  address_line_1: z.string().min(1, 'Address line 1 is required'),
+  address_line_2: z.string().optional(),
+  suburb: z.string().min(1, 'Suburb is required'),
+  state: z.string().min(1, 'State is required'),
+  postcode: z.string().min(1, 'Postcode is required'),
+  country: z.string().min(1, 'Country is required').default('Australia'),
+  address_type: z.string().min(1, 'Address type is required'),
+  is_primary: z.boolean().default(false),
+  name: z.string().optional(),
+  notes: z.string().optional()
+});
+
 // Add the enum for preferred communication
 export enum PreferredCommunication {
   EMAIL = 'email',
@@ -157,5 +177,21 @@ export function createDefaultContactValues(initialData?: Partial<UnifiedContactF
     account_manager: initialData?.account_manager || '',
     state_manager: initialData?.state_manager || '',
     national_manager: initialData?.national_manager || '',
+  };
+}
+
+// Create default values helper for address form
+export function createDefaultAddressValues(initialData?: Partial<UnifiedAddressFormData>): UnifiedAddressFormData {
+  return {
+    address_line_1: initialData?.address_line_1 || '',
+    address_line_2: initialData?.address_line_2 || '',
+    suburb: initialData?.suburb || '',
+    state: initialData?.state || '',
+    postcode: initialData?.postcode || '',
+    country: initialData?.country || 'Australia',
+    address_type: initialData?.address_type || DatabaseAddressType.BILLING,
+    is_primary: initialData?.is_primary !== undefined ? initialData.is_primary : false,
+    name: initialData?.name || '',
+    notes: initialData?.notes || '',
   };
 }
