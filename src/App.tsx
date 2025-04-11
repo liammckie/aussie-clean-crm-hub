@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Toaster } from 'sonner';
@@ -26,14 +26,10 @@ const queryClient = new QueryClient({
 });
 
 function App() {
-  useEffect(() => {
-    console.log('App component mounted');
-  }, []);
-
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
           <Routes>
             <Route path="/" element={<Layout />}>
               <Route index element={<Dashboard />} />

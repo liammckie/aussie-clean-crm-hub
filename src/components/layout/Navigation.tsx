@@ -1,6 +1,6 @@
 
-import React, { useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   LayoutDashboard, 
@@ -43,17 +43,6 @@ interface NavigationProps {
 }
 
 export function Navigation({ activePath = '' }: NavigationProps) {
-  // Let's use the router hook safely within the router context
-  const location = useLocation();
-  
-  useEffect(() => {
-    console.log('Navigation component rendered with location:', location.pathname);
-    console.log('Provided activePath:', activePath);
-  }, [location, activePath]);
-
-  // If activePath is not provided, use the current location path
-  const currentPath = activePath || location.pathname;
-
   return (
     <nav className="space-y-1">
       <ul className="space-y-1">
@@ -61,55 +50,55 @@ export function Navigation({ activePath = '' }: NavigationProps) {
           href="/" 
           icon={<LayoutDashboard className="h-5 w-5" />} 
           label="Dashboard" 
-          active={currentPath === '/'} 
+          active={activePath === '/'} 
         />
         <NavigationItem 
           href="/clients" 
           icon={<Building2 className="h-5 w-5" />} 
           label="Clients" 
-          active={currentPath.startsWith('/clients')} 
+          active={activePath.startsWith('/clients')} 
         />
         <NavigationItem 
           href="/sites" 
           icon={<Map className="h-5 w-5" />} 
           label="Sites" 
-          active={currentPath.startsWith('/sites')} 
+          active={activePath.startsWith('/sites')} 
         />
         <NavigationItem 
           href="/contracts" 
           icon={<FileText className="h-5 w-5" />} 
           label="Contracts" 
-          active={currentPath.startsWith('/contracts')} 
+          active={activePath.startsWith('/contracts')} 
         />
         <NavigationItem 
           href="/work-orders" 
           icon={<ClipboardList className="h-5 w-5" />} 
           label="Work Orders" 
-          active={currentPath.startsWith('/work-orders')} 
+          active={activePath.startsWith('/work-orders')} 
         />
         <NavigationItem 
           href="/suppliers" 
           icon={<Users className="h-5 w-5" />}
           label="Suppliers" 
-          active={currentPath.startsWith('/suppliers')} 
+          active={activePath.startsWith('/suppliers')} 
         />
         <NavigationItem 
           href="/admin" 
           icon={<Settings className="h-5 w-5" />}
           label="Admin" 
-          active={currentPath.startsWith('/admin')} 
+          active={activePath.startsWith('/admin')} 
         />
         <NavigationItem 
           href="/schema" 
           icon={<Database className="h-5 w-5" />}
           label="Schema" 
-          active={currentPath.startsWith('/schema')} 
+          active={activePath.startsWith('/schema')} 
         />
         <NavigationItem 
           href="/docs" 
           icon={<BookOpen className="h-5 w-5" />}
           label="Documentation" 
-          active={currentPath.startsWith('/docs')} 
+          active={activePath.startsWith('/docs')} 
         />
       </ul>
     </nav>
