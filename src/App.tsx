@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, BrowserRouter } from 'react-router-dom';
 import { Layout } from '@/components/layout/Layout';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/providers/theme-provider';
@@ -28,19 +28,21 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
-        <Routes>
-          <Route path="/" element={<Layout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="schema" element={<Schema />} />
-            <Route path="admin" element={<Admin />} /> {/* Added Admin route */}
-            <Route path="*" element={<NotFound />} />
-          </Route>
-        </Routes>
-        
-        <Toaster position="top-right" richColors />
-        <ReactQueryDevtools initialIsOpen={false} />
-      </ThemeProvider>
+      <BrowserRouter>
+        <ThemeProvider defaultTheme="light" storageKey="vite-ui-theme">
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Dashboard />} />
+              <Route path="schema" element={<Schema />} />
+              <Route path="admin" element={<Admin />} /> {/* Added Admin route */}
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
+          
+          <Toaster position="top-right" richColors />
+          <ReactQueryDevtools initialIsOpen={false} />
+        </ThemeProvider>
+      </BrowserRouter>
     </QueryClientProvider>
   );
 }
