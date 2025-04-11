@@ -78,6 +78,8 @@ export class DataMigrationService {
             EntityType.CLIENT,
             clientId,
             {
+              entity_id: clientId,
+              entity_type: EntityType.CLIENT,
               address_line_1: address.street || '',
               address_line_2: '',
               suburb: address.suburb || '',
@@ -99,6 +101,8 @@ export class DataMigrationService {
           EntityType.CLIENT,
           clientId,
           {
+            entity_id: clientId,
+            entity_type: EntityType.CLIENT,
             address_line_1: client.address_line_1 || '',
             address_line_2: client.address_line_2 || '',
             suburb: client.suburb || '',

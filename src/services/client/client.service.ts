@@ -6,6 +6,7 @@ import { ClientFormData } from './types';
 import { ClientRecord } from '@/types/database-schema';
 import { convertClientFormToUnifiedAddress } from '@/utils/address-helpers';
 import { unifiedAddressService } from '@/services/unified/address-service';
+import { EntityType } from '@/types/database-schema';
 
 /**
  * Create a new client
@@ -45,7 +46,7 @@ export async function createClient(data: ClientFormData): Promise<ApiResponse<Cl
       const addressData = convertClientFormToUnifiedAddress(data, client.id);
       
       const addressResponse = await unifiedAddressService.createAddress(
-        'client',
+        EntityType.CLIENT,
         client.id,
         addressData
       );
