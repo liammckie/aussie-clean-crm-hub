@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Routes, Route, BrowserRouter } from 'react-router-dom';
-import { Layout } from '@/components/layout/Layout';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 
@@ -31,7 +31,7 @@ function App() {
       <BrowserRouter>
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
           <Routes>
-            <Route path="/" element={<Layout />}>
+            <Route path="/" element={<MainLayout />}>
               <Route index element={<Dashboard />} />
               <Route path="schema" element={<Schema />} />
               <Route path="admin" element={<Admin />} /> {/* Added Admin route */}

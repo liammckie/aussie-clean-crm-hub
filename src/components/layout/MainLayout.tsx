@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from "react";
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { TopNavbar } from "./TopNavbar";
 import { NewSidebar } from "./NewSidebar";
 import { MobileSidebar } from "./MobileSidebar";
@@ -19,6 +19,9 @@ export function MainLayout({ children }: MainLayoutProps) {
   
   // Access the sidebar context
   const { toggleSidebar } = useSidebar();
+  
+  // Get current location for active path tracking
+  const location = useLocation();
 
   // Save sidebar state to localStorage whenever it changes
   useEffect(() => {
@@ -36,7 +39,8 @@ export function MainLayout({ children }: MainLayoutProps) {
       <div className="hidden md:block">
         <NewSidebar 
           expanded={sidebarExpanded} 
-          onToggle={handleToggleSidebar} 
+          onToggle={handleToggleSidebar}
+          activePath={location.pathname}
         />
       </div>
       
@@ -44,6 +48,7 @@ export function MainLayout({ children }: MainLayoutProps) {
       <MobileSidebar 
         expanded={sidebarExpanded}
         onToggle={handleToggleSidebar}
+        activePath={location.pathname}
       />
       
       {/* Main Content */}

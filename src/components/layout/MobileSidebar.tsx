@@ -1,95 +1,63 @@
 
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
-import { useState } from "react";
-import { 
-  Home, 
-  Users, 
-  FileText, 
-  Package, 
-  Briefcase, 
-  Map, 
-  Calendar,
-  BarChart,
-  Database
-} from "lucide-react";
-import { NavLink } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import React, { useState } from "react";
+import { Navigation } from "./Navigation";
+import { Menu, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface MobileSidebarProps {
   expanded: boolean;
   onToggle: () => void;
+  activePath?: string;
 }
 
-export function MobileSidebar({ expanded, onToggle }: MobileSidebarProps) {
-  const [open, setOpen] = useState(false);
-  const { user } = useAuth();
-  const initials = user?.email ? user.email.substring(0, 2).toUpperCase() : "AU";
+export function MobileSidebar({ expanded, onToggle, activePath }: MobileSidebarProps) {
+  const [isOpen, setIsOpen] = useState(false);
 
-  const NavItem = ({ to, icon: Icon, label }: { to: string; icon: React.ElementType; label: string }) => {
-    return (
-      <li>
-        <NavLink
-          to={to}
-          className={({ isActive }) =>
-            `flex items-center space-x-2 py-3 px-4 rounded-lg 
-            ${isActive ? "bg-slate-800 text-white font-medium" : "text-slate-300 hover:text-white hover:bg-slate-800/50"}`
-          }
-          onClick={() => setOpen(false)}
-        >
-          <Icon size={20} />
-          <span>{label}</span>
-        </NavLink>
-      </li>
-    );
+  const toggleMobileNav = () => {
+    setIsOpen(!isOpen);
   };
 
   return (
-    <div className="md:hidden fixed top-0 left-0 z-50 w-full bg-slate-900 border-b border-slate-800 px-4 py-3">
-      <div className="flex justify-between items-center">
-        <h1 className="text-xl font-bold text-white">Aussie Clean</h1>
-        <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
-          <Menu className="h-6 w-6" />
-        </Button>
-
-        <Sheet open={open} onOpenChange={setOpen}>
-          <SheetContent side="left" className="w-[250px] bg-slate-900 border-r border-slate-800 p-0">
-            <div className="flex flex-col h-full">
-              <div className="p-4 border-b border-slate-800">
-                <div className="flex items-center space-x-3">
-                  <Avatar className="h-10 w-10">
-                    <AvatarFallback className="bg-slate-800 text-white">{initials}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm font-medium text-white truncate">
-                      {user?.email || "User"}
-                    </p>
-                    <p className="text-xs text-slate-400">Administrator</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex-1 overflow-y-auto py-4 px-2">
-                <nav>
-                  <ul className="space-y-1">
-                    <NavItem to="/" icon={Home} label="Dashboard" />
-                    <NavItem to="/clients" icon={Users} label="Clients" />
-                    <NavItem to="/contracts" icon={FileText} label="Contracts" />
-                    <NavItem to="/suppliers" icon={Package} label="Suppliers" />
-                    <NavItem to="/work-orders" icon={Briefcase} label="Work Orders" />
-                    <NavItem to="/sites" icon={Map} label="Sites" />
-                    <NavItem to="/activities" icon={Calendar} label="Activities" />
-                    <NavItem to="/sales" icon={BarChart} label="Sales" />
-                    <NavItem to="/schema" icon={Database} label="Schema" />
-                  </ul>
-                </nav>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+    <>
+      {/* Mobile Menu Button */}
+      <div className="fixed top-4 left-4 md:hidden z-30">
+        <button
+          onClick={toggleMobileNav}
+          className="p-2 rounded-md bg-slate-800 hover:bg-slate-700 transition-colors"
+        >
+          {isOpen ? <X size={20} /> : <Menu size={20} />}
+        </button>
       </div>
-    </div>
+
+      {/* Mobile Sidebar Overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden transition-opacity duration-300",
+          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+        )}
+        onClick={toggleMobileNav}
+      />
+
+      {/* Mobile Sidebar */}
+      <div
+        className={cn(
+          "fixed top-0 left-0 h-full w-64 bg-slate-900 z-30 transition-transform duration-300 md:hidden border-r border-slate-800",
+          isOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        <div className="flex items-center justify-between p-4 h-16 border-b border-slate-800">
+          <div className="font-bold text-xl">SCS ERP</div>
+          <button
+            onClick={toggleMobileNav}
+            className="p-2 rounded-md bg-slate-800 hover:bg-slate-700 transition-colors"
+          >
+            <X size={20} />
+          </button>
+        </div>
+        <div className="p-4">
+          <Navigation activePath={activePath} />
+        </div>
+      </div>
+    </>
   );
 }
