@@ -2,7 +2,7 @@
 import React, { Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '@/components/layout/ProtectedRoute';
-import { Dashboard, NotFound, Sites, Activities } from '../lazyRoutes';
+import { Dashboard, NotFound, Sites, Activities, Documentation } from '../lazyRoutes';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { Custom404Page } from '@/components/error/Custom404Page';
 import { RouteErrorBoundaryClass } from '@/components/error/RouteErrorBoundary';
@@ -46,6 +46,20 @@ export const MiscRoutes = () => {
             <Suspense fallback={<LoadingScreen />}>
               <RouteErrorBoundaryClass>
                 <Activities />
+              </RouteErrorBoundaryClass>
+            </Suspense>
+          </ProtectedRoute>
+        } 
+      />
+
+      {/* Documentation page */}
+      <Route 
+        path="/docs" 
+        element={
+          <ProtectedRoute>
+            <Suspense fallback={<LoadingScreen />}>
+              <RouteErrorBoundaryClass>
+                <Documentation />
               </RouteErrorBoundaryClass>
             </Suspense>
           </ProtectedRoute>

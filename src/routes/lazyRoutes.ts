@@ -15,6 +15,9 @@ export const EditClient = lazy(() => import("@/pages/EditClient"));
 // Sales route
 export const Sales = lazy(() => import("@/pages/Sales"));
 
+// Documentation route
+export const Documentation = lazy(() => import("@/pages/Documentation"));
+
 // Schema route
 export const Schema = lazy(() => import("@/pages/Schema"));
 

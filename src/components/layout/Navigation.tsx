@@ -89,6 +89,12 @@ export function Navigation({ activePath }: NavigationProps) {
           active={currentPath.startsWith('/suppliers')} 
         />
         <NavigationItem 
+          href="/activities" 
+          icon={<ClipboardList className="h-5 w-5" />}
+          label="Activities" 
+          active={currentPath.startsWith('/activities')} 
+        />
+        <NavigationItem 
           href="/admin" 
           icon={<Settings className="h-5 w-5" />}
           label="Admin" 

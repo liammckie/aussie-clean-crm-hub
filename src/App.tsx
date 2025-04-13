@@ -11,7 +11,14 @@ import { AuthProvider } from '@/contexts/AuthContext';
 import Dashboard from '@/pages/Dashboard';
 import Schema from '@/pages/Schema';
 import NotFound from '@/pages/NotFound';
-import Admin from '@/pages/Admin'; // Added Admin page import
+import Admin from '@/pages/Admin';
+import Documentation from '@/pages/Documentation';
+import Clients from '@/pages/Clients';
+import Sites from '@/pages/Sites';
+import Contracts from '@/pages/Contracts';
+import WorkOrders from '@/pages/WorkOrders';
+import Suppliers from '@/pages/Suppliers';
+import Activities from '@/pages/Activities';
 
 // React Query
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -37,8 +44,15 @@ function App() {
               <Routes>
                 <Route path="/" element={<MainLayout />}>
                   <Route index element={<Dashboard />} />
+                  <Route path="clients" element={<Clients />} />
+                  <Route path="sites" element={<Sites />} />
+                  <Route path="contracts" element={<Contracts />} />
+                  <Route path="work-orders" element={<WorkOrders />} />
+                  <Route path="suppliers" element={<Suppliers />} />
+                  <Route path="activities" element={<Activities />} />
+                  <Route path="admin" element={<Admin />} />
                   <Route path="schema" element={<Schema />} />
-                  <Route path="admin" element={<Admin />} /> {/* Added Admin route */}
+                  <Route path="docs" element={<Documentation />} />
                   <Route path="*" element={<NotFound />} />
                 </Route>
               </Routes>
