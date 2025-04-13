@@ -26,11 +26,7 @@ try {
     throw new Error("Root element not found");
   }
   
-  createRoot(rootElement).render(
-    <React.StrictMode>
-      <App />
-    </React.StrictMode>
-  );
+  createRoot(rootElement).render(<App />);
   
   AppLogger.info(LogCategory.UI, "Application rendered successfully");
 } catch (error) {

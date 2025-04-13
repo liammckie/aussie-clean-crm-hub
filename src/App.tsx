@@ -23,47 +23,43 @@ import Activities from '@/pages/Activities';
 // React Query
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
+import { createQueryClient } from '@/utils/query/queryConfig';
 
-// Create a client
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
-    },
-  },
-});
+// Create a client using our custom configuration
+const queryClient = createQueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <AuthProvider>
-            <SidebarProvider>
-              <Routes>
-                <Route path="/" element={<MainLayout />}>
-                  <Route index element={<Dashboard />} />
-                  <Route path="clients" element={<Clients />} />
-                  <Route path="sites" element={<Sites />} />
-                  <Route path="contracts" element={<Contracts />} />
-                  <Route path="work-orders" element={<WorkOrders />} />
-                  <Route path="suppliers" element={<Suppliers />} />
-                  <Route path="activities" element={<Activities />} />
-                  <Route path="admin" element={<Admin />} />
-                  <Route path="schema" element={<Schema />} />
-                  <Route path="docs" element={<Documentation />} />
-                  <Route path="*" element={<NotFound />} />
-                </Route>
-              </Routes>
-            </SidebarProvider>
-          </AuthProvider>
-          
-          <Toaster position="top-right" richColors />
-          <ReactQueryDevtools initialIsOpen={false} />
-        </ThemeProvider>
-      </BrowserRouter>
-    </QueryClientProvider>
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <BrowserRouter>
+          <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+            <AuthProvider>
+              <SidebarProvider>
+                <Routes>
+                  <Route path="/" element={<MainLayout />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="clients" element={<Clients />} />
+                    <Route path="sites" element={<Sites />} />
+                    <Route path="contracts" element={<Contracts />} />
+                    <Route path="work-orders" element={<WorkOrders />} />
+                    <Route path="suppliers" element={<Suppliers />} />
+                    <Route path="activities" element={<Activities />} />
+                    <Route path="admin" element={<Admin />} />
+                    <Route path="schema" element={<Schema />} />
+                    <Route path="docs" element={<Documentation />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Route>
+                </Routes>
+              </SidebarProvider>
+            </AuthProvider>
+            
+            <Toaster position="top-right" richColors />
+            <ReactQueryDevtools initialIsOpen={false} />
+          </ThemeProvider>
+        </BrowserRouter>
+      </QueryClientProvider>
+    </React.StrictMode>
   );
 }
 
