@@ -21,7 +21,7 @@ export function NewSidebar({ expanded, onToggle, activePath }: NewSidebarProps) 
         <div
           className={cn(
             "font-bold text-xl transition-opacity duration-300",
-            expanded ? "opacity-100" : "opacity-0 hidden"
+            expanded ? "opacity-100" : "opacity-0 w-0 overflow-hidden"
           )}
         >
           SCS ERP
@@ -34,7 +34,7 @@ export function NewSidebar({ expanded, onToggle, activePath }: NewSidebarProps) 
         </button>
       </div>
       <div className="p-4">
-        <Navigation activePath={activePath} />
+        <Navigation activePath={activePath} expanded={expanded} />
       </div>
     </aside>
   );

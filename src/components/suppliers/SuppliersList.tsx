@@ -90,7 +90,7 @@ export function SuppliersList({ suppliers, isLoading, error }: SuppliersListProp
             <Button
               variant="default"
               className="flex items-center"
-              onClick={() => navigate('/new-supplier')}
+              onClick={() => navigate('/suppliers/new')}
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               Add Supplier
@@ -111,7 +111,7 @@ export function SuppliersList({ suppliers, isLoading, error }: SuppliersListProp
         <Button
           variant="default"
           className="flex items-center"
-          onClick={() => navigate('/new-supplier')}
+          onClick={() => navigate('/suppliers/new')}
         >
           <PlusCircle className="mr-2 h-4 w-4" />
           Add Supplier
@@ -125,31 +125,29 @@ export function SuppliersList({ suppliers, isLoading, error }: SuppliersListProp
               <TableHead>Type</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>ABN</TableHead>
-              <TableHead>Onboarded</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {suppliers.map((supplier) => (
-              <TableRow key={supplier.supplier_id}>
-                <TableCell className="font-medium">{supplier.supplier_name}</TableCell>
-                <TableCell>{supplier.supplier_type}</TableCell>
+              <TableRow key={supplier.id}>
+                <TableCell className="font-medium">{supplier.business_name}</TableCell>
+                <TableCell>{supplier.supplier_type || '-'}</TableCell>
                 <TableCell>
                   <Badge className={getStatusColor(supplier.status)} variant="outline">
                     {supplier.status}
                   </Badge>
                 </TableCell>
                 <TableCell>{supplier.abn || '-'}</TableCell>
-                <TableCell>{formatDate(supplier.date_onboarded)}</TableCell>
                 <TableCell>
-                  {supplier.contact_person || supplier.email || '-'}
+                  {supplier.primary_contact_name || supplier.primary_contact_email || '-'}
                 </TableCell>
                 <TableCell>
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => navigate(`/suppliers/${supplier.supplier_id}`)}
+                    onClick={() => navigate(`/suppliers/${supplier.id}`)}
                   >
                     <ExternalLink className="h-4 w-4" />
                   </Button>

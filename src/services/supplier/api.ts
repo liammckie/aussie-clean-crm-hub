@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 import type { 
   SupplierApiResponse, 
@@ -20,11 +21,10 @@ export async function createSupplier(supplierData: SupplierCreateData): Promise<
     const { data, error } = await supabase
       .from('suppliers')
       .insert({
-        supplier_name: supplierData.supplier_name,
+        business_name: supplierData.supplier_name,
         supplier_type: supplierData.supplier_type,
         status: supplierData.status,
         abn: supplierData.abn,
-        business_name: supplierData.supplier_name,
         notes: supplierData.notes,
         primary_contact_name: supplierData.contact_person,
         primary_contact_phone: supplierData.phone,
@@ -69,7 +69,7 @@ export async function getAllSuppliers(): Promise<SuppliersApiResponse> {
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
-      .order('supplier_name');
+      .order('business_name');
       
     if (error) {
       AppLogger.error(LogCategory.SUPPLIER, 'Error fetching suppliers', { error });
@@ -107,7 +107,7 @@ export async function getSupplierById(supplierId: string): Promise<SupplierApiRe
     const { data, error } = await supabase
       .from('suppliers')
       .select('*')
-      .eq('supplier_id', supplierId)
+      .eq('id', supplierId)
       .single();
       
     if (error) {
@@ -154,7 +154,7 @@ export async function updateSupplier(supplierId: string, supplierData: Partial<S
     const { data, error } = await supabase
       .from('suppliers')
       .update(supplierData)
-      .eq('supplier_id', supplierId)
+      .eq('id', supplierId)
       .select()
       .single();
       
@@ -195,13 +195,13 @@ export async function deleteSupplier(supplierId: string): Promise<SupplierApiRes
     const { data: supplier } = await supabase
       .from('suppliers')
       .select('*')
-      .eq('supplier_id', supplierId)
+      .eq('id', supplierId)
       .single();
       
     const { error } = await supabase
       .from('suppliers')
       .delete()
-      .eq('supplier_id', supplierId);
+      .eq('id', supplierId);
       
     if (error) {
       AppLogger.error(LogCategory.SUPPLIER, 'Error deleting supplier', { error, supplierId });

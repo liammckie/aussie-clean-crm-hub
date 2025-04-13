@@ -12,13 +12,13 @@ export enum SupplierType {
 }
 
 export enum SupplierStatus {
-  ACTIVE = 'Active',
-  INACTIVE = 'Inactive',
-  ONBOARDING = 'Onboarding',
-  TERMINATED = 'Terminated',
-  ON_HOLD = 'On Hold',
-  SUSPENDED = 'Suspended',
-  PENDING = 'Pending'
+  ACTIVE = 'active',
+  INACTIVE = 'inactive',
+  ONBOARDING = 'onboarding',
+  TERMINATED = 'terminated',
+  ON_HOLD = 'on_hold',
+  SUSPENDED = 'suspended',
+  PENDING = 'pending'
 }
 
 export const AustralianStates = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
@@ -59,37 +59,24 @@ export const supplierFormSchema = z.object({
 export type SupplierFormData = z.infer<typeof supplierFormSchema>;
 export type SupplierCreateData = z.infer<typeof supplierFormSchema>;
 
-// Add the SupplierData interface to fix the type errors
+// Updated SupplierData interface to match actual database schema
 export interface SupplierData {
-  supplier_id: string;
-  supplier_name: string;
-  supplier_type: string;
+  id: string;
+  business_name: string;
+  supplier_type?: string;
   status: string;
-  date_onboarded?: string;
-  date_terminated?: string;
   abn?: string;
   acn?: string;
-  supplier_code?: string;
-  address_line?: string;
-  suburb?: string;
-  state?: string;
-  postcode?: string;
-  country?: string;
-  contact_person?: string;
-  phone?: string;
-  email?: string;
-  billing_email?: string;
-  invoice_email?: string;
-  services_provided?: string;
   notes?: string;
-  payment_terms?: string;
-  created_at?: string;
-  updated_at?: string;
-  bank_details?: {
-    bsb?: string;
-    account_number?: string;
-    account_name?: string;
-  };
+  primary_contact_name?: string;
+  primary_contact_phone?: string;
+  primary_contact_email?: string;
+  last_review_date?: string;
+  payment_terms_days?: number;
+  preferred_payment_method?: string;
+  compliance_status?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 // Add the ComplianceDocument interface
