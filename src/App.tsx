@@ -5,6 +5,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Toaster } from 'sonner';
 import { ThemeProvider } from '@/components/providers/theme-provider';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { AuthProvider } from '@/contexts/AuthContext';
 
 // Import page components
 import Dashboard from '@/pages/Dashboard';
@@ -31,16 +32,18 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <SidebarProvider>
-            <Routes>
-              <Route path="/" element={<MainLayout />}>
-                <Route index element={<Dashboard />} />
-                <Route path="schema" element={<Schema />} />
-                <Route path="admin" element={<Admin />} /> {/* Added Admin route */}
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
-          </SidebarProvider>
+          <AuthProvider>
+            <SidebarProvider>
+              <Routes>
+                <Route path="/" element={<MainLayout />}>
+                  <Route index element={<Dashboard />} />
+                  <Route path="schema" element={<Schema />} />
+                  <Route path="admin" element={<Admin />} /> {/* Added Admin route */}
+                  <Route path="*" element={<NotFound />} />
+                </Route>
+              </Routes>
+            </SidebarProvider>
+          </AuthProvider>
           
           <Toaster position="top-right" richColors />
           <ReactQueryDevtools initialIsOpen={false} />
