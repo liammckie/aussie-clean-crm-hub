@@ -12,11 +12,6 @@ export function createQueryClient() {
         refetchOnWindowFocus: false,
         staleTime: 5 * 60 * 1000, // 5 minutes
         retry: 1,
-        onError: (error) => {
-          if (error instanceof Error) {
-            AppLogger.info(LogCategory.UI, 'React Query error: ' + error.message);
-          }
-        },
       },
       mutations: {
         onError: (error) => {

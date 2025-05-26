@@ -109,8 +109,8 @@ export function AssignSupplierDialog({
                             <LoadingSpinner size="sm" />
                           </div>
                         ) : suppliers?.map((supplier) => (
-                          <SelectItem key={supplier.supplier_id} value={supplier.supplier_id}>
-                            {supplier.supplier_name}
+                          <SelectItem key={supplier.id} value={supplier.id}>
+                            {supplier.business_name}
                           </SelectItem>
                         ))}
                       </SelectContent>

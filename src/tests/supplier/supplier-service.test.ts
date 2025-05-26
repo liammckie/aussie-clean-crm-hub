@@ -1,7 +1,7 @@
 
 import { supplierService } from '@/services/supplier/service';
 import * as api from '@/services/supplier/api';
-import { SupplierCreateData } from '@/types/supplier-types';
+import { SupplierCreateData, SupplierData } from '@/types/supplier-types';
 
 // Mock the supplier API
 jest.mock('@/services/supplier/api');
@@ -23,11 +23,17 @@ describe('Supplier Service', () => {
 
   const mockSupplierResponse = {
     data: {
-      supplier_id: '123e4567-e89b-12d3-a456-426614174003',
-      ...mockSupplier,
+      id: '123e4567-e89b-12d3-a456-426614174003',
+      business_name: 'Test Supplier',
+      supplier_type: 'service',
+      status: 'active',
+      abn: '12345678901',
+      primary_contact_name: 'John Doe',
+      primary_contact_email: 'john@example.com',
+      primary_contact_phone: '0412345678',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    },
+    } as SupplierData,
     message: 'Supplier created successfully'
   };
 
@@ -73,7 +79,7 @@ describe('Supplier Service', () => {
     (api.updateSupplier as jest.Mock).mockResolvedValueOnce(mockSupplierResponse);
 
     const supplierId = '123e4567-e89b-12d3-a456-426614174003';
-    const updateData = { supplier_name: 'Updated Supplier Name' };
+    const updateData = { business_name: 'Updated Supplier Name' };
     
     const result = await supplierService.updateSupplier(supplierId, updateData);
 

@@ -33,7 +33,7 @@ export default function SupplierDetail() {
     if (supplier) {
       AppLogger.info(
         LogCategory.SUPPLIER,
-        `Viewing supplier details for ${supplier.supplier_name}`,
+        `Viewing supplier details for ${supplier.business_name}`,
         { supplierId }
       );
     }
@@ -88,7 +88,7 @@ export default function SupplierDetail() {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <div>
-            <Heading title={supplier.supplier_name} />
+            <Heading title={supplier.business_name} />
             <p className="text-sm text-muted-foreground mt-1">
               {supplier.supplier_type} • {supplier.status}
             </p>
@@ -128,19 +128,19 @@ export default function SupplierDetail() {
         </TabsContent>
         
         <TabsContent value="compliance">
-          <SupplierComplianceTab supplierId={supplier.supplier_id} />
+          <SupplierComplianceTab supplierId={supplier.id} />
         </TabsContent>
         
         <TabsContent value="contracts">
-          <SupplierContractsTab supplierId={supplier.supplier_id} />
+          <SupplierContractsTab supplierId={supplier.id} />
         </TabsContent>
       </Tabs>
       
       <SupplierDeleteDialog
         isOpen={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
-        supplierId={supplier.supplier_id}
-        supplierName={supplier.supplier_name}
+        supplierId={supplier.id}
+        supplierName={supplier.business_name}
         onDeleted={() => navigate('/suppliers')}
       />
     </div>

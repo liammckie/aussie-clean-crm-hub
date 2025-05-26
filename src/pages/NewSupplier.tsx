@@ -17,7 +17,7 @@ export default function NewSupplier() {
     try {
       setError(null);
       const supplier = await createSupplier(data);
-      navigate(`/suppliers/${supplier.supplier_id}`);
+      navigate(`/suppliers/${supplier.id}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred while creating the supplier');
     }

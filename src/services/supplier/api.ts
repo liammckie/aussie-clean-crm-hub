@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import type { 
   SupplierApiResponse, 
@@ -7,6 +6,7 @@ import type {
   ComplianceDocumentApiResponse
 } from './types';
 import type { SupplierCreateData, SupplierData } from '@/types/supplier-types';
+import { formDataToDbData } from '@/utils/supplierDataTransforms';
 import { AppLogger, LogCategory } from '@/utils/logging';
 import { ErrorReporting } from '@/utils/errorReporting';
 import { ErrorCategory } from '@/utils/logging/error-types';
@@ -18,18 +18,11 @@ export async function createSupplier(supplierData: SupplierCreateData): Promise<
   try {
     AppLogger.info(LogCategory.SUPPLIER, 'Creating new supplier', { supplierName: supplierData.supplier_name });
     
+    const dbData = formDataToDbData(supplierData);
+    
     const { data, error } = await supabase
       .from('suppliers')
-      .insert({
-        business_name: supplierData.supplier_name,
-        supplier_type: supplierData.supplier_type,
-        status: supplierData.status,
-        abn: supplierData.abn,
-        notes: supplierData.notes,
-        primary_contact_name: supplierData.contact_person,
-        primary_contact_phone: supplierData.phone,
-        primary_contact_email: supplierData.email
-      })
+      .insert(dbData)
       .select()
       .single();
       

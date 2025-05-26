@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
 import { AppLogger, LogCategory } from '@/utils/logging';
+import { dbDataToDisplayData, displayDataToFormData, formDataToDbData } from '@/utils/supplierDataTransforms';
 
 export default function EditSupplier() {
   const { supplierId } = useParams<{ supplierId: string }>();
@@ -26,11 +27,12 @@ export default function EditSupplier() {
       
       AppLogger.info(
         LogCategory.SUPPLIER,
-        `Updating supplier ${supplier?.supplier_name}`,
+        `Updating supplier ${supplier?.business_name}`,
         { supplierId }
       );
       
-      await updateSupplier({ supplierId, data });
+      const dbData = formDataToDbData(data);
+      await updateSupplier({ supplierId, data: dbData });
       navigate(`/suppliers/${supplierId}`);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'An error occurred while updating the supplier');
@@ -86,6 +88,9 @@ export default function EditSupplier() {
       </div>
     );
   }
+
+  const displayData = dbDataToDisplayData(supplier);
+  const formData = displayDataToFormData(displayData);
   
   return (
     <div className="container py-6">
@@ -94,7 +99,7 @@ export default function EditSupplier() {
           <ChevronLeft className="h-4 w-4" />
         </Button>
         <Heading 
-          title={`Edit Supplier: ${supplier.supplier_name}`} 
+          title={`Edit Supplier: ${supplier.business_name}`} 
           description="Update supplier details" 
         />
       </div>
@@ -105,7 +110,7 @@ export default function EditSupplier() {
         onSubmit={handleSubmit}
         isSubmitting={isPending}
         error={submitError}
-        initialData={supplier}
+        initialData={formData}
         buttonText="Update Supplier"
       />
     </div>

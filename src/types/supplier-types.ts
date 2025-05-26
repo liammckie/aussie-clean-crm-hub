@@ -23,6 +23,7 @@ export enum SupplierStatus {
 
 export const AustralianStates = ['NSW', 'VIC', 'QLD', 'SA', 'WA', 'TAS', 'NT', 'ACT'];
 
+// Form schema for creating/editing suppliers
 export const supplierFormSchema = z.object({
   supplier_name: z.string().min(1, 'Supplier name is required'),
   supplier_type: z.string(),
@@ -59,7 +60,7 @@ export const supplierFormSchema = z.object({
 export type SupplierFormData = z.infer<typeof supplierFormSchema>;
 export type SupplierCreateData = z.infer<typeof supplierFormSchema>;
 
-// Updated SupplierData interface to match actual database schema
+// Database schema interface - matches actual suppliers table structure
 export interface SupplierData {
   id: string;
   business_name: string;
@@ -79,7 +80,32 @@ export interface SupplierData {
   updated_at: string;
 }
 
-// Add the ComplianceDocument interface
+// Extended interface for display purposes that includes form fields
+export interface SupplierDisplayData extends SupplierData {
+  supplier_name: string; // Maps to business_name
+  supplier_code?: string;
+  date_onboarded?: string;
+  date_terminated?: string;
+  address_line?: string;
+  suburb?: string;
+  state?: string;
+  postcode?: string;
+  country?: string;
+  contact_person?: string; // Maps to primary_contact_name
+  phone?: string; // Maps to primary_contact_phone
+  email?: string; // Maps to primary_contact_email
+  billing_email?: string;
+  invoice_email?: string;
+  services_provided?: string;
+  payment_terms?: string;
+  bank_details?: {
+    bsb?: string;
+    account_number?: string;
+    account_name?: string;
+  };
+}
+
+// Compliance document interface
 export interface ComplianceDocument {
   id: string;
   supplier_id: string;
